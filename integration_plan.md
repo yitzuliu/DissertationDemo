@@ -1,5 +1,41 @@
 # AI Manual Assistant Integration Framework
 
+**Note:** Model selection (YOLO vs. VLM) is still under evaluation. Both architectures are supported; the final choice will be based on reliability and testing. The system is designed for end-to-end, automated detection and guidance, and this document is intended to be compatible with either approach.
+
+---
+
+## Glossary
+- **YOLO**: You Only Look Once, a fast object detection model.
+- **VLM**: Vision-Language Model, a model that understands both images and text.
+- **End-to-End**: Fully automated pipeline from camera input to user guidance.
+- **Majority Voting**: Aggregating multiple model outputs for stability.
+- **Quantization**: Reducing model size/precision for efficiency.
+
+---
+
+## System Data Flow
+```
+Camera Input
+   ↓
+[YOLO and/or VLM Processing]
+   ↓
+Context Understanding
+   ↓
+Guidance Generation
+   ↓
+User Receives Step-by-Step Instructions
+```
+
+---
+
+## Model Selection Criteria
+- **Accuracy** (object and state recognition)
+- **Latency** (response time)
+- **Resource Usage** (memory, compute)
+- **Extensibility** (ease of adding new tasks/models)
+- **Edge Device Compatibility**
+- **Reliability in real-world scenarios**
+
 ## Current Situation Analysis
 
 The project currently contains two main components:
@@ -13,69 +49,38 @@ The project currently contains two main components:
 
 ## Framework Adjustment Plan
 
-Considering the limitations of the YOLO system in cognitive understanding of objects, we propose a VLM (Vision-Language Model) centered framework, rather than over-relying on YOLO:
+**Note:** The choice of primary model (YOLO or VLM) for this project is still under consideration. We are actively evaluating which model is more reliable for our use case. Both architectures are valid options, and the final decision will be based on further testing and reliability assessment.
 
-### 1. Core Architecture: VLM-based Visual Understanding System
+### 1. Core Architecture: Model Selection Options
 
-**Recommended approach:** Use more powerful VLM to replace YOLO as the primary recognition engine
+#### Option A: VLM-based Visual Understanding System
+- Use a powerful VLM (e.g., Qwen2-VL-2B, MiniCPM-Llama3-V-2.5, Phi-3-vision-4B, LLaVA-1.5-3B) as the primary recognition engine
+- Advantages: Deep understanding of object states, spatial relationships, context, and activities; generates personalized, context-relevant guidance
+- YOLO can serve as an auxiliary system for quick screening or verification
 
-- **Primary model:** Qwen2-VL-2B (edge-device friendly, significantly outperforms SmolVLM)
-- **Alternative models:**
-  - **MiniCPM-Llama3-V-2.5** (optimized for Apple chips, by CaptainAI Research Team)
-  - **Phi-3-vision-4B** (Microsoft's efficient vision-language model with strong zero-shot capabilities)
-  - **LLaVA-1.5-3B** (balances performance and resources)
+#### Option B: YOLO-based Primary Detection with VLM Contextualization
+- Use YOLO as the main object detector for speed and deterministic results
+- Pass detected regions or the full frame to a VLM for contextual understanding and guidance
+- Advantages: Fast initial detection, resource efficiency, and the ability to leverage VLM for higher-level reasoning when needed
 
-**Advantages:**
-- Deep understanding of object states (chopped/unchopped, hot/cold)
-- Understanding spatial relationships and context between objects
-- Recognizing activities and progress (cooking in progress, assembly just started)
-- Generating personalized, context-relevant guidance
-
-### 2. Enhanced System Components
-
-#### A. Image Processing Optimization Pipeline
-- Multi-scale image processing (overall scene + detailed areas)
-- Adaptive contrast equalization (CLAHE)
-- Bilateral filtering instead of Gaussian blur (preserves edges)
-- HSV color space enhancement
-
-#### B. Scene Memory System (developed but not activated)
-- Activate existing SceneMemory system
-- Implement scene change detection
-- Long-term object state tracking
-- User progress recording
-
-#### C. Majority Voting System (priority implementation)
-- Collect multiple samples (5 samples every 500ms)
-- Cross-sample object grouping and similarity matching
-- Frequency-based filtering (retain if appears in >50% of samples)
-- Generate merged natural language responses
-
-### 3. Selective YOLO Integration (auxiliary role)
-
-YOLO can serve as an auxiliary system, not as the main recognition engine:
-
-- **Use case 1:** Quick initial screening to determine areas of focus
-- **Use case 2:** Verifying VLM recognition results in specific scenarios
-- **Use case 3:** Providing more precise bounding boxes for specific object categories
-
-**Integration method:**
+**Integration method example:**
 ```python
-# Pseudocode example of integrating YOLO and VLM
+# Pseudocode for flexible integration
+# Option A: VLM primary, YOLO auxiliary
+# Option B: YOLO primary, VLM auxiliary
+
 def process_frame(frame):
-    # 1. Use YOLO for quick scanning to identify areas of interest
-    yolo_results = yolo_model(frame)
-    regions_of_interest = extract_roi(yolo_results)
-    
-    # 2. Pass the complete frame to VLM for main understanding
-    vlm_response = vlm_model(frame, prompt)
-    
-    # 3. Use YOLO results for verification only in specific cases
-    if needs_verification(vlm_response):
-        verified_response = verify_with_yolo(vlm_response, yolo_results)
-        return verified_response
-    
-    return vlm_response
+    if primary_model == 'YOLO':
+        yolo_results = yolo_model(frame)
+        vlm_response = vlm_model(frame, prompt, yolo_results)
+        return vlm_response
+    else:
+        vlm_response = vlm_model(frame, prompt)
+        if needs_verification(vlm_response):
+            yolo_results = yolo_model(frame)
+            verified_response = verify_with_yolo(vlm_response, yolo_results)
+            return verified_response
+        return vlm_response
 ```
 
 ## Edge Device Performance Considerations
@@ -137,6 +142,8 @@ To ensure smooth experience on edge devices, the following optimization measures
 | Response Time | <2 seconds | System log analysis |
 | Guidance Effectiveness | >80% | Task success rate improvement |
 
+**Note:** Metrics will be measured using a combination of annotated test datasets, user studies, and system logs.
+
 ## Conclusion
 
-Based on the analysis of YOLO and VLM capabilities, we recommend using VLM as the core component of the system, and selectively integrating YOLO in specific scenarios to obtain auxiliary information. This approach will fully leverage VLM's contextual understanding capabilities, while utilizing YOLO's fast detection advantages when needed, thereby creating a more comprehensive and intelligent AI manual assistant system.
+**Current Status:** Model selection is ongoing. Based on the analysis of YOLO and VLM capabilities, we are evaluating both as potential core components of the system. The final architecture will fully leverage VLM's contextual understanding and/or YOLO's fast detection advantages as appropriate, to create a comprehensive and intelligent AI manual assistant system. Both models may be selectively integrated depending on scenario and reliability.
