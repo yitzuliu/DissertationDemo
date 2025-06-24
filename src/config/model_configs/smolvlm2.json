@@ -1,0 +1,162 @@
+{
+  "model_name": "SmolVLM2",
+  "model_variant": "video",
+  "model_paths": {
+    "video": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+    "image": "mlx-community/SmolVLM2-500M-Instruct-mlx",
+    "chat": "mlx-community/SmolVLM2-500M-Chat-mlx"
+  },
+  "server": {
+    "command": "python",
+    "script": "src/models/smolvlm2/start_server.py",
+    "args": ["--model", "video", "--port", "8080"],
+    "port": 8080,
+    "host": "127.0.0.1",
+    "health_endpoint": "/health",
+    "framework": "MLX",
+    "optimized_for": "Apple Silicon"
+  },
+  "image_processing": {
+    "supported_formats": ["jpeg", "jpg", "png", "webp", "bmp"],
+    "max_size": [1024, 1024],
+    "optimal_size": [512, 512],
+    "preprocessing": {
+      "normalize": true,
+      "resize_method": "bilinear",
+      "maintain_aspect_ratio": true
+    },
+    "batch_processing": {
+      "enabled": true,
+      "max_batch_size": 4,
+      "parallel_processing": true
+    }
+  },
+  "video_processing": {
+    "supported_formats": ["mp4", "mov", "avi", "mkv", "webm"],
+    "max_duration": 300,
+    "optimal_duration": 60,
+    "frame_sampling": {
+      "method": "uniform",
+      "max_frames": 16,
+      "fps_target": 2
+    },
+    "preprocessing": {
+      "resize_frames": true,
+      "target_size": [512, 512],
+      "quality_optimization": true
+    },
+    "real_time": {
+      "enabled": true,
+      "buffer_size": 30,
+      "processing_interval": 1.0
+    }
+  },
+  "api": {
+    "endpoint": "/v1/chat/completions",
+    "timeout": 120,
+    "max_tokens": 512,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "stream_support": true
+  },
+  "prompts": {
+    "system_prompts": {
+      "cooking": "You are an expert cooking assistant. Analyze images/videos to provide step-by-step cooking guidance. Focus on ingredient states, cooking techniques, timing, and safety. Be specific and actionable.",
+      "repair": "You are a technical repair expert. Analyze images/videos to guide repair processes. Focus on identifying components, tools, safety procedures, and step-by-step instructions. Highlight potential hazards.",
+      "assembly": "You are an assembly expert. Analyze images/videos to guide assembly processes. Focus on part identification, proper orientation, tool usage, and sequential steps. Verify completion of each stage.",
+      "general": "You are a helpful assistant that can understand images and videos. Provide detailed, accurate descriptions and answer questions about what you observe. Focus on practical, actionable information."
+    },
+    "default_instruction": "Analyze this image/video and provide detailed, helpful guidance based on what you observe.",
+    "video_instruction": "Watch this video carefully and describe the process, techniques, and any important details. Provide step-by-step guidance if appropriate.",
+    "multi_image_instruction": "Compare these images and describe the differences, similarities, or progression you observe."
+  },
+  "ui": {
+    "capture_intervals": [500, 1000, 2000, 5000, 10000],
+    "default_interval": 2000,
+    "video_controls": {
+      "play_pause": true,
+      "seek": true,
+      "speed_control": [0.5, 1.0, 1.5, 2.0],
+      "frame_by_frame": true
+    },
+    "image_controls": {
+      "zoom": true,
+      "pan": true,
+      "rotate": true,
+      "multi_select": true
+    }
+  },
+  "memory": {
+    "max_previous_scenes": 15,
+    "max_context_history": 5,
+    "video_memory": {
+      "enabled": true,
+      "segment_duration": 10,
+      "max_segments": 20
+    }
+  },
+  "performance": {
+    "mlx_optimization": {
+      "enabled": true,
+      "metal_performance_shaders": true,
+      "neural_engine_acceleration": true,
+      "memory_efficient": true
+    },
+    "apple_silicon": {
+      "unified_memory": true,
+      "gpu_acceleration": true,
+      "cpu_threads": "auto"
+    },
+    "caching": {
+      "model_cache": true,
+      "response_cache": false,
+      "max_cache_size": "2GB"
+    }
+  },
+  "features": {
+    "video_understanding": {
+      "temporal_reasoning": true,
+      "activity_recognition": true,
+      "change_detection": true,
+      "safety_monitoring": true
+    },
+    "image_understanding": {
+      "object_detection": true,
+      "scene_analysis": true,
+      "text_recognition": true,
+      "spatial_reasoning": true
+    },
+    "multi_modal": {
+      "video_image_comparison": true,
+      "sequential_analysis": true,
+      "context_retention": true,
+      "interactive_guidance": true
+    }
+  },
+  "safety": {
+    "content_filtering": {
+      "enabled": true,
+      "inappropriate_content": true,
+      "violence_detection": true
+    },
+    "processing_limits": {
+      "max_file_size": "100MB",
+      "max_video_length": "5 minutes",
+      "concurrent_requests": 5
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/smolvlm2_server.log",
+    "rotation": "daily",
+    "max_size": "100MB"
+  },
+  "version": "2.0.0",
+  "description": "SmolVLM2 MLX-optimized configuration for Apple Silicon with comprehensive video and image understanding capabilities",
+  "compatibility": {
+    "minimum_macos": "12.0",
+    "recommended_ram": "16GB",
+    "apple_silicon": "required",
+    "mlx_version": ">=0.12.0"
+  }
+} 

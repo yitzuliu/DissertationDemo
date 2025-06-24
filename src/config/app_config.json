@@ -1,0 +1,12 @@
+{
+    "active_model": "smolvlm",
+    "server": {
+        "host": "localhost",
+        "port": 8000
+    },
+    "frontend": {
+        "video_width": 640,
+        "video_height": 480,
+        "api_base_url": "http://localhost:8000"
+    }
+}

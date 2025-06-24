@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmolVLM Camera Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        #videoFeed {
+            width: 100%;
+            max-width: 640px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .io-areas {
+            margin: 20px 0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"], 
+        textarea, 
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        #responseText {
+            font-family: monospace;
+            white-space: pre;
+            min-height: 100px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .status-indicator {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-indicator.error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SmolVLM Camera Demo</h1>
+        
+        <div id="statusIndicator" class="status-indicator"></div>
+
+        <video id="videoFeed" autoplay playsinline></video>
+        <canvas id="canvas" class="hidden"></canvas>
+
+        <div class="io-areas">
+            <div class="input-group">
+                <label for="baseURL">Base API:</label>
+                <input type="text" id="baseURL" value="http://localhost:8080" />
+            </div>
+            <div class="input-group">
+                <label for="instructionText">Instruction:</label>
+                <textarea id="instructionText" rows="2" 
+                    placeholder="What objects do you see in this image?"></textarea>
+            </div>
+            <div class="input-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="jsonOutput"> Enable JSON Output
+                </label>
+            </div>
+            <div class="input-group">
+                <label for="responseText">Response:</label>
+                <textarea id="responseText" rows="4" readonly 
+                    placeholder="Model response will appear here..."></textarea>
+            </div>
+        </div>
+
+        <div class="controls">
+            <label for="intervalSelect">Request Interval:</label>
+            <select id="intervalSelect">
+                <option value="100">100ms</option>
+                <option value="250">250ms</option>
+                <option value="500" selected>500ms</option>
+                <option value="1000">1s</option>
+                <option value="2000">2s</option>
+            </select>
+            <button id="startButton" class="start">Start</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoFeed');
+        const canvas = document.getElementById('canvas');
+        const baseURL = document.getElementById('baseURL');
+        const instructionText = document.getElementById('instructionText');
+        const responseText = document.getElementById('responseText');
+        const intervalSelect = document.getElementById('intervalSelect');
+        const startButton = document.getElementById('startButton');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const jsonOutput = document.getElementById('jsonOutput');
+
+        let stream;
+        let intervalId;
+        let isProcessing = false;
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+
+        // 1. Ask for camera permission on load
+        async function initCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+                responseText.value = "Camera access granted. Ready to start.";
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                responseText.value = `Error accessing camera: ${err.name} - ${err.message}. Please ensure permissions are granted and you are on HTTPS or localhost.`;
+                alert(`Error accessing camera: ${err.name}. Make sure you've granted permission and are on HTTPS or localhost.`);
+            }
+        }
+
+        // 2. Capture image from video stream
+
+        function captureImage() {
+            if (!stream || !video.videoWidth) {
+                console.warn("Video stream not ready for capture.");
+                return null;
+            }
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.8); // Use JPEG for smaller size, 0.8 quality
+        }
+
+        // 發送請求到服務器
+        async function sendChatCompletionRequest(instruction, imageBase64URL) {
+            try {
+                const response = await fetch(`${baseURL.value}/v1/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        max_tokens: 100,
+                        messages: [
+                            { role: 'user', content: [
+                                { type: 'text', text: instruction },
+                                { type: 'image_url', image_url: {
+                                    url: imageBase64URL,
+                                } }
+                            ] },
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorData}`);
+                }
+
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+
+                if (jsonOutput.checked && typeof content === 'object') {
+                    return JSON.stringify(content, null, 2);
+                }
+                return content;
+            } catch (error) {
+                if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    updateStatus(`Request failed, retrying (${retryCount}/${MAX_RETRIES})...`, true);
+                    return await sendChatCompletionRequest(instruction, imageBase64URL);
+                }
+                throw error;
+            }
+        }
+
+        // 發送數據
+        async function sendData() {
+            if (!isProcessing) return; // Ensure we don't have overlapping requests if processing takes longer than interval
+
+            retryCount = 0; // 重置重試計數
+            const instruction = instructionText.value;
+            const imageBase64URL = captureImage();
+
+            if (!imageBase64URL) {
+                responseText.value = "Failed to capture image. Stream might not be active.";
+                return;
+            }
+
+            const payload = {
+                instruction: instruction,
+                imageBase64URL: imageBase64URL
+            };
+
+            try {
+                const response = await sendChatCompletionRequest(payload.instruction, payload.imageBase64URL);
+                responseText.value = response;
+            } catch (error) {
+                console.error('Error sending data:', error);
+                responseText.value = `Error: ${error.message}`;
+            }
+        }
+
+        // 顯示狀態消息
+        function updateStatus(message, isError = false) {
+            statusIndicator.textContent = message;
+            if (isError) {
+                statusIndicator.classList.add('error');
+            } else {
+                statusIndicator.classList.remove('error');
+            }
+        }
+
+        function handleStart() {
+            if (!stream) {
+                responseText.value = "Camera not available. Cannot start.";
+                alert("Camera not available. Please grant permission first.");
+                return;
+            }
+            isProcessing = true;
+            startButton.textContent = "Stop";
+            startButton.classList.remove('start');
+            startButton.classList.add('stop');
+
+            instructionText.disabled = true;
+            intervalSelect.disabled = true;
+
+            responseText.value = "Processing started...";
+
+            const intervalMs = parseInt(intervalSelect.value, 10);
+            
+            // Initial immediate call
+            sendData(); 
+            
+            // Then set interval
+            intervalId = setInterval(sendData, intervalMs);
+        }
+
+        function handleStop() {
+            isProcessing = false;
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            startButton.textContent = "Start";
+            startButton.classList.remove('stop');
+            startButton.classList.add('start');
+
+            instructionText.disabled = false;
+            intervalSelect.disabled = false;
+            if (responseText.value.startsWith("Processing started...")) {
+                responseText.value = "Processing stopped.";
+            }
+        }
+
+        // 事件監聽器
+        startButton.addEventListener('click', () => {
+            if (isProcessing) {
+                handleStop();
+            } else {
+                handleStart();
+            }
+        });
+
+        // Initialize camera when the page loads
+        window.addEventListener('DOMContentLoaded', initCamera);
+
+        // Optional: Stop stream when page is closed/navigated away to release camera
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        });
+
+        // 設定默認指令
+        instructionText.value = "What do you see?"; // default instruction
+    </script>
+</body>
+</html>

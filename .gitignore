@@ -1,0 +1,110 @@
+# Virtual Environment
+ai_vision_env/
+.venv/
+venv/
+env/
+ENV/
+**/site-packages/
+**/pyvenv.cfg
+
+# Python cache files
+__pycache__/
+*/__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+.pytest_cache/
+.coverage
+
+# Model files (large binary files)
+*.pt
+*.pth
+*.weights
+*.onnx
+*.gguf
+*.bin
+*.pb
+src/models/*/model_files/
+**/model_files/
+**/huggingface/
+models/*/checkpoint-*
+
+# YOLO specific exclusions
+src/models/yolo8/
+**/yolo8/
+**/YOLO8/
+*yolo*.pt
+*yolo*.weights
+*yolo*.cfg
+
+# Python distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.cursor/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+Icon
+
+# Log files
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Temporary files
+tmp/
+temp/
+.cache/
+*~
+*.bak
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+*~
+src_backup_*/
+
+# Other
+.env
+.env.*
+secrets.json
+credentials.json

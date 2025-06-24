@@ -1,0 +1,35 @@
+{
+  "model_name": "SmolVLM",
+  "model_path": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+  "server": {
+    "command": "llama-server",
+    "args": ["-hf", "ggml-org/SmolVLM-500M-Instruct-GGUF", "-ngl", "99", "--port", "8080"],
+    "port": 8080,
+    "health_endpoint": "/health"
+  },
+  "image_processing": {
+    "size": [512, 512],
+    "contrast_factor": 1.2,
+    "brightness_factor": 1.05,
+    "sharpness_factor": 1.3,
+    "jpeg_quality": 95,
+    "gaussian_blur_radius": 0.5,
+    "format": "jpeg"
+  },
+  "api": {
+    "endpoint": "/v1/chat/completions",
+    "timeout": 60,
+    "max_tokens": 512
+  },
+  "ui": {
+    "default_instruction": "List all objects in this image with their positions. Be specific and detailed.",
+    "capture_intervals": [500, 1000, 2000, 5000],
+    "default_interval": 2000
+  },
+  "memory": {
+    "max_previous_scenes": 10,
+    "max_context_history": 3
+  },
+  "version": "1.0.0",
+  "description": "SmolVLM 500M Instruct model configuration for unified vision system"
+}
