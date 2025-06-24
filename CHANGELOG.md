@@ -16,12 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unified Configuration System with `ConfigManager` class
 - Configuration validation and standardization script
 - New API endpoints for configuration management
+- Standard Model Interface with `BaseVisionModel` abstract class
+- Model-specific implementations that follow the standard interface:
+  - `Phi3VisionModel` for Phi-3 Vision
+  - `YOLO8Model` for YOLO8 object detection
+  - `LLaVAModel` for LLaVA via Ollama
+  - `SmolVLMModel` for SmolVLM
+- Factory class `VLMFactory` for model instantiation
 
 ### Changed
 - Moved existing documentation from root directory to `/docs` directory
 - Enhanced the content of all documentation files with more comprehensive information
 - Removed duplicate documentation files from root directory
 - Created DOCUMENTATION.md with links to all documentation files
+- Refactored image preprocessing into a centralized utility module
+- Updated all model implementations to use the unified image preprocessing pipeline
 
 ### Fixed
 - N/A

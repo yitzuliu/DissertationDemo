@@ -70,12 +70,15 @@ This document serves as the master tracking list for all improvements to be made
 ### 2.2 Standard Model Interface
 - **Priority:** High
 - **Complexity:** High
-- **Status:** Not Started
+- **Status:** Completed
 - **Description:** Create a standard interface that all vision models must implement, regardless of underlying technology. This ensures consistent integration and allows for easier model swapping.
 - **Success Criteria:** All models follow the same interface pattern and can be loaded using the same code path.
 - **Affected Files:**
-  - `/src/models/*/main.py`
-  - `/src/models/base_model.py` (new file)
+  - `/src/models/base_model.py`
+  - `/src/models/phi3_vision/phi3_vision_model.py` 
+  - `/src/models/yolo8/yolo8_model.py`
+  - `/src/models/LLava/llava_model.py`
+  - `/src/models/smolvlm/smolvlm_model.py`
 
 ### 2.3 Consistent Error Handling
 - **Priority:** Medium
@@ -92,14 +95,32 @@ This document serves as the master tracking list for all improvements to be made
 ### 3.1 Image Preprocessing Pipeline
 - **Priority:** High
 - **Complexity:** Medium
-- **Status:** Not Started
+- **Status:** Completed
 - **Description:** Refactor image preprocessing to use a consistent pipeline with model-specific parameters instead of duplicate code for each model.
 - **Success Criteria:** Single preprocessing function that adapts based on model requirements.
 - **Affected Files:**
   - `/src/backend/main.py`
   - `/src/backend/utils/image_processing.py` (new file)
+  - `/src/models/phi3_vision/phi3_vision_model.py` 
+  - `/src/models/yolo8/yolo8_model.py`
+  - `/src/models/LLava/llava_model.py`
+  - `/src/models/smolvlm/smolvlm_model.py`
 
-### 3.2 Backend Modularization
+### 3.2 Model Code Structure Refactoring
+- **Priority:** High
+- **Complexity:** Medium
+- **Status:** Completed
+- **Description:** Refactor the AI model code structure so that each model implementation (Phi3VisionModel, YOLO8Model, LLaVAModel, SmolVLMModel) is moved into its own subdirectory with proper Python package structure.
+- **Success Criteria:** Each model has its own subdirectory with proper imports and is fully functional.
+- **Affected Files:**
+  - `/src/models/base_model.py`
+  - `/src/models/phi3_vision/phi3_vision_model.py` 
+  - `/src/models/yolo8/yolo8_model.py`
+  - `/src/models/LLava/llava_model.py`
+  - `/src/models/smolvlm/smolvlm_model.py`
+  - `/src/models/README.md` (new file)
+
+### 3.3 Backend Modularization
 - **Priority:** Medium
 - **Complexity:** High
 - **Status:** Not Started
@@ -111,7 +132,7 @@ This document serves as the master tracking list for all improvements to be made
   - `/src/backend/routers/` (new directory)
   - `/src/backend/services/` (new directory)
 
-### 3.3 Frontend Code Cleanup
+### 3.4 Frontend Code Cleanup
 - **Priority:** Medium
 - **Complexity:** Medium
 - **Status:** Not Started

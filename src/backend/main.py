@@ -12,34 +12,16 @@ import logging
 import json
 import os
 from pathlib import Path
+from utils.config_manager import config_manager
+from utils.image_processing import (
+    preprocess_for_model, 
+    enhance_image_clahe, 
+    convert_to_pil_image,
+    convert_to_cv2_image
+)
 
-# Load configuration
-def load_config():
-    config_path = Path(__file__).parent.parent / "config" / "app_config.json"
-    try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f"Error: Configuration file not found at {config_path}")
-        raise
-    except json.JSONDecodeError:
-        print(f"Error: Invalid JSON in configuration file at {config_path}")
-        raise
-
-config = load_config()
-
-def load_model_config(model_name):
-    """Load model-specific configuration file"""
-    model_config_path = Path(__file__).parent.parent / "config" / "model_configs" / f"{model_name}.json"
-    try:
-        with open(model_config_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        logger.warning(f"Model configuration file not found at {model_config_path}")
-        return {}
-    except json.JSONDecodeError:
-        logger.error(f"Invalid JSON in model configuration file at {model_config_path}")
-        return {}
+# Initialize and load configuration
+config_manager.load_app_config()
 
 # Set up logging
 # Create logs directory if it doesn't exist
@@ -72,7 +54,7 @@ app.add_middleware(
 )
 
 # Determine which model to use based on configuration
-ACTIVE_MODEL = config.get("active_model", "smolvlm")
+ACTIVE_MODEL = config_manager.get_active_model()
 MODEL_SERVER_URL = "http://localhost:8080"  # Unified model server URL
 
 def preprocess_image(image_url):
@@ -225,10 +207,10 @@ async def root():
 async def get_config():
     """Return frontend configuration with current model's default prompt"""
     # Load model-specific configuration
-    model_config = load_model_config(ACTIVE_MODEL)
+    model_config = config_manager.load_model_config(ACTIVE_MODEL)
     
     # Start with main configuration
-    frontend_config = config.get("frontend", {}).copy()
+    frontend_config = config_manager.get_config("frontend", {}).copy()
     
     # Add model-specific default prompt
     if "ui" in model_config and "default_instruction" in model_config["ui"]:
@@ -253,20 +235,58 @@ async def get_config():
     
     return frontend_config
 
+@app.get("/api/v1/config")
+async def get_full_config():
+    """Return the complete merged configuration including app config and active model config"""
+    return config_manager.get_merged_config()
+
+class ConfigUpdate(BaseModel):
+    """Model for configuration updates"""
+    active_model: Optional[str] = None
+    server: Optional[Dict[str, Any]] = None
+    frontend: Optional[Dict[str, Any]] = None
+
+@app.patch("/api/v1/config")
+async def update_config(config_update: ConfigUpdate):
+    """Update configuration values"""
+    updates = config_update.dict(exclude_unset=True)
+    
+    # Special handling for active_model to validate it exists
+    if "active_model" in updates:
+        model_name = updates.pop("active_model")
+        success = config_manager.set_active_model(model_name)
+        if not success:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{model_name}' not found or invalid"
+            )
+        # Update the global ACTIVE_MODEL variable
+        global ACTIVE_MODEL
+        ACTIVE_MODEL = config_manager.get_active_model()
+    
+    # Apply other updates
+    if updates:
+        config_manager.update_config(updates)
+    
+    return {
+        "status": "success",
+        "message": "Configuration updated successfully",
+        "config": config_manager.get_merged_config()
+    }
+
 @app.get("/status")
 async def get_status():
     """Return system status"""
     return {
         "active_model": ACTIVE_MODEL,
         "available_models": ["smolvlm", "phi3_vision"],
-        "config": config
+        "config": config_manager.get_config()
     }
 
 # Start frontend separately: cd ../frontend && python -m http.server 5500
 
 if __name__ == "__main__":
     uvicorn.run(
-        app, 
-        host=config["server"]["host"], 
-        port=config["server"]["port"]
+        app,        host=config_manager.get_config("server.host"),
+        port=config_manager.get_config("server.port")
     )
