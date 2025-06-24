@@ -1,0 +1,54 @@
+{
+  "model_name": "MODEL_NAME_HERE",
+  "model_path": "MODEL_PATH_HERE",
+  "version": "1.0.0",
+  "description": "Model description",
+  "features": [
+    "Feature 1",
+    "Feature 2"
+  ],
+  "server": {
+    "command": "command_to_run_server",
+    "args": ["arg1", "arg2"],
+    "port": 8080,
+    "health_endpoint": "/health",
+    "startup_timeout": 60
+  },
+  "image_processing": {
+    "size": [640, 480],
+    "format": "jpeg",
+    "jpeg_quality": 90,
+    "contrast_factor": 1.0,
+    "brightness_factor": 1.0,
+    "sharpness_factor": 1.0,
+    "gaussian_blur_radius": 0.0
+  },
+  "model_config": {
+    "max_new_tokens": 512,
+    "temperature": 0.7,
+    "top_p": 1.0,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0
+  },
+  "api": {
+    "endpoint": "/v1/chat/completions",
+    "timeout": 60,
+    "max_tokens": 512
+  },
+  "ui": {
+    "default_instruction": "Describe what you see in this image.",
+    "capture_intervals": [1000, 2000, 3000, 5000],
+    "default_interval": 2000
+  },
+  "memory": {
+    "max_previous_scenes": 5,
+    "max_context_history": 3
+  },
+  "hardware": {
+    "recommended_ram": "8GB",
+    "recommended_gpu": "4GB",
+    "supports_cpu": true,
+    "supports_gpu": true,
+    "supports_mps": true
+  }
+}
