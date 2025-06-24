@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Eye - Real-time Object Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            color: #ffffff;
+        }
+        #video-container {
+            border: 3px solid #00ff7f; /* A nice "AI" green */
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 255, 127, 0.2);
+        }
+        img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Eye - Real-time Object Detection</h1>
+    <div id="video-container">
+        <!-- The video stream will be inserted here -->
+        <img id="video-stream" src="" alt="Video Stream">
+    </div>
+
+    <!-- This script is the client-side library for Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script>
+        // Connect to the Socket.IO server
+        // The server is serving this page, so we can connect to it directly
+        const socket = io();
+
+        // Get the image element
+        const videoStream = document.getElementById('video-stream');
+
+        // Listen for the 'video_frame' event from the server
+        socket.on('video_frame', function(data) {
+            // When we receive a frame, we update the 'src' of our image tag
+            // The 'data:image/jpeg;base64,' part is a standard way to display
+            // base64-encoded images in HTML.
+            videoStream.src = 'data:image/jpeg;base64,' + data.image;
+        });
+    </script>
+</body>
+</html>

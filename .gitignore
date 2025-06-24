@@ -33,10 +33,6 @@ src/models/*/model_files/
 **/huggingface/
 models/*/checkpoint-*
 
-# YOLO specific exclusions
-src/models/yolo8/
-**/yolo8/
-**/YOLO8/
 *yolo*.pt
 *yolo*.weights
 *yolo*.cfg
