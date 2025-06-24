@@ -23,7 +23,6 @@ import threading
 from pathlib import Path
 
 from ..base_model import BaseVisionModel
-# Note: Keeping this as an absolute import since it's from a different package
 from src.backend.utils.image_processing import preprocess_for_model
 
 logger = logging.getLogger(__name__)
@@ -232,3 +231,159 @@ class SmolVLMModel(BaseVisionModel):
         except Exception as e:
             logger.error(f"Error preprocessing image for SmolVLM: {str(e)}")
             raise e
+    
+    def predict(self, 
+                image: Union[Image.Image, np.ndarray], 
+                prompt: str, 
+                options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Generate a prediction from the model.
+        
+        Args:
+            image: The input image
+            prompt: The text prompt to guide the model
+            options: Additional model-specific options
+            
+        Returns:
+            A dictionary containing the model's response
+        """
+        if not self.loaded:
+            if not self.load_model():
+                return {"error": "Model server is not available"}
+        
+        try:
+            start_time = time.time()
+            
+            # Apply default options if not provided
+            if options is None:
+                options = {}
+                
+            # Get generation parameters
+            temperature = options.get("temperature", 0.0)
+            max_tokens = options.get("max_tokens", 512)
+            
+            # Preprocess the image to base64
+            image_base64 = self.preprocess_image(image)
+            
+            # Create the API request payload
+            payload = {
+                "model": "SmolVLM",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                        ]
+                    }
+                ],
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+            
+            # Make the API call
+            response = requests.post(
+                self.server_url,
+                headers=self.headers,
+                json=payload,
+                timeout=self.timeout
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"SmolVLM API error: {response.status_code} - {response.text}")
+                return {
+                    "error": f"API Error {response.status_code}",
+                    "details": response.text
+                }
+            
+            # Extract the response content
+            response_json = response.json()
+            raw_response = response_json["choices"][0]["message"]["content"]
+            
+            processing_time = time.time() - start_time
+            self._update_stats(processing_time)
+            
+            # Format the response
+            result = self.format_response(raw_response)
+            result["processing_time"] = processing_time
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error during prediction with {self.model_name}: {str(e)}")
+            return {
+                "error": f"Failed to analyze image with {self.model_name}",
+                "details": str(e)
+            }
+    
+    def format_response(self, raw_response: str) -> Dict[str, Any]:
+        """
+        Format the raw model response into a standardized format.
+        
+        Args:
+            raw_response: The raw text output from the model
+            
+        Returns:
+            A standardized response dictionary
+        """
+        try:
+            # Clean up response to extract any JSON
+            clean_text = raw_response.strip()
+            
+            # Remove markdown code block formatting if present
+            if "```json" in clean_text:
+                clean_text = clean_text.replace("```json", "").replace("```", "").strip()
+            elif "```" in clean_text:
+                # Extract content between first and last ```
+                start = clean_text.find("```") + 3
+                end = clean_text.rfind("```")
+                if start < end:
+                    clean_text = clean_text[start:end].strip()
+            
+            # Try to parse as JSON
+            try:
+                parsed_json = json.loads(clean_text)
+                return {
+                    "success": True,
+                    "response": parsed_json,
+                    "raw_response": raw_response
+                }
+            except json.JSONDecodeError:
+                # If not valid JSON, return as text
+                return {
+                    "success": True,
+                    "response": {
+                        "text": clean_text
+                    },
+                    "raw_response": raw_response
+                }
+                
+        except Exception as e:
+            logger.error(f"Error formatting response: {str(e)}")
+            return {
+                "success": False,
+                "error": "Failed to format model response",
+                "raw_response": raw_response
+            }
+    
+    def unload_model(self) -> bool:
+        """
+        Unload the model from memory to free resources.
+        
+        If we're managing the server, this will stop it.
+        
+        Returns:
+            True if unloading was successful, False otherwise
+        """
+        try:
+            if self.manage_server and self.server:
+                self.server.stop()
+                
+            self.loaded = False
+            import gc
+            gc.collect()
+            logger.info(f"Model {self.model_name} unloaded successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Error unloading model {self.model_name}: {str(e)}")
+            return False
