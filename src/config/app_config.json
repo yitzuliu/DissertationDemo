@@ -1,5 +1,5 @@
 {
-    "active_model": "smolvlm",
+    "active_model": "phi3_vision",
     "server": {
         "host": "localhost",
         "port": 8000

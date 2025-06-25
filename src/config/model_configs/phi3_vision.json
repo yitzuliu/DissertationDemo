@@ -1,51 +1,19 @@
 {
-    "model_name": "Phi-3-Vision",
-    "model_path": "microsoft/Phi-3-vision-128k-instruct",
-    "server": {
-        "command": "python",
-        "args": ["-m", "vllm.entrypoints.openai.api_server", "--model", "microsoft/Phi-3-vision-128k-instruct", "--trust-remote-code", "--port", "8080"],
-        "port": 8080,
-        "health_endpoint": "/health"
+    "name": "phi3_vision",
+    "display_name": "Phi-3 Vision",
+    "model_id": "microsoft/Phi-3-vision-128k-instruct",
+    "device": "auto",
+    "max_tokens": 500,
+    "temperature": 0,
+    "ui": {
+        "default_instruction": "Analyze what is happening in this image in detail. Identify tools, objects, and actions.",
+        "default_interval": 5000,
+        "capture_intervals": [3000, 5000, 10000, 30000],
+        "help": "Phi-3 Vision is an advanced multimodal model that can interpret images with high accuracy."
     },
     "image_processing": {
-        "size": [336, 336],
-        "format": "jpeg",
-        "jpeg_quality": 95
-    },
-    "model_config": {
-        "max_new_tokens": 500,
-        "temperature": 0.3,
-        "top_p": 0.9,
-        "frequency_penalty": 0.1,
-        "presence_penalty": 0.1
-    },
-    "api": {
-        "endpoint": "/v1/chat/completions",
-        "timeout": 120,
-        "max_tokens": 500
-    },
-    "ui": {
-        "default_instruction": "Please describe this image in detail, including main objects, colors, scene, and other visual elements.",
-        "capture_intervals": [1000, 2000, 3000, 5000],
-        "default_interval": 2000
-    },
-    "memory": {
-        "max_previous_scenes": 5,
-        "max_context_history": 3
-    },
-    "vllm_config": {
-        "gpu_memory_utilization": 0.8,
-        "max_num_batched_tokens": 4096,
-        "trust_remote_code": true,
-        "dtype": "auto"
-    },
-    "version": "2.0.0",
-    "description": "Microsoft Phi-3 Vision 4.2B multimodal model with vLLM acceleration",
-    "features": [
-        "Multi-modal understanding",
-        "OCR capabilities", 
-        "Chart and diagram analysis",
-        "128K context window",
-        "High-performance inference"
-    ]
+        "target_size": [336, 336],
+        "keep_aspect_ratio": true,
+        "enhance": false
+    }
 }
