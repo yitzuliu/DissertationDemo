@@ -2,56 +2,29 @@
 
 ## Overview
 
-This document describes the API endpoints available in the AI Manual Assistant system. The API is organized into three main components:
-1. Frontend API (Port 5500)
-2. Backend API (Port 8000)
-3. Model Server API (Port 8080)
+This document describes the API endpoints for the AI Manual Assistant system. The API is designed around a unified, OpenAI-compatible interface to provide maximum flexibility and interoperability.
+
+The system is composed of:
+1. **Backend API (Port 8000):** Acts as a smart gateway that receives requests, preprocesses data, and routes them to the appropriate model server.
+2. **Model Server API (Port 8080):** The core inference engine that runs the VLM models.
+3. **Frontend (Port 5500):** The web client for user interaction.
 
 ## API Endpoints
 
 ### Backend API (Port 8000)
 
-#### 1. Image Analysis
-```http
-POST /api/v1/analyze
-Content-Type: multipart/form-data
+The backend exposes a single, primary endpoint for all visual analysis tasks, adhering to the OpenAI `chat.completions` format. This allows for easy integration with a wide range of existing tools.
 
-Parameters:
-- image: binary (required) - The image file to analyze
-- prompt: string (optional) - Custom instruction for analysis
-- model: string (optional) - Specific model to use (defaults to active_model in config)
-```
+#### 1. Unified Chat Completions (Image and Text Analysis)
+This is the main endpoint for sending image and text prompts for analysis. The backend server receives this request, performs necessary image preprocessing based on the active model, and then forwards a request to the Model Server on port 8080.
 
-**Response:**
-```json
-{
-  "analysis": {
-    "objects": [
-      {
-        "name": "screwdriver",
-        "position": "center",
-        "confidence": 0.95
-      },
-      {
-        "name": "screw",
-        "position": "top-right",
-        "confidence": 0.87
-      }
-    ],
-    "scene": "Workshop table with tools",
-    "guidance": "You are currently holding a Phillips screwdriver. The screw you need to tighten is located on the top-right corner of the frame.",
-    "safety_concerns": []
-  },
-  "model_used": "smolvlm",
-  "processing_time": 0.45
-}
-```
-
-#### 2. OpenAI-Compatible Chat Completions
 ```http
 POST /v1/chat/completions
 Content-Type: application/json
+```
 
+**Request Body:**
+```json
 {
   "messages": [
     {
@@ -75,31 +48,32 @@ Content-Type: application/json
 ```
 
 **Response:**
+The response is passed through directly from the model server.
 ```json
 {
   "id": "chatcmpl-123456789",
   "object": "chat.completion",
   "created": 1686579553,
-  "model": "smolvlm",
+  "model": "phi3_vision",
   "choices": [
     {
       "message": {
         "role": "assistant",
-        "content": "In the image, I can see several tools: 1) A red screwdriver with a Phillips head, 2) A hammer with a black handle, 3) A measuring tape, and 4) What appears to be a pair of pliers in the background."
+        "content": "In the image, I can see a screwdriver and several screws on a wooden surface."
       },
       "finish_reason": "stop",
       "index": 0
     }
   ],
   "usage": {
-    "prompt_tokens": 25,
-    "completion_tokens": 42,
-    "total_tokens": 67
+    "prompt_tokens": 85,
+    "completion_tokens": 25,
+    "total_tokens": 110
   }
 }
 ```
 
-#### 3. Model Selection
+#### 2. Model Selection
 ```http
 PUT /api/v1/config/model
 Content-Type: application/json
@@ -118,126 +92,50 @@ Content-Type: application/json
 }
 ```
 
-#### 4. Health Check
+#### 3. Health Check
 ```http
 GET /health
-
-No parameters
 ```
 
 **Response:**
 ```json
 {
-  "status": "ok",
-  "version": "1.2.3",
-  "active_model": "smolvlm",
-  "backend_uptime": 1543.2,
-  "model_server_status": "connected"
+  "status": "healthy",
+  "active_model": "phi3_vision",
+  "timestamp": "...",
+  "version": "1.0.0"
 }
 ```
 
-#### 5. Configuration Retrieval
+#### 4. Configuration Retrieval
 ```http
 GET /api/v1/config
-
-No parameters
 ```
+Returns the complete merged configuration.
 
-**Response:**
-```json
-{
-  "active_model": "smolvlm",
-  "server": {
-    "host": "localhost",
-    "port": 8000
-  },
-  "frontend": {
-    "video_width": 640,
-    "video_height": 480,
-    "api_base_url": "http://localhost:8000"
-  },
-  "model_config": {
-    "image_processing": {
-      "size": [512, 512],
-      "contrast_factor": 1.2,
-      "brightness_factor": 1.05,
-      "sharpness_factor": 1.3
-    }
-  }
-}
-```
-
-#### 6. Configuration Update
+#### 5. Configuration Update
 ```http
 PATCH /api/v1/config
-Content-Type: application/json
-
-{
-  "frontend": {
-    "video_width": 1280,
-    "video_height": 720
-  }
-}
 ```
+Updates configuration values based on the request body.
 
-**Response:**
-```json
-{
-  "status": "success",
-  "message": "Configuration updated",
-  "updated_keys": ["frontend.video_width", "frontend.video_height"]
-}
-```
 
 ### Model Server API (Port 8080)
+
+The model server exposes an OpenAI-compatible API that the backend communicates with. It is not typically accessed directly by the end-user client.
 
 #### 1. OpenAI-Compatible Chat Completions
 ```http
 POST /v1/chat/completions
-Content-Type: application/json
-
-{
-  "messages": [
-    {
-      "role": "user",
-      "content": [
-        {
-          "type": "text",
-          "text": "What tools do you see in this image?"
-        },
-        {
-          "type": "image_url",
-          "image_url": {
-            "url": "data:image/jpeg;base64,/9j/4AAQSkZJ..."
-          }
-        }
-      ]
-    }
-  ],
-  "max_tokens": 512
-}
 ```
-
-**Response:**
-Same format as the backend chat completions endpoint.
+The request and response formats are identical to the backend's `chat/completions` endpoint.
 
 #### 2. Model Server Health Check
 ```http
 GET /health
-
-No parameters
 ```
+(Note: This endpoint may not be implemented on all model servers.)
 
-**Response:**
-```json
-{
-  "status": "ok",
-  "model": "smolvlm",
-  "version": "1.0.0",
-  "uptime": 384.5,
-  "gpu_memory_used": "2.1GB"
-}
-```
 
 ## Error Responses
 
@@ -253,16 +151,108 @@ All API endpoints use standard HTTP status codes and return error details in the
 }
 ```
 
-### Common Error Codes
+## Client Examples
 
-| Status Code | Error Code | Description |
-|-------------|------------|-------------|
-| 400 | invalid_request | The request was malformed or missing required parameters |
-| 404 | not_found | The requested resource was not found |
-| 415 | unsupported_media_type | The image format is not supported |
-| 422 | unprocessable_content | The image could not be processed |
-| 500 | internal_error | An internal server error occurred |
-| 503 | model_unavailable | The requested model is currently unavailable |
+### cURL
+```bash
+# Analyze an image using the chat completions endpoint
+curl -X POST http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {"type": "text", "text": "Describe this image."},
+          {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,'$(base64 -i my_image.jpg)'"}}
+        ]
+      }
+    ],
+    "max_tokens": 512
+  }'
+```
+
+### Python
+```python
+import requests
+import base64
+
+def analyze_image_with_chat_api(image_path: str, prompt: str):
+    url = "http://localhost:8000/v1/chat/completions"
+    
+    # Encode the image to base64
+    with open(image_path, "rb") as image_file:
+        base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+    
+    headers = {"Content-Type": "application/json"}
+    
+    payload = {
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
+                    }
+                ]
+            }
+        ],
+        "max_tokens": 512
+    }
+    
+    response = requests.post(url, headers=headers, json=payload)
+    return response.json()
+
+# Example usage:
+# result = analyze_image_with_chat_api("photo.jpg", "What's in this image?")
+# print(result)
+```
+
+### JavaScript
+```javascript
+// Send an image for analysis using the chat completions endpoint
+async function analyzeImage(imageFile, prompt) {
+  const reader = new FileReader();
+  reader.readAsDataURL(imageFile);
+  
+  return new Promise((resolve, reject) => {
+    reader.onload = async () => {
+      const base64Image = reader.result;
+
+      const response = await fetch('http://localhost:8000/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                { type: 'image_url', image_url: { url: base64Image } }
+              ]
+            }
+          ],
+          max_tokens: 512
+        })
+      });
+      
+      resolve(await response.json());
+    };
+    reader.onerror = (error) => reject(error);
+  });
+}
+```
+
+## Websocket API
+The WebSocket API remains available for real-time streaming applications.
+```
+WebSocket URL: ws://localhost:8000/ws/analyze
+```
+(See original documentation for message formats)
 
 ## Rate Limiting
 
@@ -281,61 +271,6 @@ Currently, the API does not require authentication for local development. For pr
 Authorization: Bearer <api_token>
 ```
 
-## Websocket API
-
-### Real-time Analysis Stream
-
-```
-WebSocket URL: ws://localhost:8000/ws/analyze
-```
-
-**Connection Parameters:**
-- `model`: (optional) Model to use for analysis
-- `token`: (optional) Authentication token
-
-**Client Messages:**
-```json
-{
-  "type": "image",
-  "data": "base64_encoded_image_data",
-  "settings": {
-    "prompt": "Identify tools and guide me",
-    "interval": 1000
-  }
-}
-```
-
-**Server Messages:**
-```json
-{
-  "type": "analysis",
-  "data": {
-    "objects": [...],
-    "scene": "...",
-    "guidance": "..."
-  },
-  "timestamp": 1686579553
-}
-```
-
-**Control Messages:**
-```json
-// Pause streaming
-{ "type": "control", "action": "pause" }
-
-// Resume streaming
-{ "type": "control", "action": "resume" }
-
-// Change settings
-{ 
-  "type": "settings", 
-  "data": { 
-    "interval": 2000,
-    "prompt": "New instruction"
-  }
-}
-```
-
 ## API Versioning
 
 All API endpoints include a version number (v1) in the URL. Breaking changes will be introduced in new API versions (e.g., v2) while maintaining backward compatibility with previous versions.
@@ -343,52 +278,6 @@ All API endpoints include a version number (v1) in the URL. Breaking changes wil
 ## Cross-Origin Resource Sharing (CORS)
 
 The API server has CORS enabled and allows requests from any origin for development purposes. In production, we recommend restricting allowed origins.
-
-## Client Examples
-
-### cURL
-
-```bash
-# Analyze an image
-curl -X POST http://localhost:8000/api/v1/analyze \
-  -F "image=@photo.jpg" \
-  -F "prompt=Identify tools in this image"
-```
-
-### JavaScript
-
-```javascript
-// Send an image for analysis
-async function analyzeImage(imageBlob) {
-  const formData = new FormData();
-  formData.append('image', imageBlob);
-  formData.append('prompt', 'Identify tools in this image');
-  
-  const response = await fetch('http://localhost:8000/api/v1/analyze', {
-    method: 'POST',
-    body: formData
-  });
-  
-  return await response.json();
-}
-```
-
-### Python
-
-```python
-import requests
-
-def analyze_image(image_path, prompt=None):
-    url = "http://localhost:8000/api/v1/analyze"
-    
-    files = {"image": open(image_path, "rb")}
-    data = {}
-    if prompt:
-        data["prompt"] = prompt
-        
-    response = requests.post(url, files=files, data=data)
-    return response.json()
-```
 
 ## Notes for Model Developers
 

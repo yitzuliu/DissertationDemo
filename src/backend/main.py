@@ -93,7 +93,8 @@ def preprocess_image(image_url):
             quality = 95
             
         elif ACTIVE_MODEL == "phi3_vision":
-            # Phi-3 Vision: 336x336 with high quality, no enhancement for best accuracy
+            # Phi-3 Vision: Resize to model's expected dimensions (336x336)
+            # This prevents tensor shape mismatches during inference
             img = img.resize((336, 336), Image.Resampling.LANCZOS)
             quality = 95
             
