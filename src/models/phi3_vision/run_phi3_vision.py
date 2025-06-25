@@ -1,7 +1,7 @@
 # run_phi3_vision.py
 
 import torch
-from transformers import AutoModelForCausalLM, AutoProcessor, AutoConfig
+from transformers import AutoModelForCausalLM, AutoProcessor
 from PIL import Image
 import cv2
 import json
@@ -30,23 +30,13 @@ TORCH_DTYPE = torch.bfloat16 if DEVICE != "cpu" else torch.float32
 
 # --- 2. MODEL LOADING ---
 print(f"Loading model '{MODEL_ID}' to device '{DEVICE}'. This may take several minutes...")
-
-# Load config and disable FlashAttention2 for Apple Silicon compatibility
-print("Loading and modifying config to disable FlashAttention2...")
-config = AutoConfig.from_pretrained(MODEL_ID, trust_remote_code=True)
-config._attn_implementation = "eager"
-if hasattr(config, "use_flash_attention_2"):
-    config.use_flash_attention_2 = False
-
 # device_map=DEVICE ensures the model is loaded onto the correct hardware (e.g., your Mac's GPU)
 # `trust_remote_code=True` is required as this model has custom code.
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_ID, 
-    config=config,
     device_map=DEVICE, 
     trust_remote_code=True, 
     torch_dtype=TORCH_DTYPE,
-    attn_implementation="eager"
 )
 
 # The processor handles both text tokenization and image pre-processing

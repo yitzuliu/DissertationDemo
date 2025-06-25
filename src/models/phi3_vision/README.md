@@ -17,6 +17,10 @@ source ai_vision_env/bin/activate && python --version
 # Execute in first terminal - PRIMARY METHOD using uvicorn
 source ai_vision_env/bin/activate && cd src/models/phi3_vision && uvicorn main:app --host 0.0.0.0 --port 8080
 ```
+```bash
+# Execute in first terminal - PRIMARY METHOD using uvicorn
+source ai_vision_env_311/bin/activate && cd src/models/phi3_vision && uvicorn main:app --host 0.0.0.0 --port 8080
+```
 
 **Alternative startup methods:**
 ```bash

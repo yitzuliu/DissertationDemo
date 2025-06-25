@@ -203,6 +203,17 @@ async def root():
         "version": "1.0.0"
     }
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    import datetime
+    return {
+        "status": "healthy",
+        "active_model": ACTIVE_MODEL,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "version": "1.0.0"
+    }
+
 @app.get("/config")
 async def get_config():
     """Return frontend configuration with current model's default prompt"""

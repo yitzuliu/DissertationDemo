@@ -5,6 +5,13 @@
     "device": "auto",
     "max_tokens": 500,
     "temperature": 0,
+    "server": {
+        "command": "uvicorn",
+        "args": ["main:app", "--host", "0.0.0.0", "--port", "8082"],
+        "port": 8082,
+        "health_endpoint": "/health",
+        "working_directory": "src/models/phi3_vision"
+    },
     "ui": {
         "default_instruction": "Analyze what is happening in this image in detail. Identify tools, objects, and actions.",
         "default_interval": 5000,
