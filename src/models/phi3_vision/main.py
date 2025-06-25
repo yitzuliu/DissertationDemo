@@ -5,7 +5,7 @@ from PIL import Image
 import cv2
 import numpy as np
 import torch
-from transformers import AutoModelForCausalLM, AutoProcessor
+from transformers import AutoModelForCausalLM, AutoProcessor, AutoConfig
 import io
 import json
 import time
@@ -34,11 +34,21 @@ model = None
 processor = None
 try:
     print(f"Loading model '{MODEL_ID}' into memory. This will take several minutes and >8GB of RAM...")
+    
+    # Load config and disable FlashAttention2 for Apple Silicon compatibility
+    print("Loading and modifying config to disable FlashAttention2...")
+    config = AutoConfig.from_pretrained(MODEL_ID, trust_remote_code=True)
+    config._attn_implementation = "eager"
+    if hasattr(config, "use_flash_attention_2"):
+        config.use_flash_attention_2 = False
+    
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_ID, 
+        config=config,
         device_map=DEVICE, 
         trust_remote_code=True, 
-        torch_dtype=TORCH_DTYPE
+        torch_dtype=TORCH_DTYPE,
+        attn_implementation="eager"
     )
     processor = AutoProcessor.from_pretrained(MODEL_ID, trust_remote_code=True)
     print("Model loaded successfully.")
