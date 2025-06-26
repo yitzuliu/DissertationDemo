@@ -3,49 +3,30 @@
 # ===================================
 
 # ===== PYTHON =====
-# Virtual Environment
-ai_vision_env/
-ai_vision_env_311/
+# Virtual Environments
+/ai_vision_env/
+/ai_vision_env_311/
 .venv/
 venv/
 env/
 ENV/
-**/site-packages/
-**/pyvenv.cfg
 
 # Python cache files
 __pycache__/
-*/__pycache__/
-**/__pycache__/
+*/**/__pycache__/
 *.py[cod]
 *$py.class
-*.so
 .ipynb_checkpoints/
-*/.ipynb_checkpoints/
-**/.ipynb_checkpoints/
-.pytest_cache/
-.coverage
 
 # Python distribution / packaging
-.Python
 build/
-develop-eggs/
 dist/
-downloads/
 eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
 
-# ===== MODEL FILES (LARGE BINARIES ONLY) =====
-# All model weight files - exclude by extension, not directory
+# ===== MODEL FILES (LARGE BINARIES) =====
+# Exclude all common model weight file extensions
 *.safetensors
 *.pt
 *.pth
@@ -58,48 +39,27 @@ wheels/
 *.tflite
 *.mlmodel
 
-# Model checkpoints and cache files
-**/checkpoint-*/
-**/pytorch_model.bin
-**/model.safetensors*
-**/tf_model.h5
-**/model*.bin
-**/model*.pt
-**/model*.pth
-**/model*.safetensors
-
-# YOLO specific large files
-*yolo*.pt
-*yolo*.weights
-
-# Hugging Face cache directories (but allow model dirs with configs)
-**/.cache/
-**/huggingface_hub/
-
 # ===== LOGS & TEMPORARY FILES =====
-logs/
+/logs/
 *.log
-tmp/
-temp/
-.cache/
-*~
-*.bak
+/agent_log.json
+/GIT_HISTORY_LOG.md
 *.tmp
+*.bak
+*.swp
+*.swo
 
-# Backup files
-*.backup
-src_backup_*/
+# ===== BACKUPS =====
+/*_backup*/
+/src_backup_*/
 
 # ===== DEVELOPMENT ENVIRONMENT =====
 # IDEs and editors
-.idea/
 .vscode/
-*.swp
-*.swo
-*~
+.idea/
 .cursor/
 
-# OS specific files
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -107,43 +67,3 @@ src_backup_*/
 .Trashes
 ehthumbs.db
 Thumbs.db
-.AppleDouble
-.LSOverride
-Icon
-
-# ===== SECRETS & CONFIG =====
-# Environment variables
-.env
-.env.*
-secrets.json
-credentials.json
-
-# ===== PROJECT SPECIFIC =====
-# Agent logs
-agent_log.json
-
-# Debug output files
-debug/output/
-test_output/
-
-# ===== ALLOW IMPORTANT FILES =====
-# Explicitly allow small config and documentation files
-!**/*.md
-!**/*.txt
-!**/*.json
-!**/*.yaml
-!**/*.yml
-!**/*.py
-!**/*.cfg
-!**/*.toml
-!**/*.ini
-
-# But still exclude large JSON index files
-**/pytorch_model.bin.index.json
-**/model.safetensors.index.json
-
-# Allow README and LICENSE files anywhere
-!**/README*
-!**/LICENSE*
-!**/requirements.txt
-!**/config.json
