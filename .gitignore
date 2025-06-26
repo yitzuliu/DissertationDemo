@@ -44,8 +44,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# ===== MODEL FILES (LARGE BINARIES) =====
-# All model weight files
+# ===== MODEL FILES (LARGE BINARIES ONLY) =====
+# All model weight files - exclude by extension, not directory
+*.safetensors
 *.pt
 *.pth
 *.weights
@@ -53,46 +54,27 @@ wheels/
 *.gguf
 *.bin
 *.pb
-*.safetensors
 *.h5
 *.tflite
 *.mlmodel
 
-# Model checkpoints and cache
-**/checkpoint-*
-**/model_files/
-**/huggingface/
+# Model checkpoints and cache files
+**/checkpoint-*/
 **/pytorch_model.bin
 **/model.safetensors*
 **/tf_model.h5
+**/model*.bin
+**/model*.pt
+**/model*.pth
+**/model*.safetensors
 
-# YOLO specific files
+# YOLO specific large files
 *yolo*.pt
 *yolo*.weights
-*yolo*.cfg
 
-# ===== MODEL DIRECTORIES =====
-# Root level model directories
-/SmolVLM2-2.2B-Instruct/
-/SmolVLM2-500M-Video-Instruct/
-/models/
-
-# Specific model directory patterns
-**/SmolVLM2-*/
-**/Phi-3*/
-**/phi3*/
-**/llama*/
-**/qwen*/
-**/mistral*/
-**/gemma*/
-
-# Model directories in src/models/
-src/models/smolvlm2/SmolVLM2-*/
-src/models/smolvlm2/smollm/
-src/models/phi3_vision/Phi-3*/
-src/models/phi3_vision/Phi-3-Vision-MLX/
-src/models/phi3_vision/Phi-3-mini-128k-instruct/
-src/models/phi3_vision/Phi-3.5-vision-instruct/
+# Hugging Face cache directories (but allow model dirs with configs)
+**/.cache/
+**/huggingface_hub/
 
 # ===== LOGS & TEMPORARY FILES =====
 logs/
@@ -140,24 +122,28 @@ credentials.json
 # Agent logs
 agent_log.json
 
-# Debug files
-debug/
+# Debug output files
+debug/output/
 test_output/
 
-# ===== EXCEPTIONS (Files to track) =====
-# Allow tracking of config files in model directories
-!src/config/model_configs/*.json
-!src/models/*/config.json
-!src/models/*/*/config.json
-
-# Allow small text files
+# ===== ALLOW IMPORTANT FILES =====
+# Explicitly allow small config and documentation files
 !**/*.md
 !**/*.txt
 !**/*.json
-!**/*.py
 !**/*.yaml
 !**/*.yml
+!**/*.py
+!**/*.cfg
+!**/*.toml
+!**/*.ini
 
-# But exclude large JSON files (model configs can be large)
+# But still exclude large JSON index files
 **/pytorch_model.bin.index.json
 **/model.safetensors.index.json
+
+# Allow README and LICENSE files anywhere
+!**/README*
+!**/LICENSE*
+!**/requirements.txt
+!**/config.json
