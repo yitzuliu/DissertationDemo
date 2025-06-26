@@ -1,0 +1,43 @@
+# SmolVLM2 Project Workspace Requirements
+# Additional dependencies for custom development work
+
+# Core dependencies (already available in main environment)
+# torch>=2.0.0
+# transformers>=4.50.0  
+# pillow>=9.0.0
+# numpy>=1.21.0
+
+# Project-specific additions
+matplotlib>=3.5.0          # For plotting and visualization
+seaborn>=0.11.0           # Enhanced statistical plotting
+jupyter>=1.0.0            # For notebook development
+ipywidgets>=7.6.0         # Interactive widgets for notebooks
+pytest>=6.2.0             # Testing framework
+pytest-cov>=3.0.0        # Test coverage reporting
+tqdm>=4.60.0              # Progress bars
+psutil>=5.8.0             # System monitoring
+
+# Optional performance monitoring
+memory-profiler>=0.60.0   # Memory usage profiling
+line-profiler>=3.5.0      # Line-by-line profiling
+
+# Documentation and development
+sphinx>=4.0.0             # Documentation generation
+black>=22.0.0             # Code formatting
+flake8>=4.0.0             # Code linting
+mypy>=0.950               # Type checking
+
+# Data handling and export
+pandas>=1.3.0             # Data manipulation  
+openpyxl>=3.0.0           # Excel file support
+json5>=0.9.0              # Enhanced JSON parsing
+
+# Optional video processing (when decord is available)
+# decord>=0.6.0           # Video decoding - install manually if needed
+# opencv-python>=4.5.0   # Already available in main environment
+
+# Development utilities
+python-dotenv>=0.19.0     # Environment variable management
+click>=8.0.0              # Command line interface
+rich>=12.0.0              # Rich terminal output
+tabulate>=0.8.0           # Table formatting 

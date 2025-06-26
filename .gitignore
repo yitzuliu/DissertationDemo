@@ -25,8 +25,22 @@ eggs/
 *.egg-info/
 *.egg
 
+# ===== MODEL DIRECTORIES (EMBEDDED REPOS) =====
+# Exclude entire model directories that are embedded git repositories
+# These contain large model files and should not be tracked in main repo
+/src/models/phi3_vision/Phi-3-Vision-MLX/
+/src/models/phi3_vision/Phi-3-mini-128k-instruct/
+/src/models/phi3_vision/Phi-3.5-vision-instruct/
+/src/models/smolvlm2/SmolVLM2-2.2B-Instruct/
+/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/
+/src/models/smolvlm2/smollm/
+
+# But allow specific project files we want to track
+!/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/project_workspace/
+!/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/TODOLIST.md
+
 # ===== MODEL FILES (LARGE BINARIES) =====
-# Exclude all common model weight file extensions
+# Exclude all common model weight file extensions anywhere
 *.safetensors
 *.pt
 *.pth
@@ -38,6 +52,11 @@ eggs/
 *.h5
 *.tflite
 *.mlmodel
+
+# Exclude large tokenizer files
+**/vocab.json
+**/tokenizer.json
+**/merges.txt
 
 # ===== LOGS & TEMPORARY FILES =====
 /logs/
@@ -67,3 +86,21 @@ eggs/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# ===== PROJECT SPECIFIC =====
+# Test outputs and temporary files
+/debug/output/
+/test_output/
+test_smolvlm2_capabilities.py
+quick_test_smolvlm2.py
+**/test_output/
+**/debug_output/
+
+# Allow important project files
+!**/*.md
+!**/*.py
+!**/*.json
+!**/*.txt
+!**/requirements.txt
+!**/README.md
+!**/TODOLIST.md
