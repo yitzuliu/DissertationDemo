@@ -21,7 +21,7 @@ def quick_test():
     
     # Find an available test image
     test_images = [
-        "src/models/phi3_vision/debug/images/IMG_0119.jpg"
+        "src/debug/images/IMG_0119.jpg"
     ]
         #     "src/models/phi3_vision/debug/images/sample.jpg",
         # "src/models/phi3_vision/debug/images/test.jpg"
