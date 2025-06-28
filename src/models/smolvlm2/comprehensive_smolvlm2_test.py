@@ -27,13 +27,16 @@ class SmolVLM2TestSuite:
         self.device = "mps"  # Force MPS for optimal Apple Silicon performance
         self.model: Optional[AutoModelForImageTextToText] = None
         self.processor: Optional[AutoProcessor] = None
-        self.model_path = "SmolVLM2-500M-Video-Instruct"
-        self.video_path = "../../../src/debug/viedo/Generated File June 24, 2025 - 5_04PM.mp4"
+        
+        # Get the directory where this script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.model_path = os.path.join(script_dir, "SmolVLM2-500M-Video-Instruct")
+        self.video_path = os.path.join(script_dir, "../../../src/debug/viedo/Generated File June 24, 2025 - 5_04PM.mp4")
         self.image_paths = [
-            "../../../src/debug/images/IMG_0119.JPG",
-            "../../../src/debug/images/test_image.png",
-            "../../../src/debug/images/sample.jpg",
-            "../../../src/debug/images/test.jpg"
+            os.path.join(script_dir, "../../../src/debug/images/IMG_0119.JPG"),
+            os.path.join(script_dir, "../../../src/debug/images/test_image.png"),
+            os.path.join(script_dir, "../../../src/debug/images/sample.jpg"),
+            os.path.join(script_dir, "../../../src/debug/images/test.jpg")
         ]
         
     def load_model(self):
