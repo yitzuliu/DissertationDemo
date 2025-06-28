@@ -1,5 +1,5 @@
 {
-  "model_name": "SmolVLM2-Video",
+  "model_name": "SmolVLM2-500M-Video",
   "model_path": "SmolVLM2-500M-Video-Instruct",
   "device": "mps",
   "server": {
@@ -35,6 +35,6 @@
     "default_interval": 2000
   },
   "version": "1.0.0",
-  "description": "SmolVLM2-500M-Video-Instruct model configuration for video understanding and image analysis. Optimized for Apple Silicon MPS.",
+  "description": "SmolVLM2-500M-Video-Instruct model configuration for enhanced video understanding and image analysis. 500M parameter model optimized for Apple Silicon MPS.",
   "testing_note": "Enhanced video understanding model with temporal reasoning capabilities. Under testing for comparison with image analysis approach."
 } 

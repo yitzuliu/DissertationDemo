@@ -98,6 +98,15 @@ def preprocess_image(image_url):
             img = img.resize((336, 336), Image.Resampling.LANCZOS)
             quality = 95
             
+        elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500"]:
+            # SmolVLM2: Resize to optimal dimensions (512x512) with memory consideration
+            max_size = 512
+            if max(img.size) > max_size:
+                scale = max_size / max(img.size)
+                new_size = (int(img.size[0] * scale), int(img.size[1] * scale))
+                img = img.resize(new_size, Image.Resampling.LANCZOS)
+            quality = 95
+            
         else:
             # Fallback: use original size and medium quality
             quality = 85
@@ -141,6 +150,9 @@ def format_message_for_model(message, image_count, model_name):
                 formatted_text = f"<|image_1|>\n{text_content}"
             else:
                 formatted_text = text_content
+        elif model_name in ["smolvlm2", "smolvlm2-500"]:
+            # SmolVLM2 doesn't need special image tags, keep original text
+            formatted_text = text_content
         else:
             formatted_text = text_content
         
@@ -159,7 +171,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
     try:
         logger.info(f"Processing request with model: {ACTIVE_MODEL}")
         
-        if ACTIVE_MODEL in ["smolvlm", "phi3_vision"]:
+        if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "smolvlm2", "smolvlm2-500"]:
             # Count and preprocess images
             image_count = 0
             for message in request.messages:
@@ -239,6 +251,8 @@ async def get_config():
         frontend_config["model_help"] = "SmolVLM is active. System automatically handles image tags, just input your instructions."
     elif ACTIVE_MODEL == "phi3_vision":
         frontend_config["model_help"] = "Phi-3 Vision is active. Images are automatically resized to 336x336 for optimal processing."
+    elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500"]:
+        frontend_config["model_help"] = "SmolVLM2-500M-Video is active. Enhanced image analysis with video understanding capabilities. Optimized for Apple Silicon."
     else:
         frontend_config["model_help"] = ""
     
@@ -291,7 +305,7 @@ async def get_status():
     """Return system status"""
     return {
         "active_model": ACTIVE_MODEL,
-        "available_models": ["smolvlm", "phi3_vision"],
+        "available_models": ["smolvlm", "phi3_vision", "smolvlm2-500"],
         "config": config_manager.get_config()
     }
 
