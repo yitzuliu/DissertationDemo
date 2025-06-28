@@ -95,7 +95,7 @@ def extract_video_frames(video_path, max_frames=8, target_fps=1):
     print(f"✅ Extracted {len(frames)} frames")
     return frames
 
-def generate_response(processor, model, messages, images=None, max_tokens=150):
+def generate_response(processor, model, messages, max_tokens=150):
     """Generate response with MPS optimization."""
     start_time = time.time()
     
@@ -105,7 +105,6 @@ def generate_response(processor, model, messages, images=None, max_tokens=150):
         tokenize=True,
         return_dict=True,
         return_tensors="pt",
-        images=images if images else None
     )
     
     # MPS-optimized tensor handling
@@ -155,12 +154,12 @@ def test_image_analysis(processor, model):
             messages = [{
                 "role": "user",
                 "content": [
-                    {"type": "image"},
+                    {"type": "image", "image": image},
                     {"type": "text", "text": "Describe what you see in this image in detail."}
                 ]
             }]
             
-            response, inference_time = generate_response(processor, model, messages, [image])
+            response, inference_time = generate_response(processor, model, messages)
             
             print(f"⚡ Time: {inference_time:.2f}s")
             print(f"🤖 Response: {response}")
@@ -194,12 +193,12 @@ def test_single_frame_video(processor, model):
         messages = [{
             "role": "user",
             "content": [
-                {"type": "image"},
+                {"type": "image", "image": image},
                 {"type": "text", "text": "Describe what you see in this frame from the video."}
             ]
         }]
         
-        response, inference_time = generate_response(processor, model, messages, [image])
+        response, inference_time = generate_response(processor, model, messages)
         
         print(f"⚡ Time: {inference_time:.2f}s")
         print(f"🤖 Response: {response}")
@@ -220,12 +219,12 @@ def test_multi_frame_video(processor, model):
     
     try:
         content = [{"type": "text", "text": "Describe what happens across these video frames."}]
-        for _ in frames:
-            content.append({"type": "image"})
+        for frame in frames:
+            content.append({"type": "image", "image": frame})
         
         messages = [{"role": "user", "content": content}]
         
-        response, inference_time = generate_response(processor, model, messages, frames, max_tokens=200)
+        response, inference_time = generate_response(processor, model, messages, max_tokens=200)
         
         print(f"⚡ Time: {inference_time:.2f}s")
         print(f"🤖 Response: {response}")

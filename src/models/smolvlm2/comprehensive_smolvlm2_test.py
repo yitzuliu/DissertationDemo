@@ -17,6 +17,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 import time
+from typing import Optional, List
 
 class SmolVLM2TestSuite:
     """Comprehensive testing suite for SmolVLM2-500M-Video-Instruct."""
@@ -24,9 +25,9 @@ class SmolVLM2TestSuite:
     def __init__(self):
         """Initialize the test suite with MPS optimization."""
         self.device = "mps"  # Force MPS for optimal Apple Silicon performance
-        self.model = None
-        self.processor = None
-        self.model_path = "./SmolVLM2-500M-Video-Instruct"
+        self.model: Optional[AutoModelForImageTextToText] = None
+        self.processor: Optional[AutoProcessor] = None
+        self.model_path = "SmolVLM2-500M-Video-Instruct"
         self.video_path = "../../../src/debug/viedo/Generated File June 24, 2025 - 5_04PM.mp4"
         self.image_paths = [
             "../../../src/debug/images/IMG_0119.JPG",
@@ -161,7 +162,7 @@ class SmolVLM2TestSuite:
                     {
                         "role": "user",
                         "content": [
-                            {"type": "image"},
+                            {"type": "image", "image": image},
                             {"type": "text", "text": prompt}
                         ]
                     }
@@ -175,7 +176,6 @@ class SmolVLM2TestSuite:
                     tokenize=True,
                     return_dict=True,
                     return_tensors="pt",
-                    images=[image]
                 )
                 inputs = {k: v.to(self.device, dtype=torch.float32 if v.dtype.is_floating_point else v.dtype) 
                          for k, v in inputs.items()}
@@ -236,7 +236,7 @@ class SmolVLM2TestSuite:
                 {
                     "role": "user",
                     "content": [
-                        {"type": "image"},
+                        {"type": "image", "image": image},
                         {"type": "text", "text": prompt}
                     ]
                 }
@@ -250,7 +250,6 @@ class SmolVLM2TestSuite:
                 tokenize=True,
                 return_dict=True,
                 return_tensors="pt",
-                images=[image]
             )
             inputs = {k: v.to(self.device, dtype=torch.float32 if v.dtype.is_floating_point else v.dtype) 
                      for k, v in inputs.items()}
@@ -304,8 +303,8 @@ class SmolVLM2TestSuite:
             try:
                 # Create message with multiple image tokens
                 content = [{"type": "text", "text": prompt}]
-                for _ in frames:
-                    content.append({"type": "image"})
+                for frame in frames:
+                    content.append({"type": "image", "image": frame})
                 
                 messages = [
                     {
@@ -322,7 +321,6 @@ class SmolVLM2TestSuite:
                     tokenize=True,
                     return_dict=True,
                     return_tensors="pt",
-                    images=frames
                 )
                 inputs = {k: v.to(self.device, dtype=torch.float32 if v.dtype.is_floating_point else v.dtype) 
                          for k, v in inputs.items()}

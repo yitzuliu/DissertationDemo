@@ -1,14 +1,19 @@
 # SmolVLM2: Bringing Video Understanding to Every Device
 
-**Authors:** Orr Zohar, Miquel Farré, Andres Marafioti, merve, Pedro Cuenca, Cyril, Joshua
+**Authors:** Orr Zohar, Miquel Farré, Andres Marafioti, Merve Noyan, Pedro Cuenca, Cyril Zakka, Joshua Lochner
 
 ---
 
 ## TL;DR: SmolVLM can now watch 📺 with even better visual understanding
 
-SmolVLM2 represents a fundamental shift in how we think about video understanding - moving from massive models that require substantial computing resources to efficient models that can run anywhere. Our goal is simple: make video understanding accessible across all devices and use cases, from phones to servers.
+SmolVLM2 represents a fundamental shift in how we think about video understanding - moving from massive models that require substantial computing resources to efficient models that can run anywhere. Our goal is simple: **make video understanding accessible across all devices and use cases**, from phones to servers.
 
-We are releasing models in three sizes (2.2B, 500M and 256M), MLX ready (Python and Swift APIs) from day zero. We've made all models and demos available in this collection.
+### Key Highlights:
+- 🎯 **Three model sizes**: 2.2B, 500M, and 256M parameters
+- 🚀 **MLX ready**: Python and Swift APIs from day zero  
+- 📱 **Device-optimized**: Runs on everything from phones to servers
+- 🎬 **Video-first**: Advanced video understanding capabilities
+- 💾 **Memory efficient**: Requires only 1.8GB GPU memory for video inference
 
 Want to try SmolVLM2 right away? Check out our interactive chat interface where you can test visual and video understanding capabilities of SmolVLM2 2.2B through a simple, intuitive interface.
 
@@ -37,15 +42,25 @@ Want to try SmolVLM2 right away? Check out our interactive chat interface where 
 
 ## Technical Details
 
-We are introducing three new models with 256M, 500M and 2.2B parameters. The 2.2B model is the go-to choice for vision and video tasks, while the 500M and 256M models represent the smallest video language models ever released.
+We are introducing **three new models** with different parameter counts optimized for various use cases:
 
-While they're small in size, they outperform any existing models per memory consumption. Looking at Video-MME (the go-to scientific benchmark in video), SmolVLM2 joins frontier model families on the 2B range and we lead the pack in the even smaller space.
+| Model Size | Parameters | Use Case | Memory Requirements |
+|------------|------------|----------|-------------------|
+| **SmolVLM2-2.2B** | 2.2B | Primary choice for vision/video tasks | Standard GPU |
+| **SmolVLM2-500M** | 500M | Smallest video language model | 1.8GB GPU memory |
+| **SmolVLM2-256M** | 256M | Experimental ultra-compact model | Mobile/edge devices |
+
+### Performance Highlights:
+- 🏆 **Best-in-class efficiency**: Outperform existing models per memory consumption
+- 📊 **Video-MME benchmark**: Joins frontier model families in the 2B range
+- 🥇 **Leading small models**: Best performance in the sub-1B parameter space
 
 ![SmolVLM2 Performance](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/smolvlm2-videomme2.png)
 
-*SmolVLM2 Performance*
+*SmolVLM2 Performance Comparison*
 
-Video-MME stands out as a comprehensive benchmark due to its extensive coverage across diverse video types, varying durations (11 seconds to 1 hour), multiple data modalities (including subtitles and audio), and high-quality expert annotations spanning 900 videos totaling 254 hours. Learn more here.
+**About Video-MME Benchmark:**
+Video-MME stands out as a comprehensive benchmark due to its extensive coverage across diverse video types, varying durations (11 seconds to 1 hour), multiple data modalities (including subtitles and audio), and high-quality expert annotations spanning 900 videos totaling 254 hours.
 
 ---
 
@@ -101,32 +116,47 @@ We make SmolVLM2 available to use with transformers and MLX from day zero. In th
 
 ### Transformers
 
-The easiest way to run inference with the SmolVLM2 models is through the conversational API – applying the chat template takes care of preparing all inputs automatically.
+The easiest way to run inference with the SmolVLM2 models is through the **conversational API** – applying the chat template takes care of preparing all inputs automatically.
 
-You can load the model as follows.
+#### Installation
 
 ```bash
-# Install transformers from `main` or from this stable branch:
-!pip install git+https://github.com/huggingface/transformers@v4.49.0-SmolVLM-2
+# Install transformers from main branch with SmolVLM2 support
+pip install git+https://github.com/huggingface/transformers@v4.49.0-SmolVLM-2
 ```
+
+#### Loading the Model
 
 ```python
 from transformers import AutoProcessor, AutoModelForImageTextToText
 import torch
 
+# Choose your model size
+model_path = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"  # or 2.2B, 256M
+
+# Load processor and model
 processor = AutoProcessor.from_pretrained(model_path)
 model = AutoModelForImageTextToText.from_pretrained(
     model_path,
     torch_dtype=torch.bfloat16,
-    _attn_implementation="flash_attention_2"
-).to("cuda")
+    _attn_implementation="flash_attention_2"  # Optional: for better performance
+).to("cuda")  # or "mps" for Apple Silicon
 ```
 
 ### Video Inference
 
-You can pass videos through a chat template by passing in {"type": "video", "path": {video_path}. See below for a complete example.
+SmolVLM2 supports direct video processing through the chat template. Simply specify the video path and your question.
+
+#### Supported Video Formats:
+- **MP4, AVI, MOV** (most common formats)
+- **Max duration**: Up to 5 minutes recommended
+- **Frame sampling**: 64 frames @ 1 FPS automatically
+- **Resolution**: Up to 2048px (automatically resized to 512px for processing)
+
+#### Example:
 
 ```python
+# Video analysis example
 messages = [
     {
         "role": "user",
@@ -137,6 +167,7 @@ messages = [
     },
 ]
 
+# Process the video and generate response
 inputs = processor.apply_chat_template(
     messages,
     add_generation_prompt=True,
@@ -145,7 +176,14 @@ inputs = processor.apply_chat_template(
     return_tensors="pt",
 ).to(model.device, dtype=torch.bfloat16)
 
-generated_ids = model.generate(**inputs, do_sample=False, max_new_tokens=64)
+# Generate response
+generated_ids = model.generate(
+    **inputs, 
+    do_sample=False, 
+    max_new_tokens=128
+)
+
+# Decode and print result
 generated_texts = processor.batch_decode(
     generated_ids,
     skip_special_tokens=True,
