@@ -1,5 +1,5 @@
 {
-    "active_model": "smolvlm2-500",
+    "active_model": "smolvlm",
     "server": {
         "host": "localhost",
         "port": 8000

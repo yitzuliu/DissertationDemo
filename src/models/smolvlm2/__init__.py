@@ -1,8 +1,8 @@
 """
-SmolVLM2 Model package for AI Manual Assistant.
-SmolVLM2-500M-Video-Instruct with enhanced video understanding capabilities.
+SmolVLM2 models package
 """
 
-from .smolvlm2_model import SmolVLM2Model
+# Import will be handled by relative imports from the project_workspace directory
+# from .SmolVLM2-500M-Video-Instruct.project_workspace.smolvlm2_model import SmolVLM2Model
 
 __all__ = ['SmolVLM2Model'] 
