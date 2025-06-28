@@ -17,9 +17,11 @@ Imagine never being stuck on a task again. Whether you're cooking your first mea
 
 This isn't just another chatbot or simple object detection system. This is **contextual activity recognition** - an AI that transforms your camera into an intelligent manual for any hands-on task.
 
-**The breakthrough:** Instead of you describing what you see, the AI sees what you see. Instead of generic instructions, you get guidance based on your actual setup, tools, and progress.
+**The breakthrough:** Instead of you describing what you see, the AI sees what you see - whether through continuous video understanding or intelligent image analysis. Instead of generic instructions, you get guidance based on your actual setup, tools, and progress.
 
-**The result:** Like having an experienced mentor standing beside you, watching your work, and providing exactly the guidance you need, exactly when you need it.
+**The result:** Like having an experienced mentor standing beside you, watching your work and understanding your progress, providing exactly the guidance you need as your work unfolds.
+
+> **🧪 Current Development:** Testing both continuous video processing and intelligent image capture to determine the most reliable approach for real-time guidance.
 
 ## 🏗️ **System Architecture**
 
@@ -53,11 +55,17 @@ This isn't just another chatbot or simple object detection system. This is **con
 
 ## 🎯 **Supported Models**
 
-- ✅ **SmolVLM** - Lightweight, fast responses, optimized for real-time interaction
-- ✅ **Phi-3 Vision** - Microsoft's advanced model with higher accuracy
+**🧪 Testing Phase - Evaluating Best Approach:**
+- ✅ **SmolVLM2-Video** - Continuous video understanding, temporal reasoning (Testing)
+- ✅ **SmolVLM** - Lightweight image analysis, proven reliability (Current Working)
+- ✅ **Phi-3 Vision** - Advanced single-frame analysis with high accuracy (failed)
 - ✅ **LLaVA** - Excellent for multi-turn conversations
-- ✅ **YOLO8** - Real-time object detection
+- ✅ **YOLO8** - Real-time object detection (Detect object is well done but can not understand object)
 - ✅ **Moondream2** - Efficient specialized processing
+
+> **Note:** Currently evaluating video vs image processing approaches to determine optimal solution for real-time guidance.
+
+> **⚠️ Memory Constraint:** Only one model runs at a time due to memory considerations. Model switching requires stopping the current model and starting the desired one.
 
 ## 🚀 **Quick Start**
 
@@ -104,12 +112,22 @@ For detailed setup instructions, see the [Developer Setup Guide](./docs/DEVELOPE
 
 ## ✨ **Key Features**
 
-- **🔄 Real-time Processing** - Continuous scene understanding and object recognition
-- **🎯 Context-Aware** - Understands activities and workflows, not just objects  
-- **💡 Adaptive Guidance** - Learns your preferences and adjusts instruction style
-- **⚡ Local Processing** - Works offline with optimized performance
-- **📱 Multi-Platform** - Supports various camera inputs and devices
-- **💰 Cost-Effective** - Efficient processing without expensive cloud dependencies
+**🎯 Core Vision (Testing Multiple Approaches):**
+- **👁️ Intelligent Vision** - AI understands your work context, either through continuous video or smart image analysis
+   - **🔄 Real-time Processing** - Continuous scene understanding and object recognition
+   - **🎯 Context-Aware** - Understands activities and workflows, not just objects  
+   - **💡 Adaptive Guidance** - Learns your preferences and adjusts instruction style
+   - **⚡ Local Processing** - Works offline with optimized performance
+- **🧠 Context Understanding** - Tracks your progress and provides relevant guidance
+- **⚡ Real-time Guidance** - Provides contextual help as you work
+- **🎯 Activity Recognition** - Understands what you're doing, not just what objects are present
+- **💡 Adaptive Mentoring** - Learns your pace and provides encouragement and corrections
+- **📱 Flexible Input** - Currently testing both continuous video and intelligent image capture
+- **💰 Cost-Effective** - Efficient local processing without expensive cloud dependencies
+
+**🧪 Current Testing:**
+- **Video Approach**: Continuous understanding with temporal reasoning (SmolVLM2-Video)
+- **Image Approach**: High-frequency intelligent capture with context memory (SmolVLM)
 
 ## 🎬 **Real-World Examples**
 
@@ -182,22 +200,22 @@ Next steps:
 - **No more rewinding** to see what tool they're using
 - **No assumptions** about what you have or your skill level
 - **No generic instructions** that don't match your specific situation
-- **Real-time adaptation** to your actual progress and setup
+- **Continuous adaptation** to your actual progress as it happens
 
 ### **🤖 Unlike Other AI Assistants:**
-- **Actually sees your workspace** instead of relying on your descriptions
-- **Understands context** beyond just identifying objects
-- **Provides visual confirmation** of your progress: "I can see you've done step 1..."
-- **Prevents mistakes in real-time** before they happen: "Wait! That's the wrong screw..."
+- **Continuously watches your workspace** like human eyes, not relying on your descriptions
+- **Understands ongoing activities** and temporal sequences, not just static objects
+- **Provides flowing progress guidance**: "I can see you've completed step 1 and are moving to step 2..."
+- **Prevents mistakes as they develop** in real-time: "I see you reaching for that tool - use the smaller one instead..."
 
 ### **📚 Unlike Traditional Manuals:**
-- **Adaptive guidance** - responds to what you're actually doing
-- **Interactive dialogue** - ask questions and get immediate answers
-- **Context memory** - remembers your progress and previous choices
-- **Encouragement** - celebrates your successes along the way
+- **Continuously adaptive guidance** - responds to your ongoing activities in real-time
+- **Natural dialogue** - ask questions while working, get immediate contextual answers
+- **Temporal memory** - remembers your entire work session and progress flow
+- **Real-time encouragement** - celebrates progress as it happens: "Perfect! You're doing great!"
 
 ### **🎯 The Result:**
-**Confidence instead of frustration. Success instead of giving up. Learning instead of just following.**
+**Confidence instead of frustration. Flowing guidance instead of fragmented instructions. Natural mentoring instead of robotic responses.**
 
 ## 🌍 **Universal Application**
 

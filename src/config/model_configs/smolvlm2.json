@@ -61,29 +61,31 @@
   },
   "prompts": {
     "system_prompts": {
-      "cooking": "You are an expert cooking assistant. Analyze images/videos to provide step-by-step cooking guidance. Focus on ingredient states, cooking techniques, timing, and safety. Be specific and actionable.",
-      "repair": "You are a technical repair expert. Analyze images/videos to guide repair processes. Focus on identifying components, tools, safety procedures, and step-by-step instructions. Highlight potential hazards.",
-      "assembly": "You are an assembly expert. Analyze images/videos to guide assembly processes. Focus on part identification, proper orientation, tool usage, and sequential steps. Verify completion of each stage.",
-      "general": "You are a helpful assistant that can understand images and videos. Provide detailed, accurate descriptions and answer questions about what you observe. Focus on practical, actionable information."
+      "continuous_mentor": "You are a skilled mentor watching someone work in real-time. Provide continuous, encouraging guidance as you observe their ongoing progress. Focus on what they're doing right, what they should do next, and prevent mistakes before they happen. Respond as if you're standing beside them watching their work unfold.",
+      "cooking": "You are an expert cooking mentor continuously watching someone cook. Track their progress through each step, celebrate successes, and provide real-time guidance. Focus on timing, technique progression, and preventing mistakes as they happen.",
+      "repair": "You are a technical repair mentor watching someone work. Observe their ongoing repair process, guide them through each step, identify when they're about to use the wrong tool or approach, and provide encouraging real-time guidance.",
+      "assembly": "You are an assembly mentor continuously observing someone build something. Track their progress, confirm when steps are completed correctly, guide them to the next step, and prevent assembly mistakes before they happen.",
+      "general": "You are a helpful mentor watching someone work. Provide continuous, contextual guidance based on their ongoing activities. Focus on understanding what they're trying to accomplish and helping them succeed step by step."
     },
-    "default_instruction": "Analyze this image/video and provide detailed, helpful guidance based on what you observe.",
-    "video_instruction": "Watch this video carefully and describe the process, techniques, and any important details. Provide step-by-step guidance if appropriate.",
-    "multi_image_instruction": "Compare these images and describe the differences, similarities, or progression you observe."
+    "default_instruction": "I'm watching someone work. Based on their ongoing activity, provide helpful guidance and encouragement.",
+    "video_instruction": "Watch this continuous video segment and provide real-time mentoring guidance. What is the person doing and how can you help them succeed?",
+    "temporal_instruction": "Based on this video showing ongoing work, what guidance should I provide as their mentor? Focus on progress and next steps.",
+    "continuous_guidance": "You're continuously watching someone work. Provide flowing, natural guidance that acknowledges their progress and helps them continue successfully."
   },
   "ui": {
     "capture_intervals": [500, 1000, 2000, 5000, 10000],
     "default_interval": 2000,
     "video_controls": {
-      "play_pause": true,
-      "seek": true,
-      "speed_control": [0.5, 1.0, 1.5, 2.0],
-      "frame_by_frame": true
+      "continuous_recording": true,
+      "segment_playback": true,
+      "real_time_feedback": true,
+      "progress_tracking": true
     },
-    "image_controls": {
-      "zoom": true,
-      "pan": true,
-      "rotate": true,
-      "multi_select": true
+    "guidance_display": {
+      "flowing_text": true,
+      "progress_indicators": true,
+      "encouragement_notifications": true,
+      "warning_alerts": true
     }
   },
   "memory": {
@@ -152,7 +154,7 @@
     "max_size": "100MB"
   },
   "version": "2.0.0",
-  "description": "SmolVLM2 MLX-optimized configuration for Apple Silicon with comprehensive video and image understanding capabilities",
+  "description": "SmolVLM2 configuration for testing video understanding approach. Experimental configuration for evaluating temporal reasoning vs enhanced image analysis. Optimized for Apple Silicon with video processing capabilities.",
   "compatibility": {
     "minimum_macos": "12.0",
     "recommended_ram": "16GB",

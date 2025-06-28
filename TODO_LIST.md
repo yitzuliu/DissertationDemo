@@ -1,17 +1,73 @@
 # AI Manual Assistant - Project Improvement TODO List
 
-**Last Updated: June 24, 2025**
+**Last Updated: December 27, 2024**
 
 This document serves as the master tracking list for all improvements to be made to the AI Manual Assistant project. Each item includes a detailed description, priority level, estimated complexity, and current status.
 
+**🧪 Current Focus:** Testing and comparing enhanced image analysis vs continuous video understanding approaches to determine optimal solution for real-time guidance.
+
 ## Table of Contents
-1. [Documentation Improvements](#1-documentation-improvements)
-2. [Architecture Standardization](#2-architecture-standardization)
-3. [Code Refactoring](#3-code-refactoring)
-4. [Model Integration Enhancements](#4-model-integration-enhancements)
-5. [Frontend Improvements](#5-frontend-improvements)
-6. [Performance Optimizations](#6-performance-optimizations)
-7. [Feature Additions](#7-feature-additions)
+1. [🧪 Testing Phase Priorities](#testing-phase-priorities)
+2. [Documentation Improvements](#1-documentation-improvements)
+3. [Architecture Standardization](#2-architecture-standardization)
+4. [Code Refactoring](#3-code-refactoring)
+5. [Model Integration Enhancements](#4-model-integration-enhancements)
+6. [Frontend Improvements](#5-frontend-improvements)
+7. [Performance Optimizations](#6-performance-optimizations)
+8. [Feature Additions](#7-feature-additions)
+
+---
+
+## 🧪 Testing Phase Priorities
+
+### T.1 SmolVLM2-Video vs SmolVLM Image Analysis Comparison
+- **Priority:** Critical
+- **Complexity:** High
+- **Status:** In Progress
+- **Description:** Comprehensive testing and comparison of continuous video understanding (SmolVLM2-Video) against enhanced image analysis (SmolVLM) to determine optimal approach for real-time guidance.
+- **Success Criteria:** Clear decision on which approach provides better reliability, performance, and user experience.
+- **Testing Areas:**
+  - Guidance quality and accuracy
+  - System reliability and stability
+  - Computational requirements and performance
+  - Integration complexity
+  - User experience and response quality
+
+### T.2 Enhanced Image Analysis Implementation
+- **Priority:** High
+- **Complexity:** Medium
+- **Status:** Not Started
+- **Description:** Optimize current SmolVLM image analysis with context memory, smarter prompting, and enhanced preprocessing to compete with video approach.
+- **Success Criteria:** Improved guidance continuity and context awareness in image-based approach.
+- **Implementation Areas:**
+  - Context memory between frames
+  - Activity-focused prompting
+  - Smart capture timing optimization
+  - Progress tracking through accumulated observations
+
+### T.3 Video Understanding Integration
+- **Priority:** High
+- **Complexity:** High
+- **Status:** Testing
+- **Description:** Integrate SmolVLM2-Video into main system architecture for continuous video processing and guidance generation.
+- **Success Criteria:** Seamless video processing pipeline with temporal understanding and activity recognition.
+- **Implementation Areas:**
+  - Video segment capture and processing
+  - Temporal context management
+  - Activity tracking and progress monitoring
+  - Real-time guidance generation from video analysis
+
+### T.4 Dual-Mode Frontend Development
+- **Priority:** Medium
+- **Complexity:** Medium
+- **Status:** Not Started
+- **Description:** Develop frontend interface that supports both image capture and video recording modes for testing comparison.
+- **Success Criteria:** Users can easily switch between and test both approaches.
+- **Features:**
+  - Toggle between image and video modes
+  - Real-time performance comparison
+  - Side-by-side guidance quality assessment
+  - User preference tracking and feedback collection
 
 ---
 
@@ -166,15 +222,16 @@ This document serves as the master tracking list for all improvements to be made
   - `/src/backend/main.py`
   - `/src/backend/utils/response_processor.py` (new file)
 
-### 4.3 Multi-Model Ensemble
+### 4.3 Model Switching Optimization
 - **Priority:** Low
-- **Complexity:** High
+- **Complexity:** Medium
 - **Status:** Not Started
-- **Description:** Implement an ensemble approach that can combine results from multiple models for improved accuracy and resilience.
-- **Success Criteria:** System can use multiple models simultaneously and intelligently combine their outputs.
+- **Description:** Optimize the process of switching between models to minimize downtime and memory usage during model transitions.
+- **Success Criteria:** Fast, reliable model switching with proper memory cleanup and minimal system disruption.
+- **Note:** Only one model runs at a time due to memory constraints.
 - **Affected Files:**
   - `/src/backend/main.py`
-  - `/src/backend/utils/ensemble.py` (new file)
+  - `/src/backend/utils/model_switcher.py` (new file)
 
 ---
 
@@ -280,14 +337,27 @@ This document serves as the master tracking list for all improvements to be made
 
 ---
 
+## Testing Phase Status
+
+**Current Testing Priorities:**
+1. **🧪 Video vs Image Comparison** - Critical decision needed
+2. **⚡ Enhanced Image Analysis** - Optimize current working approach  
+3. **🎬 Video Integration** - Test continuous understanding approach
+4. **🔄 Dual-Mode Interface** - Enable easy comparison testing
+
+---
+
 ## Tracking Progress
 
 As we work through these improvements, we will update the status of each item:
 
 - **Not Started**: Task has not been initiated
+- **Critical for Testing**: Essential for current testing phase
 - **In Progress**: Work is currently underway
+- **Testing**: Implementation is being tested for comparison
 - **Code Review**: Implementation is complete and awaiting review
-- **Testing**: Implementation is being tested
 - **Completed**: Task is fully implemented and verified
+
+**🧪 Testing Phase Focus:** All new development should support the comparison between image analysis and video understanding approaches.
 
 We will also maintain a change log of completed items in the `CHANGELOG.md` file.

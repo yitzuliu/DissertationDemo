@@ -4,10 +4,14 @@
 
 This document describes the API endpoints for the AI Manual Assistant system. The API is designed around a unified, OpenAI-compatible interface to provide maximum flexibility and interoperability.
 
+**🧪 Current Development Phase:** The system is in active testing to evaluate two approaches:
+- **Enhanced Image Analysis** (Current working - SmolVLM)
+- **Continuous Video Understanding** (Testing - SmolVLM2-Video)
+
 The system is composed of:
-1. **Backend API (Port 8000):** Acts as a smart gateway that receives requests, preprocesses data, and routes them to the appropriate model server.
-2. **Model Server API (Port 8080):** The core inference engine that runs the VLM models.
-3. **Frontend (Port 5500):** The web client for user interaction.
+1. **Backend API (Port 8000):** Acts as a smart gateway that receives requests, preprocesses data, and routes them to the appropriate model server
+2. **Model Server API (Port 8080):** The core inference engine that runs both image and video-capable VLM models
+3. **Frontend (Port 5500):** The web client for user interaction with dual input support
 
 ## API Endpoints
 
@@ -15,15 +19,19 @@ The system is composed of:
 
 The backend exposes a single, primary endpoint for all visual analysis tasks, adhering to the OpenAI `chat.completions` format. This allows for easy integration with a wide range of existing tools.
 
-#### 1. Unified Chat Completions (Image and Text Analysis)
-This is the main endpoint for sending image and text prompts for analysis. The backend server receives this request, performs necessary image preprocessing based on the active model, and then forwards a request to the Model Server on port 8080.
+#### 1. Unified Chat Completions (Image/Video and Text Analysis)
+This is the main endpoint for sending image/video and text prompts for analysis. The backend server receives this request, performs necessary preprocessing based on the active model and input type, and then forwards a request to the appropriate Model Server on port 8080.
+
+**Supported Input Types:**
+- **Image Analysis** (Current working approach - SmolVLM, Phi-3 Vision)
+- **Video Analysis** (Testing approach - SmolVLM2-Video)
 
 ```http
 POST /v1/chat/completions
 Content-Type: application/json
 ```
 
-**Request Body:**
+**Request Body (Image Analysis - Current Working):**
 ```json
 {
   "messages": [
@@ -39,6 +47,28 @@ Content-Type: application/json
           "image_url": {
             "url": "data:image/jpeg;base64,/9j/4AAQSkZJ..."
           }
+        }
+      ]
+    }
+  ],
+  "max_tokens": 512
+}
+```
+
+**Request Body (Video Analysis - Testing):**
+```json
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Watch this video and provide guidance on the activity you observe."
+        },
+        {
+          "type": "video",
+          "path": "/path/to/video.mp4"
         }
       ]
     }
@@ -79,16 +109,24 @@ PUT /api/v1/config/model
 Content-Type: application/json
 
 {
-  "model": "phi3_vision"
+  "model": "smolvlm"
 }
 ```
+
+**Supported Models (one active at a time):**
+- `"smolvlm"` - Enhanced image analysis (current working)
+- `"smolvlm2_video"` - Video understanding (testing)
+- `"phi3_vision"` - High-accuracy image analysis
+
+**Note:** Only one model runs at a time due to memory constraints.
 
 **Response:**
 ```json
 {
   "status": "success",
-  "model": "phi3_vision",
-  "message": "Model switched successfully"
+  "model": "smolvlm",
+  "message": "Model switched successfully",
+  "testing_note": "System supports both image and video analysis approaches"
 }
 ```
 

@@ -5,8 +5,10 @@
 ### Q: What is the AI Manual Assistant?
 **A:** The AI Manual Assistant is a real-time vision-guided system that uses advanced AI to provide step-by-step assistance for hands-on tasks. It sees what you see through your camera and provides contextual guidance for cooking, repairs, assembly, and more.
 
+**🧪 Current Development:** The system is testing two approaches - enhanced image analysis and continuous video understanding - to determine the optimal solution for real-time guidance.
+
 ### Q: What makes this different from other AI assistants?
-**A:** Unlike text-based AI assistants, our system actually sees your workspace through your camera. It understands the context of what you're doing and provides visual confirmation of your progress, preventing mistakes in real-time.
+**A:** Unlike text-based AI assistants, our system actually sees your workspace through your camera. It understands the context of what you're doing and provides visual confirmation of your progress, preventing mistakes in real-time. We're currently testing both image-based and video-based approaches to find the most reliable solution.
 
 ### Q: Does it work offline?
 **A:** Yes! The system is designed for local processing with edge-optimized models. Once set up, it works without internet connectivity for basic functionality.
@@ -22,12 +24,17 @@
 - Camera (built-in or external)
 
 ### Q: Which AI models are supported?
-**A:** We support multiple vision-language models:
-- **SmolVLM** - Primary lightweight model for real-time interaction
-- **Phi-3 Vision** - High-accuracy model for complex tasks
-- **LLaVA** - Excellent for multi-turn conversations
+**A:** We support multiple vision-language models for testing different approaches:
+
+**🧪 Testing Phase Models:**
+- **SmolVLM2-Video** - Continuous video understanding (under testing)
+- **SmolVLM** - Enhanced image analysis (current working baseline)
+
+**Additional Models:**
+- **Phi-3 Vision** - High-accuracy image analysis
+- **LLaVA** - Multi-turn conversations
 - **YOLO8** - Real-time object detection
-- **Moondream2** - Efficient specialized processing
+- **Moondream2** - Specialized processing
 
 ### Q: Can I switch between models?
 **A:** Yes! The system supports dynamic model switching. You can change models through the configuration or by restarting with a different model server.
@@ -58,12 +65,17 @@ See our [Developer Setup Guide](./DEVELOPER_SETUP.md) for detailed instructions.
 ## Usage Questions
 
 ### Q: How accurate is the object recognition?
-**A:** Accuracy varies by model:
-- SmolVLM: ~77% overall accuracy
+**A:** Accuracy varies by model and approach:
+
+**Image Analysis (Proven):**
+- SmolVLM: ~78% overall accuracy  
 - Phi-3 Vision: ~88% overall accuracy
 - LLaVA: ~86% overall accuracy
 
-See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks.
+**Video Understanding (Testing):**
+- SmolVLM2-Video: Currently under evaluation to compare with image approaches
+
+See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks and testing status.
 
 ### Q: Can it help with any type of task?
 **A:** The system is designed for hands-on tasks including:
@@ -121,10 +133,10 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks.
 - Use lower image quality settings if needed
 
 ### Q: Can I run multiple models simultaneously?
-**A:** Running multiple models requires significant system resources. It's recommended to use one model at a time for optimal performance.
+**A:** No, the system is designed to run only one model at a time due to memory considerations. This ensures optimal performance and prevents memory issues. To use a different model, stop the current one and start the desired model.
 
 ### Q: How do I optimize for my specific hardware?
-**A:** See our [VLM Enhancement Guide](../VLM_Enhancement_Guide.md) for hardware-specific optimization tips.
+**A:** See our [VLM Enhancement Guide](../VLM_Enhancement_Guide.md) for hardware-specific optimization tips and guidance on testing both image and video approaches on your hardware.
 
 ## Development and Customization
 
@@ -140,7 +152,7 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks.
 ## Advanced Features
 
 ### Q: Does the system support video analysis?
-**A:** Yes, SmolVLM2 includes video understanding capabilities. Use the video model variant for enhanced temporal analysis.
+**A:** Yes, we're currently testing SmolVLM2-Video for continuous video understanding. This approach is being evaluated against our current image analysis approach to determine which provides better real-time guidance. The video model can process 5-10 second segments for temporal understanding and activity recognition.
 
 ### Q: Can I use the system programmatically?
 **A:** Yes! We provide a complete REST API. See our [API Documentation](./API.md) for endpoint details and examples.

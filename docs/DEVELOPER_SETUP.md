@@ -2,6 +2,12 @@
 
 This guide provides step-by-step instructions for setting up the development environment for the AI Manual Assistant project. Follow these instructions carefully to ensure a proper setup.
 
+**🧪 Development Phase:** The system is currently testing two approaches for optimal guidance:
+- **Enhanced Image Analysis** (Current working - SmolVLM)  
+- **Continuous Video Understanding** (Testing - SmolVLM2-Video)
+
+Both setups are covered in this guide.
+
 ## Prerequisites
 
 ### System Requirements
@@ -63,9 +69,9 @@ pip install -r requirements.txt
 
 ### 3. Model Setup
 
-Each model requires specific setup steps. Follow the model-specific instructions below:
+The system supports different models that can be activated one at a time. Set up the models you plan to test:
 
-#### SmolVLM (Primary Model)
+#### SmolVLM (Current Working - Image Analysis)
 
 ```bash
 # Install llama-cpp-python with appropriate backend
@@ -78,7 +84,17 @@ CMAKE_ARGS="-DLLAMA_METAL=on" pip install --force-reinstall llama-cpp-python
 python -c "from transformers import AutoProcessor; AutoProcessor.from_pretrained('ggml-org/SmolVLM-500M-Instruct-GGUF', trust_remote_code=True)"
 ```
 
-#### Phi-3 Vision
+#### SmolVLM2-Video (Testing - Video Understanding)
+
+```bash
+# Install additional dependencies for video processing
+pip install av opencv-python
+
+# Download SmolVLM2 model weights  
+python -c "from transformers import AutoProcessor; AutoProcessor.from_pretrained('HuggingFaceTB/SmolVLM2-500M-Video-Instruct', trust_remote_code=True)"
+```
+
+#### Phi-3 Vision (Alternative High-Accuracy)
 
 ```bash
 # Install required packages
@@ -125,13 +141,28 @@ npm install -g http-server
 
 ### 1. Start the Model Server
 
+**Important:** Only one model runs at a time due to memory considerations.
+
+**For Image Analysis (SmolVLM - Current Active):**
 ```bash
 # From the project root
 source ai_vision_env/bin/activate  # If not already activated
 
-# Start the model server based on the active model in app_config.json
-python src/models/start_model_server.py
+# Start SmolVLM server 
+python src/models/smolvlm/run_smolvlm.py
 ```
+
+**For Video Understanding Testing (SmolVLM2):**
+```bash
+# From the project root  
+source ai_vision_env/bin/activate
+
+# Stop any running model first, then test SmolVLM2
+cd src/models/smolvlm2
+python unified_test.py  # Testing script, not server
+```
+
+**Note:** To switch models, stop the current model server and start the desired one.
 
 ### 2. Start the Backend Server
 
@@ -155,9 +186,20 @@ http-server -p 5500
 
 ## Testing the Setup
 
+### Image Analysis Approach (Current Working)
 1. Open your web browser and navigate to `http://localhost:5500`
 2. Grant camera permissions when prompted
 3. You should see the camera feed and analysis results below
+4. Test with frame capture and real-time guidance
+
+### Video Understanding Approach (Testing)
+1. Run the video test scripts to evaluate temporal understanding:
+   ```bash
+   cd src/models/smolvlm2
+   python unified_test.py
+   ```
+2. Compare results with image analysis approach
+3. Evaluate guidance quality and system reliability
 
 If you encounter any issues, check the troubleshooting section below.
 

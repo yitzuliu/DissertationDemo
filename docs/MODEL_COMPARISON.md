@@ -1,20 +1,65 @@
 # Vision-Language Models Comparison Guide
 
-This document provides a comprehensive comparison of all vision-language models (VLMs) integrated into the AI Manual Assistant system. It helps users and developers choose the most appropriate model for their specific use case.
+This document provides a comprehensive comparison of all vision-language models (VLMs) integrated into the AI Manual Assistant system. The system is currently testing different approaches to determine the optimal solution for real-time guidance.
+
+**🧪 Testing Phase:** Evaluating image analysis vs video understanding approaches.
 
 ## Quick Reference Table
 
-| Model | Size | Memory | Speed | Accuracy | Best For |
-|-------|------|--------|--------|----------|-----------|
-| SmolVLM | 2B | 4GB | ⚡⚡⚡ | ⭐⭐ | Real-time guidance, resource-constrained environments |
-| Phi-3 Vision | 4B | 8GB | ⚡⚡ | ⭐⭐⭐ | High-accuracy tasks, detailed analysis |
-| LLaVA | 3B | 6GB | ⚡⚡ | ⭐⭐⭐ | Complex reasoning, multi-turn interactions |
-| YOLO8 | 100M | 2GB | ⚡⚡⚡ | ⭐⭐⭐ | Fast object detection, real-time tracking |
-| Moondream2 | 2B | 4GB | ⚡⚡ | ⭐⭐ | Specialized visual tasks, efficient processing |
+| Model | Size | Memory | Speed | Accuracy | Input Type | Status |
+|-------|------|--------|--------|----------|------------|--------|
+| SmolVLM2-Video | 500M | 6GB | ⚡⚡ | ⭐⭐⭐ | Video Segments | 🧪 Testing |
+| SmolVLM | 2B | 4GB | ⚡⚡⚡ | ⭐⭐ | Images | ✅ Working |
+| Phi-3 Vision | 4B | 8GB | ⚡⚡ | ⭐⭐⭐ | Images | ✅ Working |
+| LLaVA | 3B | 6GB | ⚡⚡ | ⭐⭐⭐ | Images | ✅ Working |
+| YOLO8 | 100M | 2GB | ⚡⚡⚡ | ⭐⭐⭐ | Images | ✅ Working |
+| Moondream2 | 2B | 4GB | ⚡⚡ | ⭐⭐ | Images | ✅ Working |
+
+**Legend:** ✅ Proven working | 🧪 Under testing
 
 ## Detailed Model Analysis
 
-### 1. SmolVLM (Primary Model)
+### 1. SmolVLM2-Video (Testing - Video Understanding)
+
+**Key Strengths:**
+- Native video understanding with temporal reasoning
+- Can process 5-10 second video segments
+- Built-in activity recognition and progress tracking
+- Natural continuous guidance flow
+- No manual context memory management needed
+
+**Limitations:**
+- Still under testing for reliability
+- Higher computational requirements than image models
+- More complex integration and deployment
+- Newer model with less proven track record
+
+**Current Testing Focus:**
+- Reliability compared to image analysis approach
+- Performance and computational efficiency
+- Quality of continuous guidance vs frame-based guidance
+- Integration complexity and deployment considerations
+
+**Technical Specifications:**
+- Parameters: 500 million
+- Architecture: Video-enhanced transformer
+- Input: Video segments (5-10 seconds)
+- Frame Processing: Up to 64 frames @ 1 FPS
+- Memory Requirements: 6GB (with MPS acceleration)
+
+**Configuration Notes:**
+```json
+{
+  "video_processing": {
+    "segment_duration": 5,
+    "overlap_duration": 1,
+    "max_frames": 64,
+    "target_fps": 1
+  }
+}
+```
+
+### 2. SmolVLM (Current Working - Image Analysis)
 
 **Key Strengths:**
 - Extremely fast inference time
@@ -52,7 +97,7 @@ This document provides a comprehensive comparison of all vision-language models 
 }
 ```
 
-### 2. Phi-3 Vision (High Accuracy)
+### 3. Phi-3 Vision (High Accuracy Image Analysis)
 
 **Key Strengths:**
 - Superior accuracy and understanding
@@ -90,7 +135,7 @@ This document provides a comprehensive comparison of all vision-language models 
 }
 ```
 
-### 3. YOLO8 (Object Detection)
+### 4. YOLO8 (Object Detection)
 
 **Key Strengths:**
 - Ultra-fast detection speed
@@ -128,7 +173,7 @@ This document provides a comprehensive comparison of all vision-language models 
 }
 ```
 
-### 4. LLaVA (Advanced Reasoning)
+### 5. LLaVA (Advanced Reasoning)
 
 **Key Strengths:**
 - Strong reasoning capabilities
@@ -166,7 +211,7 @@ This document provides a comprehensive comparison of all vision-language models 
 }
 ```
 
-### 5. Moondream2 (Specialized)
+### 6. Moondream2 (Specialized)
 
 **Key Strengths:**
 - Fast for its capability level
@@ -208,56 +253,78 @@ This document provides a comprehensive comparison of all vision-language models 
 ### 1. Response Time (lower is better)
 
 ```
-┌─────────┬───────────────┬────────────┬─────────────┬─────────────┐
-│ Model   │ 480p Image    │ 720p Image │ 1080p Image │ Text Dense  │
-├─────────┼───────────────┼────────────┼─────────────┼─────────────┤
-│ SmolVLM │ 0.4s          │ 0.6s       │ 0.9s        │ 0.7s        │
-│ Phi-3   │ 0.8s          │ 1.2s       │ 1.8s        │ 1.3s        │
-│ YOLO8   │ 0.1s          │ 0.2s       │ 0.3s        │ N/A         │
-│ LLaVA   │ 0.7s          │ 1.0s       │ 1.5s        │ 1.2s        │
-│ MoonD2  │ 0.5s          │ 0.8s       │ 1.1s        │ 0.9s        │
-└─────────┴───────────────┴────────────┴─────────────┴─────────────┘
+┌─────────────┬───────────────┬────────────┬─────────────┬─────────────┐
+│ Model       │ 480p Image    │ 720p Image │ 1080p Image │ Video (5s)  │
+├─────────────┼───────────────┼────────────┼─────────────┼─────────────┤
+│ SmolVLM2-V  │ N/A           │ N/A        │ N/A         │ 11.3s 🧪    │
+│ SmolVLM     │ 0.4s          │ 0.6s       │ 0.9s        │ N/A         │
+│ Phi-3       │ 0.8s          │ 1.2s       │ 1.8s        │ N/A         │
+│ YOLO8       │ 0.1s          │ 0.2s       │ 0.3s        │ N/A         │
+│ LLaVA       │ 0.7s          │ 1.0s       │ 1.5s        │ N/A         │
+│ MoonD2      │ 0.5s          │ 0.8s       │ 1.1s        │ N/A         │
+└─────────────┴───────────────┴────────────┴─────────────┴─────────────┘
 ```
+
+**🧪 Note:** SmolVLM2-Video times are from testing phase and may improve with optimization.
 
 ### 2. Accuracy Scores (higher is better)
 
 ```
-┌─────────┬────────────┬───────────────┬────────────┬────────────┐
-│ Model   │ Object ID  │ Text Reading  │ Reasoning  │ Guidance   │
-├─────────┼────────────┼───────────────┼────────────┼────────────┤
-│ SmolVLM │ 82%        │ 65%           │ 72%        │ 78%        │
-│ Phi-3   │ 89%        │ 91%           │ 87%        │ 88%        │
-│ YOLO8   │ 93%        │ 0%            │ 0%         │ 0%         │
-│ LLaVA   │ 87%        │ 83%           │ 85%        │ 84%        │
-│ MoonD2  │ 80%        │ 70%           │ 70%        │ 75%        │
-└─────────┴────────────┴───────────────┴────────────┴────────────┘
+┌─────────────┬────────────┬───────────────┬────────────┬──────────────┐
+│ Model       │ Object ID  │ Text Reading  │ Reasoning  │ Guidance     │
+├─────────────┼────────────┼───────────────┼────────────┼──────────────┤
+│ SmolVLM2-V  │ 🧪 Testing │ 🧪 Testing    │ 🧪 Testing │ 🧪 Testing   │
+│ SmolVLM     │ 82%        │ 65%           │ 72%        │ 78%          │
+│ Phi-3       │ 89%        │ 91%           │ 87%        │ 88%          │
+│ YOLO8       │ 93%        │ 0%            │ 0%         │ 0%           │
+│ LLaVA       │ 87%        │ 83%           │ 85%        │ 84%          │
+│ MoonD2      │ 80%        │ 70%           │ 70%        │ 75%          │
+└─────────────┴────────────┴───────────────┴────────────┴──────────────┘
 ```
+
+**🧪 Note:** SmolVLM2-Video accuracy testing is ongoing to compare with image-based approaches.
 
 ### 3. Memory Usage (lower is better)
 
+**⚠️ Important:** Only one model runs at a time due to memory constraints.
+
 ```
-┌─────────┬─────────────┬────────────────┬────────────────┐
-│ Model   │ Base Memory │ Peak (4K img)  │ Extended Usage │
-├─────────┼─────────────┼────────────────┼────────────────┤
-│ SmolVLM │ 4.2 GB      │ 4.8 GB         │ 5.0 GB         │
-│ Phi-3   │ 8.5 GB      │ 9.2 GB         │ 9.5 GB         │
-│ YOLO8   │ 2.1 GB      │ 2.4 GB         │ 2.5 GB         │
-│ LLaVA   │ 6.3 GB      │ 6.8 GB         │ 7.0 GB         │
-│ MoonD2  │ 4.0 GB      │ 4.5 GB         │ 4.7 GB         │
-└─────────┴─────────────┴────────────────┴────────────────┘
+┌─────────────┬─────────────┬────────────────┬────────────────┐
+│ Model       │ Base Memory │ Peak (4K img)  │ Extended Usage │
+├─────────────┼─────────────┼────────────────┼────────────────┤
+│ SmolVLM2-V  │ 6.0 GB      │ 6.8 GB         │ 7.0 GB         │
+│ SmolVLM     │ 4.2 GB      │ 4.8 GB         │ 5.0 GB         │
+│ Phi-3       │ 8.5 GB      │ 9.2 GB         │ 9.5 GB         │
+│ YOLO8       │ 2.1 GB      │ 2.4 GB         │ 2.5 GB         │
+│ LLaVA       │ 6.3 GB      │ 6.8 GB         │ 7.0 GB         │
+│ MoonD2      │ 4.0 GB      │ 4.5 GB         │ 4.7 GB         │
+└─────────────┴─────────────┴────────────────┴────────────────┘
 ```
+
+**Memory Management:** Switch between models by stopping one and starting another.
 
 ## Decision Matrix
 
-Use this matrix to help decide which model is best for your specific needs:
+**🧪 Current Testing Focus:** The primary decision is between enhanced image analysis and video understanding approaches.
 
-### When to use SmolVLM:
-- You need real-time processing
-- You have limited computing resources
-- You need a balance of speed and quality
-- You're running on edge devices
+### Testing Priorities:
 
-### When to use Phi-3 Vision:
+#### SmolVLM2-Video (Under Testing):
+- If temporal understanding proves reliable and efficient
+- When continuous activity recognition is crucial
+- For applications requiring natural guidance flow
+- Testing computational efficiency vs guidance quality
+
+#### SmolVLM (Current Working Baseline):
+- ✅ Proven reliability and stability
+- ✅ Real-time processing with fast response
+- ✅ Lower computational requirements
+- ✅ Simple integration and deployment
+- ✅ Good balance of speed and quality
+
+#### Alternative Image Models for Specific Needs:
+
+**Phi-3 Vision:**
 - Accuracy is your top priority
 - You need strong text recognition
 - You have sufficient computing resources
@@ -265,17 +332,16 @@ Use this matrix to help decide which model is best for your specific needs:
 
 ### When to use YOLO8:
 - You only need object detection
-- You need the fastest possible response
-- You don't need contextual understanding
-- You're operating with minimal resources
+- Pure object detection needs
+- Fastest possible response required
+- Minimal resource environments
 
-### When to use LLaVA:
-- You need strong reasoning capabilities
-- You're handling multi-turn interactions
-- You need detailed explanations
-- You have moderate computing resources
+**LLaVA:**
+- Strong reasoning capabilities needed
+- Multi-turn interactions required
+- Detailed explanations important
 
-### When to use Moondream2:
+**Moondream2:**
 - You have specific visual analysis needs
 - You need a good balance of speed and quality
 - You have moderate computing resources

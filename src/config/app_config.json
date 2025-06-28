@@ -1,5 +1,5 @@
 {
-    "active_model": "phi3_vision",
+    "active_model": "smolvlm",
     "server": {
         "host": "localhost",
         "port": 8000
@@ -10,3 +10,32 @@
         "api_base_url": "http://localhost:8000"
     }
 }
+
+
+// {
+//     "active_model": "smolvlm",
+//     "testing_phase": {
+//         "note": "Evaluating image analysis vs video understanding approaches",
+//         "approaches": {
+//             "image_analysis": {
+//                 "model": "smolvlm",
+//                 "status": "current_working",
+//                 "description": "Enhanced image analysis with context memory"
+//             },
+//             "video_understanding": {
+//                 "model": "smolvlm2_video",
+//                 "status": "testing",
+//                 "description": "Continuous video understanding with temporal reasoning"
+//             }
+//         }
+//     },
+//     "server": {
+//         "host": "localhost",
+//         "port": 8000
+//     },
+//     "frontend": {
+//         "video_width": 640,
+//         "video_height": 480,
+//         "api_base_url": "http://localhost:8000"
+//     }
+// }

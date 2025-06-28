@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AI Manual Assistant is a real-time visual guidance system that uses advanced Vision-Language Models (VLMs) to provide contextual assistance for various tasks. This document outlines the complete system architecture and component interactions.
+The AI Manual Assistant is a real-time visual guidance system that uses advanced Vision-Language Models (VLMs) to provide contextual assistance for hands-on tasks. The system is currently in a testing phase, evaluating two approaches: continuous video understanding and intelligent image analysis to determine the optimal solution for reliable real-time guidance. This document outlines the complete system architecture supporting both approaches.
 
 ## System Components
 
@@ -30,67 +30,105 @@ The AI Manual Assistant is a real-time visual guidance system that uses advanced
 ### 2. Component Responsibilities
 
 #### Frontend Layer (Port 5500)
-- Camera input handling
-- Real-time video streaming
+- **Dual Input Support**: Camera input for both video recording and image capture
+- **Testing Interface**: Switch between video segments and intelligent image capture
 - User interface and controls
 - Response visualization
+- Real-time guidance visualization
 - Error handling and user feedback
 
 #### Backend Layer (Port 8000)
-- Request routing and load balancing
-- Image preprocessing and optimization
-- Model selection and switching
-- Response post-processing
-- Session management
+- **Adaptive Processing**: Image or video processing based on active model
+- **Model Routing**: Routes requests to the single active model (port 8080)
+- Context management and history tracking
+- Response post-processing and guidance formatting  
+- Session management and progress tracking
 - Error handling and logging
 
 #### Model Server Layer (Port 8080)
-- Model loading and initialization
-- Inference execution
-- Context management
-- Response generation
-- Model-specific optimizations
+- **Single Active Model**: One model active at a time (memory considerations)
+- **Model Switching**: Support for switching between SmolVLM and SmolVLM2-Video
+- **Adaptive Configuration**: Model-specific optimizations based on active model
+- Response generation optimized for the currently active model
 
 ## Data Flow
 
-### 1. Image Processing Pipeline
+### 🧪 Testing Phase: Dual Processing Approaches
+
+### 1. Video Understanding Pipeline (Testing)
 
 ```ascii
-Raw Image
+Live Video Stream
    ↓
-Preprocessing
+Segment Capture (5-10s clips)
    ↓
-Quality Optimization
+Temporal Analysis & Context Integration
    ↓
-Model-Specific Formatting
+Video-Aware Model Processing (SmolVLM2-Video)
    ↓
-Inference
+Activity Understanding & Progress Tracking
    ↓
-Response Generation
+Continuous Guidance Generation
 ```
 
-### 2. Request-Response Flow
+### 2. Intelligent Image Processing Pipeline (Current Working)
 
+```ascii
+Camera Stream
+   ↓
+Smart Frame Capture (1-2s intervals)
+   ↓
+Image Enhancement & Context Integration
+   ↓
+Image-Optimized Model Processing (SmolVLM)
+   ↓
+Context-Aware Analysis & Memory
+   ↓
+Contextual Guidance Generation
+```
+
+### 3. Processing Flow Comparison
 1. **Image Capture**
    - Frontend captures camera frame
    - Performs client-side optimization
    - Sends to backend via HTTP
-
 2. **Backend Processing**
    - Receives image data
    - Validates and preprocesses
    - Routes to appropriate model
    - Handles response formatting
+**Video Approach (Testing):**
+1. **Video Stream Capture**
+   - Frontend continuously records 5-10 second segments
+   - Overlapping segments maintain temporal continuity
+   - Optimized for activity understanding and temporal reasoning
 
-3. **Model Processing**
-   - Executes inference
-   - Generates structured response
-   - Maintains context memory
+2. **Temporal Processing**  
+   - Backend processes video segments with context history
+   - Routes to SmolVLM2-Video for temporal inference
+   - Maintains continuous narrative and progress tracking
 
-4. **Response Delivery**
-   - Backend formats response
-   - Sends to frontend
-   - Frontend renders guidance
+**Image Approach (Current Working):**
+1. **Intelligent Frame Capture**
+   - Frontend captures frames at optimized intervals (1-2s)
+   - Smart timing based on activity detection
+   - Enhanced image preprocessing for maximum clarity
+
+2. **Context-Enhanced Processing**
+   - Backend maintains frame history and context memory
+   - Routes to SmolVLM for reliable image analysis
+   - Builds understanding through accumulated observations
+
+**Both Approaches Deliver:**
+3. **Context-Aware Analysis**
+   - Model processing with historical context integration
+   - Activity recognition and progress understanding
+   - Reliable guidance generation optimized for real-time use
+
+4. **Real-time Guidance**
+   - Backend formats responses for natural interaction
+   - Frontend provides seamless mentoring experience
+   - User receives contextual help that feels intuitive and helpful
 
 ## Integration Points
 
@@ -114,6 +152,13 @@ Response Generation
 | Phi-3 Vision | High Accuracy | 336x336 | 8GB |
 | YOLO8 | Object Detection | 640x640 | 2GB |
 | LLaVA | Specialized Tasks | 224x224 | 6GB |
+| Model | Purpose | Input Type | Memory Req. | Capability |
+|-------|---------|------------|-------------|------------|
+| SmolVLM2-Video | Primary Continuous Vision | Video Segments | 6GB | Temporal Understanding |
+| SmolVLM | Fallback Image Analysis | Single Frame | 4GB | Fast Response |
+| Phi-3 Vision | High Accuracy Analysis | Single Frame | 8GB | Detailed Recognition |
+| YOLO8 | Object Detection | Single Frame | 2GB | Real-time Detection |
+| LLaVA | Specialized Tasks | Single Frame | 6GB | Conversational |
 
 ## Configuration Management
 
@@ -214,14 +259,14 @@ Production Deployment
 ## Future Considerations
 
 ### 1. Scalability
-- Horizontal scaling of model servers
-- Load balancer integration
+- Optimized model switching
+- Faster model loading/unloading
 - Distributed caching
 - Multi-region deployment
 
 ### 2. Feature Expansion
-- Multi-model ensemble
-- Advanced context management
+- Advanced model switching automation
+- Enhanced context management
 - Offline mode support
 - Mobile optimization
 
@@ -249,6 +294,10 @@ Production Deployment
                        └───────────────┘      └───────────────┘
 ```
 
+## Architecture Constraints
+
+**Memory Management:** The system is designed around single-model operation to ensure optimal performance and memory usage. Model switching is supported but requires stopping one model before starting another.
+
 ## References
 
 - [API Documentation](./API.md)
@@ -256,5 +305,3 @@ Production Deployment
 - [Developer Setup Guide](./DEVELOPER_SETUP.md)
 - [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - [FAQ](./FAQ.md)
-- [Developer Setup Guide](./DEVELOPER_SETUP.md)
-- [Model Comparison Guide](./MODEL_COMPARISON.md)

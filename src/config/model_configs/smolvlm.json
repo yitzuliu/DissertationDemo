@@ -31,5 +31,6 @@
     "max_context_history": 3
   },
   "version": "1.0.0",
-  "description": "SmolVLM 500M Instruct model configuration for unified vision system"
+  "description": "SmolVLM 500M Instruct model configuration for unified vision system. Current working solution being compared with video approach.",
+  "testing_note": "Proven reliable image analysis approach. Being enhanced with context memory and smarter prompting for comparison with video understanding."
 }
