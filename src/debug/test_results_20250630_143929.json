@@ -1,0 +1,23 @@
+[
+  {
+    "timestamp": "2025-06-30T14:39:29.284104",
+    "test_name": "system_detection",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm2_500m_video",
+      "model_server_online": true,
+      "timestamp": "2025-06-30T14:39:29.275483"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T14:39:29.285507",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm2_500m_video"
+    }
+  }
+]

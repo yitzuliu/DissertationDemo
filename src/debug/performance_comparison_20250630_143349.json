@@ -1,0 +1,35 @@
+{
+  "original": [
+    {
+      "image": "IMG_0119.JPG",
+      "version": "Original",
+      "success": false,
+      "error": "HTTP 500",
+      "processing_time": 0.010262012481689453
+    },
+    {
+      "image": "sample.jpg",
+      "version": "Original",
+      "success": false,
+      "error": "HTTP 500",
+      "processing_time": 0.003899812698364258
+    }
+  ],
+  "optimized": [
+    {
+      "image": "IMG_0119.JPG",
+      "version": "Optimized",
+      "success": false,
+      "error": "HTTP 500",
+      "processing_time": 0.005646944046020508
+    },
+    {
+      "image": "sample.jpg",
+      "version": "Optimized",
+      "success": false,
+      "error": "HTTP 500",
+      "processing_time": 0.004090785980224609
+    }
+  ],
+  "comparison": {}
+}

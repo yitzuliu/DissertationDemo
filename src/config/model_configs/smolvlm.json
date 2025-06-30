@@ -1,5 +1,6 @@
 {
   "model_name": "SmolVLM",
+  "model_id": "smolvlm",
   "model_path": "ggml-org/SmolVLM-500M-Instruct-GGUF",
   "server": {
     "command": "llama-server",

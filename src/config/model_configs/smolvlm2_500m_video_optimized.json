@@ -1,13 +1,14 @@
 {
-  "model_name": "SmolVLM2-500M-Optimized",
+  "model_name": "SmolVLM2-500M Video Optimized",
+  "model_id": "smolvlm2_500m_video_optimized",
   "model_path": "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct",
-  "model_file": "smolvlm2_500_model_optimized.py",
+  "model_file": "smolvlm2_500m_video_optimized.py",
   "device": "mps",
   "server": {
     "type": "optimized_in_process",
     "port": 8080,
     "health_endpoint": "/health",
-    "startup_script": "run_smolvlm2_500_optimized.py"
+    "startup_script": "run_smolvlm2_500m_video_optimized.py"
   },
   "image_processing": {
     "max_size": 384,

@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-06-30T14:40:00.812624",
+    "test_name": "system_detection",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm2_500m_video",
+      "model_server_online": true,
+      "timestamp": "2025-06-30T14:40:00.805501"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T14:40:00.813659",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm2_500m_video"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T14:40:18.009814",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail.",
+      "response": "The image captures a playful dog sitting on the floor, looking directly at the camera with a happy expression. The dog has a light-colored coat with a darker patch on its nose. The dog is wearing a collar and is in a room with a tiled floor, a wooden cabinet, and a shower/bathtub. The cabinet is to the left of the dog, and the shower/bathtub is positioned to the right. There are also two green slippers on the floor, one to the left of the dog and the other to the right. The dog's collar is visible, and its nose is also visible, with the dog's eyes turned slightly towards the camera. The overall scene suggests a light-hearted and playful atmosphere.",
+      "processing_time": 17.159342765808105
+    }
+  },
+  {
+    "timestamp": "2025-06-30T14:40:32.645711",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "What objects can you identify in this image?",
+      "response": "The image displays a red background alone, devoid of any discernible objects or content. This stark simplicity creates a sense of isolation, which can be interpreted in various ways. Here is a detailed description of the image:\n\n1. **Color**: The primary color is red. Its intensity is low, making it a neutral background that doesn\u2019t draw attention.\n\n2. **Positionality**: The red color is uniformly distributed across the entire image, without any variation in shade or intensity. This uniformity suggests a lack of focus or emphasis on particular elements.\n\n3. **Contrast**: The red color stands out against the background, creating a stark contrast that makes the red color the focal point without any distractions.\n\n4. **Arbitrary",
+      "processing_time": 14.627048015594482
+    }
+  },
+  {
+    "timestamp": "2025-06-30T14:40:40.415485",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "What are the main colors and visual elements?",
+      "response": "The main colors and visual elements include the blue color, which is central and occupies a significant portion of the image.",
+      "processing_time": 7.761298894882202
+    }
+  },
+  {
+    "timestamp": "2025-06-30T14:40:55.129808",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm2_500m_video",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe the scene and any activities you observe.",
+      "response": "The image depicts a graphical representation of a geometric figure, specifically a circle. Here is a detailed description:\n\n- The circle appears to be centered with a single point at the center, which is represented by the letter \"P\" in the image.\n- The circle is filled with a solid red color, making it the primary focus of the diagram.\n- The background is a light blue color, providing a contrast to the red circle.\n- There is a blue frame around the entire diagram, which serves as a border to enclose the figure, indicating it is a graphical representation, likely part of a mathematical or educational context.\n\n### Analysis and Description:\n\n#### The Circle Figure:\nThe circle in the image is",
+      "processing_time": 14.708423137664795
+    }
+  }
+]

@@ -1,13 +1,14 @@
 {
-  "model_name": "SmolVLM2-500M-Video",
+  "model_name": "SmolVLM2-500M Video",
+  "model_id": "smolvlm2_500m_video",
   "model_path": "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct",
-  "model_file": "smolvlm2_500_model.py",
+  "model_file": "smolvlm2_500m_video.py",
   "device": "mps",
   "server": {
     "type": "in_process",
     "port": 8080,
     "health_endpoint": "/health",
-    "startup_script": "run_smolvlm2_500.py"
+    "startup_script": "run_smolvlm2_500m_video.py"
   },
   "image_processing": {
     "max_size": 512,

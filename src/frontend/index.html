@@ -937,7 +937,10 @@
             // Update status indicators
             apiStatusDot.className = "status-dot online";
             apiStatusText.textContent = "API Online";
-            activeModel.textContent = data.active_model || "Unknown";
+            
+            // 使用模型的顯示名稱
+            const modelName = data.model_status?.name || data.active_model || "Unknown";
+            activeModel.textContent = modelName;
             
             // Create a nicely formatted status display
             const availableModels = data.available_models && data.available_models.length 
@@ -946,9 +949,17 @@
                 
             systemStatus.innerHTML = `
                 <div style="margin-bottom: 0.75rem;"><strong>Status:</strong> <span style="color: var(--success);">Connected</span></div>
-                <div style="margin-bottom: 0.75rem;"><strong>Active Model:</strong> ${data.active_model || "None"}</div>
+                <div style="margin-bottom: 0.75rem;"><strong>Active Model:</strong> ${modelName}</div>
+                <div style="margin-bottom: 0.75rem;"><strong>Version:</strong> ${data.model_status?.version || "N/A"}</div>
                 <div><strong>Available Models:</strong> ${availableModels}</div>
             `;
+
+            // Update model description if available
+            if (data.model_status?.description) {
+                modelDesc.innerHTML = `
+                    <div style="margin-bottom: 0.75rem;">${data.model_status.description}</div>
+                `;
+            }
         }
         
         // Update UI for offline API status
@@ -975,10 +986,7 @@
                 
                 config = await res.json();
                 
-                // Update UI with config data
-                if (config.active_model) {
-                    activeModel.textContent = config.active_model;
-                }
+                // 不再更新 activeModel.textContent
                 
                 if (config.model_help) {
                     modelHelp.style.display = "block";
@@ -991,87 +999,15 @@
                     instructionText.value = config.default_instruction;
                 }
                 
-                // Format the model description nicely
-                if (config.model_description || config.model_help) {
-                    const description = config.model_description || config.model_help;
-                    modelDesc.innerHTML = `
-                        <p style="margin-bottom: 0.75rem;">${description}</p>
-                        ${config.model_capabilities ? 
-                          `<p style="margin-top: 0.75rem;"><strong>Capabilities:</strong> ${config.model_capabilities}</p>` : ''}
-                    `;
-                } else {
-                    modelDesc.innerHTML = `<p>No information available for this model.</p>`;
+                // Update interval options if available
+                if (config.capture_intervals && Array.isArray(config.capture_intervals)) {
+                    intervalSelect.innerHTML = config.capture_intervals.map(interval => 
+                        `<option value="${interval}">${interval/1000}s</option>`
+                    ).join('');
                 }
-                
-                // Set up interval options
-                intervalSelect.innerHTML = "";
-                
-                // Set up interval options with a more concise approach
-                intervalSelect.innerHTML = "";
-                
-                // Helper function to create interval options
-                const createIntervalOption = (interval, isSelected = false) => {
-                    const opt = document.createElement('option');
-                    opt.value = interval;
-                    opt.textContent = interval >= 1000 ? `${interval/1000}s` : `${interval}ms`;
-                    opt.selected = isSelected;
-                    intervalSelect.appendChild(opt);
-                    return opt;
-                };
-                
-                // Check if config has interval options
-                if (config.capture_intervals && Array.isArray(config.capture_intervals) && config.capture_intervals.length > 0) {
-                    // Use intervals from configuration
-                    let defaultSet = false;
-                    config.capture_intervals.forEach(interval => {
-                        const isSelected = config.capture_interval && interval === config.capture_interval;
-                        createIntervalOption(interval, isSelected);
-                        if (isSelected) defaultSet = true;
-                    });
-                    
-                    // Select first option if no default was set
-                    if (!defaultSet && intervalSelect.options.length > 0) {
-                        intervalSelect.options[0].selected = true;
-                    }
-                } else if (config.model_id) {
-                    // If we have a valid model but no intervals specified, use standard intervals
-                    [500, 1000, 2000, 5000, 10000].forEach(interval => {
-                        createIntervalOption(interval, interval === 2000);
-                    });
-                } else {
-                    // No valid model config
-                    displayNoConfigOption();
-                }
-                
-                // Set default quality
-                qualitySelect.value = config.image_quality || "0.9";
-                
             } catch (error) {
-                modelHelp.textContent = "Unable to load model configuration. Please ensure the backend service is running.";
-                modelDesc.innerHTML = `
-                    <div style="color: var(--error);">
-                        <i class="fas fa-exclamation-circle"></i> 
-                        Configuration Error
-                    </div>
-                    <p style="margin-top: 0.75rem;">
-                        Unable to load model information: ${error.message}
-                    </p>
-                `;
-                
-                // Even if config loading fails, display a "None" option to indicate no backend config
-                displayNoConfigOption();
-            }
-            
-            // Helper function to show only a "No Config" option when no config is available
-            function displayNoConfigOption() {
-                // Only proceed if the select doesn't already have options
-                if (!intervalSelect.options.length) {
-                    console.log("No interval options from backend, displaying placeholder only");
-                    intervalSelect.innerHTML = "";
-                    
-                    // Create and append the placeholder option
-                    intervalSelect.innerHTML = '<option value="none" selected disabled>-- No Config --</option>';
-                }
+                console.error("Failed to load config:", error);
+                showError("Failed to load configuration. Please refresh the page.");
             }
         }
 

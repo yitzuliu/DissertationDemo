@@ -68,23 +68,23 @@ class PerformanceComparison:
     
     def test_model_version(self, model_config, version_name):
         """Test a specific model version"""
-        print(f"\n🧪 Testing {version_name} SmolVLM2")
+        print(f"\n🧪 Testing {version_name} Version")
         print("-" * 40)
         
         # Update backend configuration
         if not self.switch_model_config(model_config):
-            print(f"❌ Failed to switch to {version_name}")
+            print(f"❌ Failed to switch to {version_name} version")
             return []
         
         # Wait for model to load
         print("⏳ Waiting for model to load...")
-        time.sleep(15)
+        time.sleep(5)  # 減少等待時間
         
         # Verify model is ready
         try:
             response = requests.get(f"{self.backend_url}/health", timeout=10)
             if response.status_code != 200:
-                print(f"❌ Backend not ready for {version_name}")
+                print(f"❌ Backend not ready for {version_name} version")
                 return []
             
             health_data = response.json()
@@ -113,7 +113,12 @@ class PerformanceComparison:
                         "role": "user",
                         "content": [
                             {"type": "text", "text": prompt},
-                            {"type": "image_url", {"image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}}
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{image_base64}"
+                                }
+                            }
                         ]
                     }],
                     "max_tokens": 150
@@ -193,11 +198,13 @@ class PerformanceComparison:
         print("🚀 Starting Performance Comparison...")
         
         # Test original SmolVLM2
-        original_results = self.test_model_version("smolvlm2-500", "Original")
+        print("\n🧪 Testing Original SmolVLM2")
+        original_results = self.test_model_version("smolvlm2_500m_video", "Original")
         self.results["original"] = original_results
         
         # Test optimized SmolVLM2
-        optimized_results = self.test_model_version("smolvlm2-500-optimized", "Optimized")
+        print("\n🧪 Testing Optimized SmolVLM2")
+        optimized_results = self.test_model_version("smolvlm2_500m_video_optimized", "Optimized")
         self.results["optimized"] = optimized_results
         
         # Generate comparison

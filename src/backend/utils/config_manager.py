@@ -53,7 +53,7 @@ class ConfigManager:
                 "video_height": 480, 
                 "api_base_url": "http://localhost:8000"
             },
-            "active_model": "smolvlm"
+            "active_model": "smolvlm2_500m_video"
         }
         
         # Initialize with default configuration

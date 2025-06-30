@@ -77,7 +77,7 @@ def preprocess_image(image_url):
         
         # Model-specific image processing
         if ACTIVE_MODEL == "smolvlm":
-            # SmolVLM: 512x512 with image enhancement (restored from backup for better recognition)
+            # SmolVLM: 512x512 with image enhancement
             img = img.resize((512, 512), Image.Resampling.LANCZOS)
             img = img.filter(ImageFilter.GaussianBlur(radius=0.5))
             
@@ -93,20 +93,25 @@ def preprocess_image(image_url):
             quality = 95
             
         elif ACTIVE_MODEL == "phi3_vision":
-            # Phi-3 Vision: Resize to model's expected dimensions (336x336)
-            # This prevents tensor shape mismatches during inference
+            # Phi-3 Vision: 336x336
             img = img.resize((336, 336), Image.Resampling.LANCZOS)
             quality = 95
             
-        # elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500", "smolvlm2-500-optimized"]:
-        elif ACTIVE_MODEL in ["smolvlm2-500", "smolvlm2-500-optimized"]:
-            # SmolVLM2: Resize to optimal dimensions (512x512) with memory consideration
-            max_size = 512
+        elif ACTIVE_MODEL in ["smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
+            # SmolVLM2: Resize to optimal dimensions
+            if ACTIVE_MODEL == "smolvlm2_500m_video":
+                max_size = 512
+                quality = 95
+                resize_method = Image.Resampling.LANCZOS
+            else:  # optimized version
+                max_size = 384
+                quality = 85
+                resize_method = Image.Resampling.BILINEAR
+                
             if max(img.size) > max_size:
                 scale = max_size / max(img.size)
                 new_size = (int(img.size[0] * scale), int(img.size[1] * scale))
-                img = img.resize(new_size, Image.Resampling.LANCZOS)
-            quality = 95
+                img = img.resize(new_size, resize_method)
             
         else:
             # Fallback: use original size and medium quality
@@ -172,7 +177,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
     try:
         logger.info(f"Processing request with model: {ACTIVE_MODEL}")
         
-        if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "smolvlm2", "smolvlm2-500"]:
+        if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
             # Count and preprocess images
             image_count = 0
             for message in request.messages:
@@ -304,11 +309,26 @@ async def update_config(config_update: ConfigUpdate):
 @app.get("/status")
 async def get_status():
     """Return system status"""
-    return {
-        "active_model": ACTIVE_MODEL,
-        "available_models": ["smolvlm", "phi3_vision", "smolvlm2-500"],
-        "config": config_manager.get_config()
-    }
+    try:
+        # 獲取當前模型的配置
+        model_config = config_manager.load_model_config(ACTIVE_MODEL)
+        display_name = model_config.get("model_name", ACTIVE_MODEL)
+        model_id = model_config.get("model_id", ACTIVE_MODEL)
+        
+        return {
+            "active_model": display_name,
+            "model_id": model_id,
+            "available_models": ["smolvlm", "phi3_vision", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"],
+            "config": config_manager.get_config(),
+            "model_status": {
+                "name": display_name,
+                "description": model_config.get("description", ""),
+                "version": model_config.get("version", "1.0.0")
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting status: {e}")
+        raise HTTPException(status_code=500, detail="Error getting system status")
 
 # Start frontend separately: cd ../frontend && python -m http.server 5500
 

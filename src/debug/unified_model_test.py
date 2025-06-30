@@ -12,7 +12,7 @@ import json
 import base64
 import requests
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageEnhance
 import io
 from datetime import datetime
 
@@ -30,9 +30,13 @@ class DebugModelTestSuite:
         # Use images from same debug directory
         self.images_dir = current_dir / "images"
         
+        # Config paths
+        self.config_dir = project_root / "src" / "config" / "model_configs"
+        
         # Test state
         self.active_model = None
         self.model_capabilities = {}
+        self.model_config = None
         self.test_results = []
         
         # Create results file
@@ -41,7 +45,24 @@ class DebugModelTestSuite:
         
         print(f"🎯 Debug Test Suite Initialized")
         print(f"📁 Images Directory: {self.images_dir}")
+        print(f"📁 Config Directory: {self.config_dir}")
         print(f"🌐 Backend URL: {self.backend_url}")
+    
+    def load_model_config(self, model_id):
+        """Load model configuration from JSON file"""
+        try:
+            config_file = self.config_dir / f"{model_id}.json"
+            if not config_file.exists():
+                print(f"⚠️ Config file not found: {config_file}")
+                return None
+                
+            with open(config_file, 'r') as f:
+                config = json.load(f)
+                print(f"✅ Loaded config for model: {model_id}")
+                return config
+        except Exception as e:
+            print(f"❌ Error loading config: {e}")
+            return None
     
     def log_result(self, test_name, result):
         """Log test result with timestamp"""
@@ -83,62 +104,48 @@ class DebugModelTestSuite:
                 if self.active_model:
                     status["model_server_online"] = True
                     print(f"✅ Model Server: Detected via Backend")
+                    
+                    # Load model configuration
+                    self.model_config = self.load_model_config(self.active_model)
+                    if self.model_config:
+                        self._detect_model_capabilities()
+                    else:
+                        print("⚠️ Failed to load model configuration")
             else:
                 print(f"❌ Backend: HTTP {response.status_code}")
         except Exception as e:
             print(f"❌ Backend: Not reachable - {e}")
         
-        self._detect_model_capabilities()
         self.log_result("system_detection", status)
         return status
     
     def _detect_model_capabilities(self):
-        """Detect capabilities based on active model name"""
-        if not self.active_model:
+        """Detect capabilities based on model configuration"""
+        if not self.active_model or not self.model_config:
             return
-        
-        model_name = self.active_model.lower()
-        
-        # Model capability database
-        capabilities_db = {
-            "smolvlm2": {
-                "vision": True,
-                "text_generation": True,
-                "video": True,
-                "object_detection": True,
-                "scene_analysis": True,
-                "text_recognition": True,
-                "optimal_image_size": 768,
-                "max_tokens": 1024,
-                "expected_response_time": 15.0
-            },
-            "smolvlm": {
-                "vision": True,
-                "text_generation": True,
-                "video": False,
-                "object_detection": True,
-                "scene_analysis": True,
-                "text_recognition": True,
-                "optimal_image_size": 512,
-                "max_tokens": 512,
-                "expected_response_time": 10.0
-            }
+            
+        # Extract capabilities from config
+        self.model_capabilities = {
+            "vision": True,  # All models support vision
+            "text_generation": True,
+            "video": "video" in self.model_config.get("model_id", "").lower(),
+            "object_detection": True,
+            "scene_analysis": True,
+            "text_recognition": True,
+            "optimal_image_size": self.model_config.get("image_processing", {}).get("max_size", 512),
+            "max_tokens": self.model_config.get("api", {}).get("max_tokens", 512),
+            "expected_response_time": self.model_config.get("inference", {}).get("expected_response_time", 10.0),
+            "image_quality": self.model_config.get("image_processing", {}).get("quality", 90),
+            "resize_method": self.model_config.get("image_processing", {}).get("resize_method", "LANCZOS"),
+            "image_format": self.model_config.get("image_processing", {}).get("format", "RGB")
         }
         
-        # Match model name to capabilities
-        for key, caps in capabilities_db.items():
-            if key in model_name:
-                self.model_capabilities = caps
-                print(f"📊 Detected Capabilities: {key.title()}")
-                print(f"   Vision: {caps['vision']}")
-                print(f"   Text Generation: {caps['text_generation']}")
-                print(f"   Video: {caps['video']}")
-                print(f"   Object Detection: {caps['object_detection']}")
-                return
-        
-        # Default capabilities
-        self.model_capabilities = capabilities_db["smolvlm"]
-        print(f"⚠️ Unknown model, using default capabilities")
+        print(f"📊 Loaded capabilities for model: {self.active_model}")
+        print(f"   Image Size: {self.model_capabilities['optimal_image_size']}")
+        print(f"   Max Tokens: {self.model_capabilities['max_tokens']}")
+        print(f"   Video Support: {self.model_capabilities['video']}")
+        print(f"   Image Quality: {self.model_capabilities['image_quality']}")
+        print(f"   Resize Method: {self.model_capabilities['resize_method']}")
     
     def get_debug_images(self):
         """Get all debug images from the images directory"""
@@ -158,19 +165,43 @@ class DebugModelTestSuite:
         """Convert image to base64 with model-specific optimization"""
         try:
             with Image.open(image_path) as img:
+                # Get image processing parameters from capabilities
                 optimal_size = self.model_capabilities.get("optimal_image_size", 512)
+                quality = self.model_capabilities.get("image_quality", 90)
+                resize_method = self.model_capabilities.get("resize_method", "LANCZOS")
+                target_format = self.model_capabilities.get("image_format", "RGB")
                 
+                # Resize if needed
                 if max(img.size) > optimal_size:
                     scale = optimal_size / max(img.size)
                     new_size = (int(img.size[0] * scale), int(img.size[1] * scale))
-                    img = img.resize(new_size, Image.Resampling.LANCZOS)
-                    print(f"🔄 Resized to {new_size}")
+                    resize_method_map = {
+                        "LANCZOS": Image.Resampling.LANCZOS,
+                        "BILINEAR": Image.Resampling.BILINEAR,
+                        "BICUBIC": Image.Resampling.BICUBIC,
+                        "NEAREST": Image.Resampling.NEAREST
+                    }
+                    resize_filter = resize_method_map.get(resize_method, Image.Resampling.LANCZOS)
+                    img = img.resize(new_size, resize_filter)
+                    print(f"🔄 Resized to {new_size} using {resize_method}")
                 
-                if img.mode in ('RGBA', 'P'):
-                    img = img.convert('RGB')
+                # Convert color mode if needed
+                if img.mode != target_format:
+                    img = img.convert(target_format)
+                
+                # Apply additional image processing if specified in config
+                if self.model_config and "image_processing" in self.model_config:
+                    img_proc = self.model_config["image_processing"]
+                    if "contrast_factor" in img_proc:
+                        img = ImageEnhance.Contrast(img).enhance(float(img_proc["contrast_factor"]))
+                    if "brightness_factor" in img_proc:
+                        img = ImageEnhance.Brightness(img).enhance(float(img_proc["brightness_factor"]))
+                    if "sharpness_factor" in img_proc:
+                        img = ImageEnhance.Sharpness(img).enhance(float(img_proc["sharpness_factor"]))
                 
                 buffer = io.BytesIO()
-                img.save(buffer, format="JPEG", quality=90)
+                save_format = "JPEG" if target_format in ["RGB", "L"] else "PNG"
+                img.save(buffer, format=save_format, quality=quality)
                 image_bytes = buffer.getvalue()
                 
                 return base64.b64encode(image_bytes).decode('utf-8')
