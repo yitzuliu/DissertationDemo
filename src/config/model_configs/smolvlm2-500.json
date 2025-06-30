@@ -1,11 +1,13 @@
 {
   "model_name": "SmolVLM2-500M-Video",
-  "model_path": "SmolVLM2-500M-Video-Instruct",
+  "model_path": "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct",
+  "model_file": "smolvlm2_500_model.py",
   "device": "mps",
   "server": {
     "type": "in_process",
     "port": 8080,
-    "health_endpoint": "/health"
+    "health_endpoint": "/health",
+    "startup_script": "run_smolvlm2_500.py"
   },
   "image_processing": {
     "max_size": 512,
@@ -30,7 +32,7 @@
     "max_tokens": 150
   },
   "ui": {
-    "default_instruction": "Describe what you see in this image in detail, including objects, colors, and any activities.",
+    "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
     "capture_intervals": [1000, 2000, 3000, 5000],
     "default_interval": 2000
   },

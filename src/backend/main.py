@@ -98,7 +98,8 @@ def preprocess_image(image_url):
             img = img.resize((336, 336), Image.Resampling.LANCZOS)
             quality = 95
             
-        elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500"]:
+        # elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500", "smolvlm2-500-optimized"]:
+        elif ACTIVE_MODEL in ["smolvlm2-500", "smolvlm2-500-optimized"]:
             # SmolVLM2: Resize to optimal dimensions (512x512) with memory consideration
             max_size = 512
             if max(img.size) > max_size:

@@ -339,7 +339,21 @@ class DebugModelTestSuite:
         print("=" * 60)
         
         total_tests = len(self.test_results)
-        successful_tests = sum(1 for r in self.test_results if r.get("result", {}).get("success", False))
+        successful_tests = 0
+        
+        # 分別計算每種測試的結果
+        for r in self.test_results:
+            result = r.get("result", {})
+            test_name = r.get("test_name", "")
+            
+            if test_name == "system_detection":
+                # 系統檢測測試的成功條件
+                if result.get("backend_online") and result.get("model_server_online"):
+                    successful_tests += 1
+            else:
+                # 其他測試的成功條件
+                if result.get("success", False):
+                    successful_tests += 1
         
         print(f"🤖 Active Model: {self.active_model or 'Unknown'}")
         print(f"🧪 Total Tests: {total_tests}")
@@ -354,7 +368,8 @@ class DebugModelTestSuite:
         processing_times = []
         for result in self.test_results:
             result_data = result.get("result", {})
-            if result_data.get("success") and "processing_time" in result_data:
+            # 只收集圖像分析測試的處理時間
+            if "processing_time" in result_data:
                 processing_times.append(result_data["processing_time"])
         
         if processing_times:

@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-06-28T23:23:18.210978",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-06-28T23:23:18.204225"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:23:18.212010",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:23:18.634159",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail.",
+      "response": " A Shiba Inu dog sits in the bathroom, facing the camera.",
+      "processing_time": 0.3882741928100586
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:23:22.296258",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "What objects can you identify in this image?",
+      "response": " The image contains an object, which appears to be a solid, cylindrical object, possibly made of plastic or metal, colored in a bright red hue. The object is uniformly lit, casting a sharp shadow on its surface, indicating a high level of lighting.\n\nGiven the objects and their setting, it is plausible to infer that the object is a part of a larger object, such as a container, a toy, or a product package. The cylindrical shape of the object suggests it could be a packaging item used for holding or transporting liquids, gases, or small packages.\n\nThe background is plain and unobtrusive, ensuring that the focus remains on the object. The color of the object is dominant, making it clear and easy to identify. The sharp shadow on the object indicates it is likely made of a reflective material, such as plastic, which is commonly used in containers and toys.\n\nConsidering the object's position and the lighting, it could be inferred that the image is taken in an indoor setting, possibly in a store, a warehouse, or a production area. The object is well-lit, suggesting controlled lighting, which is often used in industrial or retail environments to enhance visibility and reduce shadows.\n\nThe object's cylindrical shape and sharp shadow imply that it is likely a part of a product, such as a plastic bottle, container, or package. The uniform lighting suggests that the object is stationary, which is typical in retail environments where the focus is on the product's packaging rather than the product itself.\n\nIn summary, the image contains an object that is cylindrical in shape with a bright red hue and a uniform lighting pattern. This object likely holds a product, possibly a plastic container or a small package, based on the packaging materials and the controlled lighting. The setting is indoor, suggesting it could be a store, a warehouse, or a production area.",
+      "processing_time": 3.6542460918426514
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:23:22.653504",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "What are the main colors and visual elements?",
+      "response": " The main colors in the image are blue and black.",
+      "processing_time": 0.3447442054748535
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:23:23.020676",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe the scene and any activities you observe.",
+      "response": " A square with one large red circle in the center is present.",
+      "processing_time": 0.3622572422027588
+    }
+  }
+]

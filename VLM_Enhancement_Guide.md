@@ -14,10 +14,10 @@
 ├── app_config.json           # Main app settings
 └── model_configs/            # Model-specific configurations
     ├── smolvlm.json          # Current image-only model
-    └── smolvlm2.json         # Target video-capable model
+    └── smolvlm2-500.json         # Target video-capable model
 /src/models/                   # Model implementations
 ├── smolvlm/                  # Current image processing
-└── smolvlm2/                 # Target continuous video understanding
+└── smolvlm2-500/                 # Target continuous video understanding
 /ai_vision_env/               # Python virtual environment
 ```
 

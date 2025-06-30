@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-06-28T23:20:29.656712",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-06-28T23:20:29.651747"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:29.657779",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:30.078051",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail.",
+      "response": " A brown dog is sitting on a bathroom floor in front of a toilet brush and wipe holder.",
+      "processing_time": 0.39427900314331055
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:30.650527",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "What objects can you identify in this image?",
+      "response": " 1. Red. 2. White. 3. Green. 4. Yellow. 5. Blue. 6. Black. 7. Orange. 8. Purple. 9. White.",
+      "processing_time": 0.5673401355743408
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:30.968109",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "What are the main colors and visual elements?",
+      "response": " The main colors of the image are blue and green.",
+      "processing_time": 0.3125722408294678
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:31.308452",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe the scene and any activities you observe.",
+      "response": " A red circle is in the center of a light blue square.",
+      "processing_time": 0.3382530212402344
+    }
+  }
+]

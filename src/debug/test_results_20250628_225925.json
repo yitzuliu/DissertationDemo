@@ -1,0 +1,13 @@
+[
+  {
+    "timestamp": "2025-06-28T22:59:25.316972",
+    "test_name": "system_detection",
+    "active_model": null,
+    "result": {
+      "backend_online": false,
+      "active_model": null,
+      "model_server_online": false,
+      "timestamp": "2025-06-28T22:59:25.311924"
+    }
+  }
+]

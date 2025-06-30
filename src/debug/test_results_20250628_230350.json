@@ -1,0 +1,142 @@
+[
+  {
+    "timestamp": "2025-06-28T23:03:50.556330",
+    "test_name": "system_detection",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm2-500",
+      "model_server_online": true,
+      "timestamp": "2025-06-28T23:03:50.550708"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.557415",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm2-500",
+      "response_time": 0.000473
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.594881",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail.",
+      "error": "HTTP 404",
+      "details": "{\"detail\":\"Not Found\"}"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.596972",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "image": "sample.jpg",
+      "prompt": "What objects can you identify in this image?",
+      "error": "HTTP 404",
+      "details": "{\"detail\":\"Not Found\"}"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.598958",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "image": "test.jpg",
+      "prompt": "What are the main colors and visual elements?",
+      "error": "HTTP 404",
+      "details": "{\"detail\":\"Not Found\"}"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.601089",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "image": "test_image.png",
+      "prompt": "Describe the scene, setting, and any activities you observe.",
+      "error": "HTTP 404",
+      "details": "{\"detail\":\"Not Found\"}"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.624267",
+    "test_name": "capability_object_detection",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "capability": "Object Detection",
+      "error": "HTTP 404"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.645424",
+    "test_name": "capability_scene_analysis",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "capability": "Scene Analysis",
+      "error": "HTTP 404"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.666433",
+    "test_name": "capability_text_recognition",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "capability": "Text Recognition",
+      "error": "HTTP 404"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.688004",
+    "test_name": "capability_color_analysis",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "capability": "Color Analysis",
+      "error": "HTTP 404"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.750984",
+    "test_name": "performance_quick_analysis",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "test_name": "Quick Analysis",
+      "error": "All runs failed"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.813110",
+    "test_name": "performance_standard_analysis",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "test_name": "Standard Analysis",
+      "error": "All runs failed"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:03:50.853945",
+    "test_name": "performance_detailed_analysis",
+    "active_model": "smolvlm2-500",
+    "result": {
+      "success": false,
+      "test_name": "Detailed Analysis",
+      "error": "All runs failed"
+    }
+  }
+]

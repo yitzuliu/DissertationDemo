@@ -22,7 +22,7 @@
     "max_tokens": 512
   },
   "ui": {
-    "default_instruction": "List all objects in this image with their positions. Be specific and detailed.",
+    "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
     "capture_intervals": [500, 1000, 2000, 5000],
     "default_interval": 2000
   },

@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-06-28T23:20:21.063448",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-06-28T23:20:21.058102"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:21.064502",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:21.512673",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail.",
+      "response": " A shaggy brown dog has a black nose and looks up at the camera.",
+      "processing_time": 0.40561890602111816
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:21.782066",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "What objects can you identify in this image?",
+      "response": " Red background.",
+      "processing_time": 0.2619767189025879
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:22.154724",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "What are the main colors and visual elements?",
+      "response": " The main color is blue, and the visual elements include a blue background and no additional images.",
+      "processing_time": 0.3665127754211426
+    }
+  },
+  {
+    "timestamp": "2025-06-28T23:20:22.534011",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe the scene and any activities you observe.",
+      "response": " A diagram shows a red circle with the label \"Phi-3\" inside it.",
+      "processing_time": 0.3769190311431885
+    }
+  }
+]

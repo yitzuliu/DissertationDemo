@@ -30,7 +30,7 @@
     "max_tokens": 150
   },
   "ui": {
-    "default_instruction": "Describe what you see in this image in detail, including objects, colors, and any activities.",
+    "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
     "capture_intervals": [1000, 2000, 3000, 5000],
     "default_interval": 2000
   },
