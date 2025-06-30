@@ -23,7 +23,12 @@ import threading
 from pathlib import Path
 
 from ..base_model import BaseVisionModel
-from src.backend.utils.image_processing import preprocess_for_model
+from src.backend.utils.image_processing import (
+    preprocess_for_model,
+    smart_crop_and_resize,
+    reduce_noise,
+    enhance_color_balance
+)
 
 logger = logging.getLogger(__name__)
 
@@ -338,30 +343,33 @@ class SmolVLMModel(BaseVisionModel):
     def enhance_image_quality(self, image: Image.Image, config: Dict) -> Image.Image:
         """
         Apply advanced image enhancement techniques.
-        Includes LAB color enhancement, adaptive contrast, and HDR simulation.
+        Uses the centralized image processing utilities.
         """
         try:
             # Output current configuration
             logger.info("Current image processing configuration:")
-            logger.info(f"Advanced color config: {config.get('advanced_color', {})}")
-            logger.info(f"Adaptive enhancement config: {config.get('adaptive_enhancement', {})}")
-            logger.info(f"HDR simulation config: {config.get('hdr_simulation', {})}")
+            logger.info(f"Color balance config: {config.get('color_balance', {})}")
+            logger.info(f"Noise reduction config: {config.get('noise_reduction', {})}")
             
-            # Advanced color processing in LAB space
-            if config.get("advanced_color", {}).get("enabled", True):
-                logger.info("Applying LAB color enhancement")
-                image = self.enhance_color_lab(image, config["advanced_color"])
+            # Apply color balance enhancement
+            if config.get("color_balance", {}).get("enabled", True):
+                method = config["color_balance"].get("method", "lab")
+                logger.info(f"Applying color balance enhancement: {method}")
+                image = enhance_color_balance(
+                    image,
+                    method=method,
+                    config=config["color_balance"]
+                )
             
-            # Adaptive enhancement
-            if config.get("adaptive_enhancement", {}).get("enabled", True):
-                if config["adaptive_enhancement"].get("auto_contrast"):
-                    logger.info("Applying adaptive contrast enhancement")
-                    image = self.adaptive_contrast_enhance(image, config["adaptive_enhancement"])
-            
-            # HDR simulation
-            if config.get("hdr_simulation", {}).get("enabled", True):
-                logger.info("Applying HDR simulation")
-                image = self.hdr_simulation(image, config["hdr_simulation"])
+            # Apply noise reduction
+            if config.get("noise_reduction", {}).get("enabled", True):
+                method = config["noise_reduction"].get("method", "bilateral")
+                logger.info(f"Applying noise reduction: {method}")
+                image = reduce_noise(
+                    image,
+                    method=method,
+                    config=config["noise_reduction"]
+                )
             
             return image
             
@@ -380,80 +388,48 @@ class SmolVLMModel(BaseVisionModel):
             elif not isinstance(image, Image.Image):
                 raise ValueError("Input must be PIL Image or numpy array")
             
-            # Process the image to get a PIL image first
-            pil_image = preprocess_for_model(
-                image=image,
-                model_type="smolvlm",
-                config=self.config,
-                return_format="pil"
-            )
-            
-            if not isinstance(pil_image, Image.Image):
-                raise ValueError("Preprocessed image must be PIL Image")
-            
-            # 確保圖像是 RGB 模式
-            if pil_image.mode != 'RGB':
-                pil_image = pil_image.convert('RGB')
-            
-            # 獲取圖像處理配置
+            # Get image processing configuration
             image_config = self.config.get("image_processing", {})
             
-            # 保持長寬比的大小調整
-            if image_config.get("preserve_aspect_ratio", True):
+            # Apply smart cropping and resizing
+            if image_config.get("smart_crop", True):
                 target_size = image_config.get("size", [1024, 1024])
                 min_size = image_config.get("min_size", 512)
+                preserve_aspect_ratio = image_config.get("preserve_aspect_ratio", True)
                 
-                # 計算目標大小
-                width, height = pil_image.size
-                scale = min(target_size[0]/width, target_size[1]/height)
-                
-                # 確保不小於最小尺寸
-                new_width = max(int(width * scale), min_size)
-                new_height = max(int(height * scale), min_size)
-                
-                # 使用指定的調整方法
-                pil_image = pil_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                logger.debug(f"Resized to {new_width}x{new_height}")
+                image = smart_crop_and_resize(
+                    image,
+                    target_size=target_size,
+                    min_size=min_size,
+                    preserve_aspect_ratio=preserve_aspect_ratio
+                )
             
-            # 應用基本圖像增強
-            if image_config.get("contrast_factor"):
-                pil_image = ImageEnhance.Contrast(pil_image).enhance(
-                    float(image_config["contrast_factor"]))
+            # Apply image quality enhancements
+            image = self.enhance_image_quality(image, image_config)
             
-            if image_config.get("brightness_factor"):
-                pil_image = ImageEnhance.Brightness(pil_image).enhance(
-                    float(image_config["brightness_factor"]))
-            
-            if image_config.get("sharpness_factor"):
-                pil_image = ImageEnhance.Sharpness(pil_image).enhance(
-                    float(image_config["sharpness_factor"]))
-            
-            # 應用高級圖像增強
-            pil_image = self.enhance_image_quality(pil_image, image_config)
-            
-            # 保存圖像
+            # Save image
             buffer = io.BytesIO()
             save_format = image_config.get("format", "JPEG").upper()
             
-            # 準備保存參數
+            # Prepare save parameters
             save_params = {
                 "format": save_format,
                 "quality": int(image_config.get("jpeg_quality", 95)),
                 "optimize": image_config.get("optimize", True)
             }
             
-            # 對於 JPEG 格式的額外參數
+            # Additional JPEG parameters
             if save_format == "JPEG":
                 if image_config.get("progressive"):
                     save_params["progressive"] = True
                 if image_config.get("subsampling"):
                     save_params["subsampling"] = image_config["subsampling"]
             
-            # 保存圖像
-            pil_image.save(buffer, **save_params)
+            # Save image
+            image.save(buffer, **save_params)
             image_bytes = buffer.getvalue()
             
-            # 編碼為 base64
+            # Encode to base64
             encoded_image = base64.b64encode(image_bytes).decode('utf-8')
             logger.debug(f"Image processed successfully: format={save_format}, size={len(image_bytes)/1024:.1f}KB")
             

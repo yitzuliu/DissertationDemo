@@ -11,13 +11,17 @@ from PIL import Image, ImageEnhance, ImageFilter, ImageDraw
 import logging
 import json
 import os
+import numpy as np
 from pathlib import Path
 from utils.config_manager import config_manager
 from utils.image_processing import (
     preprocess_for_model, 
     enhance_image_clahe, 
     convert_to_pil_image,
-    convert_to_cv2_image
+    convert_to_cv2_image,
+    smart_crop_and_resize,
+    reduce_noise,
+    enhance_color_balance
 )
 
 # Initialize and load configuration
@@ -58,7 +62,7 @@ ACTIVE_MODEL = config_manager.get_active_model()
 MODEL_SERVER_URL = "http://localhost:8080"  # Unified model server URL
 
 def preprocess_image(image_url):
-    """Validate and extract base64 image data"""
+    """Enhanced image preprocessing with quality improvements"""
     try:
         # Extract base64 data
         base64_pattern = r'data:image\/[^;]+;base64,([^"]+)'
@@ -67,23 +71,64 @@ def preprocess_image(image_url):
             logger.warning("Image URL format not recognized, returning original")
             return image_url
         
-        # Validate base64 data
         try:
+            # Decode and validate image
             base64_data = match.group(1)
             image_data = base64.b64decode(base64_data)
-            # Quick validation that it's a valid image
-            img = Image.open(io.BytesIO(image_data))
-            img.verify()  # Verify it's a valid image
+            image = Image.open(io.BytesIO(image_data))
             
-            logger.info(f"Image validation successful for {ACTIVE_MODEL}")
-            return image_url
+            # 獲取模型配置
+            model_config = config_manager.load_model_config(ACTIVE_MODEL)
+            image_config = model_config.get("image_processing", {})
+            
+            # 應用智能裁剪
+            if image_config.get("smart_crop", True):
+                target_size = image_config.get("size", [1024, 1024])
+                min_size = image_config.get("min_size", 512)
+                image = smart_crop_and_resize(
+                    image,
+                    target_size=target_size,
+                    min_size=min_size,
+                    preserve_aspect_ratio=True
+                )
+            
+            # 應用降噪
+            if image_config.get("noise_reduction", {}).get("enabled", True):
+                noise_config = image_config.get("noise_reduction", {})
+                image = reduce_noise(
+                    image,
+                    method=noise_config.get("method", "bilateral"),
+                    config=noise_config
+                )
+            
+            # 應用色彩增強
+            if image_config.get("color_balance", {}).get("enabled", True):
+                color_config = image_config.get("color_balance", {})
+                image = enhance_color_balance(
+                    image,
+                    method=color_config.get("method", "lab"),
+                    config=color_config
+                )
+            
+            # 保存處理後的圖片
+            buffer = io.BytesIO()
+            save_params = {
+                "format": "JPEG",
+                "quality": image_config.get("jpeg_quality", 95),
+                "optimize": True
+            }
+            image.save(buffer, **save_params)
+            
+            # 返回處理後的base64圖片
+            processed_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            return f"data:image/jpeg;base64,{processed_base64}"
             
         except Exception as e:
-            logger.error(f"Invalid image data: {str(e)}")
+            logger.error(f"Error processing image: {str(e)}")
             return image_url
     
     except Exception as e:
-        logger.error(f"Error processing image: {str(e)}")
+        logger.error(f"Error in image preprocessing: {str(e)}")
         return image_url
 
 class ChatCompletionRequest(BaseModel):
@@ -130,32 +175,31 @@ def format_message_for_model(message, image_count, model_name):
 
 @app.post("/v1/chat/completions")
 async def proxy_chat_completions(request: ChatCompletionRequest):
-    """Unified chat completion endpoint for supported models"""
+    """Enhanced chat completion endpoint with improved image processing"""
     try:
         logger.info(f"Processing request with model: {ACTIVE_MODEL}")
         
         if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
-            # Only validate image format, no preprocessing
             image_count = 0
             for message in request.messages:
                 if isinstance(message.get('content'), list):
                     for content_item in message['content']:
                         if content_item.get('type') == 'image_url' and 'image_url' in content_item:
-                            # Just validate the image format
+                            # 應用增強的圖片處理
                             original_url = content_item['image_url']['url']
                             content_item['image_url']['url'] = preprocess_image(original_url)
                             image_count += 1
                             
-            logger.info(f"Validated {image_count} images for {ACTIVE_MODEL}")
+            logger.info(f"Processed {image_count} images for {ACTIVE_MODEL}")
             
-            # Format all messages
+            # Format messages
             for message in request.messages:
                 message = format_message_for_model(message, image_count, ACTIVE_MODEL)
             
             request_data = request.dict()
             
-            # Forward to the model server
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            # 增加超時時間以確保充分的處理時間
+            async with httpx.AsyncClient(timeout=90.0) as client:
                 response = await client.post(
                     f"{MODEL_SERVER_URL}/v1/chat/completions",
                     json=request_data

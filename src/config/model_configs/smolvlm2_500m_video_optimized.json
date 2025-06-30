@@ -11,14 +11,30 @@
     "startup_script": "run_smolvlm2_500m_video_optimized.py"
   },
   "image_processing": {
-    "max_size": 384,
-    "format": "RGB",
-    "quality": 85,
+    "smart_crop": true,
+    "size": [384, 384],
+    "min_size": 384,
+    "preserve_aspect_ratio": true,
+    "jpeg_quality": 85,
+    "optimize": true,
     "resize_method": "BILINEAR",
+    "noise_reduction": {
+      "enabled": false
+    },
+    "color_balance": {
+      "enabled": false
+    },
+    "preprocessing": {
+      "contrast_factor": 1.0,
+      "brightness_factor": 1.0,
+      "sharpness_factor": 1.0
+    },
     "enable_cache": true,
     "cache_size": 20
   },
   "inference": {
+    "batch_size": 1,
+    "expected_response_time": 3.0,
     "max_tokens": 75,
     "temperature": 0.1,
     "do_sample": false,
@@ -48,8 +64,8 @@
   },
   "ui": {
     "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
-    "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
-    "default_interval": 10000
+    "capture_intervals": [500, 1000, 2000, 5000],
+    "default_interval": 2000
   },
   "version": "2.0.0-optimized",
   "description": "Optimized SmolVLM2-500M configuration for 5x performance improvement. Uses half precision, image caching, and reduced overhead.",

@@ -1,5 +1,5 @@
 {
-  "model_name": "SmolVLM2-500M Video",
+  "model_name": "SmolVLM2-500M-Video",
   "model_id": "smolvlm2_500m_video",
   "model_path": "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct",
   "model_file": "smolvlm2_500m_video.py",
@@ -11,16 +11,35 @@
     "startup_script": "run_smolvlm2_500m_video.py"
   },
   "image_processing": {
-    "max_size": 512,
-    "format": "RGB",
-    "quality": 95,
-    "resize_method": "LANCZOS"
+    "smart_crop": true,
+    "size": [1024, 1024],
+    "min_size": 512,
+    "preserve_aspect_ratio": true,
+    "jpeg_quality": 95,
+    "optimize": true,
+    "noise_reduction": {
+      "enabled": true,
+      "method": "bilateral",
+      "diameter": 9,
+      "sigma_color": 75,
+      "sigma_space": 75
+    },
+    "color_balance": {
+      "enabled": true,
+      "method": "lab",
+      "l_channel_boost": 1.2,
+      "ab_channel_boost": 1.1
+    },
+    "preprocessing": {
+      "contrast_factor": 1.2,
+      "brightness_factor": 1.1,
+      "sharpness_factor": 1.2
+    }
   },
   "inference": {
-    "max_tokens": 150,
-    "temperature": 0.7,
-    "do_sample": true,
-    "torch_dtype": "float32"
+    "batch_size": 1,
+    "expected_response_time": 10.0,
+    "max_image_size": 1024
   },
   "memory": {
     "required_gb": 6.0,
@@ -29,15 +48,16 @@
     "max_memory_gb": 18.0
   },
   "api": {
-    "timeout": 60,
-    "max_tokens": 150
+    "max_tokens": 512,
+    "temperature": 0.7,
+    "timeout": 90
   },
   "ui": {
-    "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
-    "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
-    "default_interval": 5000
+    "default_instruction": "Describe what you see in this image in detail.",
+    "capture_intervals": [1000, 2000, 3000, 5000],
+    "default_interval": 2000
   },
-  "version": "1.0.0",
-  "description": "SmolVLM2-500M-Video-Instruct model configuration for enhanced video understanding and image analysis. 500M parameter model optimized for Apple Silicon MPS.",
+  "version": "2.0.0",
+  "description": "Enhanced video-capable vision language model optimized for real-time processing",
   "testing_note": "Enhanced video understanding model with temporal reasoning capabilities. Under testing for comparison with image analysis approach."
 } 

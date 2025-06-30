@@ -1077,32 +1077,72 @@
         }
 
         function captureImage() {
-            // Check if stream and video are valid
             if (!stream || !video.videoWidth) return null;
             
             try {
-                // Set canvas dimensions to match video
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                // 設置更高的畫布分辨率
+                const targetWidth = 1024;  // 優化的目標寬度
+                const aspectRatio = video.videoHeight / video.videoWidth;
+                const targetHeight = Math.round(targetWidth * aspectRatio);
+                
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                
                 const ctx = canvas.getContext('2d');
                 
-                // Draw the current video frame to the canvas
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                // 啟用高質量圖像平滑
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
                 
-                // Convert to JPEG with specified quality
-                const quality = parseFloat(qualitySelect.value) || 0.9;
+                // 使用更好的縮放算法
+                ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+                
+                // 應用基本圖像增強
+                const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+                const enhancedData = enhanceImageData(imageData);
+                ctx.putImageData(enhancedData, 0, 0);
+                
+                // 使用更高的JPEG質量
+                const quality = Math.max(0.92, parseFloat(qualitySelect.value) || 0.9);
                 const dataUrl = canvas.toDataURL('image/jpeg', quality);
                 
-                // Update the image preview with animation
+                // 更新預覽
                 updateImagePreview(dataUrl);
                 
                 return dataUrl;
             } catch (err) {
                 console.error("Error capturing image:", err);
+                showError("Failed to capture image with high quality");
                 return null;
             }
         }
         
+        // 添加圖像增強函數
+        function enhanceImageData(imageData) {
+            const data = imageData.data;
+            const contrast = 1.1;  // 輕微提高對比度
+            const brightness = 1.05;  // 輕微提高亮度
+            
+            for (let i = 0; i < data.length; i += 4) {
+                // 應用對比度
+                for (let j = 0; j < 3; j++) {
+                    data[i + j] = ((data[i + j] / 255 - 0.5) * contrast + 0.5) * 255;
+                }
+                
+                // 應用亮度
+                for (let j = 0; j < 3; j++) {
+                    data[i + j] *= brightness;
+                }
+                
+                // 確保值在有效範圍內
+                for (let j = 0; j < 3; j++) {
+                    data[i + j] = Math.max(0, Math.min(255, data[i + j]));
+                }
+            }
+            
+            return imageData;
+        }
+
         // Separate function to handle image preview updates
         function updateImagePreview(dataUrl) {
             if (!dataUrl) return;

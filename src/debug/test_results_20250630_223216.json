@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-06-30T22:32:16.989440",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-06-30T22:32:16.984667"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T22:32:16.990434",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T22:32:17.618324",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " In this image there is a dog sitting on the floor and in the background there is a sink, toothbrush, tissue roll, and mirror which are placed on the countertop.",
+      "processing_time": 0.6011650562286377
+    }
+  },
+  {
+    "timestamp": "2025-06-30T22:32:18.075948",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " A black and red, non-descriptive, image.",
+      "processing_time": 0.4516029357910156
+    }
+  },
+  {
+    "timestamp": "2025-06-30T22:32:18.590165",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " A completely solid, black background with only a single blue, horizontal stripe across the top.",
+      "processing_time": 0.5079708099365234
+    }
+  },
+  {
+    "timestamp": "2025-06-30T22:32:23.072578",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " In the image, there is a circle with a label \"PH3\" written on it. The circle is placed on a pale blue background. The circle is solid and unadorned, with a uniform color. The label \"PH3\" is written in a clear and legible font. The circle is perfectly centered within the blue background.\n\nIn the top right corner, there is a white square, which might represent a title or a label in the image, but it is unclear. \n\nThere is no other object or element present in the image. \n\nTo provide a detailed description of the image for a text-based model:\n\nThe image appears to be a simple geometric representation of a circle with the letter \"PH3\" on it. The circle is centrally located within a pale blue background, making it the focal point of the image. The circle is solid and unadorned, with a uniform color. The label \"PH3\" is written in a clear, legible font, and it is placed in the upper right corner. The image does not have any other objects or features.\n\nThe image is simple and straightforward, and its purpose is likely to illustrate the concept of a chemical element or a chemical formula. The circle represents the element PH3, which is a triple bond with three hydrogen atoms. This type of chemical formula is used to represent atoms of elements like hydrogen, oxygen, and phosphorus. The central position of the circle indicates that the PH3 element is present in the center of the image.\n\nHere is a markdown conversion of the description into markdown format for clarity:\n\n```markdown\n*Image Description:*\n- **Circle with Label**\n  - **Element** PH3\n  - **Color** red\n- **Background**\n  - **Pale Blue**\n- **White Square**\n  - **Label** unreadable\n\nThe circle is centered within the pale blue background.\n\n- **Legible Font**\n- **Color** red\n- **Label** PH3\n- **Position** centrally located\n```\n\nThis detailed description ensures that a text-based model can understand the image's content easily.",
+      "processing_time": 4.481064796447754
+    }
+  }
+]

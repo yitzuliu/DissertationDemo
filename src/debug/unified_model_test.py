@@ -329,10 +329,10 @@ class DebugModelTestSuite:
             print(f"   • {img.name} ({size:.1f}KB)")
         
         test_prompts = [
-            "Describe what you see in this image in detail.",
-            "What objects can you identify in this image?",
-            "What are the main colors and visual elements?",
-            "Describe the scene and any activities you observe."
+            "Describe what you see in this image in detail. and What objects can you identify in this image?",
+            # "What objects can you identify in this image?",
+            # "What are the main colors and visual elements?",
+            # "Describe the scene and any activities you observe."
         ]
         
         for i, image_path in enumerate(debug_images):

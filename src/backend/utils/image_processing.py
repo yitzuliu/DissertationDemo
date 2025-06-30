@@ -7,9 +7,12 @@ that can be used by different models and the backend server.
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter, ImageChops, ImageOps
 from typing import Union, Dict, Any, Tuple, Optional
+import logging
+from skimage import color
 
+logger = logging.getLogger(__name__)
 
 def convert_to_pil_image(image: Union[np.ndarray, Image.Image, bytes]) -> Image.Image:
     """
@@ -111,8 +114,7 @@ def enhance_image_clahe(image: Union[np.ndarray, Image.Image, bytes]) -> Image.I
         # Convert to PIL Image
         return Image.fromarray(cv2.cvtColor(enhanced_frame, cv2.COLOR_BGR2RGB))
     except Exception as e:
-        import logging
-        logging.error(f"Error enhancing image with CLAHE: {str(e)}")
+        logger.error(f"Error enhancing image with CLAHE: {str(e)}")
         # Return original image as PIL Image if enhancement fails
         return convert_to_pil_image(image)
 
@@ -192,6 +194,182 @@ def resize_image(
             return img.resize(target_size, Image.LANCZOS)
         else:  # numpy array
             return cv2.resize(img, target_size, interpolation=cv2.INTER_LANCZOS4)
+
+
+def smart_crop_and_resize(
+    image: Union[np.ndarray, Image.Image, bytes],
+    target_size: Tuple[int, int],
+    min_size: int = 512,
+    preserve_aspect_ratio: bool = True
+) -> Image.Image:
+    """
+    智能裁剪和調整圖像大小，保持重要內容。
+    
+    Args:
+        image: 輸入圖像
+        target_size: 目標尺寸 (寬, 高)
+        min_size: 最小尺寸限制
+        preserve_aspect_ratio: 是否保持長寬比
+        
+    Returns:
+        調整後的圖像
+    """
+    try:
+        pil_image = convert_to_pil_image(image)
+        
+        if preserve_aspect_ratio:
+            # 計算目標大小
+            width, height = pil_image.size
+            scale = min(target_size[0]/width, target_size[1]/height)
+            
+            # 確保不小於最小尺寸
+            new_width = max(int(width * scale), min_size)
+            new_height = max(int(height * scale), min_size)
+            
+            # 使用 LANCZOS 重採樣方法
+            return pil_image.resize((new_width, new_height), resample=3)  # 3 = LANCZOS
+        else:
+            return pil_image.resize(target_size, resample=3)  # 3 = LANCZOS
+            
+    except Exception as e:
+        logger.error(f"Smart crop and resize failed: {e}")
+        return pil_image
+
+
+def reduce_noise(
+    image: Union[np.ndarray, Image.Image, bytes],
+    method: str = 'bilateral',
+    config: Optional[Dict] = None
+) -> Image.Image:
+    """
+    高級降噪處理，支持多種降噪方法。
+    
+    Args:
+        image: 輸入圖像
+        method: 降噪方法 ('bilateral', 'nlm', 'gaussian')
+        config: 降噪參數配置
+        
+    Returns:
+        處理後的圖像
+    """
+    if config is None:
+        config = {}
+        
+    try:
+        # 轉換為 OpenCV 格式
+        cv_image = convert_to_cv2_image(image)
+        
+        if method == 'bilateral':
+            # 雙邊濾波，保持邊緣的降噪
+            d = config.get("diameter", 9)
+            sigma_color = config.get("sigma_color", 75)
+            sigma_space = config.get("sigma_space", 75)
+            processed = cv2.bilateralFilter(cv_image, d, sigma_color, sigma_space)
+            
+        elif method == 'nlm':
+            # 非局部均值降噪
+            h = config.get("h", 10)
+            template_window = config.get("template_window", 7)
+            search_window = config.get("search_window", 21)
+            processed = cv2.fastNlMeansDenoisingColored(
+                cv_image,
+                None,
+                h=h,
+                hColor=h,
+                templateWindowSize=template_window,
+                searchWindowSize=search_window
+            )
+            
+        elif method == 'gaussian':
+            # 高斯降噪
+            kernel_size = config.get("kernel_size", (5, 5))
+            sigma = config.get("sigma", 0)
+            processed = cv2.GaussianBlur(cv_image, kernel_size, sigma)
+            
+        else:
+            logger.warning(f"Unknown noise reduction method: {method}")
+            return convert_to_pil_image(image)
+            
+        return convert_to_pil_image(processed)
+        
+    except Exception as e:
+        logger.error(f"Noise reduction failed: {e}")
+        return convert_to_pil_image(image)
+
+
+def enhance_color_balance(
+    image: Union[np.ndarray, Image.Image, bytes],
+    method: str = 'lab',
+    config: Optional[Dict] = None
+) -> Image.Image:
+    """
+    增強圖像的色彩平衡。
+    
+    Args:
+        image: 輸入圖像
+        method: 色彩處理方法 ('lab', 'rgb', 'auto_wb')
+        config: 色彩增強參數
+        
+    Returns:
+        處理後的圖像
+    """
+    if config is None:
+        config = {}
+        
+    try:
+        pil_image = convert_to_pil_image(image)
+        
+        if method == 'lab':
+            # LAB 色彩空間處理
+            img_array = np.array(pil_image)
+            lab_image = color.rgb2lab(img_array)
+            
+            # 增強 L 通道（亮度）
+            l_boost = float(config.get("l_channel_boost", 1.2))
+            l_channel = lab_image[:,:,0]
+            l_channel = np.clip(l_channel * l_boost, 0, 100)
+            lab_image[:,:,0] = l_channel
+            
+            # 增強 a,b 通道（色彩）
+            ab_boost = float(config.get("ab_channel_boost", 1.2))
+            lab_image[:,:,1:] *= ab_boost
+            
+            # 轉回 RGB
+            enhanced_array = color.lab2rgb(lab_image)
+            return Image.fromarray((enhanced_array * 255).astype(np.uint8))
+            
+        elif method == 'rgb':
+            # RGB 通道獨立增強
+            r_factor = float(config.get("r_factor", 1.0))
+            g_factor = float(config.get("g_factor", 1.0))
+            b_factor = float(config.get("b_factor", 1.0))
+            
+            r, g, b = pil_image.split()
+            r = ImageEnhance.Brightness(r).enhance(r_factor)
+            g = ImageEnhance.Brightness(g).enhance(g_factor)
+            b = ImageEnhance.Brightness(b).enhance(b_factor)
+            
+            return Image.merge('RGB', (r, g, b))
+            
+        elif method == 'auto_wb':
+            # 自動白平衡
+            img_array = np.array(pil_image)
+            result = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
+            # 計算平均值，確保使用正確的數據類型
+            avg_a = float(np.mean(result[:, :, 1].astype(np.float64)))
+            avg_b = float(np.mean(result[:, :, 2].astype(np.float64)))
+            result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)
+            result[:, :, 2] = result[:, :, 2] - ((avg_b - 128) * (result[:, :, 0] / 255.0) * 1.1)
+            result = cv2.cvtColor(result, cv2.COLOR_LAB2RGB)
+            return Image.fromarray(result)
+            
+        else:
+            logger.warning(f"Unknown color balance method: {method}")
+            return pil_image
+            
+    except Exception as e:
+        logger.error(f"Color balance enhancement failed: {e}")
+        return pil_image
 
 
 def preprocess_for_model(
