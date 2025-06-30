@@ -169,7 +169,10 @@ class DebugModelTestSuite:
                 optimal_size = self.model_capabilities.get("optimal_image_size", 512)
                 quality = self.model_capabilities.get("image_quality", 90)
                 resize_method = self.model_capabilities.get("resize_method", "LANCZOS")
-                target_format = self.model_capabilities.get("image_format", "RGB")
+                
+                # 始終轉換為 RGB 模式
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
                 
                 # Resize if needed
                 if max(img.size) > optimal_size:
@@ -185,10 +188,6 @@ class DebugModelTestSuite:
                     img = img.resize(new_size, resize_filter)
                     print(f"🔄 Resized to {new_size} using {resize_method}")
                 
-                # Convert color mode if needed
-                if img.mode != target_format:
-                    img = img.convert(target_format)
-                
                 # Apply additional image processing if specified in config
                 if self.model_config and "image_processing" in self.model_config:
                     img_proc = self.model_config["image_processing"]
@@ -199,11 +198,12 @@ class DebugModelTestSuite:
                     if "sharpness_factor" in img_proc:
                         img = ImageEnhance.Sharpness(img).enhance(float(img_proc["sharpness_factor"]))
                 
+                # 保存為 JPEG
                 buffer = io.BytesIO()
-                save_format = "JPEG" if target_format in ["RGB", "L"] else "PNG"
-                img.save(buffer, format=save_format, quality=quality)
+                img.save(buffer, format="JPEG", quality=quality, optimize=True)
                 image_bytes = buffer.getvalue()
                 
+                # 返回純 base64 字符串
                 return base64.b64encode(image_bytes).decode('utf-8')
                 
         except Exception as e:
@@ -222,7 +222,12 @@ class DebugModelTestSuite:
                         "role": "user",
                         "content": [
                             {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{image_base64}"
+                                }
+                            }
                         ]
                     }
                 ],

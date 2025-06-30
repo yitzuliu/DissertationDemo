@@ -12,7 +12,7 @@ import requests
 import base64
 import numpy as np
 from typing import Dict, Any, Optional, Union
-from PIL import Image
+from PIL import Image, ImageEnhance
 import logging
 import io
 import subprocess
@@ -171,6 +171,10 @@ class SmolVLMModel(BaseVisionModel):
             
             # If we're managing the server, start it if it's not running
             if self.manage_server:
+                if self.server is None:
+                    logger.error("Server instance not initialized")
+                    return False
+                    
                 if not self.server.is_running():
                     logger.info(f"Starting SmolVLM server for model {self.model_name}...")
                     if not self.server.start():
@@ -201,7 +205,6 @@ class SmolVLMModel(BaseVisionModel):
     def preprocess_image(self, image: Union[Image.Image, np.ndarray]) -> str:
         """
         Preprocess the input image for the model.
-        
         Convert the image to a base64 encoded string for the API.
         
         Args:
@@ -211,6 +214,12 @@ class SmolVLMModel(BaseVisionModel):
             Base64 encoded image string
         """
         try:
+            # Convert numpy array to PIL Image if needed
+            if isinstance(image, np.ndarray):
+                image = Image.fromarray(image)
+            elif not isinstance(image, Image.Image):
+                raise ValueError("Input must be PIL Image or numpy array")
+            
             # Process the image to get a PIL image first
             pil_image = preprocess_for_model(
                 image=image,
@@ -219,13 +228,57 @@ class SmolVLMModel(BaseVisionModel):
                 return_format="pil"
             )
             
-            # Convert to JPEG bytes
+            if not isinstance(pil_image, Image.Image):
+                raise ValueError("Preprocessed image must be PIL Image")
+            
+            # 確保圖像是 RGB 模式
+            if pil_image.mode != 'RGB':
+                pil_image = pil_image.convert('RGB')
+            
+            # 應用圖像增強
+            image_config = self.config.get("image_processing", {})
+            
+            # 調整大小
+            size_config = image_config.get("size", [512, 512])
+            max_size = int(size_config[0] if isinstance(size_config, (list, tuple)) else size_config)
+            
+            width, height = pil_image.size
+            if max(width, height) > max_size:
+                scale = max_size / max(width, height)
+                new_size = (int(width * scale), int(height * scale))
+                pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
+                logger.debug(f"Resized image to {new_size}")
+            
+            # 應用圖像增強
+            if image_config.get("contrast_factor"):
+                enhancer = ImageEnhance.Contrast(pil_image)
+                pil_image = enhancer.enhance(float(image_config["contrast_factor"]))
+            
+            if image_config.get("brightness_factor"):
+                enhancer = ImageEnhance.Brightness(pil_image)
+                pil_image = enhancer.enhance(float(image_config["brightness_factor"]))
+            
+            if image_config.get("sharpness_factor"):
+                enhancer = ImageEnhance.Sharpness(pil_image)
+                pil_image = enhancer.enhance(float(image_config["sharpness_factor"]))
+            
+            # 轉換為 bytes
             buffer = io.BytesIO()
-            pil_image.save(buffer, format="JPEG")
+            save_format = image_config.get("format", "JPEG").upper()
+            save_quality = int(image_config.get("jpeg_quality", 95))
+            
+            # 確保圖像是 RGB 模式（對於 JPEG 必需）
+            if save_format == "JPEG" and pil_image.mode != 'RGB':
+                pil_image = pil_image.convert('RGB')
+            
+            # 保存圖像
+            pil_image.save(buffer, format=save_format, quality=save_quality)
             image_bytes = buffer.getvalue()
             
-            # Encode to base64
+            # 編碼為 base64
             encoded_image = base64.b64encode(image_bytes).decode('utf-8')
+            logger.debug(f"Image processed successfully: format={save_format}, quality={save_quality}")
+            
             return encoded_image
             
         except Exception as e:

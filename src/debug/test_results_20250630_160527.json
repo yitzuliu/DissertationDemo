@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-06-30T16:05:27.961585",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-06-30T16:05:27.956446"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:05:27.962563",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:05:28.622785",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail.",
+      "response": " A dog looks up at the camera in front of a shower floor. The dog is tan and black and has a black nose. The shoes are green. The background is a brown wall.",
+      "processing_time": 0.5633659362792969
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:05:28.890430",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "What objects can you identify in this image?",
+      "response": " Red.",
+      "processing_time": 0.25277018547058105
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:05:29.319005",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "What are the main colors and visual elements?",
+      "response": " The main colors are blue, black and white. The text on the image is \"The main colors are blue, black and white.\".",
+      "processing_time": 0.41882896423339844
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:05:29.759380",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe the scene and any activities you observe.",
+      "response": " In this scene, there is a diagram that shows a circle with a label PH3. The circle is set against a blue background.",
+      "processing_time": 0.43475985527038574
+    }
+  }
+]

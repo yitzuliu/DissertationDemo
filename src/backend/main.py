@@ -58,7 +58,7 @@ ACTIVE_MODEL = config_manager.get_active_model()
 MODEL_SERVER_URL = "http://localhost:8080"  # Unified model server URL
 
 def preprocess_image(image_url):
-    """Image preprocessing based on active model"""
+    """Validate and extract base64 image data"""
     try:
         # Extract base64 data
         base64_pattern = r'data:image\/[^;]+;base64,([^"]+)'
@@ -67,66 +67,23 @@ def preprocess_image(image_url):
             logger.warning("Image URL format not recognized, returning original")
             return image_url
         
-        base64_data = match.group(1)
-        image_data = base64.b64decode(base64_data)
-        img = Image.open(io.BytesIO(image_data))
-        
-        # Convert to RGB if needed
-        if img.mode != 'RGB':
-            img = img.convert('RGB')
-        
-        # Model-specific image processing
-        if ACTIVE_MODEL == "smolvlm":
-            # SmolVLM: 512x512 with image enhancement
-            img = img.resize((512, 512), Image.Resampling.LANCZOS)
-            img = img.filter(ImageFilter.GaussianBlur(radius=0.5))
+        # Validate base64 data
+        try:
+            base64_data = match.group(1)
+            image_data = base64.b64decode(base64_data)
+            # Quick validation that it's a valid image
+            img = Image.open(io.BytesIO(image_data))
+            img.verify()  # Verify it's a valid image
             
-            enhancer = ImageEnhance.Contrast(img)
-            img = enhancer.enhance(1.2)
+            logger.info(f"Image validation successful for {ACTIVE_MODEL}")
+            return image_url
             
-            enhancer = ImageEnhance.Brightness(img)
-            img = enhancer.enhance(1.05)
-            
-            enhancer = ImageEnhance.Sharpness(img)
-            img = enhancer.enhance(1.3)
-            
-            quality = 95
-            
-        elif ACTIVE_MODEL == "phi3_vision":
-            # Phi-3 Vision: 336x336
-            img = img.resize((336, 336), Image.Resampling.LANCZOS)
-            quality = 95
-            
-        elif ACTIVE_MODEL in ["smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
-            # SmolVLM2: Resize to optimal dimensions
-            if ACTIVE_MODEL == "smolvlm2_500m_video":
-                max_size = 512
-                quality = 95
-                resize_method = Image.Resampling.LANCZOS
-            else:  # optimized version
-                max_size = 384
-                quality = 85
-                resize_method = Image.Resampling.BILINEAR
-                
-            if max(img.size) > max_size:
-                scale = max_size / max(img.size)
-                new_size = (int(img.size[0] * scale), int(img.size[1] * scale))
-                img = img.resize(new_size, resize_method)
-            
-        else:
-            # Fallback: use original size and medium quality
-            quality = 85
-        
-        # Convert back to base64
-        buffer = io.BytesIO()
-        img.save(buffer, format="JPEG", quality=quality)
-        processed_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        
-        logger.info(f"Successfully preprocessed image for {ACTIVE_MODEL}")
-        return f"data:image/jpeg;base64,{processed_base64}"
+        except Exception as e:
+            logger.error(f"Invalid image data: {str(e)}")
+            return image_url
     
     except Exception as e:
-        logger.error(f"Error preprocessing image: {str(e)}")
+        logger.error(f"Error processing image: {str(e)}")
         return image_url
 
 class ChatCompletionRequest(BaseModel):
@@ -178,17 +135,18 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
         logger.info(f"Processing request with model: {ACTIVE_MODEL}")
         
         if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
-            # Count and preprocess images
+            # Only validate image format, no preprocessing
             image_count = 0
             for message in request.messages:
                 if isinstance(message.get('content'), list):
                     for content_item in message['content']:
                         if content_item.get('type') == 'image_url' and 'image_url' in content_item:
+                            # Just validate the image format
                             original_url = content_item['image_url']['url']
                             content_item['image_url']['url'] = preprocess_image(original_url)
                             image_count += 1
                             
-            logger.info(f"Detected {image_count} images for {ACTIVE_MODEL}")
+            logger.info(f"Validated {image_count} images for {ACTIVE_MODEL}")
             
             # Format all messages
             for message in request.messages:
@@ -196,7 +154,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             
             request_data = request.dict()
             
-            # Forward to the model server (always port 8080)
+            # Forward to the model server
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     f"{MODEL_SERVER_URL}/v1/chat/completions",

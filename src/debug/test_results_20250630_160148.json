@@ -1,0 +1,63 @@
+[
+  {
+    "timestamp": "2025-06-30T16:01:48.681196",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-06-30T16:01:48.675959"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:01:48.682155",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:01:48.711761",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": false,
+      "image": "IMG_0119.JPG",
+      "error": "Request failed"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:01:48.715828",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": false,
+      "image": "sample.jpg",
+      "error": "Request failed"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:01:48.719765",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": false,
+      "image": "test.jpg",
+      "error": "Request failed"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:01:48.720467",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": false,
+      "image": "test_image.png",
+      "error": "Request failed"
+    }
+  }
+]

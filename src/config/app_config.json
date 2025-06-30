@@ -1,5 +1,5 @@
 {
-  "active_model": "smolvlm2_500m_video",
+  "active_model": "smolvlm",
   "server": {
     "host": "localhost",
     "port": 8000
