@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-06-30T16:07:40.396448",
+    "test_name": "system_detection",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm2_500m_video_optimized",
+      "model_server_online": true,
+      "timestamp": "2025-06-30T16:07:40.390750"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:07:40.397364",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm2_500m_video_optimized"
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:07:47.033342",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail.",
+      "response": "The image depicts a close-up of a Shiba Inu dog, characterized by its light brown fur and black nose. The dog is sitting on a tiled floor, which appears to be a kitchen or bathroom, as indicated by the presence of a green shoe and a white sink in the background. The dog's eyes are wide open, and it seems to be looking",
+      "processing_time": 6.612640142440796
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:07:52.438466",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "What objects can you identify in this image?",
+      "response": "The image contains a single, solid-colored, red background. The color is not a gradient, but rather a solid, solid-colored block. There are no other objects, text, or markings present in the image. The red color is uniform throughout the image, and there are no discernible patterns or textures. The image does not contain any text, logos, or",
+      "processing_time": 5.401862144470215
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:07:54.791254",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "What are the main colors and visual elements?",
+      "response": "The main colors and visual elements are blue and white.",
+      "processing_time": 2.3505070209503174
+    }
+  },
+  {
+    "timestamp": "2025-06-30T16:08:01.894039",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe the scene and any activities you observe.",
+      "response": "The image depicts a geometric figure consisting of a red circle and a square. The circle is positioned inside the square, with the center of the circle directly above the center of the square. The circle is labeled with the letter \"PH-3\" in the center. The square is outlined in blue, and the background is light blue.\n\n### Analysis and Description:",
+      "processing_time": 7.100508213043213
+    }
+  }
+]
