@@ -47,8 +47,8 @@
   },
   "ui": {
     "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
-    "capture_intervals": [500, 1000, 2000],
-    "default_interval": 1000
+    "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
+    "default_interval": 10000
   },
   "version": "2.0.0-optimized",
   "description": "Optimized SmolVLM2-500M configuration for 5x performance improvement. Uses half precision, image caching, and reduced overhead.",

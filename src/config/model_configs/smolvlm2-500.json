@@ -33,8 +33,8 @@
   },
   "ui": {
     "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
-    "capture_intervals": [1000, 2000, 3000, 5000],
-    "default_interval": 2000
+    "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
+    "default_interval": 5000
   },
   "version": "1.0.0",
   "description": "SmolVLM2-500M-Video-Instruct model configuration for enhanced video understanding and image analysis. 500M parameter model optimized for Apple Silicon MPS.",
