@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-07-01T00:04:02.899120",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-07-01T00:04:02.894435"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:04:02.900796",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:04:03.786374",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " A close-up shot of a Shiba Inu dog looking directly at the camera. The dog has a brown and white fur pattern and is wearing a collar. The dog is sitting on the bathroom floor, which has light-colored tiles. A green flip-flop is partially visible to the right of the dog. On the left side of the image, a white and green hand-washing station is present.",
+      "processing_time": 0.8594779968261719
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:04:04.104988",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " Red background with no text or objects in the image.",
+      "processing_time": 0.3076930046081543
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:04:04.388624",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " A blue background is present in the image.",
+      "processing_time": 0.2771341800689697
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:04:08.870370",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " The image displays a geometric figure, specifically an equilateral triangle inscribed within a circle. The circle is red and the triangle is a closed shape, bounded by three sides. Each side of the triangle has the same length, forming three equal angles. The points where the triangle's sides meet the circle are marked as the vertices of the triangle, with each point on the circumference of the circle.\n\n### Detailed Description\n- **Circle**: The circle is a perfect, round shape with a fixed radius. The diameter of the circle is marked as the side of the triangle.\n- **Triangle**: The triangle is equilateral, meaning all three sides have the same length. The triangle is equiangular, meaning all three angles are equal, and it's also equilateral.\n- **Vertices**: The triangle has three points that form the vertices of the triangle, with each vertex on the circumference of the circle.\n\n### Analysis\n1. **Geometric Properties**: The triangle is equilateral, meaning all sides are equal in length and all angles are 30 degrees.\n2. **Triangular Structure**: The triangle is inscribed in the circle, where each side of the triangle forms the side of the circle, and the triangle's vertices are the endpoints of the circle's diameter.\n3. **Equal Angles**: All three angles are 30 degrees, as they are inscribed in the circle.\n4. **Radius and Circumference**: The circle's radius is twice the length of the side of the triangle, which is the height of the triangle. This height is marked as the side of the triangle.\n\n### Answer\n1. The equilateral triangle inside the circle forms the sides and vertices of the inscribed triangle.\n2. The circle's radius, marked as half of the triangle's height, is equal to the side of the triangle.\n3. The three angles of the triangle are 30 degrees, which are inscribed in the circle.\n\n### Conclusion\nThis geometric figure is an equilateral triangle inscribed within a circle, with the circle being the diameter of the triangle's height. The triangle's height (half the side of the triangle) equals the circle's radius. The equilateral nature of the triangle results in equal angles, and the circle's properties ensure that the triangle is equilateral. This configuration is a simple yet illustrative representation of geometry.",
+      "processing_time": 4.480386018753052
+    }
+  }
+]

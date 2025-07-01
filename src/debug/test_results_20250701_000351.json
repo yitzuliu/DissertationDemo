@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-07-01T00:03:51.618886",
+    "test_name": "system_detection",
+    "active_model": "smolvlm",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm",
+      "model_server_online": true,
+      "timestamp": "2025-07-01T00:03:51.612809"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:03:51.620126",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:03:52.061106",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " In a bathroom, a dog looks directly at the camera and takes a selfie.",
+      "processing_time": 0.40699219703674316
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:03:52.338209",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " There is a red background.",
+      "processing_time": 0.27246999740600586
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:03:52.659011",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " A solid black background with a bright blue horizontal line across the center.",
+      "processing_time": 0.3143959045410156
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:03:52.998281",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": " A circle divided into 3 equal segments labeled with \"PH3\".",
+      "processing_time": 0.3372983932495117
+    }
+  }
+]

@@ -1,0 +1,71 @@
+[
+  {
+    "timestamp": "2025-07-01T00:05:59.313604",
+    "test_name": "system_detection",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "backend_online": true,
+      "active_model": "smolvlm2_500m_video_optimized",
+      "model_server_online": true,
+      "timestamp": "2025-07-01T00:05:59.307250"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:05:59.314653",
+    "test_name": "basic_functionality",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "backend_status": "healthy",
+      "active_model": "smolvlm2_500m_video_optimized"
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:06:07.518829",
+    "test_name": "image_analysis_IMG_0119",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "IMG_0119.JPG",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": "The image features a Shiba Inu dog, a breed known for its distinctive black nose and white fur. The dog is sitting on a tiled floor, which is a common setting for dogs. The dog's nose is prominently displayed, and it appears to be looking directly at the camera. The dog's fur is light brown, and its eyes are dark brown. The",
+      "processing_time": 8.170724153518677
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:06:13.444971",
+    "test_name": "image_analysis_sample",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "sample.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": "The image is a red background with no discernible objects or text. The color red is the dominant color, and there are no other colors present. The image does not contain any text or any other discernible objects. The red color is the focal point of the image, and it is the only color present. The image does not contain any other objects, and there is",
+      "processing_time": 5.915717124938965
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:06:19.167820",
+    "test_name": "image_analysis_test",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "test.jpg",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": "The image presented is a completely black background, devoid of any discernible objects or text. The absence of any discernible content or elements in the image suggests that it could be a placeholder or a test image used in various digital applications, such as video editing software, web design tools, or other digital media creation tools.\n\nGiven the simplicity of the image, it",
+      "processing_time": 5.717353820800781
+    }
+  },
+  {
+    "timestamp": "2025-07-01T00:06:26.865026",
+    "test_name": "image_analysis_test_image",
+    "active_model": "smolvlm2_500m_video_optimized",
+    "result": {
+      "success": true,
+      "image": "test_image.png",
+      "prompt": "Describe what you see in this image in detail. and What objects can you identify in this image?",
+      "response": "The image presents a geometric figure consisting of a red circle and a blue square. The circle is positioned inside the square, with the center of the circle directly above the center of the square. The circle is labeled with the letter \"PH-3\" in the center. The square is outlined in blue and has a light blue background. The image does not contain any text or",
+      "processing_time": 7.694960117340088
+    }
+  }
+]
