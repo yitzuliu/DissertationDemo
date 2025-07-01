@@ -15,11 +15,70 @@ from pathlib import Path
 from PIL import Image, ImageEnhance
 import io
 from datetime import datetime
+import logging
 
 # Add project root to path
 current_dir = Path(__file__).parent
 project_root = current_dir.parent.parent
 sys.path.append(str(project_root))
+
+def setup_test_logging():
+    """Setup logging for test execution"""
+    try:
+        # Get test logs directory
+        base_dir = Path(__file__).parent.parent.parent
+        log_dir = base_dir / "logs" / "tests"
+        
+        # Create test logs directory
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Setup log file with timestamp
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        log_file = log_dir / f"test_{timestamp}.log"
+        
+        # Configure handlers
+        file_handler = logging.FileHandler(
+            filename=log_file,
+            mode='a',
+            encoding='utf-8'
+        )
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)  # Only show warnings and errors
+        
+        # Create formatters
+        file_formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        console_formatter = logging.Formatter(
+            '%(levelname)s: %(message)s'  # Simplified console output
+        )
+        
+        file_handler.setFormatter(file_formatter)
+        console_handler.setFormatter(console_formatter)
+        
+        # Configure root logger
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        
+        # Remove existing handlers
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
+        
+        # Add new handlers
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(console_handler)
+        
+        # Log initialization
+        root_logger.info(f"Test logging initialized. Log file: {log_file}")
+        
+        return root_logger
+    
+    except Exception as e:
+        print(f"Failed to setup test logging: {e}")
+        raise
+
+# Initialize logging
+logger = setup_test_logging()
 
 class DebugModelTestSuite:
     def __init__(self, backend_url="http://localhost:8000"):
@@ -43,10 +102,13 @@ class DebugModelTestSuite:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.results_file = current_dir / f"test_results_{timestamp}.json"
         
-        print(f"🎯 Debug Test Suite Initialized")
-        print(f"📁 Images Directory: {self.images_dir}")
-        print(f"📁 Config Directory: {self.config_dir}")
-        print(f"🌐 Backend URL: {self.backend_url}")
+        logger.info("Debug Test Suite Initialized")
+        logger.info(f"Images Directory: {self.images_dir}")
+        logger.info(f"Config Directory: {self.config_dir}")
+        logger.info(f"Backend URL: {self.backend_url}")
+        
+        # Only print minimal initialization info to console
+        print("🎯 Debug Test Suite Ready")
     
     def load_model_config(self, model_id):
         """Load model configuration from JSON file"""
@@ -65,18 +127,45 @@ class DebugModelTestSuite:
             return None
     
     def log_result(self, test_name, result):
-        """Log test result with timestamp"""
+        """Log test result with timestamp and sanitize image data"""
+        # Create a sanitized copy of the result
+        sanitized_result = result.copy()
+        
+        # Remove any image data from the result
+        if "image_base64" in sanitized_result:
+            del sanitized_result["image_base64"]
+        
+        # If there's a payload with image data, sanitize it
+        if "payload" in sanitized_result:
+            payload = sanitized_result["payload"]
+            if isinstance(payload, dict) and "messages" in payload:
+                for message in payload["messages"]:
+                    if isinstance(message.get("content"), list):
+                        sanitized_content = []
+                        for item in message["content"]:
+                            if item.get("type") == "image_url":
+                                sanitized_content.append({
+                                    "type": "image_url",
+                                    "processed": True
+                                })
+                            else:
+                                sanitized_content.append(item)
+                        message["content"] = sanitized_content
+        
         entry = {
             "timestamp": datetime.now().isoformat(),
             "test_name": test_name,
             "active_model": self.active_model,
-            "result": result
+            "result": sanitized_result
         }
         self.test_results.append(entry)
         
         # Save results immediately
         with open(self.results_file, 'w') as f:
             json.dump(self.test_results, f, indent=2)
+        
+        # Log sanitized version
+        logger.info(f"Test result for {test_name}: {json.dumps(sanitized_result)}")
     
     def detect_system_status(self):
         """Detect active model and system status through backend"""

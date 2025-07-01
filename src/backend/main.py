@@ -23,28 +23,81 @@ from utils.image_processing import (
     reduce_noise,
     enhance_color_balance
 )
+import time
+
+def setup_logging():
+    """Setup logging with proper path and permissions"""
+    try:
+        # Get absolute path to project root
+        base_dir = Path(__file__).resolve().parent.parent.parent
+        log_dir = base_dir / "logs"
+        
+        # Create logs directory with parents if needed
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Ensure proper directory permissions (readable and writable)
+        os.chmod(log_dir, 0o755)
+        
+        # Setup log file path with timestamp
+        timestamp = time.strftime("%Y%m%d")
+        log_file = log_dir / f"app_{timestamp}.log"
+        
+        # Configure file handler with UTF-8 encoding
+        file_handler = logging.FileHandler(
+            filename=log_file,
+            mode='a',
+            encoding='utf-8'
+        )
+        
+        # Ensure proper file permissions (readable and writable)
+        os.chmod(log_file, 0o644)
+        
+        # Configure console handler with reduced output
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)  # Only show warnings and errors in terminal
+        
+        # Create formatters
+        file_formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        console_formatter = logging.Formatter(
+            '%(levelname)s: %(message)s'  # Simplified console output
+        )
+        
+        file_handler.setFormatter(file_formatter)
+        console_handler.setFormatter(console_formatter)
+        
+        # Get the root logger
+        root_logger = logging.getLogger()
+        
+        # Remove any existing handlers
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
+        
+        # Set logging level for file (INFO) and console (WARNING)
+        root_logger.setLevel(logging.INFO)
+        file_handler.setLevel(logging.INFO)
+        
+        # Add handlers
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(console_handler)
+        
+        # Log initialization success (this will only go to file due to level)
+        root_logger.info(f"Logging initialized. Log file: {log_file}")
+        
+        return root_logger
+        
+    except Exception as e:
+        print(f"Failed to setup logging: {e}")
+        raise
+
+# Initialize logging
+logger = setup_logging()
+logger.info("Backend server starting...")
 
 # Initialize and load configuration
 config_manager.load_app_config()
-
-# Set up logging
-# Create logs directory if it doesn't exist
-log_dir = Path(__file__).parent.parent.parent / "logs"
-log_dir.mkdir(exist_ok=True)
-log_file_path = log_dir / "app.log"
-
-# Configure logging to write to both console and file
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(log_file_path, encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-logger.info(f"Backend logging configured. Log file at: {log_file_path}")
-
+logger.info("Configuration loaded successfully")
 
 app = FastAPI(title="Vision Models Unified API")
 
@@ -85,13 +138,31 @@ def preprocess_image(image_url):
             # Support both "size": [1024, 1024] and "max_size": 512 formats
             if "size" in image_config:
                 size_config = image_config["size"]
-                if isinstance(size_config, list) and len(size_config) >= 2:
-                    target_size = (int(size_config[0]), int(size_config[1]))
+                if isinstance(size_config, (list, tuple)) and len(size_config) >= 2:
+                    try:
+                        # Convert each element to string first to handle various numeric types
+                        width = int(float(str(size_config[0])))
+                        height = int(float(str(size_config[1])))
+                        target_size = (width, height)
+                    except (ValueError, TypeError, AttributeError):
+                        logger.warning("Invalid size config values, using defaults")
+                        target_size = (1024, 1024)
                 else:
-                    target_size = (int(size_config), int(size_config))
+                    try:
+                        # Convert to string first to handle various numeric types
+                        size_value = int(float(str(size_config)))
+                        target_size = (size_value, size_value)
+                    except (ValueError, TypeError, AttributeError):
+                        logger.warning("Invalid size config value, using defaults")
+                        target_size = (1024, 1024)
             elif "max_size" in image_config:
-                max_size = int(image_config["max_size"])
-                target_size = (max_size, max_size)
+                try:
+                    # Convert to string first to handle various numeric types
+                    max_size = int(float(str(image_config["max_size"])))
+                    target_size = (max_size, max_size)
+                except (ValueError, TypeError, AttributeError):
+                    logger.warning("Invalid max_size value, using defaults")
+                    target_size = (1024, 1024)
             else:
                 target_size = (1024, 1024)  # Default value
             
@@ -194,44 +265,115 @@ def format_message_for_model(message, image_count, model_name):
 @app.post("/v1/chat/completions")
 async def proxy_chat_completions(request: ChatCompletionRequest):
     """Enhanced chat completion endpoint with improved image processing"""
+    request_start_time = time.time()
+    request_id = f"req_{int(request_start_time * 1000)}"  # Unique request ID
+    
     try:
-        logger.info(f"Processing request with model: {ACTIVE_MODEL}")
+        logger.info(f"[{request_id}] Processing request with model: {ACTIVE_MODEL}")
         
         if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
             image_count = 0
+            image_processing_start = time.time()
+            
+            # Create a sanitized copy of messages for logging
+            sanitized_messages = []
+            for message in request.messages:
+                sanitized_message = message.copy() if isinstance(message, dict) else message
+                if isinstance(sanitized_message.get('content'), list):
+                    sanitized_content = []
+                    for content_item in sanitized_message['content']:
+                        if content_item.get('type') == 'image_url':
+                            # Replace image data with placeholder
+                            sanitized_content.append({
+                                'type': 'image_url',
+                                'image_processed': True,
+                                'original_format': content_item.get('image_url', {}).get('url', '').split(';')[0].replace('data:', '') if 'image_url' in content_item else 'unknown'
+                            })
+                        else:
+                            sanitized_content.append(content_item)
+                    sanitized_message['content'] = sanitized_content
+                sanitized_messages.append(sanitized_message)
+            
+            # Log sanitized messages
+            logger.info(f"[{request_id}] Received messages: {json.dumps(sanitized_messages, indent=2)}")
+            
+            # Process images
             for message in request.messages:
                 if isinstance(message.get('content'), list):
                     for content_item in message['content']:
                         if content_item.get('type') == 'image_url' and 'image_url' in content_item:
+                            # Log image processing start without the URL
+                            logger.info(f"[{request_id}] Processing image {image_count + 1}")
+                            
                             # Apply enhanced image processing
                             original_url = content_item['image_url']['url']
                             content_item['image_url']['url'] = preprocess_image(original_url)
                             image_count += 1
-                            
-            logger.info(f"Processed {image_count} images for {ACTIVE_MODEL}")
+            
+            image_processing_time = time.time() - image_processing_start
+            logger.info(f"[{request_id}] Image processing completed in {image_processing_time:.2f}s")
+            logger.info(f"[{request_id}] Processed {image_count} images for {ACTIVE_MODEL}")
             
             # Format messages
+            format_start = time.time()
             for message in request.messages:
                 message = format_message_for_model(message, image_count, ACTIVE_MODEL)
+            format_time = time.time() - format_start
+            logger.info(f"[{request_id}] Message formatting completed in {format_time:.2f}s")
             
+            # Prepare request for model
             request_data = request.dict()
+            logger.info(f"[{request_id}] Sending request to model server")
             
-            # Increase timeout to ensure sufficient processing time
+            # Send to model and measure time
+            model_request_start = time.time()
             async with httpx.AsyncClient(timeout=90.0) as client:
                 response = await client.post(
                     f"{MODEL_SERVER_URL}/v1/chat/completions",
                     json=request_data
                 )
-                return response.json()
+                model_response = response.json()
+                model_request_time = time.time() - model_request_start
+                
+                # Sanitize model response for logging
+                sanitized_response = model_response.copy()
+                if 'choices' in sanitized_response:
+                    for choice in sanitized_response['choices']:
+                        if 'message' in choice and isinstance(choice['message'].get('content'), list):
+                            sanitized_content = []
+                            for content_item in choice['message']['content']:
+                                if content_item.get('type') == 'image_url':
+                                    sanitized_content.append({
+                                        'type': 'image_url',
+                                        'processed': True
+                                    })
+                                else:
+                                    sanitized_content.append(content_item)
+                            choice['message']['content'] = sanitized_content
+                
+                logger.info(f"[{request_id}] Received response from model in {model_request_time:.2f}s")
+                logger.info(f"[{request_id}] Model response: {json.dumps(sanitized_response, indent=2)}")
+                
+                # Calculate total processing time
+                total_time = time.time() - request_start_time
+                logger.info(f"[{request_id}] Total request processing time: {total_time:.2f}s")
+                logger.info(f"[{request_id}] Timing breakdown:")
+                logger.info(f"  - Image processing: {image_processing_time:.2f}s")
+                logger.info(f"  - Message formatting: {format_time:.2f}s")
+                logger.info(f"  - Model inference: {model_request_time:.2f}s")
+                
+                return model_response
                 
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported model: {ACTIVE_MODEL}")
             
     except httpx.RequestError as e:
-        logger.error(f"Error communicating with model server: {e}", exc_info=True)
+        error_time = time.time() - request_start_time
+        logger.error(f"[{request_id}] Error communicating with model server after {error_time:.2f}s: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error communicating with model server: {str(e)}")
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}", exc_info=True)
+        error_time = time.time() - request_start_time
+        logger.error(f"[{request_id}] An unexpected error occurred after {error_time:.2f}s: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 @app.get("/")

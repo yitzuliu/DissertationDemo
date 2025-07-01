@@ -71,31 +71,11 @@ class PerformanceComparison:
         print(f"\n🧪 Testing {version_name} Version")
         print("-" * 40)
         
-        # Update backend configuration
+        # Switch model configuration
         if not self.switch_model_config(model_config):
-            print(f"❌ Failed to switch to {version_name} version")
             return []
         
-        # Wait for model to load
-        print("⏳ Waiting for model to load...")
-        time.sleep(5)  # 減少等待時間
-        
-        # Verify model is ready
-        try:
-            response = requests.get(f"{self.backend_url}/health", timeout=10)
-            if response.status_code != 200:
-                print(f"❌ Backend not ready for {version_name} version")
-                return []
-            
-            health_data = response.json()
-            print(f"✅ Model Ready: {health_data.get('active_model')}")
-            
-        except Exception as e:
-            print(f"❌ Health check failed: {e}")
-            return []
-        
-        # Run tests
-        version_results = []
+        results = []
         
         for i, image_path in enumerate(self.test_images):
             print(f"\n📸 Image {i+1}: {image_path.name}")
@@ -105,9 +85,21 @@ class PerformanceComparison:
                 
                 prompt = "Describe what you see in this image."
                 
-                # Test request
-                start_time = time.time()
+                # Create sanitized payload for logging
+                sanitized_payload = {
+                    "messages": [{
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "processed": True}
+                        ]
+                    }],
+                    "max_tokens": 150
+                }
+                print("📤 Sending request with sanitized payload:")
+                print(json.dumps(sanitized_payload, indent=2))
                 
+                # Actual payload for request
                 payload = {
                     "messages": [{
                         "role": "user",
@@ -124,6 +116,9 @@ class PerformanceComparison:
                     "max_tokens": 150
                 }
                 
+                # Test request
+                start_time = time.time()
+                
                 response = requests.post(
                     f"{self.backend_url}/v1/chat/completions",
                     json=payload,
@@ -136,41 +131,46 @@ class PerformanceComparison:
                     data = response.json()
                     response_text = data["choices"][0]["message"]["content"]
                     
-                    result = {
-                        "image": image_path.name,
-                        "version": version_name,
+                    # Create sanitized result for logging
+                    sanitized_result = {
                         "success": True,
+                        "image": image_path.name,
                         "processing_time": processing_time,
                         "response": response_text,
-                        "response_length": len(response_text),
-                        "timestamp": datetime.now().isoformat()
+                        "tokens": data.get("usage", {})
                     }
                     
-                    print(f"✅ Success: {processing_time:.2f}s")
-                    print(f"📝 Response: {response_text[:80]}...")
+                    print(f"⚡ Time: {processing_time:.2f}s")
+                    print(f"🤖 Response: {response_text[:200]}...")
                     
+                    if "usage" in data:
+                        print(f"📊 Tokens: {data['usage']}")
+                    
+                    # Log sanitized result
+                    print("\n📝 Sanitized Result:")
+                    print(json.dumps(sanitized_result, indent=2))
+                    
+                    results.append(sanitized_result)
                 else:
-                    result = {
-                        "image": image_path.name,
-                        "version": version_name,
+                    error_result = {
                         "success": False,
+                        "image": image_path.name,
                         "error": f"HTTP {response.status_code}",
-                        "processing_time": processing_time
+                        "details": response.text
                     }
-                    print(f"❌ Failed: HTTP {response.status_code}")
-                
-                version_results.append(result)
-                
+                    print(f"❌ Error: {error_result['error']}")
+                    results.append(error_result)
+                    
             except Exception as e:
-                print(f"❌ Error testing {image_path.name}: {e}")
-                version_results.append({
-                    "image": image_path.name,
-                    "version": version_name,
+                error_result = {
                     "success": False,
+                    "image": image_path.name,
                     "error": str(e)
-                })
+                }
+                print(f"❌ Error: {error_result['error']}")
+                results.append(error_result)
         
-        return version_results
+        return results
     
     def switch_model_config(self, model_config):
         """Switch backend model configuration"""
@@ -254,7 +254,7 @@ class PerformanceComparison:
             # Optimization effectiveness
             print(f"\n🎯 OPTIMIZATION EFFECTIVENESS:")
             if speed_improvement >= 3:
-                print(f"🏆 EXCELLENT: {speed_improvement:.1f}x speed improvement!")
+                print(f"�� EXCELLENT: {speed_improvement:.1f}x speed improvement!")
             elif speed_improvement >= 2:
                 print(f"✅ GOOD: {speed_improvement:.1f}x speed improvement")
             elif speed_improvement >= 1.5:

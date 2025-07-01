@@ -273,27 +273,21 @@ class SmolVLMTestSuite:
             return False
     
     def test_image_analysis(self):
-        """Test SmolVLM with image analysis."""
-        print("🖼️ IMAGE ANALYSIS TESTING")
+        """Test image analysis capabilities."""
+        print("\n🖼️ IMAGE ANALYSIS TESTING")
         print("-" * 40)
         
-        # Find available test images
-        available_images = []
-        for img_path in self.image_paths:
-            if os.path.exists(img_path):
-                available_images.append(img_path)
+        test_prompts = [
+            "Describe what you see in this image in detail.",
+            "What objects can you identify in this image?",
+            "Analyze the composition and lighting of this image."
+        ]
+        
+        available_images = [path for path in self.image_paths if os.path.exists(path)]
         
         if not available_images:
             print("❌ No test images found")
             return
-        
-        test_prompts = [
-            "Describe what you see in this image in detail.",
-            "What objects are visible in this image?",
-            "What colors and textures can you identify?",
-            "Is there any text visible in this image?",
-            "What is the overall scene or setting?"
-        ]
         
         for i, img_path in enumerate(available_images[:2], 1):  # Test first 2 images
             print(f"\n📸 Image Test {i}: {os.path.basename(img_path)}")
@@ -312,12 +306,34 @@ class SmolVLMTestSuite:
                 for j, prompt in enumerate(test_prompts[:2], 1):  # Test first 2 prompts
                     print(f"\n🔍 Prompt {j}: {prompt}")
                     
+                    # Create sanitized payload for logging
+                    sanitized_payload = {
+                        "messages": [{
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {"type": "image_url", "processed": True}
+                            ]
+                        }],
+                        "max_tokens": 512  # Default value
+                    }
+                    print("📤 Sending request with sanitized payload:")
+                    print(json.dumps(sanitized_payload, indent=2))
+                    
                     result = self.send_request(prompt, image_base64)
                     
                     self.test_count += 1
                     if result["success"]:
                         self.success_count += 1
                         self.total_inference_time += result["inference_time"]
+                        
+                        # Create sanitized result for logging
+                        sanitized_result = {
+                            "success": result["success"],
+                            "inference_time": result["inference_time"],
+                            "response": result["response"],
+                            "usage": result.get("usage", {})
+                        }
                         
                         print(f"⚡ Inference time: {result['inference_time']:.2f}s")
                         print(f"🤖 Response: {result['response'][:200]}...")
@@ -326,6 +342,10 @@ class SmolVLMTestSuite:
                             usage = result["usage"]
                             print(f"📊 Tokens - Prompt: {usage.get('prompt_tokens', 'N/A')}, "
                                   f"Completion: {usage.get('completion_tokens', 'N/A')}")
+                            
+                        # Log sanitized result
+                        print("\n📝 Sanitized Result:")
+                        print(json.dumps(sanitized_result, indent=2))
                     else:
                         print(f"❌ Error: {result['error']}")
                         if "details" in result:
@@ -333,6 +353,7 @@ class SmolVLMTestSuite:
                 
             except Exception as e:
                 print(f"❌ Error processing image {i}: {e}")
+                continue
     
     def test_prompt_variations(self):
         """Test different types of prompts."""
