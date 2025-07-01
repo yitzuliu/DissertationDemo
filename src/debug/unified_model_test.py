@@ -170,7 +170,7 @@ class DebugModelTestSuite:
                 quality = self.model_capabilities.get("image_quality", 90)
                 resize_method = self.model_capabilities.get("resize_method", "LANCZOS")
                 
-                # 始終轉換為 RGB 模式
+                # Always convert to RGB mode
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
                 
@@ -198,12 +198,12 @@ class DebugModelTestSuite:
                     if "sharpness_factor" in img_proc:
                         img = ImageEnhance.Sharpness(img).enhance(float(img_proc["sharpness_factor"]))
                 
-                # 保存為 JPEG
+                # Save as JPEG
                 buffer = io.BytesIO()
                 img.save(buffer, format="JPEG", quality=quality, optimize=True)
                 image_bytes = buffer.getvalue()
                 
-                # 返回純 base64 字符串
+                # Return pure base64 string
                 return base64.b64encode(image_bytes).decode('utf-8')
                 
         except Exception as e:
@@ -377,17 +377,17 @@ class DebugModelTestSuite:
         total_tests = len(self.test_results)
         successful_tests = 0
         
-        # 分別計算每種測試的結果
+        # Calculate results for each test type
         for r in self.test_results:
             result = r.get("result", {})
             test_name = r.get("test_name", "")
             
             if test_name == "system_detection":
-                # 系統檢測測試的成功條件
+                # Success conditions for system detection test
                 if result.get("backend_online") and result.get("model_server_online"):
                     successful_tests += 1
             else:
-                # 其他測試的成功條件
+                # Success conditions for other tests
                 if result.get("success", False):
                     successful_tests += 1
         
@@ -404,7 +404,7 @@ class DebugModelTestSuite:
         processing_times = []
         for result in self.test_results:
             result_data = result.get("result", {})
-            # 只收集圖像分析測試的處理時間
+            # Only collect processing times for image analysis tests
             if "processing_time" in result_data:
                 processing_times.append(result_data["processing_time"])
         

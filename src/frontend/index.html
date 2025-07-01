@@ -938,7 +938,7 @@
             apiStatusDot.className = "status-dot online";
             apiStatusText.textContent = "API Online";
             
-            // 使用模型的顯示名稱
+            // Use model's display name
             const modelName = data.model_status?.name || data.active_model || "Unknown";
             activeModel.textContent = modelName;
             
@@ -1080,8 +1080,8 @@
             if (!stream || !video.videoWidth) return null;
             
             try {
-                // 設置更高的畫布分辨率
-                const targetWidth = 1024;  // 優化的目標寬度
+                // Set higher canvas resolution
+                const targetWidth = 1024;  // Optimized target width
                 const aspectRatio = video.videoHeight / video.videoWidth;
                 const targetHeight = Math.round(targetWidth * aspectRatio);
                 
@@ -1090,23 +1090,23 @@
                 
                 const ctx = canvas.getContext('2d');
                 
-                // 啟用高質量圖像平滑
+                // Enable high-quality image smoothing
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 
-                // 使用更好的縮放算法
+                // Use better scaling algorithm
                 ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
                 
-                // 應用基本圖像增強
+                // Apply basic image enhancement
                 const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
                 const enhancedData = enhanceImageData(imageData);
                 ctx.putImageData(enhancedData, 0, 0);
                 
-                // 使用更高的JPEG質量
+                // Use higher JPEG quality
                 const quality = Math.max(0.92, parseFloat(qualitySelect.value) || 0.9);
                 const dataUrl = canvas.toDataURL('image/jpeg', quality);
                 
-                // 更新預覽
+                // Update preview
                 updateImagePreview(dataUrl);
                 
                 return dataUrl;
@@ -1117,24 +1117,24 @@
             }
         }
         
-        // 添加圖像增強函數
+        // Add image enhancement function
         function enhanceImageData(imageData) {
             const data = imageData.data;
-            const contrast = 1.1;  // 輕微提高對比度
-            const brightness = 1.05;  // 輕微提高亮度
+            const contrast = 1.1;  // Slightly increase contrast
+            const brightness = 1.05;  // Slightly increase brightness
             
             for (let i = 0; i < data.length; i += 4) {
-                // 應用對比度
+                // Apply contrast
                 for (let j = 0; j < 3; j++) {
                     data[i + j] = ((data[i + j] / 255 - 0.5) * contrast + 0.5) * 255;
                 }
                 
-                // 應用亮度
+                // Apply brightness
                 for (let j = 0; j < 3; j++) {
                     data[i + j] *= brightness;
                 }
                 
-                // 確保值在有效範圍內
+                // Ensure values are within valid range
                 for (let j = 0; j < 3; j++) {
                     data[i + j] = Math.max(0, Math.min(255, data[i + j]));
                 }
@@ -1213,6 +1213,12 @@
         async function sendData() {
             if (!isProcessing) return;
             
+            // Check if a request is already being processed
+            if (window.currentRequestProcessing) {
+                console.log("⏳ Previous request still processing, skipping this one");
+                return;
+            }
+            
             // Clear previous errors
             hideError();
             
@@ -1231,6 +1237,9 @@
                 return;
             }
             
+            // Set processing flag
+            window.currentRequestProcessing = true;
+            
             // Update capture indicator
             updateCaptureIndicator();
             
@@ -1238,7 +1247,7 @@
                 // Show a loading animation in the capture label instead
                 const captureLabel = document.querySelector('.capture-label');
                 if (captureLabel) {
-                    captureLabel.innerHTML = `Processing request<br><span style="font-size: 0.65rem;">Please wait...</span>`;
+                    captureLabel.innerHTML = `Processing...<br><span style="font-size: 0.65rem;">Please wait</span>`;
                     captureLabel.style.backgroundColor = "var(--warning-light)";
                     captureLabel.style.color = "var(--warning)";
                 }
@@ -1271,6 +1280,9 @@
                 // Hide processing indicator on error
                 showProcessingIndicator(false);
                 showError(error.message);
+            } finally {
+                // Clear processing flag
+                window.currentRequestProcessing = false;
             }
         }
         
@@ -1367,6 +1379,15 @@
             if (isNaN(intervalTime) || intervalTime < 100) {
                 console.log("Invalid interval value, using default interval");
                 return defaultInterval;
+            }
+            
+            // Adjust minimum intervals for optimized model
+            if (config && config.active_model === "smolvlm2_500m_video_optimized") {
+                // Minimum 3 second interval for optimized model
+                return Math.max(intervalTime, 3000);
+            } else if (config && config.active_model === "smolvlm2_500m_video") {
+                // Minimum 5 second interval for standard model
+                return Math.max(intervalTime, 5000);
             }
             
             return intervalTime;

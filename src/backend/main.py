@@ -77,14 +77,28 @@ def preprocess_image(image_url):
             image_data = base64.b64decode(base64_data)
             image = Image.open(io.BytesIO(image_data))
             
-            # 獲取模型配置
+            # Get model configuration
             model_config = config_manager.load_model_config(ACTIVE_MODEL)
             image_config = model_config.get("image_processing", {})
             
-            # 應用智能裁剪
+            # Unified handling of different configuration formats
+            # Support both "size": [1024, 1024] and "max_size": 512 formats
+            if "size" in image_config:
+                size_config = image_config["size"]
+                if isinstance(size_config, list) and len(size_config) >= 2:
+                    target_size = (int(size_config[0]), int(size_config[1]))
+                else:
+                    target_size = (int(size_config), int(size_config))
+            elif "max_size" in image_config:
+                max_size = int(image_config["max_size"])
+                target_size = (max_size, max_size)
+            else:
+                target_size = (1024, 1024)  # Default value
+            
+            min_size = image_config.get("min_size", 512)
+            
+            # Apply smart cropping
             if image_config.get("smart_crop", True):
-                target_size = image_config.get("size", [1024, 1024])
-                min_size = image_config.get("min_size", 512)
                 image = smart_crop_and_resize(
                     image,
                     target_size=target_size,
@@ -92,8 +106,8 @@ def preprocess_image(image_url):
                     preserve_aspect_ratio=True
                 )
             
-            # 應用降噪
-            if image_config.get("noise_reduction", {}).get("enabled", True):
+            # Apply noise reduction (only if enabled)
+            if image_config.get("noise_reduction", {}).get("enabled", False):
                 noise_config = image_config.get("noise_reduction", {})
                 image = reduce_noise(
                     image,
@@ -101,8 +115,8 @@ def preprocess_image(image_url):
                     config=noise_config
                 )
             
-            # 應用色彩增強
-            if image_config.get("color_balance", {}).get("enabled", True):
+            # Apply color enhancement (only if enabled)
+            if image_config.get("color_balance", {}).get("enabled", False):
                 color_config = image_config.get("color_balance", {})
                 image = enhance_color_balance(
                     image,
@@ -110,16 +124,20 @@ def preprocess_image(image_url):
                     config=color_config
                 )
             
-            # 保存處理後的圖片
+            # Save processed image
             buffer = io.BytesIO()
+            
+            # Unified quality parameter handling
+            quality = image_config.get("jpeg_quality", image_config.get("quality", 95))
+            
             save_params = {
                 "format": "JPEG",
-                "quality": image_config.get("jpeg_quality", 95),
-                "optimize": True
+                "quality": int(quality),
+                "optimize": image_config.get("optimize", True)
             }
             image.save(buffer, **save_params)
             
-            # 返回處理後的base64圖片
+            # Return processed base64 image
             processed_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
             return f"data:image/jpeg;base64,{processed_base64}"
             
@@ -136,9 +154,9 @@ class ChatCompletionRequest(BaseModel):
     messages: List[Dict[str, Any]]
 
 def format_message_for_model(message, image_count, model_name):
-    """統一的消息格式化處理"""
+    """Unified message formatting handler"""
     if isinstance(message.get('content'), list):
-        # 提取文字和圖片
+        # Extract text and images
         text_content = ""
         images = []
         
@@ -164,7 +182,7 @@ def format_message_for_model(message, image_count, model_name):
         else:
             formatted_text = text_content
         
-        # 重構 content
+        # Reconstruct content
         new_content = [{"type": "text", "text": formatted_text}]
         new_content.extend(images)
         message['content'] = new_content
@@ -185,7 +203,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                 if isinstance(message.get('content'), list):
                     for content_item in message['content']:
                         if content_item.get('type') == 'image_url' and 'image_url' in content_item:
-                            # 應用增強的圖片處理
+                            # Apply enhanced image processing
                             original_url = content_item['image_url']['url']
                             content_item['image_url']['url'] = preprocess_image(original_url)
                             image_count += 1
@@ -198,7 +216,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             
             request_data = request.dict()
             
-            # 增加超時時間以確保充分的處理時間
+            # Increase timeout to ensure sufficient processing time
             async with httpx.AsyncClient(timeout=90.0) as client:
                 response = await client.post(
                     f"{MODEL_SERVER_URL}/v1/chat/completions",
@@ -312,7 +330,7 @@ async def update_config(config_update: ConfigUpdate):
 async def get_status():
     """Return system status"""
     try:
-        # 獲取當前模型的配置
+        # Get current model configuration
         model_config = config_manager.load_model_config(ACTIVE_MODEL)
         display_name = model_config.get("model_name", ACTIVE_MODEL)
         model_id = model_config.get("model_id", ACTIVE_MODEL)

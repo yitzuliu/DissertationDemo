@@ -13,32 +13,28 @@
   "image_processing": {
     "smart_crop": true,
     "size": [384, 384],
-    "min_size": 384,
+    "min_size": 256,
     "preserve_aspect_ratio": true,
     "jpeg_quality": 85,
     "optimize": true,
-    "resize_method": "BILINEAR",
     "noise_reduction": {
-      "enabled": false
+      "enabled": false,
+      "method": "bilateral"
     },
     "color_balance": {
-      "enabled": false
+      "enabled": false,
+      "method": "lab"
     },
     "preprocessing": {
       "contrast_factor": 1.0,
       "brightness_factor": 1.0,
       "sharpness_factor": 1.0
-    },
-    "enable_cache": true,
-    "cache_size": 20
+    }
   },
   "inference": {
     "batch_size": 1,
     "expected_response_time": 3.0,
-    "max_tokens": 75,
-    "temperature": 0.1,
-    "do_sample": false,
-    "torch_dtype": "float16",
+    "max_image_size": 384,
     "use_half_precision": true,
     "fast_mode": true,
     "use_cache": true,
@@ -47,7 +43,7 @@
   "memory": {
     "required_gb": 4.0,
     "cleanup_interval": 10,
-    "aggressive_cleanup": false,
+    "cleanup_aggressive": false,
     "smart_cleanup": true,
     "max_memory_gb": 16.0
   },
@@ -60,12 +56,13 @@
   },
   "api": {
     "timeout": 30,
-    "max_tokens": 75
+    "max_tokens": 75,
+    "temperature": 0.1
   },
   "ui": {
     "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
-    "capture_intervals": [500, 1000, 2000, 5000],
-    "default_interval": 2000
+    "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
+    "default_interval": 10000
   },
   "version": "2.0.0-optimized",
   "description": "Optimized SmolVLM2-500M configuration for 5x performance improvement. Uses half precision, image caching, and reduced overhead.",

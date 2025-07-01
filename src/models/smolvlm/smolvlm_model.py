@@ -238,24 +238,24 @@ class SmolVLMModel(BaseVisionModel):
             return image
     
     def enhance_details_multi_scale(self, image: Image.Image, config: Dict) -> Image.Image:
-        """多尺度細節增強"""
+        """Multi-scale detail enhancement"""
         try:
             scales = config.get("scales", [0.5, 1.0, 2.0])
             detail_boost = float(config.get("detail_boost", 1.5))
             enhanced = image.copy()
             
             for scale in scales:
-                # 創建高斯模糊版本
+                # Create Gaussian blur version
                 radius = 2 * scale
                 blurred = image.filter(ImageFilter.GaussianBlur(radius=radius))
                 
-                # 計算細節層
+                # Calculate detail layer
                 detail = ImageChops.difference(image, blurred)
                 
-                # 增強細節
+                # Enhance details
                 detail = ImageEnhance.Contrast(detail).enhance(detail_boost)
                 
-                # 合併回原圖
+                # Merge back to original
                 enhanced = ImageChops.add(enhanced, detail, scale=1.0, offset=0)
             
             return enhanced

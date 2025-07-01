@@ -203,30 +203,30 @@ def smart_crop_and_resize(
     preserve_aspect_ratio: bool = True
 ) -> Image.Image:
     """
-    智能裁剪和調整圖像大小，保持重要內容。
+    Smart crop and resize image while maintaining important content.
     
     Args:
-        image: 輸入圖像
-        target_size: 目標尺寸 (寬, 高)
-        min_size: 最小尺寸限制
-        preserve_aspect_ratio: 是否保持長寬比
+        image: Input image
+        target_size: Target dimensions (width, height)
+        min_size: Minimum size limit
+        preserve_aspect_ratio: Whether to maintain aspect ratio
         
     Returns:
-        調整後的圖像
+        Processed image
     """
     try:
         pil_image = convert_to_pil_image(image)
         
         if preserve_aspect_ratio:
-            # 計算目標大小
+            # Calculate target dimensions
             width, height = pil_image.size
             scale = min(target_size[0]/width, target_size[1]/height)
             
-            # 確保不小於最小尺寸
+            # Ensure not smaller than minimum size
             new_width = max(int(width * scale), min_size)
             new_height = max(int(height * scale), min_size)
             
-            # 使用 LANCZOS 重採樣方法
+            # Use LANCZOS resampling method
             return pil_image.resize((new_width, new_height), resample=3)  # 3 = LANCZOS
         else:
             return pil_image.resize(target_size, resample=3)  # 3 = LANCZOS
@@ -242,32 +242,32 @@ def reduce_noise(
     config: Optional[Dict] = None
 ) -> Image.Image:
     """
-    高級降噪處理，支持多種降噪方法。
+    Advanced noise reduction processing with multiple methods.
     
     Args:
-        image: 輸入圖像
-        method: 降噪方法 ('bilateral', 'nlm', 'gaussian')
-        config: 降噪參數配置
+        image: Input image
+        method: Noise reduction method ('bilateral', 'nlm', 'gaussian')
+        config: Noise reduction parameters
         
     Returns:
-        處理後的圖像
+        Processed image
     """
     if config is None:
         config = {}
         
     try:
-        # 轉換為 OpenCV 格式
+        # Convert to OpenCV format
         cv_image = convert_to_cv2_image(image)
         
         if method == 'bilateral':
-            # 雙邊濾波，保持邊緣的降噪
+            # Bilateral filtering, preserving edges while reducing noise
             d = config.get("diameter", 9)
             sigma_color = config.get("sigma_color", 75)
             sigma_space = config.get("sigma_space", 75)
             processed = cv2.bilateralFilter(cv_image, d, sigma_color, sigma_space)
             
         elif method == 'nlm':
-            # 非局部均值降噪
+            # Non-local means denoising
             h = config.get("h", 10)
             template_window = config.get("template_window", 7)
             search_window = config.get("search_window", 21)
@@ -281,7 +281,7 @@ def reduce_noise(
             )
             
         elif method == 'gaussian':
-            # 高斯降噪
+            # Gaussian noise reduction
             kernel_size = config.get("kernel_size", (5, 5))
             sigma = config.get("sigma", 0)
             processed = cv2.GaussianBlur(cv_image, kernel_size, sigma)
@@ -303,15 +303,15 @@ def enhance_color_balance(
     config: Optional[Dict] = None
 ) -> Image.Image:
     """
-    增強圖像的色彩平衡。
+    Enhance image color balance.
     
     Args:
-        image: 輸入圖像
-        method: 色彩處理方法 ('lab', 'rgb', 'auto_wb')
-        config: 色彩增強參數
+        image: Input image
+        method: Color processing method ('lab', 'rgb', 'auto_wb')
+        config: Color enhancement parameters
         
     Returns:
-        處理後的圖像
+        Processed image
     """
     if config is None:
         config = {}
@@ -320,26 +320,26 @@ def enhance_color_balance(
         pil_image = convert_to_pil_image(image)
         
         if method == 'lab':
-            # LAB 色彩空間處理
+            # LAB color space processing
             img_array = np.array(pil_image)
             lab_image = color.rgb2lab(img_array)
             
-            # 增強 L 通道（亮度）
+            # Enhance L channel (lightness)
             l_boost = float(config.get("l_channel_boost", 1.2))
             l_channel = lab_image[:,:,0]
             l_channel = np.clip(l_channel * l_boost, 0, 100)
             lab_image[:,:,0] = l_channel
             
-            # 增強 a,b 通道（色彩）
+            # Enhance a,b channels (color)
             ab_boost = float(config.get("ab_channel_boost", 1.2))
             lab_image[:,:,1:] *= ab_boost
             
-            # 轉回 RGB
+            # Convert back to RGB
             enhanced_array = color.lab2rgb(lab_image)
             return Image.fromarray((enhanced_array * 255).astype(np.uint8))
             
         elif method == 'rgb':
-            # RGB 通道獨立增強
+            # RGB channel independent enhancement
             r_factor = float(config.get("r_factor", 1.0))
             g_factor = float(config.get("g_factor", 1.0))
             b_factor = float(config.get("b_factor", 1.0))
@@ -352,10 +352,10 @@ def enhance_color_balance(
             return Image.merge('RGB', (r, g, b))
             
         elif method == 'auto_wb':
-            # 自動白平衡
+            # Automatic white balance
             img_array = np.array(pil_image)
             result = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
-            # 計算平均值，確保使用正確的數據類型
+            # Calculate average values with correct data type
             avg_a = float(np.mean(result[:, :, 1].astype(np.float64)))
             avg_b = float(np.mean(result[:, :, 2].astype(np.float64)))
             result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)
