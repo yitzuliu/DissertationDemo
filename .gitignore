@@ -31,13 +31,13 @@ eggs/
 /src/models/phi3_vision/Phi-3-Vision-MLX/
 /src/models/phi3_vision/Phi-3-mini-128k-instruct/
 /src/models/phi3_vision/Phi-3.5-vision-instruct/
-/src/models/smolvlm2/SmolVLM2-2.2B-Instruct/
-/src/models/smolvlm2/smollm/
 
-# SmolVLM2-500M-Video-Instruct: Exclude model files but allow project workspace
+# SmolVLM2: Only track project_workspace, exclude everything else
+/src/models/smolvlm2/*
+!/src/models/smolvlm2/__init__.py
+!/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/
 /src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/*
 !/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/project_workspace/
-!/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/TODOLIST.md
 
 # ===== MODEL FILES (LARGE BINARIES) =====
 # Exclude all common model weight file extensions anywhere
@@ -57,6 +57,13 @@ eggs/
 **/vocab.json
 **/tokenizer.json
 **/merges.txt
+**/tokenizer_config.json
+**/added_tokens.json
+**/special_tokens_map.json
+**/chat_template.json
+**/preprocessor_config.json
+**/processor_config.json
+**/generation_config.json
 
 # ===== LOGS & TEMPORARY FILES =====
 /logs/
