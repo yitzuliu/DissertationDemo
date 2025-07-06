@@ -39,6 +39,10 @@ eggs/
 /src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/*
 !/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/project_workspace/
 
+# Specifically ignore model files in SmolVLM2-500M-Video-Instruct
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/config.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/model.safetensors
+
 # ===== MODEL FILES (LARGE BINARIES) =====
 # Exclude all common model weight file extensions anywhere
 *.safetensors
@@ -111,3 +115,14 @@ quick_test_smolvlm2.py
 !**/requirements.txt
 !**/README.md
 !**/TODOLIST.md
+# All model files in SmolVLM2-500M-Video-Instruct root
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/added_tokens.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/chat_template.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/generation_config.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/merges.txt
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/preprocessor_config.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/processor_config.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/special_tokens_map.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/tokenizer.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/tokenizer_config.json
+src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/vocab.json
