@@ -741,6 +741,10 @@
                             </div>
                             
                             <div class="parameter-grid" style="grid-template-columns: 1fr; gap: 0.4rem;">
+                                <div class="form-group">
+                                    <label for="cameraSelect" style="font-size: 0.7rem;">Select Camera</label>
+                                    <select id="cameraSelect" style="padding: 0.35rem 0.25rem; font-size: 0.75rem;"></select>
+                                </div>
                                 <div>
                                     <label for="intervalSelect" style="font-size: 0.7rem;">Capture Rate</label>
                                     <select id="intervalSelect" style="padding: 0.35rem 0.25rem; font-size: 0.75rem;"></select>
@@ -1011,70 +1015,101 @@
             }
         }
 
-        async function initCamera() {
+        // Add camera selection elements
+        const cameraSelect = document.getElementById('cameraSelect');
+
+        // Add these functions for camera management
+        async function populateCameraList() {
             try {
-                // Try to get higher resolution if possible
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                // Map devices to options with icons
+                cameraSelect.innerHTML = videoDevices.map(device => {
+                    const isIPhone = device.label.toLowerCase().includes('continuity') || 
+                                   device.label.toLowerCase().includes('iphone');
+                    const isMacBook = device.label.toLowerCase().includes('facetime') ||
+                                    device.label.toLowerCase().includes('built-in');
+                    const icon = isIPhone ? '📱 ' : isMacBook ? '💻 ' : '📷 ';
+                    return `<option value="${device.deviceId}">${icon}${device.label || `Camera ${device.deviceId}`}</option>`;
+                }).join('');
+
+                if (videoDevices.length > 0) {
+                    // Try to find MacBook's built-in camera first
+                    const macBookCamera = videoDevices.find(d => 
+                        d.label.toLowerCase().includes('facetime') || 
+                        d.label.toLowerCase().includes('built-in')
+                    );
+
+                    if (macBookCamera) {
+                        // Set MacBook camera as default
+                        cameraSelect.value = macBookCamera.deviceId;
+                        await startCamera(macBookCamera.deviceId);
+                    } else {
+                        // Fallback to first available camera
+                        cameraSelect.value = videoDevices[0].deviceId;
+                        await startCamera(videoDevices[0].deviceId);
+                    }
+                }
+            } catch (err) {
+                console.error("Error listing cameras:", err);
+                showError("Failed to list cameras.");
+            }
+        }
+
+        async function startCamera(deviceId) {
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
                 const constraints = {
-                    video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: "user"
-                    },
+                    video: deviceId ? 
+                        {
+                            deviceId: { exact: deviceId },
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 }
+                        } : 
+                        {
+                            facingMode: "user",  // Default to front camera if no deviceId
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 }
+                        },
                     audio: false
                 };
-                
+
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
                 errorMsg.style.display = "none";
-                
-                // Add a nice animation effect to the video
+
+                // Add animation effect
                 video.onloadedmetadata = () => {
                     video.classList.add('animate-fade-in');
                 };
+
+                // Update camera selection to match current camera
+                const tracks = stream.getVideoTracks();
+                if (tracks.length > 0) {
+                    const currentCamera = tracks[0].getSettings().deviceId;
+                    if (currentCamera && cameraSelect.value !== currentCamera) {
+                        cameraSelect.value = currentCamera;
+                    }
+                }
             } catch (err) {
                 handleCameraError(err);
             }
         }
-        
-        // Handle camera access errors with a more informative UI
-        function handleCameraError(err) {
-            console.error("Camera access error:", err);
-            errorMsg.textContent = "Camera access failed: " + err.message;
-            errorMsg.style.display = "block";
-            
-            // Show a more visible error in the video container
-            const videoContainer = document.querySelector('.video-container');
-            if (!videoContainer) return;
-            
-            // Remove any existing error overlay
-            const existingOverlay = document.querySelector('.camera-error-overlay');
-            if (existingOverlay) existingOverlay.remove();
-            
-            // Create new error overlay
-            const errorOverlay = document.createElement('div');
-            errorOverlay.className = 'camera-error-overlay';
-            errorOverlay.innerHTML = `
-                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--error); margin-bottom: 1rem;"></i>
-                <p>Camera Access Denied</p>
-                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Please check browser permissions</p>
-            `;
-            errorOverlay.style = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.7);
-                color: white;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                border-radius: var(--radius-md);
-                z-index: 5;
-            `;
-            videoContainer.appendChild(errorOverlay);
-        }
+
+        // Add event listener for camera selection
+        cameraSelect.addEventListener('change', async () => {
+            const selectedDeviceId = cameraSelect.value;
+            await startCamera(selectedDeviceId);
+        });
+
+        // Watch for device changes (like iPhone connecting/disconnecting)
+        navigator.mediaDevices.addEventListener('devicechange', async () => {
+            await populateCameraList();
+        });
 
         function captureImage() {
             if (!stream || !video.videoWidth) return null;
@@ -1478,7 +1513,7 @@
                 await Promise.all([
                     checkApiStatus(),
                     loadConfig(),
-                    initCamera()
+                    populateCameraList()
                 ]);
                 
                 // Set up tab switching functionality
