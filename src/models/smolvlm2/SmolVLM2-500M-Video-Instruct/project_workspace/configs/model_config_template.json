@@ -1,0 +1,105 @@
+{
+  "model_name": "SmolVLM2-500M-Video-Instruct",
+  "model_path": "..",
+  "version": "1.0.0",
+  "created": "2025-01-27",
+  
+  "inference_settings": {
+    "device": "auto",
+    "torch_dtype": "bfloat16",
+    "max_new_tokens": 100,
+    "temperature": 0.1,
+    "do_sample": false,
+    "top_p": 0.9,
+    "top_k": 50,
+    "repetition_penalty": 1.1
+  },
+  
+  "performance_targets": {
+    "max_load_time_seconds": 10,
+    "max_text_inference_seconds": 5,
+    "max_image_inference_seconds": 8,
+    "max_memory_usage_mb": 2048
+  },
+  
+  "quality_thresholds": {
+    "minimum_response_quality": 7.0,
+    "minimum_factual_accuracy": 0.8,
+    "minimum_instruction_following": 0.85,
+    "minimum_coherence_score": 8.0
+  },
+  
+  "testing_parameters": {
+    "enable_performance_logging": true,
+    "enable_quality_assessment": true,
+    "save_outputs": true,
+    "output_directory": "results/",
+    "max_test_duration_minutes": 30
+  },
+  
+  "image_processing": {
+    "max_image_size": [2048, 2048],
+    "supported_formats": ["PNG", "JPEG", "WebP", "BMP"],
+    "resize_for_performance": true,
+    "target_processing_size": [512, 512]
+  },
+  
+  "video_processing": {
+    "max_frames": 64,
+    "target_fps": 1,
+    "max_video_length_seconds": 300,
+    "supported_formats": ["MP4", "AVI", "MOV"]
+  },
+  
+  "hardware_optimization": {
+    "use_mps_if_available": true,
+    "use_cuda_if_available": true,
+    "use_mlx_if_available": false,
+    "enable_flash_attention": true,
+    "enable_gradient_checkpointing": false
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "log_file": "results/model_operations.log",
+    "log_performance_metrics": true,
+    "log_responses": false,
+    "log_errors": true
+  },
+  
+  "development": {
+    "debug_mode": false,
+    "verbose_output": true,
+    "save_intermediate_results": false,
+    "profile_memory_usage": false,
+    "benchmark_mode": false
+  },
+  
+  "custom_prompts": {
+    "system_prompt": "",
+    "text_processing_prefix": "",
+    "image_analysis_prefix": "Analyze this image: ",
+    "video_analysis_prefix": "Describe this video: "
+  },
+  
+  "evaluation_datasets": {
+    "text_evaluation": {
+      "enabled": true,
+      "dataset_path": "tests/data/text_samples.json",
+      "metrics": ["accuracy", "coherence", "relevance"]
+    },
+    "image_evaluation": {
+      "enabled": true, 
+      "dataset_path": "tests/data/image_samples/",
+      "metrics": ["object_detection", "scene_understanding", "ocr_accuracy"]
+    }
+  },
+  
+  "export_settings": {
+    "save_results_as_json": true,
+    "save_results_as_csv": true,
+    "generate_html_report": true,
+    "include_visualizations": true,
+    "compress_large_outputs": true
+  }
+} 

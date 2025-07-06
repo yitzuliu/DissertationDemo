@@ -32,10 +32,10 @@ eggs/
 /src/models/phi3_vision/Phi-3-mini-128k-instruct/
 /src/models/phi3_vision/Phi-3.5-vision-instruct/
 /src/models/smolvlm2/SmolVLM2-2.2B-Instruct/
-/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/
 /src/models/smolvlm2/smollm/
 
-# But allow specific project files we want to track
+# SmolVLM2-500M-Video-Instruct: Exclude model files but allow project workspace
+/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/*
 !/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/project_workspace/
 !/src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/TODOLIST.md
 
