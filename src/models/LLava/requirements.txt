@@ -1,5 +1,0 @@
-curl -fsSL https://ollama.com/install.sh | sh
-ollama pull llava:7b
-ollama>=0.2.0
-Pillow>=10.0.0
-opencv-python>=4.9.0
