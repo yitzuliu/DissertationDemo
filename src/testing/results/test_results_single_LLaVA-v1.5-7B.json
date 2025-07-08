@@ -1,0 +1,42 @@
+{
+  "test_timestamp": "2025-07-08 19:35:41",
+  "system_info": {
+    "device": "MacBook Air M3",
+    "memory": "16GB",
+    "mps_available": true
+  },
+  "models": {
+    "LLaVA-v1.5-7B": {
+      "model_id": "llava-hf/llava-1.5-7b-hf",
+      "load_time": 2.406972885131836,
+      "memory_before": 0.3430938720703125,
+      "memory_after": 0.420166015625,
+      "memory_diff": 0.0770721435546875,
+      "images": {
+        "test_image.png": {
+          "inference_time": 180.00599908828735,
+          "response": "",
+          "image_info": {
+            "original_size": [
+              336,
+              336
+            ],
+            "processed_size": [
+              336,
+              336
+            ],
+            "mode": "RGB",
+            "file_size": 2305
+          },
+          "error": "推理超時（180秒）",
+          "unified_test": true
+        }
+      },
+      "total_inference_time": 0,
+      "successful_inferences": 0,
+      "failed_inferences": 1,
+      "avg_inference_time": 0,
+      "memory_after_cleanup": 7.1735382080078125
+    }
+  }
+}

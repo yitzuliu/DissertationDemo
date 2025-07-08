@@ -150,11 +150,26 @@ async def chat_completions(request: ChatCompletionRequest):
         
         result = model_instance.predict(image, text_content, options)
         
+        # Debug logging
+        logger.info(f"Model prediction result: {result}")
+        
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
         
-        # Format response in OpenAI format
-        response_text = result.get("response", {}).get("text", str(result.get("response", "")))
+        # Format response in OpenAI format with proper error handling
+        response_data = result.get("response", {})
+        
+        # Handle different response formats
+        if isinstance(response_data, dict):
+            response_text = response_data.get("text", "")
+        elif isinstance(response_data, str):
+            response_text = response_data
+        else:
+            response_text = str(response_data)
+        
+        # Ensure we have a valid response
+        if not response_text:
+            response_text = "No response generated"
         
         return {
             "choices": [
@@ -191,8 +206,12 @@ async def startup_event():
     logger.info("🚀 Starting SmolVLM2 server...")
     
     # Load model configuration
+    # Get project root (6 levels up from current file to get to destination_code)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
+    model_path = os.path.join(project_root, "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct")
+    
     config = {
-        "model_path": "../",  # Model files are in parent directory
+        "model_path": model_path,  # Use correct absolute path
         "device": "mps",
         "max_tokens": 150,
         "timeout": 60,
@@ -237,7 +256,7 @@ def signal_handler(signum, frame):
 class SmolVLM2Server:
     """SmolVLM2 Server wrapper"""
     
-    def __init__(self, port=8080, host="127.0.0.1"):
+    def __init__(self, port=8080, host="0.0.0.0"):
         self.port = port
         self.host = host
         

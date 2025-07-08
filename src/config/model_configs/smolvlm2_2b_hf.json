@@ -1,0 +1,23 @@
+{
+  "model_name": "SmolVLM2-2.2B-Instruct (HuggingFace)",
+  "model_id": "smolvlm2_2b",
+  "huggingface_model_id": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "model_type": "image-text-to-text",
+  "load_method": "pipeline",
+  "device": "auto",
+  "trust_remote_code": false,
+  "torch_dtype": "auto",
+  "inference": {
+    "max_tokens": 150,
+    "temperature": 0.7,
+    "expected_response_time": 3.0,
+    "use_cache": true
+  },
+  "memory": {
+    "required_gb": 6.0,
+    "max_memory_gb": 16.0
+  },
+  "description": "SmolVLM2-2.2B via HuggingFace transformers pipeline",
+  "performance_notes": "Larger model with better accuracy but slower than 500M version",
+  "version": "2.2.0-hf"
+} 
