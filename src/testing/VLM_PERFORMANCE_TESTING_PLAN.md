@@ -17,7 +17,7 @@ Comprehensive testing of 5 vision-language models, recording basic performance m
 2. **SmolVLM-500M-Instruct** → `HuggingFaceTB/SmolVLM-500M-Instruct`
 3. **Moondream2** → `vikhyatk/moondream2`
 4. **LLaVA-v1.5-7B** → `llava-hf/llava-1.5-7b-hf`
-5. **Phi-3.5-Vision-Instruct** → `lokinfey/Phi-3.5-vision-mlx-int4` (MLX-optimized for Apple Silicon)
+5. **Phi-3.5-Vision-Instruct** → `lokinfey/Phi-3.5-vision-mlx-int4` (MLX-optimized for Apple Silicon, **MLX Required**)
 
 > Loading methods reference `active_model.md`
 
@@ -174,7 +174,7 @@ Test results will be saved in JSON format, including unified test markers:
 ```
 
 ## 🏆 Actual Test Results ✨
-> 📅 **Latest Test**: 2025-07-08 21:43:32  
+> 📅 **Latest Test**: 2025-07-08 21:43:32 (test_results_20250708_214746.json)  
 > 📸 **Test Images**: 1 image (`test_image.png` - geometric shapes)
 
 ### ✅ **Successful Models (4/5)** 🎉
@@ -221,6 +221,8 @@ Test results will be saved in JSON format, including unified test markers:
 - **Intermediate Results**: `test_results_intermediate_[Model Name].json` (prevents test interruption)
 
 ### ⚠️ **Pre-usage Preparation**
-1. **Activate Virtual Environment**: `source ../../ai_vision_env/bin/activate`
+1. **Activate Virtual Environment**: `source ../../ai_vision_env/bin/activate` (from testing directory)
 2. **Install MLX-VLM** (Required for Apple Silicon): `pip install mlx-vlm`
+   - ⚠️ **Critical for Phi-3.5-Vision**: Without MLX, this model will completely fail (timeout)
+   - 🚀 **Performance Impact**: MLX provides 98%+ speed improvement on M1/M2/M3
 3. **Prepare Test Images**: Place images in `testing_material/images/` directory 

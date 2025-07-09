@@ -161,7 +161,7 @@ class BaseVisionModel(ABC):
         """
         self._stats['total_requests'] += 1
         self._stats['total_processing_time'] += processing_time
-        self._stats['avg_processing_time'] = (
+        self._stats['avg_processing_time'] = float(
             self._stats['total_processing_time'] / self._stats['total_requests']
         )
         self._stats['last_processing_time'] = processing_time
@@ -192,6 +192,7 @@ class VLMFactory:
         from .smolvlm.smolvlm_model import SmolVLMModel
         from .yolo8.yolo8_model import YOLO8Model
         from .LLava.llava_model import LLaVAModel
+        from .moondream2.moondream2_optimized import OptimizedMoondream2Model
         
         model_type = model_name.lower()
         
@@ -203,5 +204,7 @@ class VLMFactory:
             return YOLO8Model(model_name, config)
         elif "llava" in model_type:
             return LLaVAModel(model_name, config)
+        elif "moondream" in model_type:
+            return OptimizedMoondream2Model(model_name, config)
         else:
             raise ValueError(f"Unsupported model type: {model_name}")

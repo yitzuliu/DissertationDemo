@@ -4,7 +4,7 @@
   "server": {
     "command": "python",
     "args": ["models/yolo8/run_yolo.py"],
-    "port": 8081,
+    "port": 8080,
     "health_endpoint": "/health"
   },
   "image_processing": {

@@ -1,26 +1,81 @@
 {
-    "name": "phi3_vision",
-    "display_name": "Phi-3 Vision",
-    "model_id": "microsoft/Phi-3-vision-128k-instruct",
-    "device": "auto",
-    "max_tokens": 500,
-    "temperature": 0,
-    "server": {
-        "command": "uvicorn",
-        "args": ["main:app", "--host", "0.0.0.0", "--port", "8082"],
-        "port": 8082,
-        "health_endpoint": "/health",
-        "working_directory": "src/models/phi3_vision"
-    },
-    "ui": {
-        "default_instruction": "Analyze what is happening in this image in detail. Identify tools, objects, and actions.",
-        "default_interval": 5000,
-        "capture_intervals": [3000, 5000, 10000, 30000],
-        "help": "Phi-3 Vision is an advanced multimodal model that can interpret images with high accuracy."
-    },
-    "image_processing": {
-        "target_size": [336, 336],
-        "keep_aspect_ratio": true,
-        "enhance": false
-    }
-}
+  "model_name": "Phi-3.5-Vision",
+  "model_path": "microsoft/Phi-3.5-vision-instruct",
+  "device": "cpu",
+  "timeout": 180,
+  "max_tokens": 100,
+  "version": "standard",
+  "description": "Standard Phi-3.5-Vision model using transformers for maximum compatibility",
+  
+  "capabilities": {
+    "vision": true,
+    "text_generation": true,
+    "image_understanding": true,
+    "conversation": true,
+    "multimodal": true
+  },
+  
+  "model_config": {
+    "torch_dtype": "float32",
+    "device_map": "cpu",
+    "trust_remote_code": true,
+    "low_cpu_mem_usage": true,
+    "_attn_implementation": "eager"
+  },
+  
+  "image_processing": {
+    "size": [512, 512],
+    "max_size": 1024,
+    "format": "RGB",
+    "quality": 95,
+    "preserve_aspect_ratio": true
+  },
+  
+  "generation_config": {
+    "max_new_tokens": 100,
+    "do_sample": false,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "repetition_penalty": 1.1,
+    "use_cache": false,
+    "pad_token_id": "eos_token_id"
+  },
+  
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "framework": "fastapi",
+    "cors_enabled": true,
+    "log_level": "info"
+  },
+  
+  "performance": {
+    "compile_model": false,
+    "use_flash_attention": false,
+    "enable_optimizations": false,
+    "memory_optimization": "low"
+  },
+  
+  "special_tokens": {
+    "image_token": "<|image_1|>",
+    "user_prefix": "User:",
+    "assistant_prefix": "Assistant:"
+  },
+  
+  "limits": {
+    "max_sequence_length": 2048,
+    "max_image_size": 1024,
+    "timeout_seconds": 180
+  },
+  
+  "environment": {
+    "required_packages": [
+      "transformers>=4.40.0",
+      "torch>=2.0.0",
+      "Pillow>=9.0.0",
+      "fastapi>=0.100.0",
+      "uvicorn>=0.22.0"
+    ],
+    "python_version": ">=3.9"
+  }
+} 
