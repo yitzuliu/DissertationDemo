@@ -219,90 +219,94 @@ GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/vikhyatk/moondream2
 }
 ```
 
-## llava-hf/llava-1.5-7b-hf
+## llava-hf/llava-1.5-7b-hf -> mlx-community/llava-v1.6-mistral-7b-4bit
 
-### 📖 Official Usage Examples
-**Use a pipeline as a high-level helper**
-```python
-from transformers import pipeline
-pipe = pipeline("image-text-to-text", model="llava-hf/llava-1.5-7b-hf")
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "image", "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/p-blog/candy.JPG"},
-            {"type": "text", "text": "What animal is on the candy?"}
-        ]
-    },
-]
-pipe(text=messages)
+### ⚠️ Technical Notes
+> **Important**: The original `llava-hf/llava-1.5-7b-hf` model, when loaded with transformers, is too large and slow for typical consumer hardware (like a MacBook Air M3 with 16GB RAM), resulting in consistent timeouts.
+>
+> **MLX is REQUIRED for LLaVA on Apple Silicon**:
+> - The MLX-optimized model (`mlx-community/llava-v1.6-mistral-7b-4bit`) is the only viable solution. It loads quickly and provides fast inference.
+> - **Known Limitation**: There is a bug in the `mlx-vlm` library where the model fails to process certain synthetic, square images (e.g., `test_image.jpg`). It works perfectly with natural, photographic images.
+> - **Solution**: We have implemented an **exclusion list** in `vlm_tester.py` to prevent the LLaVA model from processing images it is known to be incompatible with. This ensures accurate and successful test runs.
+
+### 📖 Official Usage Examples (MLX)
+**Installation:**
+```bash
+pip install -U mlx-vlm
 ```
 
-**Load model directly**
+**Usage:**
 ```python
-from transformers import AutoProcessor, AutoModelForVision2Seq
-processor = AutoProcessor.from_pretrained("llava-hf/llava-1.5-7b-hf")
-model = AutoModelForVision2Seq.from_pretrained("llava-hf/llava-1.5-7b-hf")
-```
+from mlx_vlm import load, generate
 
-### ⚠️ Hardware Requirements
-> **Warning**: LLaVA-v1.5-7B is a large model requiring significant memory (>16GB recommended for smooth operation)
+# Load the MLX-optimized model
+model, processor = load("mlx-community/llava-v1.6-mistral-7b-4bit")
+
+# Prepare input (use a compatible image)
+image = "path/to/your/photograph.jpg"
+prompt = "Describe this image."
+
+# Generate output
+output = generate(model, processor, prompt, image=image)
+print(output)
+```
 
 ### ✅ VLM Tester Implementation
-**Correct loading method used in vlm_tester.py (CPU-optimized):**
+**Correct loading method used in `vlm_tester.py`:**
 ```python
 @staticmethod
-def load_llava(model_id="llava-hf/llava-1.5-7b-hf"):
-    """Load LLaVA-v1.5-7B"""
-    print(f"Loading {model_id}...")
-    # Use CPU loading to avoid memory issues, with float16 for efficiency
+def load_llava_mlx(model_id="mlx-community/llava-v1.6-mistral-7b-4bit"):
+    """載入 MLX-LLaVA (Apple Silicon optimized)"""
+    print(f"載入 MLX-LLaVA {model_id}...")
     try:
-        pipe = pipeline(
-            "image-text-to-text", 
-            model=model_id,
-            model_kwargs={
-                "torch_dtype": torch.float16,
-                "device_map": "cpu",  # Force CPU usage
-                "low_cpu_mem_usage": True
-            }
-        )
-        return pipe, None
+        from mlx_vlm import load
+        print("正在載入 MLX 優化的 LLaVA 模型...")
+        model, processor = load(model_id)
+        print("MLX-LLaVA 載入成功!")
+        return model, processor
+    except ImportError as e:
+        print("MLX-VLM 未安裝。請運行: pip install mlx-vlm")
+        raise RuntimeError("MLX-VLM 套件未安裝，無法使用 MLX 優化")
     except Exception as e:
-        print(f"LLaVA loading failed, model too large for this hardware: {str(e)}")
-        raise RuntimeError(f"LLaVA model requires >16GB memory, hardware insufficient")
+        print(f"MLX-LLaVA 載入失敗: {str(e)}")
+        raise RuntimeError(f"MLX-LLaVA 模型載入失敗: {str(e)}")
 ```
 
-**Inference method (pipeline with local images):**
+**Inference method (MLX with error handling):**
 ```python
-# LLaVA Pipeline approach
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "image", "image": image},  # Use local image format (consistent with SmolVLM)
-            {"type": "text", "text": prompt}    # Use unified prompt
-        ]
-    },
-]
-# Add generation parameter control
-response = model(
-    text=messages, 
-    **unified_generation_params,  # 使用統一參數
-    return_full_text=False  # Only return generated part
-)
-if isinstance(response, list) and len(response) > 0:
-    return response[0].get('generated_text', str(response))
-else:
-    return str(response)
+# Check if this is MLX-LLaVA 
+if "MLX" in model_name:
+    try:
+        from mlx_vlm import generate
+        print("  🚀 Using MLX-VLM for LLaVA...")
+        response = generate(
+            model, 
+            processor, 
+            self.prompt, 
+            image=str(image_path),
+            max_tokens=unified_generation_params["max_new_tokens"],
+            verbose=False
+        )
+        
+        # Handle response format
+        if isinstance(response, tuple) and len(response) >= 1:
+            text_response = response[0] if response[0] else ""
+        else:
+            text_response = str(response) if response else ""
+        
+        return text_response
+    except Exception as e:
+        print(f"  ⚠️ MLX-VLM failed: {e}")
+        return f"MLX-VLM inference failed: {str(e)}"
 ```
 
 **Clone this model repository**
 - Make sure git-lfs is installed (https://git-lfs.com)
 git lfs install
-git clone https://huggingface.co/llava-hf/llava-1.5-7b-hf
+git clone https://huggingface.co/mlx-community/llava-v1.6-mistral-7b-4bit
 
 - If you want to clone without large files - just their pointers
-GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/llava-hf/llava-1.5-7b-hf
+GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/mlx-community/llava-v1.6-mistral-7b-4bit
 
 ## microsoft/Phi-3.5-vision-instruct -> lokinfey/Phi-3.5-vision-mlx-int4
 

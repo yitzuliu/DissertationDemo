@@ -254,6 +254,173 @@
       "failed_inferences": 0,
       "avg_inference_time": 5.413195371627808,
       "memory_after_cleanup": 0.4941253662109375
+    },
+    "LLaVA-v1.6-Mistral-7B-MLX": {
+      "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+      "load_time": 2.7583558559417725,
+      "memory_before": 0.4983062744140625,
+      "memory_after": 0.2947998046875,
+      "memory_diff": -0.2035064697265625,
+      "images": {
+        "IMG_0119.JPG": {
+          "inference_time": 5.856200933456421,
+          "response": "\n\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the",
+          "image_info": {
+            "original_size": [
+              960,
+              1707
+            ],
+            "processed_size": [
+              575,
+              1024
+            ],
+            "mode": "RGB",
+            "file_size": 222091
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        },
+        "test_image.jpg": {
+          "inference_time": 0.037039995193481445,
+          "response": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
+          "image_info": {
+            "original_size": [
+              336,
+              336
+            ],
+            "processed_size": [
+              336,
+              336
+            ],
+            "mode": "RGB",
+            "file_size": 11823
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        },
+        "test_image.png": {
+          "inference_time": 0.027998924255371094,
+          "response": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
+          "image_info": {
+            "original_size": [
+              336,
+              336
+            ],
+            "processed_size": [
+              336,
+              336
+            ],
+            "mode": "RGB",
+            "file_size": 2305
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        }
+      },
+      "total_inference_time": 5.921239852905273,
+      "successful_inferences": 3,
+      "failed_inferences": 0,
+      "avg_inference_time": 1.973746617635091,
+      "memory_after_cleanup": 0.4920196533203125
+    },
+    "Phi-3.5-Vision-Instruct": {
+      "model_id": "lokinfey/Phi-3.5-vision-mlx-int4",
+      "load_time": 1.7903871536254883,
+      "memory_before": 0.4922332763671875,
+      "memory_after": 0.692901611328125,
+      "memory_diff": 0.2006683349609375,
+      "images": {
+        "IMG_0119.JPG": {
+          "inference_time": 11.19335389137268,
+          "response": "The image shows a Shiba Inu dog sitting on the floor, looking up at something with its mouth slightly open. The background is a room with beige walls and white trim, as well as some green plants on the windowsill. The dog appears to be looking at a person or something else outside of frame, as it seems curious and attentive. 30% off 15% off 20% off 40% off 3.",
+          "image_info": {
+            "original_size": [
+              960,
+              1707
+            ],
+            "processed_size": [
+              575,
+              1024
+            ],
+            "mode": "RGB",
+            "file_size": 222091
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        },
+        "test_image.jpg": {
+          "inference_time": 10.650413990020752,
+          "response": "The image shows a simple graphic representation of the phi-3 protein (abbreviated as PH3). It is depicted within a blue square frame, with the protein shown in red against an aqua background. The PH3 is represented as a large, solid circle with the label 'PH3' centered within it. The image appears to be a simplified, stylized representation rather than an accurate scientific depiction of the protein. The following table shows data",
+          "image_info": {
+            "original_size": [
+              336,
+              336
+            ],
+            "processed_size": [
+              336,
+              336
+            ],
+            "mode": "RGB",
+            "file_size": 11823
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        },
+        "test_image.png": {
+          "inference_time": 10.807425022125244,
+          "response": "The image shows a simple graphic representation of the phi-3 protein (abbreviated as PH3). It consists of a large red circle labeled \"PH3\" centered within the graphic, surrounded by an outer blue square. The background of the image is white with a light gray border around it, giving prominence to the central graphic.",
+          "image_info": {
+            "original_size": [
+              336,
+              336
+            ],
+            "processed_size": [
+              336,
+              336
+            ],
+            "mode": "RGB",
+            "file_size": 2305
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        }
+      },
+      "total_inference_time": 32.65119290351868,
+      "successful_inferences": 3,
+      "failed_inferences": 0,
+      "avg_inference_time": 10.88373096783956,
+      "memory_after_cleanup": 0.0877838134765625
     }
-  }
+  },
+  "total_test_time": 151.43758535385132
 }

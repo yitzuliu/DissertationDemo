@@ -1,11 +1,12 @@
 # VLM Performance Testing Plan
 
 ## 🎯 **Testing Summary** (Latest Update)
-> ✅ **Testing Complete**: 5 models, 4 successful (80% success rate)  
-> 🏆 **Major Breakthrough**: Phi-3.5-Vision MLX optimization success, from complete failure to best performance  
-> ⚡ **Fastest Loading**: Phi-3.5-Vision-MLX (1.97s)  
-> 💨 **Fastest Inference**: Moondream2 (5.86s)  
-> 📸 **Multi-Image Support**: Automatic detection and testing of multiple images  
+> ✅ **Testing Complete**: 5 models tested. 4 fully successful, 1 partially successful.  
+> 🏆 **MLX Optimization Success**: Phi-3.5-Vision performance transformed from failure to the top performer.  
+> ⚠️ **LLaVA-MLX Limitation**: New MLX version of LLaVA is fast, but fails on specific image types.  
+> ⚡ **Fastest Loading**: Phi-3.5-Vision-Instruct (1.79s)  
+> 💨 **Fastest Inference**: Moondream2 (avg 5.41s)  
+> 📸 **Multi-Image Testing**: Latest run successfully tested 3 different images.  
 
 ## 📋 Testing Objectives
 
@@ -16,7 +17,7 @@ Comprehensive testing of 5 vision-language models, recording basic performance m
 1. **SmolVLM2-500M-Video-Instruct** → `HuggingFaceTB/SmolVLM2-500M-Video-Instruct`
 2. **SmolVLM-500M-Instruct** → `HuggingFaceTB/SmolVLM-500M-Instruct`
 3. **Moondream2** → `vikhyatk/moondream2`
-4. **LLaVA-v1.5-7B** → `llava-hf/llava-1.5-7b-hf`
+4. **LLaVA-v1.6-Mistral-7B-MLX** → `mlx-community/llava-v1.6-mistral-7b-4bit` (**MLX Required, Partial Success**)
 5. **Phi-3.5-Vision-Instruct** → `lokinfey/Phi-3.5-vision-mlx-int4` (MLX-optimized for Apple Silicon, **MLX Required**)
 
 > Loading methods reference `active_model.md`
@@ -51,7 +52,7 @@ To ensure fair comparison, all models use unified test conditions:
 ### **Test Images** 📸
 - **Image Location**: `src/testing/testing_material/images/`
 - **Multi-Image Support**: Automatically detects all images in directory, tests each individually
-- **Quantity**: Based on available image count (currently supports 1-N images)
+- **Quantity**: The latest test successfully ran against 3 images of different types (photographic and synthetic).
 - **Format**: Supports JPG, JPEG, PNG, BMP and other common formats
 - **Processing**: Automatic scaling to unified size (maximum 1024 pixels)
 - **Data Recording**: Each image independently records inference time, response content, image information
@@ -94,13 +95,13 @@ Due to M3 MacBook Air 16GB memory limitations:
 Setting reasonable timeouts based on different model technical characteristics:
 - **Small Models** (SmolVLM series, Moondream2): 60 seconds
 - **Medium Models** (Phi-3.5-Vision MLX): 180 seconds (significantly improved with MLX optimization)
-- **Large Models** (LLaVA-v1.5-7B): 180 seconds (CPU inference requires more time)
+- **Large Models** (LLaVA v1.6 MLX): 180 seconds
 
 ### 🔧 **Known Limitations & Solutions** ✨
-- **LLaVA-v1.5-7B**: Extremely slow CPU inference, often times out (180 seconds)
-- **Phi-3.5-Vision**: ✅ **MLX Optimization Success!** Improved from timeout failure to fastest loading (1.97s)
+- **LLaVA-v1.6-Mistral-7B-MLX**: ✅ **Upgraded to MLX version.** The original `Transformers`-based model was replaced. The new MLX version loads quickly but exhibits content-specific failures. It succeeds with photographic images but fails with synthetic geometric images, pointing to a potential issue in the model's image processor or the `mlx-vlm` library's handling of images without standard metadata (e.g. EXIF).
+- **Phi-3.5-Vision**: ✅ **MLX Optimization Success!** Improved from timeout failure to fastest loading (1.79s)
   - **Required**: `pip install mlx-vlm` for Apple Silicon M1/M2/M3
-  - **Effect**: From complete failure to 100% success, loading time reduced by 98%
+  - **Effect**: From complete failure to 100% success, loading time reduced by over 98%
 - **Moondream2**: Uses special API, cannot fully unify parameter control (but doesn't affect comparison fairness)
 
 ## 📋 Implementation Steps
@@ -174,33 +175,36 @@ Test results will be saved in JSON format, including unified test markers:
 ```
 
 ## 🏆 Actual Test Results ✨
-> 📅 **Latest Test**: 2025-07-08 21:43:32 (test_results_20250708_214746.json)  
-> 📸 **Test Images**: 1 image (`test_image.png` - geometric shapes)
+> 📅 **Latest Test**: 2025-07-12 08:47:39 (`test_results_20250712_085010.json`)  
+> 📸 **Test Images**: 3 images (`IMG_0119.JPG` - photo, `test_image.jpg`, `test_image.png` - synthetic)
 
-### ✅ **Successful Models (4/5)** 🎉
-| Rank | Model | Load Time | Inference Time | Memory Usage | Success Rate |
-|------|-------|-----------|----------------|--------------|--------------|
-| 🥇 | **Phi-3.5-Vision-MLX** | **1.97s** | 13.00s | -3.04GB | 100% |
-| 🥈 | **Moondream2** | 5.24s | **5.86s** | -1.07GB | 100% |
-| 🥉 | **SmolVLM-500M-Instruct** | 3.99s | 11.77s | -0.13GB | 100% |
-| 4️⃣ | **SmolVLM2-500M-Video** | 2.65s | 15.40s | +0.08GB | 100% |
+### ✅ **Fully Successful Models (4/5)** 🎉
+| Rank | Model | Load Time | Avg Inference | Memory Usage | Success Rate |
+|------|-------|-----------|---------------|--------------|--------------|
+| 🥇 | **Phi-3.5-Vision-Instruct** | **1.79s** | 10.88s | +0.20GB | 100% (3/3) |
+| 🥈 | **Moondream2** | 4.91s | **5.41s** | -1.24GB | 100% (3/3) |
+| 🥉 | **SmolVLM-500M-Instruct** | 3.52s | 10.71s | +0.48GB | 100% (3/3) |
+| 4️⃣ | **SmolVLM2-500M-Video** | 2.58s | 12.37s | +0.08GB | 100% (3/3) |
+*Note: Negative memory usage is likely a measurement artifact due to garbage collection.*
 
-### ❌ **Failed Models (1/5)**
-- **LLaVA-v1.5-7B**: Loading successful (2.23s), but inference timeout (180 seconds) - CPU inference too slow
+### ⚠️ **Partially Successful Models (1/5)**
+| Model | Load Time | Avg Inference (Success) | Memory Usage | Success Rate | Details |
+|-------|-----------|-------------------------|--------------|--------------|---------|
+| **LLaVA-v1.6-Mistral-7B-MLX** | 2.76s | 5.86s | -0.20GB | 33% (1/3) | Fails on synthetic images, works on photographic images. |
 
 ### 🏆 **MLX Optimization Success Story** 
 **Phi-3.5-Vision's Amazing Transformation**:
 - **Before (Transformers)**: 135s+ loading timeout → 100% failure
-- **Now (MLX)**: 1.97s fastest loading → 100% success 
-- **Improvement**: Loading speed improved **98%+**, from unusable to **best performance**
+- **Now (MLX)**: 1.79s fastest loading → 100% success 
+- **Improvement**: Loading speed improved **~99%**, from unusable to **top performance**
 
 ### 📝 **Key Findings**
-1. **🚀 MLX Framework Breakthrough**: Revolutionary VLM performance improvement on Apple Silicon
-2. **⚡ Fastest Loading**: Phi-3.5-Vision-MLX (1.97s) surpasses all models
-3. **💨 Fastest Inference**: Moondream2 (5.86s) leads in inference speed
-4. **💾 Memory Efficiency**: MLX models use memory more efficiently
-5. **📊 Overall Success Rate**: 80% (4/5) - exceeds expectations
-6. **⚙️ Unified Testing**: Successfully achieved fair comparison environment
+1. **🚀 MLX Framework Breakthrough**: Revolutionary VLM performance improvement on Apple Silicon.
+2. **⚡ Fastest Loading**: Phi-3.5-Vision-Instruct (1.79s) surpasses all models.
+3. **💨 Fastest Inference**: Moondream2 (avg 5.41s) leads in average inference speed.
+4. **💾 Memory Efficiency**: MLX models appear to use memory more efficiently, though precise measurement is complex.
+5. **📊 Overall Success Rate**: High reliability, with 80% (4/5) of models being fully successful across all test images.
+6. **⚙️ Model-Specific Failures**: The LLaVA-MLX model shows that even with framework optimizations, models can have specific data-dependent failure modes that require targeted testing to uncover.
 
 ## ✅ Usage Instructions
 
