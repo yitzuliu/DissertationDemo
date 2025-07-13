@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AI Manual Assistant is a real-time visual guidance system that uses advanced Vision-Language Models (VLMs) to provide contextual assistance for hands-on tasks. The system is currently in a testing phase, evaluating two approaches: continuous video understanding and intelligent image analysis to determine the optimal solution for reliable real-time guidance. This document outlines the complete system architecture supporting both approaches.
+The AI Manual Assistant is a real-time visual guidance system that uses advanced Vision-Language Models (VLMs) to provide contextual assistance for hands-on tasks. The architecture is designed to be modular and flexible, allowing different VLMs to be swapped in and out to test their performance and capabilities for various use cases.
 
 ## System Components
 
@@ -13,173 +13,91 @@ The AI Manual Assistant is a real-time visual guidance system that uses advanced
 │    Frontend     │ Port 5500
 │  (Web Client)   │
 └────────┬────────┘
-         │ HTTP/WebSocket
+         │ HTTP Requests
          ▼
 ┌─────────────────┐
 │    Backend      │ Port 8000
-│   (FastAPI)     │
+│   (API Gateway) │
 └────────┬────────┘
-         │ Internal API
+         │ Model API Call
          ▼
 ┌─────────────────┐
 │  Model Server   │ Port 8080
-│  (VLM Engine)   │
+│ (Standalone VLM)│
 └─────────────────┘
 ```
 
 ### 2. Component Responsibilities
 
 #### Frontend Layer (Port 5500)
-- **Dual Input Support**: Camera input for both video recording and image capture
-- **Testing Interface**: Switch between video segments and intelligent image capture
-- User interface and controls
-- Response visualization
-- Real-time guidance visualization
-- Error handling and user feedback
+- **Camera Interface**: Captures and displays the real-time video stream.
+- **Image Capture**: Periodically sends still frames from the video to the backend.
+- **User Interaction**: Manages user prompts and displays the AI's guidance.
+- **Responsive UI**: Renders the conversation and guidance in a clear, interactive format.
 
 #### Backend Layer (Port 8000)
-- **Adaptive Processing**: Image or video processing based on active model
-- **Model Routing**: Routes requests to the single active model (port 8080)
-- Context management and history tracking
-- Response post-processing and guidance formatting  
-- Session management and progress tracking
-- Error handling and logging
+- **API Gateway**: Provides a single, stable endpoint for the frontend.
+- **Image Preprocessing**: Enhances and standardizes images before sending them to the model.
+- **Model Routing**: Forwards requests to the currently active model server (running on port 8080).
+- **Session Management**: Can be extended to manage conversation history and context.
 
 #### Model Server Layer (Port 8080)
-- **Single Active Model**: One model active at a time (memory considerations)
-- **Model Switching**: Support for switching between SmolVLM and SmolVLM2-Video
-- **Adaptive Configuration**: Model-specific optimizations based on active model
-- Response generation optimized for the currently active model
+- **Standalone Model**: Each supported VLM runs as a separate, standalone web server.
+- **OpenAI-Compatible API**: Exposes a `/v1/chat/completions` endpoint for easy integration with the backend.
+- **Resource Management**: Encapsulates the memory and compute resources for a single model.
+- **Flexibility**: To switch models, the user stops the current model server and starts another.
 
 ## Data Flow
 
-### 🧪 Testing Phase: Dual Processing Approaches
+The data flow is a straightforward request-response cycle for image analysis.
 
-### 1. Video Understanding Pipeline (Testing)
+1.  **Frame Capture (Frontend)**: The web client captures a frame from the user's webcam and encodes it as a base64 string.
+2.  **API Request (Frontend -> Backend)**: The frame, along with a text prompt, is sent to the backend's API endpoint (e.g., `/api/v1/chat`).
+3.  **Preprocessing & Routing (Backend)**: The backend receives the request, preprocesses the image if necessary, and forwards it to the model server's API endpoint (`http://localhost:8080/v1/chat/completions`).
+4.  **Inference (Model Server)**: The active VLM processes the image and prompt and generates a text response.
+5.  **Response Delivery (Model -> Backend -> Frontend)**: The response travels back through the backend to the frontend, where it is displayed to the user.
 
-```ascii
-Live Video Stream
-   ↓
-Segment Capture (5-10s clips)
-   ↓
-Temporal Analysis & Context Integration
-   ↓
-Video-Aware Model Processing (SmolVLM2-Video)
-   ↓
-Activity Understanding & Progress Tracking
-   ↓
-Continuous Guidance Generation
-```
-
-### 2. Intelligent Image Processing Pipeline (Current Working)
-
-```ascii
-Camera Stream
-   ↓
-Smart Frame Capture (1-2s intervals)
-   ↓
-Image Enhancement & Context Integration
-   ↓
-Image-Optimized Model Processing (SmolVLM)
-   ↓
-Context-Aware Analysis & Memory
-   ↓
-Contextual Guidance Generation
-```
-
-### 3. Processing Flow Comparison
-1. **Image Capture**
-   - Frontend captures camera frame
-   - Performs client-side optimization
-   - Sends to backend via HTTP
-2. **Backend Processing**
-   - Receives image data
-   - Validates and preprocesses
-   - Routes to appropriate model
-   - Handles response formatting
-**Video Approach (Testing):**
-1. **Video Stream Capture**
-   - Frontend continuously records 5-10 second segments
-   - Overlapping segments maintain temporal continuity
-   - Optimized for activity understanding and temporal reasoning
-
-2. **Temporal Processing**  
-   - Backend processes video segments with context history
-   - Routes to SmolVLM2-Video for temporal inference
-   - Maintains continuous narrative and progress tracking
-
-**Image Approach (Current Working):**
-1. **Intelligent Frame Capture**
-   - Frontend captures frames at optimized intervals (1-2s)
-   - Smart timing based on activity detection
-   - Enhanced image preprocessing for maximum clarity
-
-2. **Context-Enhanced Processing**
-   - Backend maintains frame history and context memory
-   - Routes to SmolVLM for reliable image analysis
-   - Builds understanding through accumulated observations
-
-**Both Approaches Deliver:**
-3. **Context-Aware Analysis**
-   - Model processing with historical context integration
-   - Activity recognition and progress understanding
-   - Reliable guidance generation optimized for real-time use
-
-4. **Real-time Guidance**
-   - Backend formats responses for natural interaction
-   - Frontend provides seamless mentoring experience
-   - User receives contextual help that feels intuitive and helpful
-
-## Integration Points
-
-### 1. Frontend-Backend Integration
-- REST API endpoints
-- WebSocket connections for real-time updates
-- Error handling protocols
-- Authentication/Authorization
-
-### 2. Backend-Model Integration
-- Model API interface
-- Response format standardization
-- Error handling and recovery
-- Resource management
+This architecture decouples the core application logic from the AI models, allowing for independent development and testing.
 
 ## Supported Models
 
-| Model | Purpose | Input Size | Memory Req. |
-|-------|---------|------------|-------------|
-| SmolVLM | Primary VLM | 640x480 | 4GB |
-| Phi-3 Vision | High Accuracy | 336x336 | 8GB |
-| YOLO8 | Object Detection | 640x640 | 2GB |
-| LLaVA | Specialized Tasks | 224x224 | 6GB |
-| Model | Purpose | Input Type | Memory Req. | Capability |
-|-------|---------|------------|-------------|------------|
-| SmolVLM2-Video | Primary Continuous Vision | Video Segments | 6GB | Temporal Understanding |
-| SmolVLM | Fallback Image Analysis | Single Frame | 4GB | Fast Response |
-| Phi-3 Vision | High Accuracy Analysis | Single Frame | 8GB | Detailed Recognition |
-| YOLO8 | Object Detection | Single Frame | 2GB | Real-time Detection |
-| LLaVA | Specialized Tasks | Single Frame | 6GB | Conversational |
+The system supports a variety of models, each with its own strengths. Models optimized with MLX are recommended for users on Apple Silicon for significantly better performance.
+
+| Model | Key Strengths | Recommended Use Case |
+|-----------------------------|--------------------------------------------|---------------------------------|
+| **LLaVA-v1.6 (MLX)** | Excellent conversational ability | Multi-turn, interactive guidance |
+| **Phi-3.5-Vision (MLX)** | High accuracy, strong reasoning | Detailed single-image analysis |
+| **Moondream2** | Extremely fast and lightweight | Quick, general-purpose analysis |
+| **SmolVLM / SmolVLM2** | Efficient and balanced performance | Reliable, all-around use |
+| **YOLOv8** | Specialized for object detection | High-speed object localization |
 
 ## Configuration Management
 
 ### 1. Configuration Hierarchy
+
+The system uses a centralized configuration approach.
+
 ```ascii
-app_config.json
-   ├── global_settings
-   ├── frontend_config
-   ├── backend_config
-   └── model_configs/
-       ├── smolvlm.json
-       ├── phi3_vision.json
-       └── yolo8.json
+/src
+├── config/
+│   ├── app_config.json        # Main backend settings (e.g., model server URL)
+│   └── model_configs/
+│       ├── llava_mlx.json     # Config for LLaVA MLX model
+│       ├── moondream2.json    # Config for Moondream2 model
+│       └── ... (etc.)
+└── models/
+    └── [model_name]/
+        └── run_[model_name].py # This script loads the corresponding config
 ```
 
+- **`app_config.json`**: Configures the main backend, telling it where to find the active model server.
+- **`model_configs/*.json`**: Each file contains the specific parameters for a single model, such as its Hugging Face ID, inference settings, and server port.
+- **`run_*.py` Scripts**: Each model's server script is responsible for loading its own configuration file from `model_configs`.
+
 ### 2. Environment Variables
-- `MODEL_SERVER_PORT`: Model server port (default: 8080)
-- `BACKEND_PORT`: Backend service port (default: 8000)
-- `FRONTEND_PORT`: Frontend service port (default: 5500)
-- `LOG_LEVEL`: Logging verbosity
-- `MODEL_TYPE`: Active model selection
+While JSON files are primary, the system can be enhanced to allow environment variables to override settings for flexible deployment.
+- `MODEL_SERVER_URL`: URL of the active model server (e.g., `http://localhost:8080`)
+- `LOG_LEVEL`: Logging verbosity.
 
 ## Error Handling
 

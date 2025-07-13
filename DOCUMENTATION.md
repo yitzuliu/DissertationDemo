@@ -15,4 +15,4 @@ Please refer to the [Developer Setup Guide](./docs/DEVELOPER_SETUP.md) for instr
 
 ## Project Status
 
-For the latest updates and ongoing work, see the [TODO List](./TODO_LIST.md) and [Changelog](./CHANGELOG.md).
+For the latest updates and ongoing work, see the [TODO List](./TODO_LIST.md) and [Git History](./GIT_HISTORY_LOG.md).

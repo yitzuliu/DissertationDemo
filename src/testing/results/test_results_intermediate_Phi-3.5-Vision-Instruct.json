@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-12 08:47:39",
+  "test_timestamp": "2025-07-13 14:18:48",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,13 +8,13 @@
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-      "load_time": 2.579105854034424,
-      "memory_before": 0.34454345703125,
-      "memory_after": 0.4272613525390625,
-      "memory_diff": 0.0827178955078125,
+      "load_time": 2.8580050468444824,
+      "memory_before": 0.34442138671875,
+      "memory_after": 0.413299560546875,
+      "memory_diff": 0.068878173828125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 11.384448051452637,
+          "inference_time": 11.53169298171997,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a Shiba Inu dog, characterized by its tan and white fur, sitting on a tiled floor. The dog's face is prominently displayed, with its nose and mouth visible. The dog appears to be looking directly at the camera, giving a sense of curiosity or attentiveness. The background of the image includes a green shoe and a white wall, which are positioned relatively far from the camera.",
           "image_info": {
             "original_size": [
@@ -37,7 +37,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 13.407562017440796,
+          "inference_time": 11.636700868606567,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border. The background of the image is light blue, providing a neutral backdrop that allows the geometric shapes to stand out.\n\n### Description:\n- **Circle**: The red circle",
           "image_info": {
             "original_size": [
@@ -60,7 +60,7 @@
           "timeout_used": 60
         },
         "test_image.png": {
-          "inference_time": 12.323194980621338,
+          "inference_time": 11.703898191452026,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border.\n\nThe image does not contain any text or additional objects. The relative positions of the objects are as follows:\n- The red circle is centrally located within the blue square.",
           "image_info": {
             "original_size": [
@@ -83,21 +83,21 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 37.11520504951477,
+      "total_inference_time": 34.872292041778564,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 12.371735016504923,
-      "memory_after_cleanup": 2.9910888671875
+      "avg_inference_time": 11.624097347259521,
+      "memory_after_cleanup": 3.09893798828125
     },
     "SmolVLM-500M-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct",
-      "load_time": 3.5209550857543945,
-      "memory_before": 1.2760772705078125,
-      "memory_after": 1.754547119140625,
-      "memory_diff": 0.4784698486328125,
+      "load_time": 3.705284833908081,
+      "memory_before": 1.383392333984375,
+      "memory_after": 1.4199066162109375,
+      "memory_diff": 0.0365142822265625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 9.443297147750854,
+          "inference_time": 9.487624168395996,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A Shiba Inu dog with a black nose is sitting on a bathroom floor in front of a toilet and a hand sanitizer dispenser. The dog is looking directly at the camera. The dog has a light brown coat with a white patch of fur on its neck. The nose is black. The dog's left ear is black and its right ear is gray. The dog's mouth is closed. The floor is white with light gray tiles. There are two green slippers on the floor in front",
           "image_info": {
             "original_size": [
@@ -120,7 +120,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 11.556643962860107,
+          "inference_time": 11.05075216293335,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a square and a circle. The square is light blue in color and has a blue border. The circle is red and is positioned inside the square. The circle is perfectly centered within the square.\n\n### Description:\n- **Square**: The square has four equal sides and four equal angles. The corners of the square are labeled with the numbers 1, 2, 3, and 4.\n- **Circle**: The circle",
           "image_info": {
             "original_size": [
@@ -143,7 +143,7 @@
           "timeout_used": 60
         },
         "test_image.png": {
-          "inference_time": 11.123554944992065,
+          "inference_time": 11.493824005126953,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a red circle and a blue square. The circle is positioned in the center of the image, and it is filled with a solid red color. The blue square is placed directly above the red circle, and it is outlined in a darker blue color. The background of the image is a light blue color, which provides a neutral backdrop for the geometric shapes.\n\n### Analysis and Description:\n\n#### Geometry:\n1. **Circle**:\n   -",
           "image_info": {
             "original_size": [
@@ -166,21 +166,21 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 32.12349605560303,
+      "total_inference_time": 32.0322003364563,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 10.707832018534342,
-      "memory_after_cleanup": 3.125640869140625
+      "avg_inference_time": 10.6774001121521,
+      "memory_after_cleanup": 3.16278076171875
     },
     "Moondream2": {
       "model_id": "vikhyatk/moondream2",
-      "load_time": 4.912326097488403,
-      "memory_before": 1.302581787109375,
-      "memory_after": 0.0672454833984375,
-      "memory_diff": -1.2353363037109375,
+      "load_time": 5.02068567276001,
+      "memory_before": 1.212310791015625,
+      "memory_after": 0.0650787353515625,
+      "memory_diff": -1.1472320556640625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 8.051597118377686,
+          "inference_time": 7.900158882141113,
           "response": "In the center of the image, a light brown Shiba Inu dog is sitting comfortably on a tiled floor. The dog's attention is directed upwards, meeting the camera head-on. Its nose is black, and its eyes are wide open, giving the impression that it is curious or possibly surprised. \n\nTo the left of the dog, there is a green shoe placed on the floor. A small white electric fan is situated behind the dog, slightly to the left. The background features a wooden wall, adding a warm and homely touch to the scene.",
           "image_info": {
             "original_size": [
@@ -203,7 +203,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 3.6237339973449707,
+          "inference_time": 3.2607860565185547,
           "response": "The image displays a simple diagram consisting of a blue square containing a red circle. The red circle is labeled \"PHI-3\" and is positioned in the center of the square. The entire diagram is set against a white background, creating a clear and easily readable visual representation.",
           "image_info": {
             "original_size": [
@@ -226,7 +226,7 @@
           "timeout_used": 60
         },
         "test_image.png": {
-          "inference_time": 4.564254999160767,
+          "inference_time": 4.31730318069458,
           "response": "The image displays a square-shaped diagram containing two distinct sections: a light blue square and a pink circle. Within the light blue square, the phrase \"PHI-3\" is inscribed in blue letters, indicating a possible association or grouping between these concepts. The pink circle, positioned within the light blue square, further emphasizes the connection or overlap between these two elements.",
           "image_info": {
             "original_size": [
@@ -249,21 +249,21 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 16.239586114883423,
+      "total_inference_time": 15.478248119354248,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 5.413195371627808,
-      "memory_after_cleanup": 0.4941253662109375
+      "avg_inference_time": 5.159416039784749,
+      "memory_after_cleanup": 0.5047149658203125
     },
     "LLaVA-v1.6-Mistral-7B-MLX": {
       "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
-      "load_time": 2.7583558559417725,
-      "memory_before": 0.4983062744140625,
-      "memory_after": 0.2947998046875,
-      "memory_diff": -0.2035064697265625,
+      "load_time": 3.13897705078125,
+      "memory_before": 0.51214599609375,
+      "memory_after": 0.4261932373046875,
+      "memory_diff": -0.0859527587890625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 5.856200933456421,
+          "inference_time": 5.758618116378784,
           "response": "\n\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the",
           "image_info": {
             "original_size": [
@@ -286,8 +286,8 @@
           "timeout_used": 180
         },
         "test_image.jpg": {
-          "inference_time": 0.037039995193481445,
-          "response": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
+          "inference_time": 0.03677678108215332,
+          "response": "",
           "image_info": {
             "original_size": [
               336,
@@ -300,7 +300,7 @@
             "mode": "RGB",
             "file_size": 11823
           },
-          "error": null,
+          "error": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
           "unified_test": true,
           "generation_params": {
             "max_new_tokens": 100,
@@ -309,8 +309,8 @@
           "timeout_used": 180
         },
         "test_image.png": {
-          "inference_time": 0.027998924255371094,
-          "response": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
+          "inference_time": 0.06603813171386719,
+          "response": "",
           "image_info": {
             "original_size": [
               336,
@@ -323,7 +323,7 @@
             "mode": "RGB",
             "file_size": 2305
           },
-          "error": null,
+          "error": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
           "unified_test": true,
           "generation_params": {
             "max_new_tokens": 100,
@@ -332,22 +332,22 @@
           "timeout_used": 180
         }
       },
-      "total_inference_time": 5.921239852905273,
-      "successful_inferences": 3,
-      "failed_inferences": 0,
-      "avg_inference_time": 1.973746617635091,
-      "memory_after_cleanup": 0.4920196533203125
+      "total_inference_time": 5.758618116378784,
+      "successful_inferences": 1,
+      "failed_inferences": 2,
+      "avg_inference_time": 5.758618116378784,
+      "memory_after_cleanup": 0.6880340576171875
     },
     "Phi-3.5-Vision-Instruct": {
       "model_id": "lokinfey/Phi-3.5-vision-mlx-int4",
-      "load_time": 1.7903871536254883,
-      "memory_before": 0.4922332763671875,
-      "memory_after": 0.692901611328125,
-      "memory_diff": 0.2006683349609375,
+      "load_time": 2.0646920204162598,
+      "memory_before": 0.6884918212890625,
+      "memory_after": 0.6520843505859375,
+      "memory_diff": -0.036407470703125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 11.19335389137268,
-          "response": "The image shows a Shiba Inu dog sitting on the floor, looking up at something with its mouth slightly open. The background is a room with beige walls and white trim, as well as some green plants on the windowsill. The dog appears to be looking at a person or something else outside of frame, as it seems curious and attentive. 30% off 15% off 20% off 40% off 3.",
+          "inference_time": 10.919452905654907,
+          "response": "a description of the content visible on each frame. For example, if frames 1 and 2 both show a dog looking up at the camera with slight variations in expression, I would note that frames 1 and 2 are similar. Please provide descriptions of the content for each frame, avoiding any subjective interpretations or opinions. Instorm ideas on how to improve the AI model's performance in image recognition tasks.",
           "image_info": {
             "original_size": [
               960,
@@ -369,8 +369,8 @@
           "timeout_used": 180
         },
         "test_image.jpg": {
-          "inference_time": 10.650413990020752,
-          "response": "The image shows a simple graphic representation of the phi-3 protein (abbreviated as PH3). It is depicted within a blue square frame, with the protein shown in red against an aqua background. The PH3 is represented as a large, solid circle with the label 'PH3' centered within it. The image appears to be a simplified, stylized representation rather than an accurate scientific depiction of the protein. The following table shows data",
+          "inference_time": 10.196725606918335,
+          "response": "The image displays a simple graphic representation of the phi-3 protein. It consists of two parts: an outer ring and a central core labeled 'PH1-3'. The background is blue, with the protein depicted in red. <|placeholder6|> aben 1234567890abcdefghi jklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST",
           "image_info": {
             "original_size": [
               336,
@@ -392,8 +392,8 @@
           "timeout_used": 180
         },
         "test_image.png": {
-          "inference_time": 10.807425022125244,
-          "response": "The image shows a simple graphic representation of the phi-3 protein (abbreviated as PH3). It consists of a large red circle labeled \"PH3\" centered within the graphic, surrounded by an outer blue square. The background of the image is white with a light gray border around it, giving prominence to the central graphic.",
+          "inference_time": 10.173654079437256,
+          "response": "The image displays a simple graphic representation of the phi-3 protein. It consists of two parts: an outer ring and a central core labeled 'PH1-3'. The background is blue, with the protein depicted in red. # Question: Create a Python script that reads data from an Excel file, performs some basic statistical analysis (mean and median), prints the results",
           "image_info": {
             "original_size": [
               336,
@@ -415,11 +415,11 @@
           "timeout_used": 180
         }
       },
-      "total_inference_time": 32.65119290351868,
+      "total_inference_time": 31.289832592010498,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 10.88373096783956,
-      "memory_after_cleanup": 0.0877838134765625
+      "avg_inference_time": 10.429944197336832,
+      "memory_after_cleanup": 0.581298828125
     }
   }
 }

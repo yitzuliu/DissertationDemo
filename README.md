@@ -55,47 +55,60 @@ This isn't just another chatbot or simple object detection system. This is **con
 
 ## 🎯 **Supported Models**
 
-**🧪 Testing Phase - Evaluating Best Approach:**
-- ✅ **SmolVLM2-Video** - Continuous video understanding, temporal reasoning (Testing)
-- ✅ **SmolVLM** - Lightweight image analysis, proven reliability (Current Working)
-- ✅ **Phi-3 Vision** - Advanced single-frame analysis with high accuracy (failed)
-- ✅ **LLaVA** - Excellent for multi-turn conversations
-- ✅ **YOLO8** - Real-time object detection (Detect object is well done but can not understand object)
-- ✅ **Moondream2** - Efficient specialized processing
+Our system is designed to be model-agnostic, allowing for the integration of various Vision-Language Models. Each model runs in its own dedicated server process.
 
-> **Note:** Currently evaluating video vs image processing approaches to determine optimal solution for real-time guidance.
+**✅ Actively Supported & Tested Models:**
+- **Moondream2**: A lightweight and very fast model, great for quick analysis.
+- **SmolVLM / SmolVLM2**: Efficient models designed for a balance of performance and capability.
+- **Phi-3.5-Vision (MLX)**: A powerful model from Microsoft, optimized for Apple Silicon via MLX for top-tier performance.
+- **LLaVA-v1.6 (MLX)**: An excellent conversational model, optimized for Apple Silicon. Note: It has known limitations with synthetic images but excels with photographs.
+- **YOLOv8**: A specialized, high-speed object detection model.
 
-> **⚠️ Memory Constraint:** Only one model runs at a time due to memory considerations. Model switching requires stopping the current model and starting the desired one.
+> **⚠️ One Model at a Time:** Due to memory constraints on typical development machines, only one model server should be run at a time. To switch models, stop the current server and start a different one.
 
 ## 🚀 **Quick Start**
 
-1. **Clone and setup**:
-   ```bash
-   git clone https://github.com/yitzuliu/DissertationDemo.git
-   cd destination_code
-   source ai_vision_env/bin/activate
-   ```
+1.  **Clone and Setup Environment**:
+    ```bash
+    git clone https://github.com/yitzuliu/DissertationDemo.git
+    cd destination_code
+    # Activate your python virtual environment
+    source ai_vision_env/bin/activate
+    ```
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+2.  **Install Dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    # Install MLX for Apple Silicon if you plan to use MLX models
+    pip install mlx-vlm
+    ```
 
-3. **Start the assistant**:
-   ```bash
-   # Start model server
-   python src/models/smolvlm/start_server.py
-   
-   # Start backend (new terminal)
-   python src/backend/main.py
-   
-   # Start frontend (new terminal)
-   cd src/frontend && python -m http.server 5500
-   ```
+3.  **Run the System (3-Layer Architecture)**:
+    You need to run three separate components in three different terminal sessions.
 
-4. **Point camera at any task** and ask for help!
+    **a. Start a Model Server (Choose one):**
+    ```bash
+    # Example: Start the LLaVA MLX server
+    python src/models/llava_mlx/run_llava_mlx.py
+    
+    # Or, start the Phi-3.5 Vision MLX server
+    # python "src/models/Phi_3.5_Vision MLX/run_phi3_vision_optimized.py"
+    ```
 
-For detailed setup instructions, see the [Developer Setup Guide](./docs/DEVELOPER_SETUP.md).
+    **b. Start the Backend Server (New Terminal):**
+    ```bash
+    python src/backend/main.py
+    ```
+
+    **c. Start the Frontend Server (New Terminal):**
+    ```bash
+    cd src/frontend && python -m http.server 5500
+    ```
+
+4.  **Open the Assistant**:
+    Open your web browser and navigate to `http://localhost:5500`.
+
+For more detailed instructions, see the [Developer Setup Guide](./docs/DEVELOPER_SETUP.md).
 
 ## 📖 **Documentation**
 
@@ -184,10 +197,11 @@ Next steps:
 - Image preprocessing pipeline
 
 ### **AI Models**
-- SmolVLM - Primary lightweight model
-- Phi-3 Vision - High-accuracy model
-- LLaVA - Multi-turn conversations
-- YOLO8 - Real-time object detection
+- SmolVLM & SmolVLM2
+- Moondream2
+- Phi-3.5-Vision (MLX Optimized)
+- LLaVA (MLX Optimized)
+- YOLO8
 
 ### **Infrastructure**
 - Three-layer architecture (Frontend → Backend → Model Server)

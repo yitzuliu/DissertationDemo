@@ -218,13 +218,8 @@ class VLMTester:
         self.unified_max_tokens = 100  # 統一生成長度
         self.unified_image_size = 1024  # 統一圖像最大尺寸
     
-        # 💡 ADD: Model-specific exclusion list for problematic images
-        self.model_exclusions = {
-            "LLaVA-v1.6-Mistral-7B-MLX": ["test_image.jpg", "test_image.png"]
-        }
-
-    def get_test_images(self, model_name=None):
-        """獲取測試圖像列表, an optional model_name can be provided to exclude specific images."""
+    def get_test_images(self):
+        """獲取測試圖像列表"""
         # 支援從不同目錄執行程式
         possible_paths = [
             Path("src/testing/testing_material/images"),  # 從專案根目錄執行
@@ -249,14 +244,6 @@ class VLMTester:
             image_files.extend(images_dir.glob(ext))
             image_files.extend(images_dir.glob(ext.upper()))
         
-        # Apply exclusions if a model name is provided
-        if model_name and model_name in self.model_exclusions:
-            excluded_names = self.model_exclusions[model_name]
-            print(f"  ℹ️ Applying exclusions for {model_name}: {excluded_names}")
-            original_count = len(image_files)
-            image_files = [p for p in image_files if p.name not in excluded_names]
-            print(f"  ℹ️  {original_count - len(image_files)} images excluded. Running on {len(image_files)} images.")
-
         return sorted(image_files)
     
     def test_single_model(self, model_name, config):
@@ -293,8 +280,8 @@ class VLMTester:
                 "failed_inferences": 0
             }
             
-            # 獲取測試圖像, applying model-specific exclusions
-            test_images = self.get_test_images(model_name=model_name)
+            # 獲取測試圖像
+            test_images = self.get_test_images()
             if not test_images:
                 print("警告：沒有找到測試圖像")
                 model_results["error"] = "No test images found"
@@ -374,20 +361,6 @@ class VLMTester:
             
             # 根據需要，設定當前推理應使用的圖像路徑
             current_image_path = str(image_path)
-            
-            # 🔧 LLaVA/MLX-VLM BUG WORKAROUND for 336x336 images
-            if "LLaVA" in model_name and image.size == (336, 336):
-                print("  🔧 Applying workaround for LLaVA 336x336 image bug...")
-                image = image.resize((337, 337), Image.Resampling.LANCZOS)
-                
-                import tempfile
-                temp_fd, temp_path = tempfile.mkstemp(suffix='.jpg')
-                os.close(temp_fd)
-                image.save(temp_path, 'JPEG')
-                
-                # 更新變數以用於清理和推理
-                temp_image_path_for_fix = temp_path 
-                current_image_path = temp_path
             
             # 📏 統一圖像預處理（所有模型一致）
             original_size = image.size

@@ -1,165 +1,108 @@
 # 🧠 AI Manual Assistant Enhancement Guide
 
-*Optimization guide for testing and comparing image vs video approaches for reliable real-time guidance*
+*Optimization guide for testing and comparing different Vision-Language Models for reliable real-time guidance*
 
-> **Note:** This guide focuses on comparing two approaches: enhanced image analysis and continuous video understanding. The goal is determining which approach provides the most reliable real-time guidance for hands-on tasks. Both approaches aim for mentor-like assistance that understands context and activities.
+> **Note:** This guide focuses on comparing various VLM approaches. The goal is determining which model provides the most reliable real-time guidance for hands-on tasks. All approaches aim for mentor-like assistance that understands context and activities.
 
 ## 📁 Current Project Structure
 ```
-/src/frontend/                 # Web interface (currently image-based)
-├── index.html                # Camera capture and frame processing
-/src/backend/                  # Processing server (currently image-focused)  
-├── main.py                   # Image preprocessing and routing
+/src/frontend/                 # Web interface (HTML, CSS, JS)
+├── index.html                # Camera capture and user interface
+/src/backend/                  # Main application server
+├── main.py                   # API gateway, image preprocessing, and model routing
 /src/config/                   # Configuration management
-├── app_config.json           # Main app settings
+├── app_config.json           # Main app settings (selects active model)
 └── model_configs/            # Model-specific configurations
-    ├── smolvlm.json          # Current image-only model
-    └── smolvlm2-500.json         # Target video-capable model
-/src/models/                   # Model implementations
-├── smolvlm/                  # Current image processing
-└── smolvlm2-500/                 # Target continuous video understanding
+    ├── llava_mlx.json
+    ├── moondream2.json
+    ├── phi3_vision.json
+    └── ... (and others)
+/src/models/                   # All model implementations
+├── llava_mlx/                # LLaVA MLX model server
+├── moondream2/               # Moondream2 model server
+└── ... (and others)
 /ai_vision_env/               # Python virtual environment
 ```
 
 ## 📋 Table of Contents
 1. [Current Implementation Analysis](#current-implementation-analysis)
-2. [Approach Comparison: Image vs Video](#approach-comparison-image-vs-video) 
+2. [Model Comparison Strategy](#model-comparison-strategy) 
 3. [Testing Roadmap](#testing-roadmap)
-4. [Enhanced Image Analysis Strategy](#enhanced-image-analysis-strategy)
-5. [Video Understanding Strategy](#video-understanding-strategy)
-6. [Technical Reference](#technical-reference)
+4. [Prompt Engineering Strategy](#prompt-engineering-strategy)
+5. [Technical Reference](#technical-reference)
 
 ---
 
 ## 🔍 Current Implementation Analysis
 
-### Current Image-Based System Status
+### System Status
 **✅ Working Components:**
-- Frame-by-frame webcam processing ()
-- Frontend single frame capture and display  
-- Backend SmolVLM integration (proven reliable)
-- Basic image preprocessing (resize, enhance, encode)
+- A flexible 3-layer architecture (Frontend, Backend, Model Server).
+- Multiple standalone model servers with OpenAI-compatible APIs.
+- Configuration-driven model loading.
+- Successful integration of MLX-optimized models for Apple Silicon, dramatically improving performance for large models like LLaVA and Phi-3.
 
-**🎯 Enhancement Opportunities for Image Approach:**
-- Response consistency across similar frames
-- Context memory between observations
-- Image quality preprocessing parameters
-- Prompt engineering for better recognition
-- Processing interval optimization
-- Add context memory between frames for better continuity
-- Implement smarter capture timing based on activity detection
-- Enhance prompting for activity recognition
-- Build progress tracking through accumulated observations
-- Optimize preprocessing for maximum model understanding
-
-### Alternative: Video Understanding Approach
-**🧪 Video Testing Capabilities (SmolVLM2-Video):**
-- Continuous video stream processing (5-10 second segments)
-- Temporal understanding: "I see you've moved from step 1 to step 2"
-- Built-in activity recognition and progress tracking
-- Natural temporal context without manual memory management
-- Potentially more natural guidance flow
-
-**🔧 Medium-Term Improvements (Code Modifications):**
-- Context memory implementation
-- Response post-processing
-- API parameter optimization
-
-**🚀 Advanced Features (Significant Development):**
-- Multi-model integration with your `/src/config/` system
-- High-frequency sampling with result consolidation
-- Advanced image enhancement pipeline
-
-**🔬 Testing Requirements:**
-- Evaluate reliability compared to image approach
-- Assess computational requirements and performance
-- Compare guidance quality and user experience
-- Determine optimal solution for production use
+**🎯 Enhancement Opportunities:**
+- Response consistency and context memory between frames.
+- Advanced prompt engineering for more complex task recognition.
+- UI/UX improvements to better display guidance from different models.
 
 ---
 
-## ⚡ Immediate Optimizations (No Code Changes Required)
-## ⚡ Approach Comparison: Image vs Video
+## ⚡ Model Comparison Strategy
 
-### 1. Prompt Engineering for Your Webcam Demo
+With several high-performing models now integrated, the focus shifts to comparing their outputs for specific tasks.
+
 ### 🧪 Testing Strategy: Alternative Approach Evaluation
 
-#### Current Baseline Prompt Testing
-#### Enhanced Image Analysis (Proven Reliable)
-**Current Working Approach:**
-```text
-# Optimized prompts for enhanced image analysis:
+#### Enhanced Image Analysis Models (Proven Reliable)
+- **Moondream2**: Excellent for speed.
+- **SmolVLM**: Lightweight and balanced.
+- **Phi-3.5-Vision (MLX)**: High accuracy for single-frame analysis.
 
-Current: "What do you see?"
-Enhanced: "What activity is happening? What step of the process is this?"
-Mentor-like: "Based on this workshop scene, what is the person trying to accomplish and what guidance do they need?"
-
-Context-aware: "I've been watching this person work. What are they doing now and how can I help?"
-Progress-focused: "What progress has been made and what should happen next?"
-```
-
-#### Application-Specific Prompts for Different Scenarios
-#### Video Understanding (Testing)
-**Experimental Approach:**
-```text
-GENERAL MONITORING: "Describe all visible objects, their positions, and any changes from previous 
-observations"
-WORKSPACE: "Identify all tools, materials, and equipment visible. Note their current state and 
-arrangement"
-ACTIVITY TRACKING: "Observe the current activity and describe what is happening step by step"
-SAFETY FOCUS: "Identify any safety concerns, hazards, or unusual conditions in the scene"
-
-# Video-specific prompts for temporal understanding:
-VIDEO ANALYSIS: "Watch this video segment. What activity is happening and how is it progressing?"
-TEMPORAL GUIDANCE: "Based on this continuous video, what guidance should I provide as their mentor?"
-PROGRESS TRACKING: "What has changed since the last video segment? How can I help them continue?"
-CONTINUOUS MENTORSHIP: "I'm continuously watching someone work. Provide natural, encouraging guidance."
-```
+#### Conversational & Contextual Models
+- **LLaVA (MLX)**: Strong at multi-turn dialogue and understanding conversational context related to an image.
 
 ### 📊 Comparison Framework
 
-| Aspect | Enhanced Image Analysis | Video Understanding |
-|--------|------------------------|---------------------|
-| **Reliability** | ✅ Proven working | 🧪 Testing required |
-| **Setup Complexity** | ✅ Simple | ⚠️ More complex |
-| **Context Understanding** | ⚠️ Manual memory needed | ✅ Built-in temporal |
-| **Processing Requirements** | ✅ Lower | ⚠️ Higher |
-| **Response Speed** | ✅ Fast | 🧪 Testing needed |
-| **Guidance Quality** | 🧪 Testing needed | 🧪 Testing needed |
-| **Implementation Risk** | ✅ Low | ⚠️ Medium |
+| Aspect | Moondream2 | SmolVLM | Phi-3.5-Vision (MLX) | LLaVA (MLX) |
+|--------|------------|---------|----------------------|-------------|
+| **Reliability** | ✅ High | ✅ High | ✅ High | ✅ High (with photos) |
+| **Speed (Inference)**| 🏆 Fastest | 🚀 Fast | 🚀 Fast | 🚀 Fast |
+| **Conversational?** | No | No | Limited | 🏆 Yes |
+| **Setup Complexity** | ✅ Simple | ✅ Simple | ⚠️ Requires MLX | ⚠️ Requires MLX |
+| **Implementation Risk**| ✅ Low | ✅ Low | ✅ Low | ✅ Low |
+---
 
-### 2. Backend Parameter Optimization
+## 🚀 Prompt Engineering Strategy
 
-#### Image Processing Parameters (in your backend code)
-```python
-# Test these parameter combinations:
-CONTRAST_FACTOR = 1.1, 1.2, 1.3  # Current: 1.2
-BRIGHTNESS_FACTOR = 1.0, 1.05, 1.1  # Current: 1.05  
-SHARPNESS_FACTOR = 1.2, 1.3, 1.4  # Current: 1.3
-```
+### 1. General-Purpose Prompts
+- **Current Default**: `"Describe what you see in this image in detail."`
+- **Enhanced**: `"Analyze the activity in this image. What is the person doing, what tools are they using, and what might be their next step?"`
 
-#### Frontend Image Quality Settings
-```javascript
-// Test these quality settings in captureImage():
-canvas.toDataURL('image/jpeg', 0.7)  # Lower quality, faster
-canvas.toDataURL('image/jpeg', 0.8)  # Current setting
-canvas.toDataURL('image/jpeg', 0.9)  # Higher quality, slower
-```
-
-### 3. Processing Timing Optimization
-```javascript
-# Test different intervals in your webcam demo:
-500ms   # Current baseline
-1000ms  # Slower but more stable
-2000ms  # Even slower but higher accuracy
-250ms   # Faster but may be less accurate
-```
+### 2. Role-Playing Prompts
+- **Mentor-like**: `"I am your student. Look at this image of my workspace and guide me through the next step of the task."`
+- **Safety Inspector**: `"Examine this scene for any potential safety hazards and provide a list of concerns."`
 
 ---
 
 ## 🔄 Model Integration Strategies
 
-*Note: Start with optimizing your current SmolVLM setup before considering additional models*
+Your `/src/config/model_configs/` directory structure supports different models that can be activated one at a time by running their corresponding server.
+
+#### Current Model Structure
+```
+/src/models/
+├── llava_mlx/
+│   └── run_llava_mlx.py
+├── moondream2/
+│   └── run_moondream2_optimized.py
+├── Phi_3.5_Vision MLX/
+│   └── run_phi3_vision_optimized.py
+└── ... (etc.)
+```
+
+The backend, configured via `src/config/app_config.json`, routes requests to the currently active model server.
 
 ### Adding Models to Your Configuration System
 

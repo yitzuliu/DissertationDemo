@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-12 08:47:39",
+  "test_timestamp": "2025-07-13 14:18:48",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,13 +8,13 @@
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-      "load_time": 2.579105854034424,
-      "memory_before": 0.34454345703125,
-      "memory_after": 0.4272613525390625,
-      "memory_diff": 0.0827178955078125,
+      "load_time": 2.8580050468444824,
+      "memory_before": 0.34442138671875,
+      "memory_after": 0.413299560546875,
+      "memory_diff": 0.068878173828125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 11.384448051452637,
+          "inference_time": 11.53169298171997,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a Shiba Inu dog, characterized by its tan and white fur, sitting on a tiled floor. The dog's face is prominently displayed, with its nose and mouth visible. The dog appears to be looking directly at the camera, giving a sense of curiosity or attentiveness. The background of the image includes a green shoe and a white wall, which are positioned relatively far from the camera.",
           "image_info": {
             "original_size": [
@@ -37,7 +37,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 13.407562017440796,
+          "inference_time": 11.636700868606567,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border. The background of the image is light blue, providing a neutral backdrop that allows the geometric shapes to stand out.\n\n### Description:\n- **Circle**: The red circle",
           "image_info": {
             "original_size": [
@@ -60,7 +60,7 @@
           "timeout_used": 60
         },
         "test_image.png": {
-          "inference_time": 12.323194980621338,
+          "inference_time": 11.703898191452026,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border.\n\nThe image does not contain any text or additional objects. The relative positions of the objects are as follows:\n- The red circle is centrally located within the blue square.",
           "image_info": {
             "original_size": [
@@ -83,21 +83,21 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 37.11520504951477,
+      "total_inference_time": 34.872292041778564,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 12.371735016504923,
-      "memory_after_cleanup": 2.9910888671875
+      "avg_inference_time": 11.624097347259521,
+      "memory_after_cleanup": 3.09893798828125
     },
     "SmolVLM-500M-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct",
-      "load_time": 3.5209550857543945,
-      "memory_before": 1.2760772705078125,
-      "memory_after": 1.754547119140625,
-      "memory_diff": 0.4784698486328125,
+      "load_time": 3.705284833908081,
+      "memory_before": 1.383392333984375,
+      "memory_after": 1.4199066162109375,
+      "memory_diff": 0.0365142822265625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 9.443297147750854,
+          "inference_time": 9.487624168395996,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A Shiba Inu dog with a black nose is sitting on a bathroom floor in front of a toilet and a hand sanitizer dispenser. The dog is looking directly at the camera. The dog has a light brown coat with a white patch of fur on its neck. The nose is black. The dog's left ear is black and its right ear is gray. The dog's mouth is closed. The floor is white with light gray tiles. There are two green slippers on the floor in front",
           "image_info": {
             "original_size": [
@@ -120,7 +120,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 11.556643962860107,
+          "inference_time": 11.05075216293335,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a square and a circle. The square is light blue in color and has a blue border. The circle is red and is positioned inside the square. The circle is perfectly centered within the square.\n\n### Description:\n- **Square**: The square has four equal sides and four equal angles. The corners of the square are labeled with the numbers 1, 2, 3, and 4.\n- **Circle**: The circle",
           "image_info": {
             "original_size": [
@@ -143,7 +143,7 @@
           "timeout_used": 60
         },
         "test_image.png": {
-          "inference_time": 11.123554944992065,
+          "inference_time": 11.493824005126953,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a red circle and a blue square. The circle is positioned in the center of the image, and it is filled with a solid red color. The blue square is placed directly above the red circle, and it is outlined in a darker blue color. The background of the image is a light blue color, which provides a neutral backdrop for the geometric shapes.\n\n### Analysis and Description:\n\n#### Geometry:\n1. **Circle**:\n   -",
           "image_info": {
             "original_size": [
@@ -166,11 +166,11 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 32.12349605560303,
+      "total_inference_time": 32.0322003364563,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 10.707832018534342,
-      "memory_after_cleanup": 3.125640869140625
+      "avg_inference_time": 10.6774001121521,
+      "memory_after_cleanup": 3.16278076171875
     }
   }
 }

@@ -1,379 +1,119 @@
 # AI Manual Assistant - Developer Setup Guide
 
-This guide provides step-by-step instructions for setting up the development environment for the AI Manual Assistant project. Follow these instructions carefully to ensure a proper setup.
-
-**🧪 Development Phase:** The system is currently testing two approaches for optimal guidance:
-- **Enhanced Image Analysis** (Current working - SmolVLM)  
-- **Continuous Video Understanding** (Testing - SmolVLM2-Video)
-
-Both setups are covered in this guide.
+This guide provides step-by-step instructions for setting up the development environment for the AI Manual Assistant project.
 
 ## Prerequisites
 
 ### System Requirements
-- macOS (M1/M2/M3 recommended) or Linux
-- Python 3.8+ (3.10 recommended)
-- 16GB RAM minimum (32GB recommended)
-- 50GB free disk space
-- CUDA-capable GPU (optional, but recommended)
+- **macOS (Apple Silicon M1/M2/M3 recommended) or Linux**.
+- **Python 3.9+**.
+- **16GB RAM minimum** (32GB recommended for running larger models).
+- **50GB free disk space** for models and dependencies.
 
 ### Required Software
-- Git
-- Python 3.10
-- pip (latest version)
-- Node.js 18+ (for frontend development)
-- Docker (optional, for containerized development)
+- **Git**.
+- A Python environment manager like `venv` (built-in) or `conda`.
 
 ## Setup Process
 
 ### 1. Clone the Repository
 
 ```bash
-# Clone the main repository
-git clone https://github.com/yourusername/ai-manual-assistant.git
-
-# Navigate to the project directory
-cd ai-manual-assistant
+git clone https://github.com/yitzuliu/DissertationDemo.git
+cd destination_code
 ```
 
 ### 2. Python Environment Setup
 
-#### Option A: Using venv (Recommended)
+It is strongly recommended to use a virtual environment to manage project dependencies.
 
 ```bash
-# Create a virtual environment
-python -m venv ai_vision_env
+# Create a virtual environment using venv
+python3 -m venv ai_vision_env
 
 # Activate the virtual environment
 # On macOS/Linux:
 source ai_vision_env/bin/activate
-# On Windows:
-# ai_vision_env\Scripts\activate
+# On Windows (note: some models may not be compatible):
+# .\ai_vision_env\Scripts\activate
+```
 
-# Install dependencies
+### 3. Install Dependencies
+
+Install the required Python packages from the `requirements.txt` file.
+
+```bash
+# Ensure your virtual environment is active
 pip install -r requirements.txt
 ```
 
-#### Option B: Using Conda
+### 4. Special Setup for Apple Silicon (M1/M2/M3)
+
+To run the high-performance MLX-optimized models (like LLaVA and Phi-3.5-Vision), you **must** install the `mlx-vlm` package. This is not required for other models but is essential for the best-performing ones.
 
 ```bash
-# Create a conda environment
-conda create -n ai_vision_env python=3.10
-
-# Activate the conda environment
-conda activate ai_vision_env
-
-# Install dependencies
-pip install -r requirements.txt
+# From your active virtual environment
+pip install mlx-vlm
 ```
 
-### 3. Model Setup
+This package enables the use of Apple's unified memory and neural engine for dramatic performance improvements. Without it, larger models will be too slow to be usable.
 
-The system supports different models that can be activated one at a time. Set up the models you plan to test:
+## Running the Project
 
-#### SmolVLM (Current Working - Image Analysis)
+The AI Manual Assistant uses a **3-layer architecture**. You must start three separate components in three separate terminal windows. Make sure your virtual environment is activated in each terminal.
 
+### Step 1: Start a Model Server (Terminal 1)
+
+Choose **one** model to run. Each model runs as its own server.
+
+**Example: Start the LLaVA MLX server (Recommended for Apple Silicon)**
 ```bash
-# Install llama-cpp-python with appropriate backend
-pip install llama-cpp-python
-
-# For Metal (Apple Silicon) acceleration:
-CMAKE_ARGS="-DLLAMA_METAL=on" pip install --force-reinstall llama-cpp-python
-
-# Download model weights (they will be cached automatically)
-python -c "from transformers import AutoProcessor; AutoProcessor.from_pretrained('ggml-org/SmolVLM-500M-Instruct-GGUF', trust_remote_code=True)"
+python src/models/llava_mlx/run_llava_mlx.py
 ```
 
-#### SmolVLM2-Video (Testing - Video Understanding)
-
+**Alternative: Start the Moondream2 server (Lightweight & Fast)**
 ```bash
-# Install additional dependencies for video processing
-pip install av opencv-python
-
-# Download SmolVLM2 model weights  
-python -c "from transformers import AutoProcessor; AutoProcessor.from_pretrained('HuggingFaceTB/SmolVLM2-500M-Video-Instruct', trust_remote_code=True)"
+python src/models/moondream2/run_moondream2_optimized.py
 ```
 
-#### Phi-3 Vision (Alternative High-Accuracy)
-
+**Alternative: Start the Phi-3.5-Vision MLX server (High Accuracy)**
 ```bash
-# Install required packages
-pip install accelerate bitsandbytes
-
-# Download model weights (they will be cached automatically)
-python -c "from transformers import AutoModelForCausalLM; AutoModelForCausalLM.from_pretrained('microsoft/Phi-3-vision-128k-instruct', trust_remote_code=True)"
+python "src/models/Phi_3.5_Vision MLX/run_phi3_vision_optimized.py"
 ```
 
-#### YOLO8
+You should see output indicating the server has started, usually on `http://localhost:8080`.
+
+### Step 2: Start the Backend Server (Terminal 2)
+
+The backend server acts as a gateway between the frontend and the model server.
 
 ```bash
-# Install ultralytics
-pip install ultralytics
-
-# Download YOLOv8 weights
-python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
-```
-
-### 4. Backend Setup
-
-```bash
-# Navigate to the backend directory
-cd src/backend
-
-# Create logs directory
-mkdir -p ../../logs
-
-# Set up configuration (if not already present)
-cp config_template.json ../config/app_config.json
-```
-
-### 5. Frontend Setup
-
-```bash
-# Navigate to the frontend directory
-cd ../frontend
-
-# Install http-server for local development (if needed)
-npm install -g http-server
-```
-
-## Starting the Development Environment
-
-### 1. Start the Model Server
-
-**Important:** Only one model runs at a time due to memory considerations.
-
-**For Image Analysis (SmolVLM - Current Active):**
-```bash
-# From the project root
-source ai_vision_env/bin/activate  # If not already activated
-
-# Start SmolVLM server 
-python src/models/smolvlm/run_smolvlm.py
-```
-
-**For Video Understanding Testing (SmolVLM2):**
-```bash
-# From the project root  
-source ai_vision_env/bin/activate
-
-# Stop any running model first, then test SmolVLM2
-cd src/models/smolvlm2
-python unified_test.py  # Testing script, not server
-```
-
-**Note:** To switch models, stop the current model server and start the desired one.
-
-### 2. Start the Backend Server
-
-```bash
-# From the project root, in a new terminal
-source ai_vision_env/bin/activate
-
-# Start the FastAPI backend
 python src/backend/main.py
 ```
 
-### 3. Start the Frontend Server
+This server will start on `http://localhost:8000`.
+
+### Step 3: Start the Frontend Server (Terminal 3)
+
+The frontend is a simple web interface for interacting with the system.
 
 ```bash
-# From the project root, in a new terminal
+# Navigate to the frontend directory first
 cd src/frontend
 
-# Start a basic HTTP server
-http-server -p 5500
+# Start a basic Python HTTP server
+python -m http.server 5500
 ```
 
-## Testing the Setup
+This server will start on `http://localhost:5500`.
 
-### Image Analysis Approach (Current Working)
-1. Open your web browser and navigate to `http://localhost:5500`
-2. Grant camera permissions when prompted
-3. You should see the camera feed and analysis results below
-4. Test with frame capture and real-time guidance
+### Step 4: Use the Application
 
-### Video Understanding Approach (Testing)
-1. Run the video test scripts to evaluate temporal understanding:
-   ```bash
-   cd src/models/smolvlm2
-   python unified_test.py
-   ```
-2. Compare results with image analysis approach
-3. Evaluate guidance quality and system reliability
-
-If you encounter any issues, check the troubleshooting section below.
-
-## Environment Validation
-
-To validate your environment is set up correctly, run the following test script:
-
-```bash
-# From the project root
-python src/backend/utils/validate_environment.py
-```
-
-This will check:
-- Python version
-- Required dependencies
-- Model availability
-- GPU/Metal acceleration
-- Network connectivity between components
-
-## Docker Setup (Alternative)
-
-For containerized development, Docker files are provided:
-
-```bash
-# Build and start all containers
-docker-compose up --build
-
-# Or start individual components
-docker-compose up model-server
-docker-compose up backend
-docker-compose up frontend
-```
-
-## GPU Acceleration Setup
-
-### NVIDIA GPUs
-
-```bash
-# Install CUDA toolkit (if not already installed)
-# Visit https://developer.nvidia.com/cuda-downloads and follow instructions
-
-# Install PyTorch with CUDA support
-pip install torch==2.0.1+cu117 torchvision==0.15.2+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
-
-# Test CUDA availability
-python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
-```
-
-### Apple Silicon (M1/M2/M3)
-
-```bash
-# Install PyTorch with Metal support
-pip install torch torchvision
-
-# Enable Metal acceleration for llama-cpp
-CMAKE_ARGS="-DLLAMA_METAL=on" pip install --force-reinstall llama-cpp-python
-
-# Test Metal availability
-python -c "import torch; print('MPS available:', torch.backends.mps.is_available())"
-```
+Open your web browser and navigate to **`http://localhost:5500`**. You should see the application interface, grant camera permissions, and be able to start interacting with the AI assistant.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### 1. Model Loading Errors
-
-**Symptom:** `Error: Could not load model` or similar messages.
-
-**Solution:**
-```bash
-# Check model cache directory
-ls -la ~/.cache/huggingface/hub/
-
-# Clear cache and re-download if needed
-rm -rf ~/.cache/huggingface/hub/models--ggml-org--SmolVLM-500M-Instruct-GGUF
-python -c "from transformers import AutoProcessor; AutoProcessor.from_pretrained('ggml-org/SmolVLM-500M-Instruct-GGUF', trust_remote_code=True, force_download=True)"
-```
-
-#### 2. Memory Issues
-
-**Symptom:** `CUDA out of memory` or system crashes when loading models.
-
-**Solution:**
-- Use lower-precision models (4-bit quantization)
-- Split model across CPU and GPU
-- Lower batch sizes in configuration
-- Close other memory-intensive applications
-
-```bash
-# Use 4-bit quantization for Phi-3 Vision
-python src/models/phi3_vision/run_phi3_vision.py --bits 4
-```
-
-#### 3. Camera Access Issues
-
-**Symptom:** Camera not working in browser.
-
-**Solution:**
-- Ensure your browser has camera permissions
-- Try a different browser (Chrome recommended)
-- Check if camera is being used by another application
-- Use HTTPS for local development (required by some browsers)
-
-```bash
-# Generate self-signed certificate and start HTTPS server
-openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
-http-server -p 5500 --ssl --cert cert.pem --key key.pem
-```
-
-#### 4. API Connection Issues
-
-**Symptom:** Frontend can't connect to backend.
-
-**Solution:**
-- Ensure backend is running on the correct port
-- Check CORS settings in backend
-- Verify network connectivity
-- Check browser console for error messages
-
-```bash
-# Test backend connectivity
-curl -X GET http://localhost:8000/health
-```
-
-## Development Workflow
-
-### Code Style and Linting
-
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run linter
-flake8 src/
-
-# Run type checking
-mypy src/
-
-# Format code
-black src/
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_backend.py
-
-# Run with coverage
-pytest --cov=src
-```
-
-### Updating Dependencies
-
-```bash
-# Update all dependencies
-pip install -r requirements.txt --upgrade
-
-# Generate updated requirements file
-pip freeze > requirements.txt
-```
-
-## Additional Resources
-
-- [Architecture Documentation](./ARCHITECTURE.md)
-- [API Documentation](./API.md)
-- [Model Comparison Guide](./MODEL_COMPARISON.md)
-- [Troubleshooting Guide](./TROUBLESHOOTING.md)
-- [FAQ](./FAQ.md)
-
-## Support and Contact
-
-If you encounter any issues not covered by this guide, please reach out to the development team at [dev@example.com](mailto:dev@example.com) or open an issue on our GitHub repository.
+- **`ModuleNotFoundError`**: This usually means your virtual environment is not active or you ran a script from the wrong directory. Make sure `source ai_vision_env/bin/activate` is run in each terminal and that you are in the project's root directory.
+- **`mlx` related errors**: Ensure you are on an Apple Silicon Mac and have successfully installed `mlx-vlm`.
+- **Port conflicts**: If a port (8080, 8000, 5500) is already in use, you will need to stop the other application or modify the port in the appropriate script or configuration file.
+- **Model loading failures**: Some models are large and may fail to load on systems with insufficient RAM. Ensure you have at least 16GB of free memory.
