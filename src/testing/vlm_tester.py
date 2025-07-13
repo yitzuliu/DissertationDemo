@@ -292,6 +292,12 @@ class VLMTester:
             # 測試每張圖像
             for image_path in test_images:
                 try:
+                    # For LLaVA-MLX, reload the model for each image to avoid state bug
+                    if "LLaVA-v1.6-Mistral-7B-MLX" in model_name:
+                        print("  >> LLaVA-MLX: Reloading model to clear state...")
+                        clear_model_memory(model, processor)
+                        model, processor = config["loader"]()
+
                     image_result = self.test_single_image(model, processor, image_path, model_name)
                     model_results["images"][image_path.name] = image_result
                     
@@ -341,7 +347,8 @@ class VLMTester:
             return model_results
         
         # 清理模型記憶體
-        clear_model_memory(model, processor)
+        if model_name != "LLaVA-v1.6-Mistral-7B-MLX": # Already cleaned inside loop
+            clear_model_memory(model, processor)
         
         # 檢查記憶體清理效果
         memory_after_cleanup = get_memory_usage()

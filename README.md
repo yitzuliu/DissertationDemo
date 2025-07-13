@@ -69,25 +69,25 @@ Our system is designed to be model-agnostic, allowing for the integration of var
 ## 🚀 **Quick Start**
 
 1.  **Clone and Setup Environment**:
-    ```bash
-    git clone https://github.com/yitzuliu/DissertationDemo.git
-    cd destination_code
+   ```bash
+   git clone https://github.com/yitzuliu/DissertationDemo.git
+   cd destination_code
     # Activate your python virtual environment
-    source ai_vision_env/bin/activate
-    ```
+   source ai_vision_env/bin/activate
+   ```
 
 2.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
+   ```bash
+   pip install -r requirements.txt
     # Install MLX for Apple Silicon if you plan to use MLX models
     pip install mlx-vlm
-    ```
+   ```
 
 3.  **Run the System (3-Layer Architecture)**:
     You need to run three separate components in three different terminal sessions.
 
     **a. Start a Model Server (Choose one):**
-    ```bash
+   ```bash
     # Example: Start the LLaVA MLX server
     python src/models/llava_mlx/run_llava_mlx.py
     
@@ -97,13 +97,13 @@ Our system is designed to be model-agnostic, allowing for the integration of var
 
     **b. Start the Backend Server (New Terminal):**
     ```bash
-    python src/backend/main.py
+   python src/backend/main.py
     ```
-
+   
     **c. Start the Frontend Server (New Terminal):**
     ```bash
-    cd src/frontend && python -m http.server 5500
-    ```
+   cd src/frontend && python -m http.server 5500
+   ```
 
 4.  **Open the Assistant**:
     Open your web browser and navigate to `http://localhost:5500`.

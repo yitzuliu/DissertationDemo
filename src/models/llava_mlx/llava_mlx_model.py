@@ -76,6 +76,32 @@ class LlavaMlxModel(BaseVisionModel):
         finally:
             # Clean up the temporary file
             os.remove(temp_path)
+            # Clear the model's KV cache to prevent errors on subsequent runs.
+            self.clear_cache()
+
+    def clear_cache(self):
+        """
+        Workaround to manually reset the KV cache in the model's layers.
+        The mlx-vlm library appears to retain state, causing errors on subsequent calls.
+        This method attempts to find and delete the cache attributes from the attention layers.
+        """
+        if self.model is None:
+            return
+
+        try:
+            layers = self.model.language_model.model.layers
+        except AttributeError:
+            # If the model structure is not as expected, do nothing.
+            return
+
+        for layer in layers:
+            if hasattr(layer, "self_attn"):
+                # The cache is not a documented attribute, so we speculatively
+                # try to delete common names for it.
+                if hasattr(layer.self_attn, "cache"):
+                    del layer.self_attn.cache
+                if hasattr(layer.self_attn, "kv_cache"):
+                    del layer.self_attn.kv_cache
 
     def process_messages(self, messages):
         prompt = "Describe the image."

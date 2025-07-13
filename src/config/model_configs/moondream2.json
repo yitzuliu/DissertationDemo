@@ -17,7 +17,7 @@
   "model_config": {
     "torch_dtype": "float32",
     "device_map": null,
-    "trust_remote_code": true,
+  "trust_remote_code": true,
     "low_cpu_mem_usage": false
   },
   

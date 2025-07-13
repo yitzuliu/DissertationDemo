@@ -29,14 +29,14 @@ messages = [
         ]
     },
 ]
-pipe(text=messages)
+pipe(text=messages)     
 ```
 
 **Load model directly**
 ```python
 from transformers import AutoProcessor, AutoModelForImageTextToText
 processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
-model = AutoModelForImageTextToText.from_pretrained("HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
+model = AutoModelForImageTextToText.from_pretrained("HuggingFaceTB/SmolVLM2-500M-Video-Instruct")  
 ```
 
 ### ✅ VLM Tester Implementation
