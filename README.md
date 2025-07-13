@@ -61,7 +61,7 @@ Our system is designed to be model-agnostic, allowing for the integration of var
 - **Moondream2**: A lightweight and very fast model, great for quick analysis.
 - **SmolVLM / SmolVLM2**: Efficient models designed for a balance of performance and capability.
 - **Phi-3.5-Vision (MLX)**: A powerful model from Microsoft, optimized for Apple Silicon via MLX for top-tier performance.
-- **LLaVA-v1.6 (MLX)**: An excellent conversational model, optimized for Apple Silicon. Note: It has known limitations with synthetic images but excels with photographs.
+- **LLaVA-v1.6 (MLX)**: An excellent conversational model, optimized for Apple Silicon. Note: It excels with photographic images but consistently fails on certain synthetic images (e.g., simple geometric shapes on a flat background) due to an underlying `mlx-vlm` library issue.
 - **YOLOv8**: A specialized, high-speed object detection model.
 
 > **⚠️ One Model at a Time:** Due to memory constraints on typical development machines, only one model server should be run at a time. To switch models, stop the current server and start a different one.

@@ -93,6 +93,12 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 - Speak clearly when asking questions
 - Provide context about what you're trying to accomplish
 
+### Q: Why does the LLaVA model fail on some images but not others?
+**A:** This is a known issue with the MLX-optimized version of LLaVA.
+- **It excels with photographs**: The model is highly reliable for analyzing real-world images from a camera.
+- **It fails on synthetic images**: It consistently produces an error when trying to process simple, computer-generated images (e.g., diagrams with geometric shapes). This is caused by a bug in the underlying `mlx-vlm` library.
+- **Conclusion**: For the best results, use the LLaVA model for tasks involving real-world objects and scenes.
+
 ## Troubleshooting
 
 ### Q: The camera feed is not working. What should I check?

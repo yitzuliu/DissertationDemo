@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-13 14:18:48",
+  "test_timestamp": "2025-07-13 14:48:43",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,13 +8,13 @@
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-      "load_time": 2.8580050468444824,
-      "memory_before": 0.34442138671875,
-      "memory_after": 0.413299560546875,
-      "memory_diff": 0.068878173828125,
+      "load_time": 2.585020065307617,
+      "memory_before": 0.3366546630859375,
+      "memory_after": 0.40863037109375,
+      "memory_diff": 0.0719757080078125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 11.53169298171997,
+          "inference_time": 12.396589040756226,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a Shiba Inu dog, characterized by its tan and white fur, sitting on a tiled floor. The dog's face is prominently displayed, with its nose and mouth visible. The dog appears to be looking directly at the camera, giving a sense of curiosity or attentiveness. The background of the image includes a green shoe and a white wall, which are positioned relatively far from the camera.",
           "image_info": {
             "original_size": [
@@ -36,8 +36,31 @@
           },
           "timeout_used": 60
         },
+        "IMG_2053.JPG": {
+          "inference_time": 10.283154010772705,
+          "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a person wearing a white t-shirt with the text \"FKON\" and a logo on the left side, holding a passport. The passport is held in the person's right hand, displaying a photograph of a person with the name \"YU\" and the date \"2015-08-28\" on the left side. The passport also includes a photograph of a person with the name \"WANG\" and the date \"2015-",
+          "image_info": {
+            "original_size": [
+              3088,
+              2316
+            ],
+            "processed_size": [
+              1024,
+              768
+            ],
+            "mode": "RGB",
+            "file_size": 1834456
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 60
+        },
         "test_image.jpg": {
-          "inference_time": 11.636700868606567,
+          "inference_time": 12.4286367893219,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border. The background of the image is light blue, providing a neutral backdrop that allows the geometric shapes to stand out.\n\n### Description:\n- **Circle**: The red circle",
           "image_info": {
             "original_size": [
@@ -58,46 +81,23 @@
             "do_sample": false
           },
           "timeout_used": 60
-        },
-        "test_image.png": {
-          "inference_time": 11.703898191452026,
-          "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border.\n\nThe image does not contain any text or additional objects. The relative positions of the objects are as follows:\n- The red circle is centrally located within the blue square.",
-          "image_info": {
-            "original_size": [
-              336,
-              336
-            ],
-            "processed_size": [
-              336,
-              336
-            ],
-            "mode": "RGB",
-            "file_size": 2305
-          },
-          "error": null,
-          "unified_test": true,
-          "generation_params": {
-            "max_new_tokens": 100,
-            "do_sample": false
-          },
-          "timeout_used": 60
         }
       },
-      "total_inference_time": 34.872292041778564,
+      "total_inference_time": 35.10837984085083,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 11.624097347259521,
-      "memory_after_cleanup": 3.09893798828125
+      "avg_inference_time": 11.70279328028361,
+      "memory_after_cleanup": 2.831085205078125
     },
     "SmolVLM-500M-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct",
-      "load_time": 3.705284833908081,
-      "memory_before": 1.383392333984375,
-      "memory_after": 1.4199066162109375,
-      "memory_diff": 0.0365142822265625,
+      "load_time": 3.6672329902648926,
+      "memory_before": 1.1194610595703125,
+      "memory_after": 0.92950439453125,
+      "memory_diff": -0.1899566650390625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 9.487624168395996,
+          "inference_time": 9.780035734176636,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A Shiba Inu dog with a black nose is sitting on a bathroom floor in front of a toilet and a hand sanitizer dispenser. The dog is looking directly at the camera. The dog has a light brown coat with a white patch of fur on its neck. The nose is black. The dog's left ear is black and its right ear is gray. The dog's mouth is closed. The floor is white with light gray tiles. There are two green slippers on the floor in front",
           "image_info": {
             "original_size": [
@@ -119,8 +119,31 @@
           },
           "timeout_used": 60
         },
+        "IMG_2053.JPG": {
+          "inference_time": 9.969529151916504,
+          "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A man holds a passport-style document in front of his face, which appears to be a photo ID. The man is wearing a white T-shirt with black text that reads \"FKONs\" and has a picture of a woman on the front. The document he is holding appears to be a passport, as it has a photo of a man on the front. The man's face is partially obscured by the passport, but his eyes are visible and he is wearing glasses. The passport",
+          "image_info": {
+            "original_size": [
+              3088,
+              2316
+            ],
+            "processed_size": [
+              1024,
+              768
+            ],
+            "mode": "RGB",
+            "file_size": 1834456
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 60
+        },
         "test_image.jpg": {
-          "inference_time": 11.05075216293335,
+          "inference_time": 13.063385963439941,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a square and a circle. The square is light blue in color and has a blue border. The circle is red and is positioned inside the square. The circle is perfectly centered within the square.\n\n### Description:\n- **Square**: The square has four equal sides and four equal angles. The corners of the square are labeled with the numbers 1, 2, 3, and 4.\n- **Circle**: The circle",
           "image_info": {
             "original_size": [
@@ -141,46 +164,23 @@
             "do_sample": false
           },
           "timeout_used": 60
-        },
-        "test_image.png": {
-          "inference_time": 11.493824005126953,
-          "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a red circle and a blue square. The circle is positioned in the center of the image, and it is filled with a solid red color. The blue square is placed directly above the red circle, and it is outlined in a darker blue color. The background of the image is a light blue color, which provides a neutral backdrop for the geometric shapes.\n\n### Analysis and Description:\n\n#### Geometry:\n1. **Circle**:\n   -",
-          "image_info": {
-            "original_size": [
-              336,
-              336
-            ],
-            "processed_size": [
-              336,
-              336
-            ],
-            "mode": "RGB",
-            "file_size": 2305
-          },
-          "error": null,
-          "unified_test": true,
-          "generation_params": {
-            "max_new_tokens": 100,
-            "do_sample": false
-          },
-          "timeout_used": 60
         }
       },
-      "total_inference_time": 32.0322003364563,
+      "total_inference_time": 32.81295084953308,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 10.6774001121521,
-      "memory_after_cleanup": 3.16278076171875
+      "avg_inference_time": 10.937650283177694,
+      "memory_after_cleanup": 2.6335601806640625
     },
     "Moondream2": {
       "model_id": "vikhyatk/moondream2",
-      "load_time": 5.02068567276001,
-      "memory_before": 1.212310791015625,
-      "memory_after": 0.0650787353515625,
-      "memory_diff": -1.1472320556640625,
+      "load_time": 6.0064778327941895,
+      "memory_before": 1.01727294921875,
+      "memory_after": 0.014312744140625,
+      "memory_diff": -1.002960205078125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 7.900158882141113,
+          "inference_time": 9.05509901046753,
           "response": "In the center of the image, a light brown Shiba Inu dog is sitting comfortably on a tiled floor. The dog's attention is directed upwards, meeting the camera head-on. Its nose is black, and its eyes are wide open, giving the impression that it is curious or possibly surprised. \n\nTo the left of the dog, there is a green shoe placed on the floor. A small white electric fan is situated behind the dog, slightly to the left. The background features a wooden wall, adding a warm and homely touch to the scene.",
           "image_info": {
             "original_size": [
@@ -202,8 +202,31 @@
           },
           "timeout_used": 60
         },
+        "IMG_2053.JPG": {
+          "inference_time": 9.490163087844849,
+          "response": "A young man is standing in the center of the image, holding a passport in his right hand. The passport is open, displaying a photo on the left side and a passport number on the right. The man is wearing a white t-shirt with the word \"FKONS\" printed on it. He is wearing black framed glasses. The man has short black hair and a mustache.",
+          "image_info": {
+            "original_size": [
+              3088,
+              2316
+            ],
+            "processed_size": [
+              1024,
+              768
+            ],
+            "mode": "RGB",
+            "file_size": 1834456
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 60
+        },
         "test_image.jpg": {
-          "inference_time": 3.2607860565185547,
+          "inference_time": 3.7631020545959473,
           "response": "The image displays a simple diagram consisting of a blue square containing a red circle. The red circle is labeled \"PHI-3\" and is positioned in the center of the square. The entire diagram is set against a white background, creating a clear and easily readable visual representation.",
           "image_info": {
             "original_size": [
@@ -224,46 +247,23 @@
             "do_sample": false
           },
           "timeout_used": 60
-        },
-        "test_image.png": {
-          "inference_time": 4.31730318069458,
-          "response": "The image displays a square-shaped diagram containing two distinct sections: a light blue square and a pink circle. Within the light blue square, the phrase \"PHI-3\" is inscribed in blue letters, indicating a possible association or grouping between these concepts. The pink circle, positioned within the light blue square, further emphasizes the connection or overlap between these two elements.",
-          "image_info": {
-            "original_size": [
-              336,
-              336
-            ],
-            "processed_size": [
-              336,
-              336
-            ],
-            "mode": "RGB",
-            "file_size": 2305
-          },
-          "error": null,
-          "unified_test": true,
-          "generation_params": {
-            "max_new_tokens": 100,
-            "do_sample": false
-          },
-          "timeout_used": 60
         }
       },
-      "total_inference_time": 15.478248119354248,
+      "total_inference_time": 22.308364152908325,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 5.159416039784749,
-      "memory_after_cleanup": 0.5047149658203125
+      "avg_inference_time": 7.436121384302775,
+      "memory_after_cleanup": 0.346221923828125
     },
     "LLaVA-v1.6-Mistral-7B-MLX": {
       "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
-      "load_time": 3.13897705078125,
-      "memory_before": 0.51214599609375,
-      "memory_after": 0.4261932373046875,
-      "memory_diff": -0.0859527587890625,
+      "load_time": 3.1105258464813232,
+      "memory_before": 0.355926513671875,
+      "memory_after": 0.1704254150390625,
+      "memory_diff": -0.1855010986328125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 5.758618116378784,
+          "inference_time": 5.872589826583862,
           "response": "\n\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the",
           "image_info": {
             "original_size": [
@@ -285,8 +285,31 @@
           },
           "timeout_used": 180
         },
+        "IMG_2053.JPG": {
+          "inference_time": 0.14014792442321777,
+          "response": "",
+          "image_info": {
+            "original_size": [
+              3088,
+              2316
+            ],
+            "processed_size": [
+              1024,
+              768
+            ],
+            "mode": "RGB",
+            "file_size": 1834456
+          },
+          "error": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        },
         "test_image.jpg": {
-          "inference_time": 0.03677678108215332,
+          "inference_time": 0.013489723205566406,
           "response": "",
           "image_info": {
             "original_size": [
@@ -307,36 +330,13 @@
             "do_sample": false
           },
           "timeout_used": 180
-        },
-        "test_image.png": {
-          "inference_time": 0.06603813171386719,
-          "response": "",
-          "image_info": {
-            "original_size": [
-              336,
-              336
-            ],
-            "processed_size": [
-              336,
-              336
-            ],
-            "mode": "RGB",
-            "file_size": 2305
-          },
-          "error": "MLX-VLM inference failed: input operand has more dimensions than allowed by the axis remapping",
-          "unified_test": true,
-          "generation_params": {
-            "max_new_tokens": 100,
-            "do_sample": false
-          },
-          "timeout_used": 180
         }
       },
-      "total_inference_time": 5.758618116378784,
+      "total_inference_time": 5.872589826583862,
       "successful_inferences": 1,
       "failed_inferences": 2,
-      "avg_inference_time": 5.758618116378784,
-      "memory_after_cleanup": 0.6880340576171875
+      "avg_inference_time": 5.872589826583862,
+      "memory_after_cleanup": 0.5675811767578125
     }
   }
 }

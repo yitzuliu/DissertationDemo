@@ -49,8 +49,10 @@ The go-to model for any task that benefits from a conversational approach. Like 
 - **Fast Inference**: Responds very quickly, making it feel interactive.
 - **Context-Aware**: Can maintain context over several questions about the same image.
 
-**Limitations:**
-- **Fails on Synthetic Images**: Has a known issue where it cannot process simple, synthetic images (e.g., diagrams), but works perfectly on photographs. This is handled with an exclusion list in the tester.
+**Limitations & Known Issues:**
+- **Fails on Synthetic Images**: The latest tests (`test_results_20250713_142116.json`) confirm this model consistently fails on simple, synthetic images (e.g., diagrams or geometric shapes on a flat background).
+- **MLX-VLM Library Error**: The failure is due to a bug in the underlying `mlx-vlm` library, which throws an `input operand has more dimensions than allowed by the axis remapping` error for these images.
+- **Excels with Photographs**: The model works perfectly on real-world photographic images, making it highly reliable for applications involving physical objects.
 - Requires the `mlx-vlm` dependency.
 
 **Ideal Use Cases:**

@@ -243,6 +243,14 @@ python src/models/smolvlm/start_server.py --quantize int8
 PHI3_QUANTIZE=true python src/models/phi3_vision/start_server.py
 ```
 
+### LLaVA-v1.6 (MLX) Issues
+
+**Inference fails on some images:**
+- **Symptom**: The model works perfectly for photographs but returns an error when processing simple, synthetic images (like diagrams or geometric shapes).
+- **Error Message**: The console log for the model server will show an error similar to `mlx_vlm.errors.VlmError: input operand has more dimensions than allowed by the axis remapping`.
+- **Cause**: This is a known issue in the underlying `mlx-vlm` library when handling images that may lack standard metadata or have specific dimension properties.
+- **Solution**: There is no direct fix, as the issue is with the library. The model should be used for its primary strength: analyzing real-world photographic images. For testing, these synthetic images are excluded, but for production use, ensure the input is from a camera or a photograph.
+
 ### YOLO8 Issues
 
 **Detection accuracy:**

@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-13 14:18:48",
+  "test_timestamp": "2025-07-13 14:48:43",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,13 +8,13 @@
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-      "load_time": 2.8580050468444824,
-      "memory_before": 0.34442138671875,
-      "memory_after": 0.413299560546875,
-      "memory_diff": 0.068878173828125,
+      "load_time": 2.585020065307617,
+      "memory_before": 0.3366546630859375,
+      "memory_after": 0.40863037109375,
+      "memory_diff": 0.0719757080078125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 11.53169298171997,
+          "inference_time": 12.396589040756226,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a Shiba Inu dog, characterized by its tan and white fur, sitting on a tiled floor. The dog's face is prominently displayed, with its nose and mouth visible. The dog appears to be looking directly at the camera, giving a sense of curiosity or attentiveness. The background of the image includes a green shoe and a white wall, which are positioned relatively far from the camera.",
           "image_info": {
             "original_size": [
@@ -36,8 +36,31 @@
           },
           "timeout_used": 60
         },
+        "IMG_2053.JPG": {
+          "inference_time": 10.283154010772705,
+          "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a person wearing a white t-shirt with the text \"FKON\" and a logo on the left side, holding a passport. The passport is held in the person's right hand, displaying a photograph of a person with the name \"YU\" and the date \"2015-08-28\" on the left side. The passport also includes a photograph of a person with the name \"WANG\" and the date \"2015-",
+          "image_info": {
+            "original_size": [
+              3088,
+              2316
+            ],
+            "processed_size": [
+              1024,
+              768
+            ],
+            "mode": "RGB",
+            "file_size": 1834456
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 60
+        },
         "test_image.jpg": {
-          "inference_time": 11.636700868606567,
+          "inference_time": 12.4286367893219,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border. The background of the image is light blue, providing a neutral backdrop that allows the geometric shapes to stand out.\n\n### Description:\n- **Circle**: The red circle",
           "image_info": {
             "original_size": [
@@ -58,36 +81,13 @@
             "do_sample": false
           },
           "timeout_used": 60
-        },
-        "test_image.png": {
-          "inference_time": 11.703898191452026,
-          "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border.\n\nThe image does not contain any text or additional objects. The relative positions of the objects are as follows:\n- The red circle is centrally located within the blue square.",
-          "image_info": {
-            "original_size": [
-              336,
-              336
-            ],
-            "processed_size": [
-              336,
-              336
-            ],
-            "mode": "RGB",
-            "file_size": 2305
-          },
-          "error": null,
-          "unified_test": true,
-          "generation_params": {
-            "max_new_tokens": 100,
-            "do_sample": false
-          },
-          "timeout_used": 60
         }
       },
-      "total_inference_time": 34.872292041778564,
+      "total_inference_time": 35.10837984085083,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 11.624097347259521,
-      "memory_after_cleanup": 3.09893798828125
+      "avg_inference_time": 11.70279328028361,
+      "memory_after_cleanup": 2.831085205078125
     }
   }
 }

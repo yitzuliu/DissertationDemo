@@ -65,7 +65,7 @@ The system supports a variety of models, each with its own strengths. Models opt
 
 | Model | Key Strengths | Recommended Use Case |
 |-----------------------------|--------------------------------------------|---------------------------------|
-| **LLaVA-v1.6 (MLX)** | Excellent conversational ability | Multi-turn, interactive guidance |
+| **LLaVA-v1.6 (MLX)** | Excellent conversational ability | Multi-turn, interactive guidance for photographic images. Fails on synthetic images. |
 | **Phi-3.5-Vision (MLX)** | High accuracy, strong reasoning | Detailed single-image analysis |
 | **Moondream2** | Extremely fast and lightweight | Quick, general-purpose analysis |
 | **SmolVLM / SmolVLM2** | Efficient and balanced performance | Reliable, all-around use |

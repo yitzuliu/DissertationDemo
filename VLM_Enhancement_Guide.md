@@ -72,6 +72,8 @@ With several high-performing models now integrated, the focus shifts to comparin
 | **Conversational?** | No | No | Limited | 🏆 Yes |
 | **Setup Complexity** | ✅ Simple | ✅ Simple | ⚠️ Requires MLX | ⚠️ Requires MLX |
 | **Implementation Risk**| ✅ Low | ✅ Low | ✅ Low | ✅ Low |
+
+> *Note on LLaVA Reliability*: The "High (with photos)" rating reflects recent test results where the MLX-optimized LLaVA model successfully processed photographic images but failed on synthetic test images due to a library-level bug. For real-world camera applications, its reliability remains high.
 ---
 
 ## 🚀 Prompt Engineering Strategy
