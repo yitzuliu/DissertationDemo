@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-13 14:48:43",
+  "test_timestamp": "2025-07-15 15:21:20",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,13 +8,13 @@
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-      "load_time": 2.585020065307617,
-      "memory_before": 0.3366546630859375,
-      "memory_after": 0.40863037109375,
-      "memory_diff": 0.0719757080078125,
+      "load_time": 2.698392868041992,
+      "memory_before": 0.338836669921875,
+      "memory_after": 0.4147186279296875,
+      "memory_diff": 0.0758819580078125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 12.396589040756226,
+          "inference_time": 13.215167999267578,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a Shiba Inu dog, characterized by its tan and white fur, sitting on a tiled floor. The dog's face is prominently displayed, with its nose and mouth visible. The dog appears to be looking directly at the camera, giving a sense of curiosity or attentiveness. The background of the image includes a green shoe and a white wall, which are positioned relatively far from the camera.",
           "image_info": {
             "original_size": [
@@ -37,7 +37,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 10.283154010772705,
+          "inference_time": 12.444862127304077,
           "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a person wearing a white t-shirt with the text \"FKON\" and a logo on the left side, holding a passport. The passport is held in the person's right hand, displaying a photograph of a person with the name \"YU\" and the date \"2015-08-28\" on the left side. The passport also includes a photograph of a person with the name \"WANG\" and the date \"2015-",
           "image_info": {
             "original_size": [
@@ -60,7 +60,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 12.4286367893219,
+          "inference_time": 13.292783975601196,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border. The background of the image is light blue, providing a neutral backdrop that allows the geometric shapes to stand out.\n\n### Description:\n- **Circle**: The red circle",
           "image_info": {
             "original_size": [
@@ -83,21 +83,47 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 35.10837984085083,
+      "total_inference_time": 38.95281410217285,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 11.70279328028361,
-      "memory_after_cleanup": 2.831085205078125
+      "avg_inference_time": 12.984271367390951,
+      "text_only_capability": {
+        "text_only_supported": true,
+        "success_rate": 1.0,
+        "total_tests": 3,
+        "successful_tests": 3,
+        "results": {
+          "prompt_1": {
+            "prompt": "What is the capital of France?",
+            "response": "User: What is the capital of France?\nAssistant: The capital of France is Paris. It is a city located in the northern part of the country, on the River Seine, and is the largest city in France. Paris is known for its rich history, culture, fashion, and cuisine. The city is home to many famous landmarks, including the Eiffel Tower, the Louvre Museum, and Notre-Dame Cathedral.",
+            "inference_time": 3.3743510246276855,
+            "success": true
+          },
+          "prompt_2": {
+            "prompt": "Explain the concept of machine learning in simple terms.",
+            "response": "User: Explain the concept of machine learning in simple terms.\nAssistant: Machine learning is a way of teaching computers to learn from data and make decisions or predictions without being explicitly programmed. Here's a simple explanation:\n\n**What is machine learning?**\n\nMachine learning is a type of artificial intelligence (AI) that enables computers to learn from data and improve their performance over time. It's like teaching a computer to recognize patterns and make decisions based on that data.\n\n**How does machine learning work?**\n\nImagine you have a big box of toys,",
+            "inference_time": 3.794693946838379,
+            "success": true
+          },
+          "prompt_3": {
+            "prompt": "Write a short poem about technology.",
+            "response": "User: Write a short poem about technology.\nAssistant: In the digital realm, where wires and circuits run,\nA world of possibilities, a never-ending dream.\nFrom smartphones that hold the world's secrets,\nTo computers that bring us closer to the sky.\n\nWe use them to connect, to communicate, to share,\nBut at what cost? The lines between life and death.\nWe rely on them to navigate, to find,\nBut sometimes, we forget to live, to be alive.\n\nThe internet,",
+            "inference_time": 3.941815137863159,
+            "success": true
+          }
+        }
+      },
+      "memory_after_cleanup": 1.932769775390625
     },
     "SmolVLM-500M-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct",
-      "load_time": 3.6672329902648926,
-      "memory_before": 1.1194610595703125,
-      "memory_after": 0.92950439453125,
-      "memory_diff": -0.1899566650390625,
+      "load_time": 4.92263126373291,
+      "memory_before": 0.32623291015625,
+      "memory_after": 0.6744232177734375,
+      "memory_diff": 0.3481903076171875,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 9.780035734176636,
+          "inference_time": 11.097381114959717,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A Shiba Inu dog with a black nose is sitting on a bathroom floor in front of a toilet and a hand sanitizer dispenser. The dog is looking directly at the camera. The dog has a light brown coat with a white patch of fur on its neck. The nose is black. The dog's left ear is black and its right ear is gray. The dog's mouth is closed. The floor is white with light gray tiles. There are two green slippers on the floor in front",
           "image_info": {
             "original_size": [
@@ -120,7 +146,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 9.969529151916504,
+          "inference_time": 9.798099994659424,
           "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A man holds a passport-style document in front of his face, which appears to be a photo ID. The man is wearing a white T-shirt with black text that reads \"FKONs\" and has a picture of a woman on the front. The document he is holding appears to be a passport, as it has a photo of a man on the front. The man's face is partially obscured by the passport, but his eyes are visible and he is wearing glasses. The passport",
           "image_info": {
             "original_size": [
@@ -143,7 +169,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 13.063385963439941,
+          "inference_time": 11.967089891433716,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a square and a circle. The square is light blue in color and has a blue border. The circle is red and is positioned inside the square. The circle is perfectly centered within the square.\n\n### Description:\n- **Square**: The square has four equal sides and four equal angles. The corners of the square are labeled with the numbers 1, 2, 3, and 4.\n- **Circle**: The circle",
           "image_info": {
             "original_size": [
@@ -166,21 +192,47 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 32.81295084953308,
+      "total_inference_time": 32.862571001052856,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 10.937650283177694,
-      "memory_after_cleanup": 2.6335601806640625
+      "avg_inference_time": 10.954190333684286,
+      "text_only_capability": {
+        "text_only_supported": true,
+        "success_rate": 1.0,
+        "total_tests": 3,
+        "successful_tests": 3,
+        "results": {
+          "prompt_1": {
+            "prompt": "What is the capital of France?",
+            "response": "User: What is the capital of France?\nAssistant: Paris",
+            "inference_time": 0.16011977195739746,
+            "success": true
+          },
+          "prompt_2": {
+            "prompt": "Explain the concept of machine learning in simple terms.",
+            "response": "User: Explain the concept of machine learning in simple terms.\nAssistant: Machine learning is a subset of artificial intelligence that allows computers to learn from data and improve their performance without being explicitly programmed. It involves using algorithms and statistical techniques to analyze and interpret data, and then use this information to make predictions or decisions.",
+            "inference_time": 1.660262107849121,
+            "success": true
+          },
+          "prompt_3": {
+            "prompt": "Write a short poem about technology.",
+            "response": "User: Write a short poem about technology.\nAssistant: In the realm of technology,\nWhere machines and machines are,\nA world of possibilities,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and",
+            "inference_time": 3.3451921939849854,
+            "success": true
+          }
+        }
+      },
+      "memory_after_cleanup": 2.9225616455078125
     },
     "Moondream2": {
       "model_id": "vikhyatk/moondream2",
-      "load_time": 6.0064778327941895,
-      "memory_before": 1.01727294921875,
-      "memory_after": 0.014312744140625,
-      "memory_diff": -1.002960205078125,
+      "load_time": 5.327291965484619,
+      "memory_before": 1.14447021484375,
+      "memory_after": 0.0180206298828125,
+      "memory_diff": -1.1264495849609375,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 9.05509901046753,
+          "inference_time": 9.12758207321167,
           "response": "In the center of the image, a light brown Shiba Inu dog is sitting comfortably on a tiled floor. The dog's attention is directed upwards, meeting the camera head-on. Its nose is black, and its eyes are wide open, giving the impression that it is curious or possibly surprised. \n\nTo the left of the dog, there is a green shoe placed on the floor. A small white electric fan is situated behind the dog, slightly to the left. The background features a wooden wall, adding a warm and homely touch to the scene.",
           "image_info": {
             "original_size": [
@@ -203,8 +255,8 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 9.490163087844849,
-          "response": "A young man is standing in the center of the image, holding a passport in his right hand. The passport is open, displaying a photo on the left side and a passport number on the right. The man is wearing a white t-shirt with the word \"FKONS\" printed on it. He is wearing black framed glasses. The man has short black hair and a mustache.",
+          "inference_time": 7.422119379043579,
+          "response": "A young man is standing in the center of the image, holding a passport in his right hand. The passport is open, displaying a photo on the left side and a passport number on the right. The man is wearing a white t-shirt with the word \"FKONS\" printed on it. He is wearing black framed glasses. The man has short",
           "image_info": {
             "original_size": [
               3088,
@@ -226,7 +278,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 3.7631020545959473,
+          "inference_time": 3.7901997566223145,
           "response": "The image displays a simple diagram consisting of a blue square containing a red circle. The red circle is labeled \"PHI-3\" and is positioned in the center of the square. The entire diagram is set against a white background, creating a clear and easily readable visual representation.",
           "image_info": {
             "original_size": [
@@ -249,11 +301,37 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 22.308364152908325,
+      "total_inference_time": 20.339901208877563,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 7.436121384302775,
-      "memory_after_cleanup": 0.346221923828125
+      "avg_inference_time": 6.7799670696258545,
+      "text_only_capability": {
+        "text_only_supported": false,
+        "success_rate": 0.0,
+        "total_tests": 3,
+        "successful_tests": 0,
+        "results": {
+          "prompt_1": {
+            "prompt": "What is the capital of France?",
+            "response": "Moondream2 純文字推理失敗: HfMoondream.generate() missing 3 required positional arguments: 'image_embeds', 'prompt', and 'tokenizer' | 備用方法: HfMoondream.generate() missing 2 required positional arguments: 'prompt' and 'tokenizer'",
+            "inference_time": 0.004395961761474609,
+            "success": false
+          },
+          "prompt_2": {
+            "prompt": "Explain the concept of machine learning in simple terms.",
+            "response": "Moondream2 純文字推理失敗: HfMoondream.generate() missing 3 required positional arguments: 'image_embeds', 'prompt', and 'tokenizer' | 備用方法: HfMoondream.generate() missing 2 required positional arguments: 'prompt' and 'tokenizer'",
+            "inference_time": 0.000993967056274414,
+            "success": false
+          },
+          "prompt_3": {
+            "prompt": "Write a short poem about technology.",
+            "response": "Moondream2 純文字推理失敗: HfMoondream.generate() missing 3 required positional arguments: 'image_embeds', 'prompt', and 'tokenizer' | 備用方法: HfMoondream.generate() missing 2 required positional arguments: 'prompt' and 'tokenizer'",
+            "inference_time": 0.0015208721160888672,
+            "success": false
+          }
+        }
+      },
+      "memory_after_cleanup": 0.478546142578125
     }
   }
 }

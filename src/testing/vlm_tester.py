@@ -217,6 +217,9 @@ class VLMTester:
         self.prompt = "Describe what you see in this image in detail."
         self.unified_max_tokens = 100  # 統一生成長度
         self.unified_image_size = 1024  # 統一圖像最大尺寸
+        
+        # 💡 純文字測試配置
+        self.enable_text_only_test = True  # 是否啟用純文字測試
     
     def get_test_images(self):
         """獲取測試圖像列表"""
@@ -325,9 +328,36 @@ class VLMTester:
             else:
                 model_results["avg_inference_time"] = 0
                 
-            print(f"模型 {model_name} 測試完成")
+            print(f"模型 {model_name} 圖像測試完成")
             print(f"成功: {model_results['successful_inferences']}, 失敗: {model_results['failed_inferences']}")
             print(f"平均推理時間: {model_results['avg_inference_time']:.2f} 秒")
+            
+            # 💡 新增：純文字能力測試（可選）
+            if self.enable_text_only_test:
+                print(f"\n開始測試 {model_name} 純文字能力...")
+                try:
+                    text_only_results = self.test_text_only_capability(model, processor, model_name)
+                    model_results["text_only_capability"] = text_only_results
+                    
+                    if text_only_results["text_only_supported"]:
+                        print(f"✅ {model_name} 支援純文字輸入!")
+                    else:
+                        print(f"❌ {model_name} 不支援純文字輸入")
+                        
+                except Exception as e:
+                    print(f"⚠️ 純文字測試發生錯誤: {str(e)}")
+                    model_results["text_only_capability"] = {
+                        "text_only_supported": False,
+                        "error": str(e)
+                    }
+            else:
+                print(f"\n跳過純文字測試（已停用）")
+                model_results["text_only_capability"] = {
+                    "text_only_supported": "未測試",
+                    "reason": "純文字測試已停用"
+                }
+            
+            print(f"\n模型 {model_name} 所有測試完成")
             
         except Exception as e:
             print(f"載入模型 {model_name} 時發生錯誤: {str(e)}")
@@ -638,6 +668,323 @@ class VLMTester:
             # 清理臨時文件（如果存在）
             if temp_image_path_for_fix:
                 os.remove(temp_image_path_for_fix)
+    
+    def test_text_only_capability(self, model, processor, model_name):
+        """測試模型是否支援純文字輸入（不需要圖片）- 支援所有模型"""
+        print(f"測試 {model_name} 純文字能力...")
+        
+        # 純文字測試提示
+        text_only_prompts = [
+            "What is the capital of France?",
+            "Explain the concept of machine learning in simple terms.",
+            "Write a short poem about technology."
+        ]
+        
+        results = {}
+        
+        for i, prompt in enumerate(text_only_prompts):
+            print(f"  測試提示 {i+1}: {prompt}")
+            
+            try:
+                start_time = time.time()
+                response = ""
+                
+                # 🔧 根據模型類型使用專門的純文字推理方式
+                if "Moondream2" in model_name:
+                    response = self._test_moondream2_text_only(model, processor, prompt)
+                elif "Phi-3.5" in model_name:
+                    response = self._test_phi35_text_only(model, processor, prompt)
+                elif "SmolVLM2" in model_name:
+                    response = self._test_smolvlm2_text_only(model, processor, prompt)
+                elif "SmolVLM" in model_name:
+                    response = self._test_smolvlm_text_only(model, processor, prompt)
+                elif "LLaVA" in model_name:
+                    response = self._test_llava_text_only(model, processor, prompt)
+                else:
+                    response = self._test_generic_text_only(model, processor, prompt)
+                
+                inference_time = time.time() - start_time
+                
+                # 判斷成功與否
+                is_success = (
+                    response and 
+                    len(response.strip()) > 0 and 
+                    "失敗" not in response and 
+                    "failed" not in response.lower() and
+                    "error" not in response.lower() and
+                    "不支援" not in response
+                )
+                
+                results[f"prompt_{i+1}"] = {
+                    "prompt": prompt,
+                    "response": response,
+                    "inference_time": inference_time,
+                    "success": is_success
+                }
+                
+                print(f"    回應: {response[:100]}...")
+                print(f"    時間: {inference_time:.2f}秒")
+                print(f"    狀態: {'✅ 成功' if is_success else '❌ 失敗'}")
+                
+            except Exception as e:
+                results[f"prompt_{i+1}"] = {
+                    "prompt": prompt,
+                    "response": "",
+                    "inference_time": 0,
+                    "error": str(e),
+                    "success": False
+                }
+                print(f"    錯誤: {str(e)}")
+        
+        # 計算成功率
+        successful_tests = sum(1 for r in results.values() if r.get("success", False))
+        total_tests = len(results)
+        success_rate = successful_tests / total_tests if total_tests > 0 else 0
+        
+        print(f"  純文字測試成功率: {successful_tests}/{total_tests} ({success_rate:.1%})")
+        
+        return {
+            "text_only_supported": success_rate > 0,  # 任何成功都視為支援
+            "success_rate": success_rate,
+            "total_tests": total_tests,
+            "successful_tests": successful_tests,
+            "results": results
+        }
+    
+    def _test_moondream2_text_only(self, model, processor, prompt):
+        """Moondream2 純文字測試"""
+        try:
+            # 方法1: 直接使用 tokenizer 進行純文字生成
+            inputs = processor(prompt, return_tensors="pt")
+            device = next(model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            
+            with torch.no_grad():
+                outputs = model.generate(
+                    **inputs,
+                    max_new_tokens=self.unified_max_tokens,
+                    do_sample=False,
+                    pad_token_id=processor.eos_token_id
+                )
+            
+            response = processor.decode(outputs[0], skip_special_tokens=True)
+            
+            # 移除原始提示，只保留生成的部分
+            if prompt in response:
+                response = response.replace(prompt, "").strip()
+            
+            return response
+            
+        except Exception as e:
+            # 方法2: 嘗試使用模型的 chat 功能（如果有）
+            try:
+                # 某些版本的 Moondream2 可能支援純文字對話
+                device = next(model.parameters()).device
+                inputs = processor(prompt, return_tensors="pt").to(device)
+                
+                with torch.no_grad():
+                    outputs = model.generate(
+                        inputs.input_ids,
+                        max_new_tokens=self.unified_max_tokens,
+                        do_sample=False,
+                        pad_token_id=processor.eos_token_id
+                    )
+                
+                response = processor.decode(outputs[0], skip_special_tokens=True)
+                return response.replace(prompt, "").strip()
+                
+            except Exception as e2:
+                return f"Moondream2 純文字推理失敗: {str(e)} | 備用方法: {str(e2)}"
+    
+    def _test_phi35_text_only(self, model, processor, prompt):
+        """Phi-3.5-Vision 純文字測試"""
+        try:
+            # 方法1: MLX 模型純文字推理
+            if not hasattr(model, 'generate'):
+                try:
+                    from mlx_vlm import generate
+                    # MLX 模型嘗試純文字推理
+                    response = generate(
+                        model=model,
+                        processor=processor,
+                        prompt=prompt,
+                        max_tokens=self.unified_max_tokens,
+                        verbose=False
+                    )
+                    if isinstance(response, tuple):
+                        response = response[0]
+                    return str(response)
+                except Exception as mlx_e:
+                    return f"MLX 純文字推理失敗: {str(mlx_e)}"
+            
+            # 方法2: Transformers 模型純文字推理
+            else:
+                inputs = processor.tokenizer(prompt, return_tensors="pt")
+                device = next(model.parameters()).device
+                inputs = {k: v.to(device) for k, v in inputs.items()}
+                
+                with torch.no_grad():
+                    outputs = model.generate(
+                        **inputs,
+                        max_new_tokens=self.unified_max_tokens,
+                        do_sample=False,
+                        pad_token_id=processor.tokenizer.eos_token_id
+                    )
+                
+                response = processor.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                return response.replace(prompt, "").strip()
+                
+        except Exception as e:
+            return f"Phi-3.5-Vision 純文字推理失敗: {str(e)}"
+    
+    def _test_smolvlm2_text_only(self, model, processor, prompt):
+        """SmolVLM2-500M-Video 純文字測試"""
+        try:
+            # 方法1: 嘗試純文字消息格式
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt}  # 只有文字，沒有圖像
+                    ]
+                }
+            ]
+            
+            input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            inputs = processor(text=input_text, return_tensors="pt")
+            
+            with torch.no_grad():
+                outputs = model.generate(**inputs, max_new_tokens=self.unified_max_tokens, do_sample=False)
+            
+            response = processor.decode(outputs[0], skip_special_tokens=True)
+            return response.replace(input_text, "").strip()
+            
+        except Exception as e:
+            # 方法2: 嘗試直接文字輸入
+            try:
+                inputs = processor(text=prompt, return_tensors="pt")
+                with torch.no_grad():
+                    outputs = model.generate(**inputs, max_new_tokens=self.unified_max_tokens, do_sample=False)
+                response = processor.decode(outputs[0], skip_special_tokens=True)
+                return response.replace(prompt, "").strip()
+            except Exception as e2:
+                return f"SmolVLM2 純文字推理失敗: {str(e)} | 備用方法: {str(e2)}"
+    
+    def _test_smolvlm_text_only(self, model, processor, prompt):
+        """SmolVLM-500M-Instruct 純文字測試"""
+        try:
+            # 方法1: 嘗試純文字消息格式
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt}  # 只有文字，沒有圖像
+                    ]
+                }
+            ]
+            
+            input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+            inputs = processor(text=input_text, return_tensors="pt")
+            
+            with torch.no_grad():
+                outputs = model.generate(**inputs, max_new_tokens=self.unified_max_tokens, do_sample=False)
+            
+            response = processor.decode(outputs[0], skip_special_tokens=True)
+            return response.replace(input_text, "").strip()
+            
+        except Exception as e:
+            # 方法2: 嘗試直接文字輸入
+            try:
+                inputs = processor(text=prompt, return_tensors="pt")
+                with torch.no_grad():
+                    outputs = model.generate(**inputs, max_new_tokens=self.unified_max_tokens, do_sample=False)
+                response = processor.decode(outputs[0], skip_special_tokens=True)
+                return response.replace(prompt, "").strip()
+            except Exception as e2:
+                return f"SmolVLM 純文字推理失敗: {str(e)} | 備用方法: {str(e2)}"
+    
+    def _test_llava_text_only(self, model, processor, prompt):
+        """LLaVA-MLX 純文字測試"""
+        try:
+            # 方法1: MLX-VLM 純文字推理
+            from mlx_vlm import generate
+            response = generate(
+                model=model,
+                processor=processor,
+                prompt=prompt,
+                max_tokens=self.unified_max_tokens,
+                verbose=False
+            )
+            
+            if isinstance(response, tuple) and len(response) >= 1:
+                text_response = response[0] if response[0] else ""
+            else:
+                text_response = str(response) if response else ""
+            
+            return text_response
+            
+        except Exception as e:
+            # 方法2: 嘗試 pipeline 方式（如果支援）
+            try:
+                # 嘗試純文字對話格式
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt}
+                        ]
+                    },
+                ]
+                
+                response = model(text=messages, max_new_tokens=self.unified_max_tokens, return_full_text=False)
+                if isinstance(response, list) and len(response) > 0:
+                    return response[0].get('generated_text', str(response))
+                else:
+                    return str(response)
+                    
+            except Exception as e2:
+                return f"LLaVA 純文字推理失敗: {str(e)} | 備用方法: {str(e2)}"
+    
+    def _test_generic_text_only(self, model, processor, prompt):
+        """通用純文字測試方法"""
+        try:
+            # 方法1: 嘗試使用 processor 進行純文字處理
+            inputs = processor(text=prompt, return_tensors="pt")
+            device = next(model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            
+            with torch.no_grad():
+                outputs = model.generate(
+                    **inputs,
+                    max_new_tokens=self.unified_max_tokens,
+                    do_sample=False
+                )
+            
+            response = processor.decode(outputs[0], skip_special_tokens=True)
+            return response.replace(prompt, "").strip()
+            
+        except Exception as e:
+            # 方法2: 嘗試直接 tokenizer 方式
+            try:
+                if hasattr(processor, 'tokenizer'):
+                    inputs = processor.tokenizer(prompt, return_tensors="pt")
+                    device = next(model.parameters()).device
+                    inputs = {k: v.to(device) for k, v in inputs.items()}
+                    
+                    with torch.no_grad():
+                        outputs = model.generate(
+                            **inputs,
+                            max_new_tokens=self.unified_max_tokens,
+                            do_sample=False
+                        )
+                    
+                    response = processor.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                    return response.replace(prompt, "").strip()
+                else:
+                    return f"通用純文字推理失敗: 無法找到適當的 tokenizer"
+                    
+            except Exception as e2:
+                return f"通用純文字推理失敗: {str(e)} | 備用方法: {str(e2)}"
     
     def run_all_tests(self):
         """執行所有模型的測試"""

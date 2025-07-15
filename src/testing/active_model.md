@@ -13,6 +13,26 @@
 > - All models use these consistent parameters for fair comparison
 > - Individual hardcoded parameters have been replaced with `**unified_generation_params`
 
+## 🚀 **Pure Text Capability Summary** ✨
+
+**Latest Test Results (2025-07-15)**:
+- **Pure Text Support Rate**: 80% (4/5 models)
+- **Test Method**: 3 different prompts (knowledge Q&A, concept explanation, creative writing)
+- **Surprising Discovery**: SmolVLM series fully supports pure text despite being VLM models
+
+| Model | Pure Text Support | Success Rate | Avg Speed | Best Use Case |
+|-------|-------------------|--------------|-----------|---------------|
+| **SmolVLM-500M-Instruct** | ✅ Full | 100% | 1.72s | 🚀 Fast Q&A |
+| **SmolVLM2-500M-Video** | ✅ Full | 100% | 3.70s | 🎬 Multi-media |
+| **LLaVA-v1.6-Mistral-7B-MLX** | ✅ Full | 100% | 4.08s | 🎨 Creative writing |
+| **Phi-3.5-Vision-Instruct** | ✅ Full | 100% | 16.38s | 📚 Detailed analysis |
+| **Moondream2** | ❌ None | 0% | N/A | 👁️ Vision-only |
+
+**Key Findings**:
+- **SmolVLM series**: Unexpectedly excellent pure text performance
+- **MLX optimization**: Enables both vision and text capabilities
+- **Moondream2**: Architecture limitation requires `image_embeds` parameter
+
 ## HuggingFaceTB/SmolVLM2-500M-Video-Instruct
 
 ### 📖 Official Usage Examples
@@ -68,7 +88,32 @@ inputs = processor(text=input_text, images=image, return_tensors="pt")
 with torch.no_grad():
     outputs = model.generate(**inputs, **unified_generation_params)  # 使用統一參數
 response = processor.decode(outputs[0], skip_special_tokens=True)
-```  
+```
+
+### 🚀 **Pure Text Capability** ✅
+**Success Rate**: 100% (3/3) | **Avg Speed**: 3.70s | **Best Use**: Multi-media applications
+
+**Pure text inference method:**
+```python
+# Pure text message format (no image required)
+messages = [
+    {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "What is the capital of France?"}  # Text only
+        ]
+    }
+]
+input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+inputs = processor(text=input_text, return_tensors="pt")
+with torch.no_grad():
+    outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
+response = processor.decode(outputs[0], skip_special_tokens=True)
+```
+
+**Sample pure text responses:**
+- Q: "What is the capital of France?" → "The capital of France is Paris. It is a city located in the northern part of the country..."
+- Q: "Write a short poem about technology." → "In the digital realm, where wires and circuits dance..."
 
 **Clone this model repository**
 - Make sure git-lfs is installed (https://git-lfs.com)
@@ -135,6 +180,33 @@ with torch.no_grad():
 response = processor.decode(outputs[0], skip_special_tokens=True)
 ```
 
+### 🚀 **Pure Text Capability** ✅ 🏆
+**Success Rate**: 100% (3/3) | **Avg Speed**: 1.72s | **Best Use**: Fast Q&A, real-time chat
+
+**Pure text inference method:**
+```python
+# Pure text message format (no image required)
+messages = [
+    {
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "Explain machine learning in simple terms"}  # Text only
+        ]
+    }
+]
+input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+inputs = processor(text=input_text, return_tensors="pt")
+with torch.no_grad():
+    outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
+response = processor.decode(outputs[0], skip_special_tokens=True)
+```
+
+**Sample pure text responses:**
+- Q: "What is the capital of France?" → "Paris" (Ultra-fast: 0.16s)
+- Q: "Explain machine learning..." → "Machine learning is a subset of artificial intelligence that allows computers to learn from data..."
+
+**⚡ Performance Highlight**: Fastest pure text model - ideal for real-time applications
+
 **Clone this model repository**
 - Make sure git-lfs is installed (https://git-lfs.com)
 git lfs install
@@ -198,6 +270,28 @@ if hasattr(enc_image, 'to'):
 # Use unified prompt, but cannot control max_tokens (API limitation)
 response = model.answer_question(enc_image, prompt, processor)
 ```
+
+### ❌ **Pure Text Capability** ❌
+**Success Rate**: 0% (0/3) | **Status**: Not supported | **Reason**: Architecture limitation
+
+**Technical Analysis:**
+```python
+# Pure text inference attempt (FAILS)
+try:
+    inputs = processor(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
+    # ERROR: HfMoondream.generate() missing 3 required positional arguments: 
+    # 'image_embeds', 'prompt', and 'tokenizer'
+except Exception as e:
+    print(f"Pure text not supported: {e}")
+```
+
+**Why it fails:**
+- Moondream2 architecture requires `image_embeds` parameter
+- The model is designed exclusively for vision-language tasks
+- No fallback mechanism exists for pure text processing
+
+**Recommendation**: Use Moondream2 for vision tasks only. For pure text, use SmolVLM-500M-Instruct or other models.
 
 **Clone this model repository**
 - Make sure git-lfs is installed (https://git-lfs.com)
@@ -299,6 +393,43 @@ if "MLX" in model_name:
         print(f"  ⚠️ MLX-VLM failed: {e}")
         return f"MLX-VLM inference failed: {str(e)}"
 ```
+
+### 🚀 **Pure Text Capability** ✅ 🎨
+**Success Rate**: 100% (3/3) | **Avg Speed**: 4.08s | **Best Use**: Creative writing, poetry
+
+**Pure text inference method:**
+```python
+# Pure text inference with MLX-VLM (no image required)
+from mlx_vlm import generate
+
+response = generate(
+    model=model,
+    processor=processor,
+    prompt="Write a short poem about technology",
+    max_tokens=100,
+    verbose=False
+)
+
+# Handle response format
+if isinstance(response, tuple) and len(response) >= 1:
+    text_response = response[0] if response[0] else ""
+else:
+    text_response = str(response) if response else ""
+```
+
+**Sample pure text responses:**
+- Q: "What is the capital of France?" → "The capital of France is Paris."
+- Q: "Write a short poem about technology." → 
+  ```
+  "In a world where technology reigns,
+  We're connected, yet sometimes pained.
+  Through screens and wires, we communicate,
+  But sometimes, we neglect.
+  To look up, to see the sky,
+  To feel the warmth, to touch the high..."
+  ```
+
+**🎨 Creative Highlight**: Best model for creative writing and poetry generation
 
 **Clone this model repository**
 - Make sure git-lfs is installed (https://git-lfs.com)
@@ -556,6 +687,45 @@ with torch.no_grad():
 
 response = processor.decode(outputs[0], skip_special_tokens=True)
 ```
+
+### 🚀 **Pure Text Capability** ✅ 📚
+**Success Rate**: 100% (3/3) | **Avg Speed**: 16.38s | **Best Use**: Detailed analysis, education
+
+**Pure text inference method:**
+```python
+# Pure text inference with MLX (no image required)
+from mlx_vlm import generate
+
+response = generate(
+    model=model,
+    processor=processor,
+    prompt="Explain the concept of machine learning in simple terms",
+    max_tokens=100,
+    verbose=False
+)
+
+# Handle response format and clean up tokens
+if isinstance(response, tuple):
+    text_response = response[0]
+else:
+    text_response = str(response)
+
+# Clean up MLX tokens
+text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
+text_response = ' '.join(text_response.split())
+```
+
+**Sample pure text responses:**
+- Q: "What is the capital of France?" → "Paris is the capital of France. It is not only the largest city in France but also one of the most populous cities in Europe. Paris is known for its history, culture, and landmarks such as the Eiffel Tower, Notre-Dame Cathedral, and the Louvre Museum."
+- Q: "Write a short poem about technology." → 
+  ```
+  "In circuits and bytes, our world is woven,
+  A tapestry of data, silently spoken.
+  From the hum of servers to the glow of screens,
+  Our lives are intertwined with digital dreams."
+  ```
+
+**📚 Educational Highlight**: Most detailed and comprehensive responses - perfect for educational applications
 
 **Clone model repository**
 **✅ MLX-optimized model (REQUIRED for Apple Silicon):**

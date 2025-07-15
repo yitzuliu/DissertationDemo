@@ -1,16 +1,20 @@
 # VLM Performance Testing Plan
 
 ## 🎯 **Testing Summary** (Latest Update)
-> ✅ **Testing Complete**: 5 models tested. 4 fully successful, 1 partially successful.  
+> ✅ **Testing Complete**: 5 models tested. All models successful for vision tasks, 4/5 support pure text.  
 > 🏆 **MLX Optimization Success**: Phi-3.5-Vision performance transformed from failure to the top performer.  
 > ⚠️ **LLaVA-MLX Limitation**: New MLX version of LLaVA is fast, but fails on specific image types.  
 > ⚡ **Fastest Loading**: Phi-3.5-Vision-Instruct (1.79s)  
 > 💨 **Fastest Inference**: Moondream2 (avg 5.41s)  
 > 📸 **Multi-Image Testing**: Latest run successfully tested 3 different images.  
+> 🚀 **Pure Text Discovery**: 80% models support pure text - SmolVLM series excels unexpectedly!  
 
 ## 📋 Testing Objectives
 
 Comprehensive testing of 5 vision-language models, recording basic performance metrics and response results. Using MacBook Air M3 (16GB) environment, supporting single or multiple image testing.
+
+### 🚀 **New Addition: Pure Text Capability Testing**
+Beyond vision-language tasks, we now test each model's ability to handle pure text inputs without images. This reveals unexpected capabilities and expands potential use cases.
 
 ## 🎯 Test Model List
 
@@ -175,22 +179,52 @@ Test results will be saved in JSON format, including unified test markers:
 ```
 
 ## 🏆 Actual Test Results ✨
-> 📅 **Latest Test**: 2025-07-12 08:47:39 (`test_results_20250712_085010.json`)  
-> 📸 **Test Images**: 3 images (`IMG_0119.JPG` - photo, `test_image.jpg`, `test_image.png` - synthetic)
+> 📅 **Latest Test**: 2025-07-15 15:21:20 (`test_results_20250715_152609.json`)  
+> 📸 **Test Images**: 3 images (`IMG_0119.JPG` - photo, `IMG_2053.JPG` - photo, `test_image.jpg` - synthetic)  
+> 📝 **Pure Text Tests**: 3 prompts (knowledge Q&A, concept explanation, creative writing)
 
-### ✅ **Fully Successful Models (4/5)** 🎉
+### ✅ **Vision Task Results (5/5)** 🎉
 | Rank | Model | Load Time | Avg Inference | Memory Usage | Success Rate |
 |------|-------|-----------|---------------|--------------|--------------|
-| 🥇 | **Phi-3.5-Vision-Instruct** | **1.79s** | 10.88s | +0.20GB | 100% (3/3) |
-| 🥈 | **Moondream2** | 4.91s | **5.41s** | -1.24GB | 100% (3/3) |
-| 🥉 | **SmolVLM-500M-Instruct** | 3.52s | 10.71s | +0.48GB | 100% (3/3) |
-| 4️⃣ | **SmolVLM2-500M-Video** | 2.58s | 12.37s | +0.08GB | 100% (3/3) |
+| 🥇 | **Phi-3.5-Vision-Instruct** | **2.24s** | 18.58s | -1.44GB | 100% (3/3) |
+| 🥈 | **Moondream2** | 5.33s | **6.78s** | -1.13GB | 100% (3/3) |
+| 🥉 | **SmolVLM-500M-Instruct** | 4.92s | 10.95s | +0.34GB | 100% (3/3) |
+| 4️⃣ | **SmolVLM2-500M-Video** | 2.70s | 12.98s | +0.08GB | 100% (3/3) |
+| 5️⃣ | **LLaVA-v1.6-Mistral-7B-MLX** | 3.10s | 6.65s | -0.31GB | 100% (3/3) |
 *Note: Negative memory usage is likely a measurement artifact due to garbage collection.*
 
-### ⚠️ **Partially Successful Models (1/5)**
-| Model | Load Time | Avg Inference (Success) | Memory Usage | Success Rate | Details |
-|-------|-----------|-------------------------|--------------|--------------|---------|
-| **LLaVA-v1.6-Mistral-7B-MLX** | 2.76s | 5.86s | -0.20GB | 33% (1/3) | Fails on synthetic images, works on photographic images. |
+### 🚀 **Pure Text Capability Results (4/5)** 📝
+| Rank | Model | Pure Text Support | Success Rate | Avg Speed | Best Use Case |
+|------|-------|-------------------|--------------|-----------|---------------|
+| 🥇 | **SmolVLM-500M-Instruct** | ✅ Full | 100% (3/3) | **1.72s** | 🚀 Fast Q&A, real-time chat |
+| 🥈 | **SmolVLM2-500M-Video** | ✅ Full | 100% (3/3) | 3.70s | 🎬 Multi-media applications |
+| 🥉 | **LLaVA-v1.6-Mistral-7B-MLX** | ✅ Full | 100% (3/3) | 4.08s | 🎨 Creative writing, poetry |
+| 4️⃣ | **Phi-3.5-Vision-Instruct** | ✅ Full | 100% (3/3) | 16.38s | 📚 Detailed analysis, education |
+| ❌ | **Moondream2** | ❌ None | 0% (0/3) | N/A | 👁️ Vision-only model |
+
+### 🎯 **Key Discoveries**
+1. **🎉 SmolVLM Series Breakthrough**: Despite being VLM models, both SmolVLM variants fully support pure text with excellent performance
+2. **🚀 Ultra-Fast Text Processing**: SmolVLM-500M-Instruct achieves 0.16s response time for simple queries
+3. **🎨 Creative Excellence**: LLaVA-MLX generates the most poetic and creative text responses
+4. **📚 Educational Depth**: Phi-3.5-Vision provides the most comprehensive and detailed explanations
+5. **👁️ Vision-Only Limitation**: Moondream2 architecture requires image embeddings, cannot process pure text
+
+### 📝 **Pure Text Response Examples**
+
+**Question**: "What is the capital of France?"
+- **SmolVLM-500M**: "Paris" (0.16s - ultra-fast)
+- **LLaVA-MLX**: "The capital of France is Paris." (1.19s - concise)
+- **Phi-3.5-Vision**: "Paris is the capital of France. It is not only the largest city in France but also one of the most populous cities in Europe..." (21.18s - comprehensive)
+
+**Question**: "Write a short poem about technology."
+- **SmolVLM2-Video**: "In the digital realm, where wires and circuits dance, We find ourselves in a technological trance..."
+- **LLaVA-MLX**: "In a world where technology reigns, We're connected, yet sometimes pained. Through screens and wires, we communicate..."
+- **Phi-3.5-Vision**: "In circuits and bytes, our world is woven, A tapestry of data, silently spoken..."
+
+**Question**: "Explain machine learning in simple terms."
+- **SmolVLM-500M**: "Machine learning is a subset of artificial intelligence that allows computers to learn from data..."
+- **LLaVA-MLX**: "Machine learning is a type of artificial intelligence that allows computer systems to learn and improve from experience..."
+- **Phi-3.5-Vision**: "Machine learning is a subset of artificial intelligence that involves training computers to learn from data and make predictions..."
 
 ### 🏆 **MLX Optimization Success Story** 
 **Phi-3.5-Vision's Amazing Transformation**:
@@ -200,11 +234,15 @@ Test results will be saved in JSON format, including unified test markers:
 
 ### 📝 **Key Findings**
 1. **🚀 MLX Framework Breakthrough**: Revolutionary VLM performance improvement on Apple Silicon.
-2. **⚡ Fastest Loading**: Phi-3.5-Vision-Instruct (1.79s) surpasses all models.
-3. **💨 Fastest Inference**: Moondream2 (avg 5.41s) leads in average inference speed.
+2. **⚡ Fastest Loading**: Phi-3.5-Vision-Instruct (2.24s) surpasses all models.
+3. **💨 Fastest Inference**: Moondream2 (avg 6.78s) leads in average vision inference speed.
 4. **💾 Memory Efficiency**: MLX models appear to use memory more efficiently, though precise measurement is complex.
-5. **📊 Overall Success Rate**: High reliability, with 80% (4/5) of models being fully successful across all test images.
-6. **⚙️ Model-Specific Failures**: The LLaVA-MLX model shows that even with framework optimizations, models can have specific data-dependent failure modes that require targeted testing to uncover.
+5. **📊 Overall Success Rate**: High reliability, with 100% (5/5) of models being fully successful across all test images.
+6. **🚀 Pure Text Breakthrough**: 80% (4/5) of models support pure text processing, with SmolVLM series excelling unexpectedly.
+7. **⚡ Ultra-Fast Text**: SmolVLM-500M-Instruct achieves 0.16s response time for simple queries.
+8. **🎨 Creative Excellence**: LLaVA-MLX generates the most creative and poetic text responses.
+9. **📚 Educational Depth**: Phi-3.5-Vision provides the most comprehensive and detailed explanations.
+10. **👁️ Vision-Only Limitation**: Moondream2 architecture requires image embeddings, cannot process pure text.
 
 ## ✅ Usage Instructions
 
@@ -213,6 +251,13 @@ Test results will be saved in JSON format, including unified test markers:
    - Example: `python vlm_tester.py "Phi-3.5-Vision-Instruct"`
 2. **Full Test**: `python vlm_tester.py`
 3. **View Results**: Check JSON files in `results/` directory
+
+### 📝 **Pure Text Testing Features**
+- **Automatic Testing**: Pure text capability tested automatically for all models
+- **3 Test Prompts**: Knowledge Q&A, concept explanation, creative writing
+- **Success Rate Calculation**: Determines if model supports pure text (>0% success rate)
+- **Response Quality**: Records actual text responses for comparison
+- **Performance Metrics**: Measures inference time for pure text tasks
 
 ### 📸 **Multi-Image Test Support**
 - **Automatic Multi-Image Testing**: Program automatically detects all images in `testing_material/images/`
@@ -224,9 +269,40 @@ Test results will be saved in JSON format, including unified test markers:
 - **Single Model Results**: `test_results_single_[Model Name].json`
 - **Intermediate Results**: `test_results_intermediate_[Model Name].json` (prevents test interruption)
 
+### 📝 **Updated Result Format** (includes pure text capability)
+```json
+{
+  "models": {
+    "SmolVLM-500M-Instruct": {
+      "images": { /* vision task results */ },
+      "text_only_capability": {
+        "text_only_supported": true,
+        "success_rate": 1.0,
+        "total_tests": 3,
+        "successful_tests": 3,
+        "results": {
+          "prompt_1": {
+            "prompt": "What is the capital of France?",
+            "response": "Paris",
+            "inference_time": 0.16,
+            "success": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ### ⚠️ **Pre-usage Preparation**
 1. **Activate Virtual Environment**: `source ../../ai_vision_env/bin/activate` (from testing directory)
 2. **Install MLX-VLM** (Required for Apple Silicon): `pip install mlx-vlm`
    - ⚠️ **Critical for Phi-3.5-Vision**: Without MLX, this model will completely fail (timeout)
    - 🚀 **Performance Impact**: MLX provides 98%+ speed improvement on M1/M2/M3
-3. **Prepare Test Images**: Place images in `testing_material/images/` directory 
+3. **Prepare Test Images**: Place images in `testing_material/images/` directory
+
+### 📝 **Pure Text Testing Configuration**
+- **Automatic Mode**: Pure text testing is enabled by default (`enable_text_only_test = True`)
+- **Test Prompts**: 3 standardized prompts test different capabilities
+- **Success Criteria**: Models with >0% success rate are considered "pure text capable"
+- **Control**: Set `enable_text_only_test = False` in `VLMTester` to disable 
