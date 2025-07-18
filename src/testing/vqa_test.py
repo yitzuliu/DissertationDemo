@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-VQA 2.0 測試框架 - COCO真實數據版本
-整合所有VQA 2.0測試功能，支持多種VLM模型，統一使用COCO真實數據
+VQA 2.0 Testing Framework - COCO Real Data Version
+Integrates all VQA 2.0 testing functionality, supports multiple VLM models, unified use of COCO real data
 
-使用方法:
-    python vqa_test.py --questions 20           # COCO真實數據測試（默認）
-    python vqa_test.py --quick --questions 20   # 同上（顯式指定quick模式）
-    python vqa_test.py --models moondream2 --questions 10  # 指定模型測試
-    python vqa_test.py --help                   # 查看所有選項
+Usage:
+    python vqa_test.py --questions 20           # COCO real data test (default)
+    python vqa_test.py --quick --questions 20   # Same as above (explicitly specify quick mode)
+    python vqa_test.py --models moondream2 --questions 10  # Test specific model
+    python vqa_test.py --help                   # View all options
 
 Author: AI Manual Assistant Team
 Date: 2025-01-27
@@ -23,74 +23,74 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 def main():
-    parser = argparse.ArgumentParser(description="VQA 2.0 測試工具")
+    parser = argparse.ArgumentParser(description="VQA 2.0 Testing Tool")
     
-    # 測試模式（僅保留 quick 模式，使用 COCO 真實數據）
+    # Test mode (only keep quick mode, using COCO real data)
     parser.add_argument('--quick', action='store_true', default=True,
-                       help='使用20張COCO真實圖像進行測試（默認模式）')
+                       help='Use 20 COCO real images for testing (default mode)')
     
-    # 測試參數
+    # Test parameters
     parser.add_argument('--questions', type=int, default=20,
-                       help='測試問題數量 (默認: 20，最多20張COCO圖像)')
+                       help='Number of test questions (default: 20, max 20 COCO images)')
     parser.add_argument('--models', nargs='+', 
                        default=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
                        choices=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
-                       help='要測試的模型列表 (默認: 測試所有模型)')
+                       help='List of models to test (default: test all models)')
     
-    # 高級選項
+    # Advanced options
     parser.add_argument('--verbose', action='store_true',
-                       help='顯示詳細輸出')
+                       help='Show detailed output')
     parser.add_argument('--save-results', action='store_true', default=True,
-                       help='保存測試結果')
+                       help='Save test results')
     
     args = parser.parse_args()
     
-    print("🎯 VQA 2.0 測試框架")
+    print("🎯 VQA 2.0 Testing Framework")
     print("=" * 60)
     
     try:
         from vqa_framework import VQAFramework
-        print("✅ 成功導入VQA框架")
+        print("✅ Successfully imported VQA framework")
     except ImportError as e:
-        print(f"❌ 導入失敗: {e}")
-        print("請確認 vqa_framework.py 文件存在")
+        print(f"❌ Import failed: {e}")
+        print("Please ensure vqa_framework.py file exists")
         return 1
     
-    # 初始化框架
+    # Initialize framework
     try:
         framework = VQAFramework()
-        print("✅ VQA框架初始化成功")
+        print("✅ VQA framework initialized successfully")
     except Exception as e:
-        print(f"❌ 初始化失敗: {e}")
+        print(f"❌ Initialization failed: {e}")
         return 1
     
-    # 顯示測試配置
-    print(f"\n📊 測試配置:")
-    print(f"   📝 問題數量: {args.questions}")
-    print(f"   🤖 測試模型: {', '.join(args.models)}")
-    print(f"   🎯 測試模式: COCO真實數據測試")
+    # Show test configuration
+    print(f"\n📊 Test Configuration:")
+    print(f"   📝 Number of questions: {args.questions}")
+    print(f"   🤖 Test models: {', '.join(args.models)}")
+    print(f"   🎯 Test mode: COCO real data test")
     
     start_time = time.time()
     
     try:
-        # 使用 COCO 真實數據進行測試
-        print(f"\n⚡ 運行COCO真實數據測試...")
-        print("📝 使用20張COCO圖像和真實VQA數據")
-        # 限制最多20個問題（對應20張COCO圖像）
+        # Use COCO real data for testing
+        print(f"\n⚡ Running COCO real data test...")
+        print("📝 Using 20 COCO images and real VQA data")
+        # Limit to max 20 questions (corresponding to 20 COCO images)
         questions, annotations = framework.load_sample_data(min(args.questions, 20))
-        print(f"✅ 使用最多20張COCO圖像: {len(questions)} 個問題")
+        print(f"✅ Using up to 20 COCO images: {len(questions)} questions")
         
-        # 檢查圖片可用性
-        print(f"\n🖼️ 檢查圖片可用性...")
+        # Check image availability
+        print(f"\n🖼️ Checking image availability...")
         image_stats = framework.check_image_availability(questions)
-        print(f"📈 圖片可用性: {image_stats['available']}/{image_stats['total']} ({image_stats['rate']:.1%})")
+        print(f"📈 Image availability: {image_stats['available']}/{image_stats['total']} ({image_stats['rate']:.1%})")
         
-        # 運行評估
-        print(f"\n🤖 開始模型評估...")
+        # Run evaluation
+        print(f"\n🤖 Starting model evaluation...")
         all_results = {}
         
         for i, model_name in enumerate(args.models, 1):
-            print(f"\n[{i}/{len(args.models)}] 評估模型: {model_name}")
+            print(f"\n[{i}/{len(args.models)}] Evaluating model: {model_name}")
             
             results = framework.evaluate_model(
                 model_name=model_name,
@@ -102,9 +102,9 @@ def main():
             
             all_results[model_name] = results
         
-        # 顯示結果摘要
+        # Show result summary
         print("\n" + "="*60)
-        print("📈 測試完成！結果摘要：")
+        print("📈 Testing Complete! Result Summary:")
         print("="*60)
         
         best_model = None
@@ -112,7 +112,7 @@ def main():
         
         for model_name, results in all_results.items():
             if "error" in results:
-                print(f"\n❌ {model_name}: 評估失敗 - {results['error']}")
+                print(f"\n❌ {model_name}: Evaluation failed - {results['error']}")
                 continue
                 
             accuracy = results.get("accuracy", 0)
@@ -126,63 +126,63 @@ def main():
                 best_model = model_name
             
             print(f"\n🤖 {model_name}:")
-            print(f"   ✅ 正確答案：{correct}/{total}")
-            print(f"   📊 簡單準確度：{accuracy:.1%}")
-            print(f"   🎯 VQA準確度：{vqa_accuracy:.1%}")
-            print(f"   ⏱️ 平均推理時間：{avg_time:.2f}秒")
+            print(f"   ✅ Correct answers: {correct}/{total}")
+            print(f"   📊 Simple accuracy: {accuracy:.1%}")
+            print(f"   🎯 VQA accuracy: {vqa_accuracy:.1%}")
+            print(f"   ⏱️ Average inference time: {avg_time:.2f}s")
             
-            # 顯示問題和圖像對照信息
+            # Show question and image mapping information
             if args.verbose and "question_results" in results:
-                print(f"   📋 問題詳情:")
-                for i, q_result in enumerate(results["question_results"][:5], 1):  # 只顯示前5個
+                print(f"   📋 Question details:")
+                for i, q_result in enumerate(results["question_results"][:5], 1):  # Only show first 5
                     q_id = q_result.get('question_id', 'N/A')
                     img_id = q_result.get('image_id', 'N/A')
                     img_file = q_result.get('image_filename', 'N/A')
                     is_correct = q_result.get('is_correct', False)
                     status = "✅" if is_correct else "❌"
-                    print(f"      {i}. {status} Q{q_id} → 圖像{img_id} ({img_file})")
+                    print(f"      {i}. {status} Q{q_id} → Image{img_id} ({img_file})")
                 if len(results["question_results"]) > 5:
-                    print(f"      ... 及其他 {len(results['question_results'])-5} 個問題")
+                    print(f"      ... and {len(results['question_results'])-5} more questions")
             
-            # 表現評估
+            # Performance assessment
             if vqa_accuracy >= 0.6:
-                assessment = "🏆 表現優秀"
+                assessment = "🏆 Excellent performance"
             elif vqa_accuracy >= 0.4:
-                assessment = "🎯 表現中等"
+                assessment = "🎯 Average performance"
             else:
-                assessment = "🔧 需要改進"
+                assessment = "🔧 Needs improvement"
             print(f"   {assessment}")
         
         if best_model:
-            print(f"\n🏆 最佳模型: {best_model} (VQA準確度: {best_vqa_accuracy:.1%})")
+            print(f"\n🏆 Best model: {best_model} (VQA accuracy: {best_vqa_accuracy:.1%})")
         
-        # 保存結果
+        # Save results
         if args.save_results and all_results:
             try:
                 results_file = framework.save_results(all_results, "coco", args.questions)
-                print(f"\n💾 結果已保存到: {results_file}")
+                print(f"\n💾 Results saved to: {results_file}")
             except Exception as e:
-                print(f"\n⚠️ 保存結果失敗: {e}")
+                print(f"\n⚠️ Failed to save results: {e}")
         
         total_time = time.time() - start_time
-        print(f"\n⏱️ 總測試時間：{total_time:.1f}秒")
-        print(f"\n✅ VQA 2.0測試成功完成！")
+        print(f"\n⏱️ Total test time: {total_time:.1f}s")
+        print(f"\n✅ VQA 2.0 testing completed successfully!")
         
         return 0
         
     except KeyboardInterrupt:
-        print(f"\n\n⏹️ 測試被用戶中斷")
+        print(f"\n\n⏹️ Testing interrupted by user")
         return 1
     except Exception as e:
-        print(f"\n❌ 測試失敗：{str(e)}")
+        print(f"\n❌ Testing failed: {str(e)}")
         if args.verbose:
             import traceback
             traceback.print_exc()
-        print(f"\n🔧 故障排除建議：")
-        print("1. 檢查網絡連接")
-        print("2. 確認模型文件完整性")
-        print("3. 檢查數據目錄權限")
-        print("4. 使用 --verbose 查看詳細錯誤信息")
+        print(f"\n🔧 Troubleshooting suggestions:")
+        print("1. Check network connection")
+        print("2. Verify model file integrity")
+        print("3. Check data directory permissions")
+        print("4. Use --verbose to see detailed error information")
         return 1
 
 if __name__ == "__main__":

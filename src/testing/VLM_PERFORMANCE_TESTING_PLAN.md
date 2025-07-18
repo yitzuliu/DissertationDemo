@@ -352,31 +352,6 @@ Test results will be saved in JSON format, including unified test markers:
 - **Single Model Results**: `context_understanding_test_results_single_[Model Name].json`
 - **Intermediate Results**: `context_understanding_test_results_intermediate_[Model Name].json`
 
-### 📝 **Updated Result Format** (includes pure text capability)
-```json
-{
-  "models": {
-    "SmolVLM-500M-Instruct": {
-      "images": { /* vision task results */ },
-      "text_only_capability": {
-        "text_only_supported": true,
-        "success_rate": 1.0,
-        "total_tests": 3,
-        "successful_tests": 3,
-        "results": {
-          "prompt_1": {
-            "prompt": "What is the capital of France?",
-            "response": "Paris",
-            "inference_time": 0.16,
-            "success": true
-          }
-        }
-      }
-    }
-  }
-}
-```
-
 ### ⚠️ **Pre-usage Preparation**
 1. **Activate Virtual Environment**: `source ../../ai_vision_env/bin/activate` (from testing directory)
 2. **Install MLX-VLM** (Required for Apple Silicon): `pip install mlx-vlm`
@@ -388,4 +363,4 @@ Test results will be saved in JSON format, including unified test markers:
 - **Automatic Mode**: Pure text testing is enabled by default (`enable_text_only_test = True`)
 - **Test Prompts**: 3 standardized prompts test different capabilities
 - **Success Criteria**: Models with >0% success rate are considered "pure text capable"
-- **Control**: Set `enable_text_only_test = False` in `VLMTester` to disable 
+- **Control**: Set `enable_text_only_test = False` in `VLMTester` to disable

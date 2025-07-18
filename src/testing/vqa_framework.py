@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-VQA 2.0 核心框架 - 整合版本
-整合了VQA測試器、工具函數、圖像處理等所有核心功能
+VQA 2.0 Core Framework - Integrated Version
+Integrates VQA tester, utility functions, image processing and all core functionality
 
 Author: AI Manual Assistant Team
 Date: 2025-01-27
@@ -29,13 +29,13 @@ from tqdm import tqdm
 from vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage
 
 class VQAFramework:
-    """VQA 2.0 統一框架 - 整合所有功能"""
+    """VQA 2.0 Unified Framework - Integrates all functionality"""
     
     def __init__(self, data_dir: str = None):
-        """初始化VQA框架
+        """Initialize VQA Framework
         
         Args:
-            data_dir: VQA數據目錄路徑
+            data_dir: VQA data directory path
         """
         self.data_dir = Path(data_dir) if data_dir else Path(__file__).parent / "testing_material" / "vqa2"
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -46,13 +46,13 @@ class VQAFramework:
         self.results_dir = Path(__file__).parent / "results"
         self.results_dir.mkdir(exist_ok=True)
         
-        # VQA 2.0 數據集URLs
+        # VQA 2.0 dataset URLs
         self.vqa2_urls = {
             "val_questions": "https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Questions_Val_mscoco.zip",
             "val_annotations": "https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Annotations_Val_mscoco.zip",
         }
         
-        # 支持的模型配置
+        # Supported model configurations
         self.models_config = {
             "smolvlm_instruct": {
                 "loader": VLMModelLoader.load_smolvlm_instruct,
@@ -76,20 +76,20 @@ class VQAFramework:
             }
         }
         
-        # 生成參數
+        # Generation parameters
         self.generation_params = {
             "max_new_tokens": 50,
             "do_sample": False
         }
         
-        # 圖像緩存
+        # Image cache
         self.image_cache = {}
         
         print(f"🧪 VQA 2.0 Framework Initialized")
         print(f"📁 Data directory: {self.data_dir}")
     
     def download_vqa_data(self):
-        """下載VQA 2.0數據集"""
+        """Download VQA 2.0 dataset"""
         print("📥 Downloading VQA 2.0 Dataset...")
         
         for component, url in self.vqa2_urls.items():
@@ -115,7 +115,7 @@ class VQAFramework:
                 
                 print(f"✅ Downloaded: {zip_file}")
                 
-                # 解壓文件
+                # Extract files
                 print(f"📂 Extracting {zip_file.name}...")
                 with zipfile.ZipFile(zip_file, 'r') as zip_ref:
                     zip_ref.extractall(self.data_dir)
@@ -126,13 +126,13 @@ class VQAFramework:
         print("✅ VQA 2.0 Dataset ready")
     
     def load_sample_data(self, sample_size: int = 20) -> Tuple[List[Dict], Dict]:
-        """加載真實VQA 2.0數據的樣本"""
-        # 首先確保真實數據已下載
+        """Load sample from real VQA 2.0 data"""
+        # First ensure real data is downloaded
         try:
             questions, annotations = self.load_real_data(sample_size)
             print(f"✅ Using real VQA 2.0 data: {len(questions)} questions")
             
-            # 下載對應的COCO圖像
+            # Download corresponding COCO images
             self._ensure_coco_images_for_questions(questions)
             
             return questions, annotations
@@ -141,31 +141,31 @@ class VQAFramework:
             print(f"⚠️ Could not load real VQA data: {e}")
             print("📥 Attempting to download VQA 2.0 dataset...")
             
-            # 嘗試下載VQA數據
+            # Try downloading VQA data
             self.download_vqa_data()
             
-            # 重新嘗試加載
+            # Retry loading
             try:
                 questions, annotations = self.load_real_data(sample_size)
                 print(f"✅ Using real VQA 2.0 data: {len(questions)} questions")
                 
-                # 下載對應的COCO圖像
+                # Download corresponding COCO images
                 self._ensure_coco_images_for_questions(questions)
                 
                 return questions, annotations
                 
             except Exception as e2:
                 print(f"❌ Still failed to load real data: {e2}")
-                print("� Falling back to sample data...")
+                print("🔄 Falling back to sample data...")
                 
-                # 最後回退到樣本數據
+                # Final fallback to sample data
                 return self._create_sample_data(sample_size)
     
     def load_real_data(self, sample_size: int = 20) -> Tuple[List[Dict], Dict]:
-        """加載真實VQA 2.0數據"""
+        """Load real VQA 2.0 data"""
         print(f"📖 Loading real VQA 2.0 data...")
         
-        # 加載問題
+        # Load questions
         questions_file = self.data_dir / "v2_OpenEnded_mscoco_val2014_questions.json"
         if not questions_file.exists():
             raise FileNotFoundError(f"Questions file not found: {questions_file}")
@@ -175,7 +175,7 @@ class VQAFramework:
             
         questions = questions_data['questions']
         
-        # 加載標註
+        # Load annotations
         annotations_file = self.data_dir / "v2_mscoco_val2014_annotations.json"
         annotations_dict = {}
         
@@ -186,9 +186,9 @@ class VQAFramework:
         else:
             print(f"⚠️ Annotations file not found: {annotations_file}")
         
-        # 智能採樣：確保問題有對應的標註
+        # Smart sampling: ensure questions have corresponding annotations
         if sample_size and sample_size < len(questions):
-            # 篩選有標註的問題
+            # Filter questions with annotations
             questions_with_annotations = [
                 q for q in questions 
                 if q['question_id'] in annotations_dict
@@ -198,17 +198,17 @@ class VQAFramework:
                 print(f"⚠️ Only {len(questions_with_annotations)} questions have annotations, using all")
                 sample_size = len(questions_with_annotations)
             
-            # 隨機採樣
+            # Random sampling
             import random
-            random.seed(42)  # 確保結果可重現
+            random.seed(42)  # Ensure reproducible results
             questions = random.sample(questions_with_annotations, sample_size)
             print(f"📝 Sampled {sample_size} questions from {len(questions_with_annotations)} annotated questions")
         
         return questions, annotations_dict
     
     def _create_sample_data(self, sample_size: int) -> Tuple[List[Dict], Dict]:
-        """創建樣本數據 - 使用真實COCO圖像ID"""
-        # 簡單的樣本問題
+        """Create sample data - using real COCO image IDs"""
+        # Simple sample questions
         sample_questions_template = [
             ("What color is the car?", "red"),
             ("How many people are in the image?", "2"),
@@ -217,7 +217,7 @@ class VQAFramework:
             ("Where is this photo taken?", "park"),
         ]
         
-        # 真實COCO val2014 圖像ID（前20個）
+        # Real COCO val2014 image IDs (first 20)
         coco_image_ids = [
             139, 285, 632, 724, 776, 785, 802, 872, 885, 1000,
             1268, 1296, 1353, 1584, 1818, 2006, 2149, 2153, 2157, 2261
@@ -231,7 +231,7 @@ class VQAFramework:
             question_text, answer = sample_questions_template[template_idx]
             
             question_id = 1000 + i
-            image_id = coco_image_ids[i % len(coco_image_ids)]  # 使用真實COCO ID
+            image_id = coco_image_ids[i % len(coco_image_ids)]  # Use real COCO ID
             
             question = {
                 "question_id": question_id,
@@ -240,7 +240,7 @@ class VQAFramework:
             }
             questions.append(question)
             
-            # 創建標註（模擬10個人工標註者）
+            # Create annotations (simulate 10 human annotators)
             annotation = {
                 "question_id": question_id,
                 "question_type": "other",
@@ -249,7 +249,7 @@ class VQAFramework:
             }
             annotations[question_id] = annotation
         
-        # 保存樣本數據
+        # Save sample data
         questions_data = {"questions": questions}
         annotations_data = {"annotations": list(annotations.values())}
         
@@ -263,18 +263,18 @@ class VQAFramework:
         return questions, annotations
     
     def _ensure_sample_images(self, sample_size: int):
-        """確保COCO樣本圖像存在"""
+        """Ensure COCO sample images exist"""
         sample_dir = self.images_dir / "val2014_sample"
         sample_dir.mkdir(exist_ok=True)
         
-        # 檢查是否已有足夠的圖像
+        # Check if enough images already exist
         existing_images = list(sample_dir.glob("*.jpg"))
-        if len(existing_images) >= min(sample_size, 20):  # 最多20張不同圖像
+        if len(existing_images) >= min(sample_size, 20):  # Max 20 different images
             return
         
         print(f"📥 Downloading COCO val2014 sample images (first 20 images)...")
         
-        # COCO val2014 前20張圖像的真實ID
+        # Real COCO val2014 first 20 image IDs
         coco_image_ids = [
             "000000000139", "000000000285", "000000000632", "000000000724", "000000000776",
             "000000000785", "000000000802", "000000000872", "000000000885", "000000001000",
@@ -282,7 +282,7 @@ class VQAFramework:
             "000000002006", "000000002149", "000000002153", "000000002157", "000000002261"
         ]
         
-        # COCO val2014 下載基礎URL
+        # COCO val2014 download base URL
         base_url = "http://images.cocodataset.org/val2014"
         
         downloaded_count = 0
@@ -307,7 +307,7 @@ class VQAFramework:
                         
                 except Exception as e:
                     print(f"⚠️ Error downloading {image_filename}: {e}")
-                    # 如果下載失敗，創建佔位符圖像
+                    # If download fails, create placeholder image
                     placeholder_image = Image.new('RGB', (640, 480), (128, 128, 128))
                     placeholder_image.save(image_path, 'JPEG')
                     print(f"🔄 Created placeholder for {image_filename}")
@@ -315,18 +315,18 @@ class VQAFramework:
         print(f"✅ COCO sample setup complete: {downloaded_count} downloaded, {len(list(sample_dir.glob('*.jpg')))} total images")
     
     def _ensure_coco_images_for_questions(self, questions: List[Dict]):
-        """為問題列表下載對應的COCO圖像"""
+        """Download corresponding COCO images for question list"""
         sample_dir = self.images_dir / "val2014_sample"
         sample_dir.mkdir(exist_ok=True)
         
-        # 收集所有需要的圖像ID
+        # Collect all required image IDs
         image_ids = set()
         for question in questions:
             image_ids.add(question['image_id'])
         
         print(f"📥 Ensuring COCO images for {len(image_ids)} unique images...")
         
-        # COCO val2014 下載基礎URL
+        # COCO val2014 download base URL
         base_url = "http://images.cocodataset.org/val2014"
         
         downloaded_count = 0
@@ -356,7 +356,7 @@ class VQAFramework:
                     
             except Exception as e:
                 print(f"⚠️ Error downloading {image_filename}: {e}")
-                # 如果下載失敗，創建佔位符圖像
+                # If download fails, create placeholder image
                 try:
                     placeholder_image = Image.new('RGB', (640, 480), (128, 128, 128))
                     placeholder_image.save(image_path, 'JPEG')
@@ -367,7 +367,7 @@ class VQAFramework:
         print(f"✅ COCO images ready: {existing_count} existing, {downloaded_count} downloaded")
     
     def check_image_availability(self, questions: List[Dict]) -> Dict:
-        """檢查圖像可用性"""
+        """Check image availability"""
         available_count = 0
         total_count = len(questions)
         
@@ -383,18 +383,18 @@ class VQAFramework:
         }
     
     def _load_image(self, image_id: int, split: str = "val2014") -> Optional[Image.Image]:
-        """加載圖像"""
-        # 檢查緩存
+        """Load image"""
+        # Check cache
         cache_key = f"{split}_{image_id}"
         if cache_key in self.image_cache:
             return self.image_cache[cache_key]
         
-        # 嘗試不同的圖像路徑格式
+        # Try different image path formats
         possible_paths = [
-            # 真實COCO格式
+            # Real COCO format
             self.images_dir / f"{split}_sample" / f"COCO_{split}_{image_id:012d}.jpg",
             self.images_dir / f"{split}" / f"COCO_{split}_{image_id:012d}.jpg",
-            # 備用格式
+            # Backup format
             self.images_dir / f"{split}_sample" / f"COCO_{split}_{image_id:06d}.jpg",
         ]
         
@@ -402,7 +402,7 @@ class VQAFramework:
             if image_path.exists():
                 try:
                     image = Image.open(image_path).convert('RGB')
-                    # 緩存圖像（限制緩存大小）
+                    # Cache image (limit cache size)
                     if len(self.image_cache) < 100:
                         self.image_cache[cache_key] = image
                     return image
@@ -415,18 +415,18 @@ class VQAFramework:
     def evaluate_model(self, model_name: str, questions: List[Dict], 
                       annotations: Dict, max_questions: int = None,
                       verbose: bool = False) -> Dict:
-        """評估模型"""
+        """Evaluate model"""
         print(f"🤖 Evaluating {model_name} on VQA 2.0...")
         
         if model_name not in self.models_config:
             return {"error": f"Unknown model: {model_name}"}
         
-        # 限制問題數量
+        # Limit number of questions
         if max_questions:
             questions = questions[:max_questions]
         
         try:
-            # 加載模型
+            # Load model
             print("📥 Loading model...")
             model_loader = self.models_config[model_name]["loader"]
             load_start = time.time()
@@ -434,19 +434,19 @@ class VQAFramework:
             load_time = time.time() - load_start
             print(f"✅ Model loaded in {load_time:.2f}s")
             
-            # 記錄記憶體使用
+            # Record memory usage
             memory_info = get_memory_usage()
             print(f"💾 Memory usage: {memory_info}")
             
-            # 評估
+            # Evaluate
             print(f"📊 Evaluating {len(questions)} questions...")
             results = self._evaluate_questions(
                 model, processor, model_name, questions, 
                 annotations, verbose
             )
             
-            # 清理模型記憶體
-            print("清理模型記憶體...")
+            # Clean up model memory
+            print("Cleaning up model memory...")
             clear_model_memory(model, processor)
             
             return results
@@ -461,7 +461,7 @@ class VQAFramework:
     def _evaluate_questions(self, model, processor, model_name: str,
                            questions: List[Dict], annotations: Dict,
                            verbose: bool = False) -> Dict:
-        """評估問題列表"""
+        """Evaluate question list"""
         correct_answers = 0
         total_vqa_accuracy = 0.0
         total_inference_time = 0.0
@@ -475,7 +475,7 @@ class VQAFramework:
             question_text = question['question']
             image_id = question['image_id']
             
-            # 獲取模型答案
+            # Get model answer
             inference_start = time.time()
             try:
                 model_answer = self._get_model_answer(
@@ -489,24 +489,24 @@ class VQAFramework:
             inference_time = time.time() - inference_start
             total_inference_time += inference_time
             
-            # 評估答案
+            # Evaluate answer
             if question_id in annotations:
                 annotation = annotations[question_id]
                 gt_answer = annotation['multiple_choice_answer']
                 gt_answers = [ans['answer'] for ans in annotation['answers']]
                 
-                # 簡單準確度 - 檢查標準答案是否在模型回答中
+                # Simple accuracy - check if standard answer is in model response
                 model_answer_lower = self._preprocess_answer(model_answer)
                 gt_answer_lower = self._preprocess_answer(gt_answer)
                 is_correct = gt_answer_lower in model_answer_lower
                 if is_correct:
                     correct_answers += 1
                 
-                # VQA準確度
+                # VQA accuracy
                 vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
                 total_vqa_accuracy += vqa_accuracy
                 
-                # 生成對應的圖像文件名
+                # Generate corresponding image filename
                 image_filename = f"COCO_val2014_{image_id:012d}.jpg"
                 
                 question_results.append({
@@ -521,7 +521,7 @@ class VQAFramework:
                     'inference_time': inference_time
                 })
             
-        # 計算最終結果
+        # Calculate final results
         total_questions = len(questions)
         accuracy = correct_answers / total_questions if total_questions > 0 else 0
         avg_vqa_accuracy = total_vqa_accuracy / total_questions if total_questions > 0 else 0
@@ -619,11 +619,11 @@ class VQAFramework:
         return accuracy
     
     def save_results(self, results: Dict, test_mode: str, num_questions: int) -> Path:
-        """保存測試結果（簡化版本）"""
+        """Save test results (simplified version)"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = self.results_dir / f"vqa2_results_{test_mode}_{timestamp}.json"
         
-        # 簡化結果格式，只保留關鍵資訊
+        # Simplified result format, keep only key information
         simplified_results = {}
         
         for model_name, model_results in results.items():
@@ -631,7 +631,7 @@ class VQAFramework:
                 simplified_results[model_name] = {"error": model_results["error"]}
                 continue
                 
-            # 只保留關鍵指標
+            # Keep only key metrics
             simplified_results[model_name] = {
                 "model_id": model_results.get("model_id", model_name),
                 "test_time": model_results.get("evaluation_time", 0),
@@ -644,7 +644,7 @@ class VQAFramework:
                 "question_results": model_results.get("question_results", [])
             }
         
-        # 準備保存的數據
+        # Prepare data to save
         save_data = {
             "test_metadata": {
                 "test_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
