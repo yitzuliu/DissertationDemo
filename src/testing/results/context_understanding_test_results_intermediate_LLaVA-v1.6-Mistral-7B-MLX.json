@@ -1,0 +1,201 @@
+{
+  "test_timestamp": "2025-07-18 17:00:35",
+  "system_info": {
+    "device": "MacBook Air M3",
+    "memory": "16GB",
+    "mps_available": true
+  },
+  "test_type": "context_understanding",
+  "models": {
+    "LLaVA-v1.6-Mistral-7B-MLX": {
+      "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+            "inference_time": 7.521162986755371
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Answer: The most prominent colors in the image are blue and white.",
+              "inference_time": 1.137247085571289
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Answer: Yes, there are people visible in the image. They are wearing white shirts and dark pants.",
+              "inference_time": 1.5162160396575928
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Answer: The image shows a person standing in front of a large, colorful mural.",
+              "inference_time": 1.3205130100250244
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+              "inference_time": 7.521162986755371
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Answer: The most prominent colors in the image are blue and white.",
+              "inference_time": 1.137247085571289
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Answer: Yes, there are people visible in the image. They are wearing white shirts and dark pants.",
+              "inference_time": 1.5162160396575928
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Answer: The image shows a person standing in front of a large, colorful mural.",
+              "inference_time": 1.3205130100250244
+            }
+          ]
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+            "inference_time": 6.459694862365723
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Answer: The most prominent colors in the image are blue and white.",
+              "inference_time": 1.0869433879852295
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Answer: Yes, there are people visible in the image. They are wearing white shirts and dark pants.",
+              "inference_time": 1.4601471424102783
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Answer: The image shows a person standing in front of a large, colorful mural.",
+              "inference_time": 1.3729889392852783
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+              "inference_time": 6.459694862365723
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Answer: The most prominent colors in the image are blue and white.",
+              "inference_time": 1.0869433879852295
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Answer: Yes, there are people visible in the image. They are wearing white shirts and dark pants.",
+              "inference_time": 1.4601471424102783
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Answer: The image shows a person standing in front of a large, colorful mural.",
+              "inference_time": 1.3729889392852783
+            }
+          ]
+        },
+        {
+          "image_name": "test_image.jpg",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+            "inference_time": 6.425295114517212
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Answer: The most prominent colors in the image are blue and white.",
+              "inference_time": 1.1407368183135986
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Answer: Yes, there are people visible in the image. They are wearing white shirts and dark pants.",
+              "inference_time": 1.5334150791168213
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Answer: The image shows a person standing in front of a large, colorful mural.",
+              "inference_time": 1.3657729625701904
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+              "inference_time": 6.425295114517212
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Answer: The most prominent colors in the image are blue and white.",
+              "inference_time": 1.1407368183135986
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Answer: Yes, there are people visible in the image. They are wearing white shirts and dark pants.",
+              "inference_time": 1.5334150791168213
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Answer: The image shows a person standing in front of a large, colorful mural.",
+              "inference_time": 1.3657729625701904
+            }
+          ]
+        }
+      ],
+      "load_time": 3.622623920440674,
+      "memory_before": 0.1790008544921875,
+      "memory_after": 1.017242431640625,
+      "memory_diff": 0.8382415771484375,
+      "memory_after_cleanup": 2.7886962890625
+    }
+  }
+}

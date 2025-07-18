@@ -1,20 +1,52 @@
 # VLM Performance Testing Plan
 
-## 🎯 **Testing Summary** (Latest Update)
-> ✅ **Testing Complete**: 5 models tested. All models successful for vision tasks, 4/5 support pure text.  
-> 🏆 **MLX Optimization Success**: Phi-3.5-Vision performance transformed from failure to the top performer.  
-> ⚠️ **LLaVA-MLX Limitation**: New MLX version of LLaVA is fast, but fails on specific image types.  
-> ⚡ **Fastest Loading**: Phi-3.5-Vision-Instruct (1.79s)  
-> 💨 **Fastest Inference**: Moondream2 (avg 5.41s)  
+## 🎯 **Testing Summary** (Latest Update: 2025-07-18)
+> ✅ **Basic Testing Complete**: 5 models tested. All models successful for vision tasks, 4/5 support pure text.  
+> 🧠 **Context Understanding Added**: New comprehensive test for conversation context capabilities.  
+> 🏆 **MLX Optimization Success**: Phi-3.5-Vision performance transformed from failure to functional.  
+> ⚠️ **LLaVA-MLX Limitation**: MLX version of LLaVA has state memory issues affecting reliability.  
+> 📊 **Context Understanding Results**: Most models show limited context understanding as expected.  
+> ⚡ **Fastest Loading**: LLaVA-v1.6-Mistral-7B-MLX (3.04s)  
+> 💨 **Fastest Inference**: Moondream2 (avg 6.61s)  
 > 📸 **Multi-Image Testing**: Latest run successfully tested 3 different images.  
 > 🚀 **Pure Text Discovery**: 80% models support pure text - SmolVLM series excels unexpectedly!  
+
+### 🧠 **Context Understanding Test Results Summary**
+
+| Model | Context Understanding | Image Description Quality | Technical Reliability | Recommended Use |
+|-------|----------------------|---------------------------|----------------------|-----------------|
+| ✅ | **SmolVLM-500M-Instruct** | ⚠️ Limited | ✅ Good | ✅ Reliable | 🚀 Fast basic tasks |
+| ⚠️ | **SmolVLM2-500M-Video** | ❌ Poor | ✅ Good | ✅ Reliable | 🎬 Video/Image description only |
+| ❌ | **Moondream2** | ❌ Not Supported | ✅ Excellent | ✅ Reliable | 👁️ Vision-only model |
+| ❌ | **LLaVA-v1.6-Mistral-7B-MLX** | ⚠️ Limited | ❌ State Issues | ❌ Memory Problems | 🔴 Not recommended |
+| ❌ | **Phi-3.5-Vision-Instruct** | ❌ Complete Failure | ⚠️ Improved | ❌ Multiple Issues | 🔴 Not recommended |
+
+**Key Findings**:
+- **Context Understanding**: Most models show limited capabilities as expected for local VLM models
+- **Technical Reliability**: SmolVLM series and Moondream2 are most reliable
+- **Recommendation**: Use SmolVLM-500M-Instruct for basic context-aware tasks
 
 ## 📋 Testing Objectives
 
 Comprehensive testing of 5 vision-language models, recording basic performance metrics and response results. Using MacBook Air M3 (16GB) environment, supporting single or multiple image testing.
 
-### 🚀 **New Addition: Pure Text Capability Testing**
-Beyond vision-language tasks, we now test each model's ability to handle pure text inputs without images. This reveals unexpected capabilities and expands potential use cases.
+### 🚀 **Extended Testing Capabilities** ✨
+1. **Pure Text Capability Testing**: Test each model's ability to handle pure text inputs without images
+2. **Context Understanding Testing**: NEW - Test models' ability to answer questions based on conversation history
+3. **Image Description Quality**: Standard vision-language task performance
+4. **Technical Reliability**: Memory management, inference stability, and error handling
+
+### 🧠 **Context Understanding Testing Methodology**
+**Test Flow**:
+1. **Image Description**: Show image with forensic expert prompt, require detailed description
+2. **Context-Based Questioning**: Ask 3 follow-up questions without re-showing image:
+   - Question 1: "What were the most prominent colors in the image?"
+   - Question 2: "Were there any people visible in the image?"  
+   - Question 3: "Summarize the main subject or scene of the image in one sentence."
+3. **Analysis**: Evaluate model's ability to maintain conversation context and provide relevant answers
+
+**Expected Outcome**: 
+> Most local VLM models have limited context understanding compared to cloud-based models. This test confirms architectural limitations in maintaining conversation context.
 
 ## 🎯 Test Model List
 
@@ -179,18 +211,19 @@ Test results will be saved in JSON format, including unified test markers:
 ```
 
 ## 🏆 Actual Test Results ✨
-> 📅 **Latest Test**: 2025-07-15 15:21:20 (`test_results_20250715_152609.json`)  
+> 📅 **Latest Test**: 2025-07-18 17:05:26 (`context_understanding_test_results_20250718_165329.json`)  
 > 📸 **Test Images**: 3 images (`IMG_0119.JPG` - photo, `IMG_2053.JPG` - photo, `test_image.jpg` - synthetic)  
-> 📝 **Pure Text Tests**: 3 prompts (knowledge Q&A, concept explanation, creative writing)
+> 📝 **Pure Text Tests**: 3 prompts (knowledge Q&A, concept explanation, creative writing)  
+> 🧠 **Context Understanding Tests**: NEW - 3 context-based questions per image without re-showing image
 
 ### ✅ **Vision Task Results (5/5)** 🎉
 | Rank | Model | Load Time | Avg Inference | Memory Usage | Success Rate |
 |------|-------|-----------|---------------|--------------|--------------|
-| 🥇 | **Phi-3.5-Vision-Instruct** | **2.24s** | 18.58s | -1.44GB | 100% (3/3) |
-| 🥈 | **Moondream2** | 5.33s | **6.78s** | -1.13GB | 100% (3/3) |
-| 🥉 | **SmolVLM-500M-Instruct** | 4.92s | 10.95s | +0.34GB | 100% (3/3) |
-| 4️⃣ | **SmolVLM2-500M-Video** | 2.70s | 12.98s | +0.08GB | 100% (3/3) |
-| 5️⃣ | **LLaVA-v1.6-Mistral-7B-MLX** | 3.10s | 6.65s | -0.31GB | 100% (3/3) |
+| 🥇 | **LLaVA-v1.6-Mistral-7B-MLX** | **3.04s** | 8.57s | -0.36GB | 100% (3/3) |
+| 🥈 | **Phi-3.5-Vision-Instruct** | 3.01s | 32.79s | -2.62GB | 100% (3/3) |
+| 🥉 | **SmolVLM-500M-Instruct** | 3.81s | 6.51s | +0.39GB | 100% (3/3) |
+| 4️⃣ | **SmolVLM2-500M-Video** | 4.71s | 6.61s | +0.23GB | 100% (3/3) |
+| 5️⃣ | **Moondream2** | 5.56s | **6.61s** | -1.09GB | 100% (3/3) |
 *Note: Negative memory usage is likely a measurement artifact due to garbage collection.*
 
 ### 🚀 **Pure Text Capability Results (4/5)** 📝
@@ -202,12 +235,36 @@ Test results will be saved in JSON format, including unified test markers:
 | 4️⃣ | **Phi-3.5-Vision-Instruct** | ✅ Full | 100% (3/3) | 16.38s | 📚 Detailed analysis, education |
 | ❌ | **Moondream2** | ❌ None | 0% (0/3) | N/A | 👁️ Vision-only model |
 
+### 🧠 **Context Understanding Test Results (NEW)** 🎯
+| Rank | Model | Context Understanding | Context Success Rate | Technical Reliability | Recommendation |
+|------|-------|----------------------|---------------------|----------------------|----------------|
+| 🥇 | **SmolVLM-500M-Instruct** | ⚠️ Limited | ~33% | ✅ Reliable | 🟡 Basic context tasks |
+| 🥈 | **Moondream2** | ❌ Not Supported | 0% (Expected) | ✅ Reliable | 👁️ Vision-only, excellent quality |
+| 🥉 | **SmolVLM2-500M-Video** | ❌ Poor | ~10% | ✅ Reliable | 🎬 Image description only |
+| 4️⃣ | **LLaVA-v1.6-Mistral-7B-MLX** | ⚠️ Limited | ~20% | ❌ State Issues | 🔴 Not recommended |
+| 5️⃣ | **Phi-3.5-Vision-Instruct** | ❌ Complete Failure | 0% | ❌ Multiple Issues | 🔴 Not recommended |
+
+**Context Understanding Analysis**:
+- **SmolVLM-500M-Instruct**: Short but sometimes relevant answers (e.g., "Yes", "white, black, red")
+- **SmolVLM2-500M-Video**: Generates irrelevant content about flags, weapons unrelated to actual images
+- **Moondream2**: Cannot process text-only questions (architectural limitation, expected behavior)
+- **LLaVA-v1.6-Mistral-7B-MLX**: Same response for all images, indicating state memory problems
+- **Phi-3.5-Vision-Instruct**: Training data leakage, repetitive content, content contamination
+
+**Key Insight**: 
+> 🎯 **As Expected**: Local VLM models show very limited context understanding capabilities compared to cloud-based models. This confirms the architectural limitations in maintaining conversation context that we anticipated.
+
 ### 🎯 **Key Discoveries**
 1. **🎉 SmolVLM Series Breakthrough**: Despite being VLM models, both SmolVLM variants fully support pure text with excellent performance
 2. **🚀 Ultra-Fast Text Processing**: SmolVLM-500M-Instruct achieves 0.16s response time for simple queries
 3. **🎨 Creative Excellence**: LLaVA-MLX generates the most poetic and creative text responses
 4. **📚 Educational Depth**: Phi-3.5-Vision provides the most comprehensive and detailed explanations
 5. **👁️ Vision-Only Limitation**: Moondream2 architecture requires image embeddings, cannot process pure text
+6. **🧠 Context Understanding Reality**: NEW - Most local VLM models show very limited context understanding as expected
+7. **✅ SmolVLM-500M Best Context**: Among all models, SmolVLM-500M-Instruct shows the most reliable context understanding
+8. **❌ LLaVA State Issues**: LLaVA-MLX has serious state memory problems affecting reliability
+9. **🔴 Phi-3.5 Technical Problems**: Multiple technical issues including training data leakage and repetitive content
+10. **🎯 Expected Limitations**: Context understanding limitations confirm architectural constraints of local VLM models
 
 ### 📝 **Pure Text Response Examples**
 
@@ -227,10 +284,11 @@ Test results will be saved in JSON format, including unified test markers:
 - **Phi-3.5-Vision**: "Machine learning is a subset of artificial intelligence that involves training computers to learn from data and make predictions..."
 
 ### 🏆 **MLX Optimization Success Story** 
-**Phi-3.5-Vision's Amazing Transformation**:
+**Phi-3.5-Vision's Significant Improvement**:
 - **Before (Transformers)**: 135s+ loading timeout → 100% failure
-- **Now (MLX)**: 1.79s fastest loading → 100% success 
-- **Improvement**: Loading speed improved **~99%**, from unusable to **top performance**
+- **Now (MLX)**: 3.01s reliable loading → 100% success 
+- **Improvement**: Loading speed improved **~98%**, from unusable to **functional**
+- **Note**: While not the fastest loader, it achieved successful functionality
 
 ### 📝 **Key Findings**
 1. **🚀 MLX Framework Breakthrough**: Revolutionary VLM performance improvement on Apple Silicon.
@@ -243,21 +301,39 @@ Test results will be saved in JSON format, including unified test markers:
 8. **🎨 Creative Excellence**: LLaVA-MLX generates the most creative and poetic text responses.
 9. **📚 Educational Depth**: Phi-3.5-Vision provides the most comprehensive and detailed explanations.
 10. **👁️ Vision-Only Limitation**: Moondream2 architecture requires image embeddings, cannot process pure text.
+11. **🧠 Context Understanding Reality**: NEW - Most local VLM models show very limited context understanding capabilities as expected.
+12. **✅ SmolVLM-500M Reliability**: Best overall model for context-aware tasks with consistent technical performance.
+13. **❌ LLaVA Technical Issues**: State memory problems make LLaVA-MLX unreliable for production use.
+14. **🔴 Phi-3.5 Regression**: Despite fast loading, multiple technical issues make this model unreliable.
+15. **🎯 Expected Architectural Limitations**: Context understanding limitations confirm that local VLM models have inherent constraints compared to cloud-based models.
 
 ## ✅ Usage Instructions
 
 ### 🚀 **Basic Test Commands**
-1. **Single Model Test**: `python vlm_tester.py "Model Name"`
+1. **Standard Performance Test**: `python vlm_tester.py "Model Name"`
    - Example: `python vlm_tester.py "Phi-3.5-Vision-Instruct"`
-2. **Full Test**: `python vlm_tester.py`
-3. **View Results**: Check JSON files in `results/` directory
+2. **Context Understanding Test**: `python vlm_context_tester.py "Model Name"`
+   - Example: `python vlm_context_tester.py "SmolVLM-500M-Instruct"`
+3. **Full Performance Test**: `python vlm_tester.py`
+4. **Full Context Test**: `python vlm_context_tester.py`
+5. **View Results**: Check JSON files in `results/` directory
 
-### 📝 **Pure Text Testing Features**
+### 📝 **Testing Features**
+
+**Pure Text Testing**:
 - **Automatic Testing**: Pure text capability tested automatically for all models
 - **3 Test Prompts**: Knowledge Q&A, concept explanation, creative writing
 - **Success Rate Calculation**: Determines if model supports pure text (>0% success rate)
 - **Response Quality**: Records actual text responses for comparison
 - **Performance Metrics**: Measures inference time for pure text tasks
+
+**Context Understanding Testing** (NEW):
+- **Conversation Flow**: Tests model's ability to maintain context across multiple turns
+- **Forensic Expert Prompt**: Uses detailed prompt to establish context
+- **3 Context Questions**: Colors, people visibility, scene summary
+- **No Image Re-showing**: Tests pure context understanding without visual aids
+- **Technical Reliability**: Monitors for technical issues (repetition, contamination, truncation)
+- **Performance Metrics**: Measures context inference time and success rate
 
 ### 📸 **Multi-Image Test Support**
 - **Automatic Multi-Image Testing**: Program automatically detects all images in `testing_material/images/`
@@ -265,9 +341,16 @@ Test results will be saved in JSON format, including unified test markers:
 - **Statistics**: Automatically calculates total inference time, success/failure counts, average inference time
 
 ### 📊 **Result Files**
+
+**Standard Performance Tests**:
 - **Main Results**: `test_results_YYYYMMDD_HHMMSS.json`
 - **Single Model Results**: `test_results_single_[Model Name].json`
 - **Intermediate Results**: `test_results_intermediate_[Model Name].json` (prevents test interruption)
+
+**Context Understanding Tests** (NEW):
+- **Main Results**: `context_understanding_test_results_YYYYMMDD_HHMMSS.json`
+- **Single Model Results**: `context_understanding_test_results_single_[Model Name].json`
+- **Intermediate Results**: `context_understanding_test_results_intermediate_[Model Name].json`
 
 ### 📝 **Updated Result Format** (includes pure text capability)
 ```json

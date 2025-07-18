@@ -15,7 +15,7 @@
 
 ## 🚀 **Pure Text Capability Summary** ✨
 
-**Latest Test Results (2025-07-15)**:
+**Latest Test Results (2025-07-18)**:
 - **Pure Text Support Rate**: 80% (4/5 models)
 - **Test Method**: 3 different prompts (knowledge Q&A, concept explanation, creative writing)
 - **Surprising Discovery**: SmolVLM series fully supports pure text despite being VLM models
@@ -32,6 +32,31 @@
 - **SmolVLM series**: Unexpectedly excellent pure text performance
 - **MLX optimization**: Enables both vision and text capabilities
 - **Moondream2**: Architecture limitation requires `image_embeds` parameter
+
+## 🧠 **Context Understanding Capability Summary** ✨
+
+**Latest Test Results (2025-07-18)**:
+- **Test Method**: Show image + detailed description, then ask context-based questions without re-showing image
+- **Context Questions**: 3 follow-up questions about colors, people, and scene summary
+- **Key Finding**: Most VLM models have very limited context understanding capabilities
+
+| Model | Context Understanding | Image Description | Technical Issues | Overall Rating |
+|-------|----------------------|------------------|------------------|----------------|
+| **SmolVLM-500M-Instruct** | ⚠️ Limited | ✅ Good | ✅ None | 🟡 Partial |
+| **SmolVLM2-500M-Video** | ❌ Poor | ✅ Good | ✅ None | 🟡 Partial |
+| **Moondream2** | ❌ Not Supported | ✅ Excellent | ✅ None | 🟡 Vision-Only |
+| **LLaVA-v1.6-Mistral-7B-MLX** | ⚠️ Limited | ❌ State Issues | ❌ Memory Problems | 🔴 Problematic |
+| **Phi-3.5-Vision-Instruct** | ❌ Complete Failure | ⚠️ Improved | ❌ Multiple Issues | 🔴 Problematic |
+
+**Context Understanding Details**:
+- **SmolVLM-500M-Instruct**: Short but sometimes accurate responses to context questions
+- **SmolVLM2-500M-Video**: Generates irrelevant content (flags, weapons) unrelated to actual images
+- **Moondream2**: Cannot process text-only questions (expected architectural limitation)
+- **LLaVA-v1.6-Mistral-7B-MLX**: Same response for all images, but attempts to answer context questions
+- **Phi-3.5-Vision-Instruct**: Training data leakage, repetitive content, and content contamination
+
+**Key Insight**: 
+> 🎯 **Expected Result**: As anticipated, most local VLM models have very limited context understanding capabilities compared to cloud-based models. This test confirms the models' architectural limitations in maintaining conversation context.
 
 ## HuggingFaceTB/SmolVLM2-500M-Video-Instruct
 
