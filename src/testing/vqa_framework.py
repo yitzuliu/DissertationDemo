@@ -544,15 +544,15 @@ class VQAFramework:
     
     def _get_model_answer(self, model, processor, model_name: str, 
                          question: str, image_id: int) -> str:
-        """獲取模型答案"""
-        # 加載圖像
+        """Get model answer"""
+        # Load image
         image = self._load_image(image_id)
         if image is None:
             return "no image available"
         
         try:
             if "smolvlm" in model_name.lower():
-                # SmolVLM處理 - 使用正確的格式
+                # SmolVLM processing - use correct format
                 messages = [
                     {
                         "role": "user", 
@@ -569,12 +569,12 @@ class VQAFramework:
                     generated_ids = model.generate(**inputs, **self.generation_params)
                     response = processor.decode(generated_ids[0], skip_special_tokens=True)
                 
-                # 提取答案 - 移除輸入文本
+                # Extract answer - remove input text
                 answer = response.replace(input_text, "").strip()
                 return self._extract_answer(answer, model_name, question)
                 
             elif "moondream" in model_name.lower():
-                # Moondream處理  
+                # Moondream processing  
                 answer = model.answer_question(image, question, processor)
                 return answer
                 
@@ -585,36 +585,36 @@ class VQAFramework:
             return f"error: {str(e)}"
     
     def _extract_answer(self, response: str, model_name: str, question: str) -> str:
-        """從模型響應中提取答案 - 簡化版本，直接返回原始回答"""
+        """Extract answer from model response - simplified version, return original response directly"""
         if not response:
             return "no response"
         
-        # 簡單清理，直接返回原始回答
+        # Simple cleanup, return original response directly
         return response.strip()
     
     def _preprocess_answer(self, answer: str) -> str:
-        """預處理答案 - 簡化版本"""
+        """Preprocess answer - simplified version"""
         if not answer:
             return ""
         
-        # 轉小寫，保持簡單
+        # Convert to lowercase, keep simple
         return answer.lower().strip()
     
     def _calculate_vqa_accuracy(self, prediction: str, ground_truth_answers: List[str]) -> float:
-        """計算VQA準確度 - 檢查任何標準答案是否在預測中"""
+        """Calculate VQA accuracy - check if any ground truth answer appears in prediction"""
         if not prediction or not ground_truth_answers:
             return 0.0
         
         prediction_lower = self._preprocess_answer(prediction)
         
-        # 計算有多少個標準答案在預測中出現
+        # Calculate how many ground truth answers appear in prediction
         matching_count = 0
         for gt_answer in ground_truth_answers:
             gt_answer_lower = self._preprocess_answer(gt_answer)
             if gt_answer_lower in prediction_lower:
                 matching_count += 1
         
-        # VQA準確度：min(匹配數/3, 1.0)
+        # VQA accuracy: min(matching_count/3, 1.0)
         accuracy = min(matching_count / 3.0, 1.0)
         return accuracy
     
