@@ -1,0 +1,42 @@
+{
+  "test_metadata": {
+    "test_date": "2025-07-18 22:18:03",
+    "test_mode": "coco",
+    "num_questions": 2,
+    "framework_version": "unified_v1.1",
+    "image_reference_note": "每個問題的 image_id 對應 image_filename，圖像文件位於 testing_material/vqa2/images/val2014_sample/ 目錄"
+  },
+  "results": {
+    "moondream2": {
+      "accuracy": 0.5,
+      "vqa_accuracy": 0.5,
+      "correct": 1,
+      "total": 2,
+      "avg_time": 4.097152948379517,
+      "question_results": [
+        {
+          "question_id": 100187002,
+          "image_id": 100187,
+          "image_filename": "COCO_val2014_000000100187.jpg",
+          "question": "Is it daytime?",
+          "model_answer": "Yes",
+          "ground_truth": "no",
+          "is_correct": false,
+          "vqa_accuracy": 0.0,
+          "inference_time": 4.045728921890259
+        },
+        {
+          "question_id": 278161005,
+          "image_id": 278161,
+          "image_filename": "COCO_val2014_000000278161.jpg",
+          "question": "Is there another bus behind this one?",
+          "model_answer": "No, there isn't another bus behind this yellow school bus in the image.",
+          "ground_truth": "no",
+          "is_correct": true,
+          "vqa_accuracy": 1.0,
+          "inference_time": 4.148576974868774
+        }
+      ]
+    }
+  }
+}
