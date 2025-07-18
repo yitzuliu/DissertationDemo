@@ -365,7 +365,7 @@ class VLMMemoryTester:
                         # With image: Use optimized prompt format
                         temp_image_path = "temp_mlx_image.png"
                         image.save(temp_image_path)
-                        mlx_prompt = f"<|image_1|>\\nUser: {prompt}\\nAssistant:"
+                        mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
                         raw_response = generate(
                             model=model, 
                             processor=processor, 
@@ -382,7 +382,7 @@ class VLMMemoryTester:
                             os.remove(temp_image_path)
                     else:
                         # Without image: Pure text inference
-                        mlx_prompt = f"User: {prompt}\\nAssistant:"
+                        mlx_prompt = f"User: {prompt}\nAssistant:"
                         raw_response = generate(
                             model=model, 
                             processor=processor, 
@@ -394,35 +394,31 @@ class VLMMemoryTester:
                             verbose=False
                         )
                 else:
-                    # LLaVA model logic remains unchanged
-                    current_turn = {"role": "user", "content": prompt}
-                    messages = [current_turn]
-                    
-                    final_prompt = processor.tokenizer.apply_chat_template(
-                        messages, 
-                        tokenize=False, 
-                        add_generation_prompt=True
-                    )
-
-                    gen_kwargs = {
-                        "model": model,
-                        "processor": processor,
-                        "prompt": final_prompt,
-                        "max_tokens": self.unified_max_tokens,
-                        "verbose": False
-                    }
-                    
-                    temp_image_path = None
+                    # LLaVA model logic - simplified approach like vlm_tester.py
                     if image is not None:
+                        # With image: Direct prompt format
                         temp_image_path = "temp_mlx_image.png"
                         image.save(temp_image_path)
-                        gen_kwargs["image"] = temp_image_path
-                    
-                    raw_response = generate(**gen_kwargs)
-                    
-                    # Clean up temporary image file
-                    if temp_image_path and os.path.exists(temp_image_path):
-                        os.remove(temp_image_path)
+                        raw_response = generate(
+                            model, 
+                            processor, 
+                            prompt, 
+                            image=temp_image_path,
+                            max_tokens=self.unified_max_tokens,
+                            verbose=False
+                        )
+                        # Clean up temporary image file
+                        if os.path.exists(temp_image_path):
+                            os.remove(temp_image_path)
+                    else:
+                        # Without image: Pure text inference
+                        raw_response = generate(
+                            model, 
+                            processor, 
+                            prompt,
+                            max_tokens=self.unified_max_tokens,
+                            verbose=False
+                        )
 
                 # Process response (unified handling)
                 if isinstance(raw_response, tuple) and len(raw_response) >= 2:
@@ -443,9 +439,15 @@ class VLMMemoryTester:
                 # Clean repeated token combinations
                 clean_response = clean_response.replace("<|end|><|endoftext|>", " ")
                 
-                # Remove possible training data residue
+                # Remove possible training data residue and repetitive prompts
                 if "1. What is meant by" in clean_response:
                     clean_response = clean_response.split("1. What is meant by")[0].strip()
+                
+                # Fix Phi-3.5 repetitive prompt issue
+                if "You are an expert in your field" in clean_response:
+                    # If it's just repeating the prompt, return an error
+                    if clean_response.count("You are an expert") > 2:
+                        clean_response = "Error: Model generated repetitive response"
                 
                 # Clean excessive whitespace
                 response = ' '.join(clean_response.split()).strip()
