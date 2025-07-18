@@ -1,109 +1,45 @@
 # VLM Model Loading Reference Guide
 
-> 📝 **Important**: This document shows official examples using URL images, but in our testing we use **local images**.
-> 
-> **Local Image Adaptation**:
-> - Most models: Change `{"type": "image", "url": "https://..."}` to `{"type": "image", "image": image_object}`
-> - **Phi-3.5-Vision MLX**: Uses image file paths `str(image_path)` instead of image objects
-> - Some models (Moondream2, Phi-3.5) require special formats due to technical limitations
-> - All models undergo unified image preprocessing (max 1024 pixels)
-> 
-> **Unified Test Parameters**:
-> - `unified_generation_params = {"max_new_tokens": 100, "do_sample": False}`
-> - All models use these consistent parameters for fair comparison
-> - Individual hardcoded parameters have been replaced with `**unified_generation_params`
+## 📊 **Quick Summary** (2025-07-18)
 
-## 🚀 **Pure Text Capability Summary** ✨
+### **Capability Overview**
+| Model | Vision | Pure Text | Context | Framework | Status |
+|-------|--------|-----------|---------|-----------|--------|
+| **SmolVLM-500M-Instruct** | ✅ 100% | ✅ 100% | ⚠️ 33% | Transformers | ✅ Reliable |
+| **SmolVLM2-500M-Video** | ✅ 100% | ✅ 100% | ❌ 10% | Transformers | ✅ Reliable |
+| **Moondream2** | ✅ 100% | ❌ 0% | ❌ 0% | Transformers | ✅ Vision-Only |
+| **LLaVA-v1.6-Mistral-7B-MLX** | ✅ 100% | ✅ 100% | ⚠️ 20% | MLX | ⚠️ State Issues |
+| **Phi-3.5-Vision-Instruct** | ✅ 100% | ✅ 100% | ❌ 0% | MLX | ❌ Multiple Issues |
 
-**Latest Test Results (2025-07-18)**:
-- **Pure Text Support Rate**: 80% (4/5 models)
-- **Test Method**: 3 different prompts (knowledge Q&A, concept explanation, creative writing)
-- **Surprising Discovery**: SmolVLM series fully supports pure text despite being VLM models
+### **Key Notes**
+- **Local Images**: All models adapted for local image processing
+- **Unified Parameters**: `max_new_tokens=100, do_sample=false`
+- **MLX Required**: For Apple Silicon (M1/M2/M3) optimization
+- **Image Preprocessing**: Max 1024px, aspect ratio preserved
 
-| Model | Pure Text Support | Success Rate | Avg Speed | Best Use Case |
-|-------|-------------------|--------------|-----------|---------------|
-| **SmolVLM-500M-Instruct** | ✅ Full | 100% | 1.72s | 🚀 Fast Q&A |
-| **SmolVLM2-500M-Video** | ✅ Full | 100% | 3.70s | 🎬 Multi-media |
-| **LLaVA-v1.6-Mistral-7B-MLX** | ✅ Full | 100% | 4.08s | 🎨 Creative writing |
-| **Phi-3.5-Vision-Instruct** | ✅ Full | 100% | 16.38s | 📚 Detailed analysis |
-| **Moondream2** | ❌ None | 0% | N/A | 👁️ Vision-only |
+## 🚀 **Model Implementation Guide**
 
-**Key Findings**:
-- **SmolVLM series**: Unexpectedly excellent pure text performance
-- **MLX optimization**: Enables both vision and text capabilities
-- **Moondream2**: Architecture limitation requires `image_embeds` parameter
+### **1. SmolVLM2-500M-Video-Instruct**
+**HuggingFace ID**: `HuggingFaceTB/SmolVLM2-500M-Video-Instruct`
 
-## 🧠 **Context Understanding Capability Summary** ✨
-
-**Latest Test Results (2025-07-18)**:
-- **Test Method**: Show image + detailed description, then ask context-based questions without re-showing image
-- **Context Questions**: 3 follow-up questions about colors, people, and scene summary
-- **Key Finding**: Most VLM models have very limited context understanding capabilities
-
-| Model | Context Understanding | Image Description | Technical Issues | Overall Rating |
-|-------|----------------------|------------------|------------------|----------------|
-| **SmolVLM-500M-Instruct** | ⚠️ Limited | ✅ Good | ✅ None | 🟡 Partial |
-| **SmolVLM2-500M-Video** | ❌ Poor | ✅ Good | ✅ None | 🟡 Partial |
-| **Moondream2** | ❌ Not Supported | ✅ Excellent | ✅ None | 🟡 Vision-Only |
-| **LLaVA-v1.6-Mistral-7B-MLX** | ⚠️ Limited | ❌ State Issues | ❌ Memory Problems | 🔴 Problematic |
-| **Phi-3.5-Vision-Instruct** | ❌ Complete Failure | ⚠️ Improved | ❌ Multiple Issues | 🔴 Problematic |
-
-**Context Understanding Details**:
-- **SmolVLM-500M-Instruct**: Short but sometimes accurate responses to context questions
-- **SmolVLM2-500M-Video**: Generates irrelevant content (flags, weapons) unrelated to actual images
-- **Moondream2**: Cannot process text-only questions (expected architectural limitation)
-- **LLaVA-v1.6-Mistral-7B-MLX**: Same response for all images, but attempts to answer context questions
-- **Phi-3.5-Vision-Instruct**: Training data leakage, repetitive content, and content contamination
-
-**Key Insight**: 
-> 🎯 **Expected Result**: As anticipated, most local VLM models have very limited context understanding capabilities compared to cloud-based models. This test confirms the models' architectural limitations in maintaining conversation context.
-
-## HuggingFaceTB/SmolVLM2-500M-Video-Instruct
-
-### 📖 Official Usage Examples
-**Use a pipeline as a high-level helper**
-```python
-from transformers import pipeline
-pipe = pipeline("image-text-to-text", model="HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "image", "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/p-blog/candy.JPG"},
-            {"type": "text", "text": "What animal is on the candy?"}
-        ]
-    },
-]
-pipe(text=messages)     
-```
-
-**Load model directly**
+#### **Loading Method**
 ```python
 from transformers import AutoProcessor, AutoModelForImageTextToText
-processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
-model = AutoModelForImageTextToText.from_pretrained("HuggingFaceTB/SmolVLM2-500M-Video-Instruct")  
-```
 
-### ✅ VLM Tester Implementation
-**Correct loading method used in vlm_tester.py:**
-```python
-@staticmethod
 def load_smolvlm2_video(model_id="HuggingFaceTB/SmolVLM2-500M-Video-Instruct"):
-    """Load SmolVLM2-500M-Video-Instruct"""
-    print(f"Loading {model_id}...")
     processor = AutoProcessor.from_pretrained(model_id)
     model = AutoModelForImageTextToText.from_pretrained(model_id)
     return model, processor
 ```
 
-**Inference method with local images:**
+#### **Inference Method**
 ```python
-# SmolVLM message format with local image
+# Vision + Text
 messages = [
     {
         "role": "user",
         "content": [
-            {"type": "image", "image": image},  # Local image object
+            {"type": "image", "image": image},
             {"type": "text", "text": prompt}
         ]
     }
@@ -111,711 +47,245 @@ messages = [
 input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 inputs = processor(text=input_text, images=image, return_tensors="pt")
 with torch.no_grad():
-    outputs = model.generate(**inputs, **unified_generation_params)  # 使用統一參數
-response = processor.decode(outputs[0], skip_special_tokens=True)
-```
-
-### 🚀 **Pure Text Capability** ✅
-**Success Rate**: 100% (3/3) | **Avg Speed**: 3.70s | **Best Use**: Multi-media applications
-
-**Pure text inference method:**
-```python
-# Pure text message format (no image required)
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "text", "text": "What is the capital of France?"}  # Text only
-        ]
-    }
-]
-input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-inputs = processor(text=input_text, return_tensors="pt")
-with torch.no_grad():
     outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
 response = processor.decode(outputs[0], skip_special_tokens=True)
-```
 
-**Sample pure text responses:**
-- Q: "What is the capital of France?" → "The capital of France is Paris. It is a city located in the northern part of the country..."
-- Q: "Write a short poem about technology." → "In the digital realm, where wires and circuits dance..."
-
-**Clone this model repository**
-- Make sure git-lfs is installed (https://git-lfs.com)
-git lfs install
-git clone https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct
-
-- If you want to clone without large files - just their pointers
-GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct
-
-## HuggingFaceTB/SmolVLM-500M-Instruct
-
-### 📖 Official Usage Examples
-**Use a pipeline as a high-level helper**
-```python
-from transformers import pipeline
-pipe = pipeline("image-text-to-text", model="HuggingFaceTB/SmolVLM-500M-Instruct")
+# Pure Text
 messages = [
     {
         "role": "user",
-        "content": [
-            {"type": "image", "url": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/p-blog/candy.JPG"},
-            {"type": "text", "text": "What animal is on the candy?"}
-        ]
-    },
+        "content": [{"type": "text", "text": "What is the capital of France?"}]
+    }
 ]
-pipe(text=messages)
+# Same processing as above, but without image
 ```
 
-**Load model directly**
+#### **Performance**
+- **Load Time**: 4.71s
+- **Inference**: 6.61s avg
+- **Pure Text**: 3.70s avg
+- **Best Use**: Multi-media applications
+
+---
+
+### **2. SmolVLM-500M-Instruct**
+**HuggingFace ID**: `HuggingFaceTB/SmolVLM-500M-Instruct`
+
+#### **Loading Method**
 ```python
 from transformers import AutoProcessor, AutoModelForVision2Seq
-processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM-500M-Instruct")
-model = AutoModelForVision2Seq.from_pretrained("HuggingFaceTB/SmolVLM-500M-Instruct")
-```
 
-### ✅ VLM Tester Implementation
-**Correct loading method used in vlm_tester.py:**
-```python
-@staticmethod
 def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
-    """Load SmolVLM-500M-Instruct"""
-    print(f"Loading {model_id}...")
     processor = AutoProcessor.from_pretrained(model_id)
     model = AutoModelForVision2Seq.from_pretrained(model_id)
     return model, processor
 ```
 
-**Inference method (same as SmolVLM2-Video):**
+#### **Inference Method**
 ```python
-# SmolVLM message format with local image (identical to Video version)
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "image", "image": image},  # Local image object
-            {"type": "text", "text": prompt}
-        ]
-    }
-]
-input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-inputs = processor(text=input_text, images=image, return_tensors="pt")
-with torch.no_grad():
-    outputs = model.generate(**inputs, **unified_generation_params)  # 使用統一參數
-response = processor.decode(outputs[0], skip_special_tokens=True)
+# Identical to SmolVLM2-Video (same message format)
 ```
 
-### 🚀 **Pure Text Capability** ✅ 🏆
-**Success Rate**: 100% (3/3) | **Avg Speed**: 1.72s | **Best Use**: Fast Q&A, real-time chat
+#### **Performance**
+- **Load Time**: 3.81s
+- **Inference**: 6.51s avg
+- **Pure Text**: 1.72s avg (fastest)
+- **Best Use**: Fast Q&A, real-time chat
 
-**Pure text inference method:**
+---
+
+### **3. Moondream2**
+**HuggingFace ID**: `vikhyatk/moondream2`
+
+#### **Loading Method**
 ```python
-# Pure text message format (no image required)
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "text", "text": "Explain machine learning in simple terms"}  # Text only
-        ]
-    }
-]
-input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-inputs = processor(text=input_text, return_tensors="pt")
-with torch.no_grad():
-    outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
-response = processor.decode(outputs[0], skip_special_tokens=True)
-```
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-**Sample pure text responses:**
-- Q: "What is the capital of France?" → "Paris" (Ultra-fast: 0.16s)
-- Q: "Explain machine learning..." → "Machine learning is a subset of artificial intelligence that allows computers to learn from data..."
-
-**⚡ Performance Highlight**: Fastest pure text model - ideal for real-time applications
-
-**Clone this model repository**
-- Make sure git-lfs is installed (https://git-lfs.com)
-git lfs install
-git clone https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct
-
-- If you want to clone without large files - just their pointers
-GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct
-
-## vikhyatk/moondream2
-
-### 📖 Official Usage Examples
-**Use a pipeline as a high-level helper**
-```python
-from transformers import pipeline
-pipe = pipeline("image-text-to-text", model="vikhyatk/moondream2", trust_remote_code=True)
-```
-
-**Load model directly**
-```python
-from transformers import AutoModelForCausalLM
-model = AutoModelForCausalLM.from_pretrained("vikhyatk/moondream2", trust_remote_code=True)
-```
-
-### ⚠️ Implementation Notes
-> **Important**: Moondream2 uses custom configuration and **cannot use standard pipeline** method! Requires special loading approach.
-
-**❌ Standard pipeline method (fails in practice)**
-```python
-# This may fail! Moondream2 doesn't support AutoModelForImageTextToText properly
-pipe = pipeline("image-text-to-text", model="vikhyatk/moondream2", trust_remote_code=True)
-# ValueError: Unrecognized configuration class for AutoModelForImageTextToText
-```
-
-### ✅ VLM Tester Implementation
-**Correct loading method used in vlm_tester.py:**
-```python
-@staticmethod
 def load_moondream2(model_id="vikhyatk/moondream2"):
-    """Load Moondream2 - uses special API (model doesn't support standard pipeline)"""
-    print(f"Loading {model_id}...")
-    # Moondream2 has custom config, cannot use standard pipeline, needs original approach
-    from transformers import AutoTokenizer
     model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     
-    # Move model to appropriate device
     if torch.backends.mps.is_available():
         model = model.to('mps')
     
     return model, tokenizer
 ```
 
-**Inference method (special API):**
+#### **Inference Method**
 ```python
-# Moondream2 special API (model limitation, but maintains unified test conditions)
-# First move image to correct device
+# Special API (cannot use standard pipeline)
 device = next(model.parameters()).device
-enc_image = model.encode_image(image)  # Encode image first
+enc_image = model.encode_image(image)
 if hasattr(enc_image, 'to'):
     enc_image = enc_image.to(device)
-# Use unified prompt, but cannot control max_tokens (API limitation)
 response = model.answer_question(enc_image, prompt, processor)
 ```
 
-### ❌ **Pure Text Capability** ❌
-**Success Rate**: 0% (0/3) | **Status**: Not supported | **Reason**: Architecture limitation
+#### **Limitations**
+- **Pure Text**: Not supported (architecture requires `image_embeds`)
+- **Parameters**: Cannot fully unify generation parameters
 
-**Technical Analysis:**
-```python
-# Pure text inference attempt (FAILS)
-try:
-    inputs = processor(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
-    # ERROR: HfMoondream.generate() missing 3 required positional arguments: 
-    # 'image_embeds', 'prompt', and 'tokenizer'
-except Exception as e:
-    print(f"Pure text not supported: {e}")
-```
-
-**Why it fails:**
-- Moondream2 architecture requires `image_embeds` parameter
-- The model is designed exclusively for vision-language tasks
-- No fallback mechanism exists for pure text processing
-
-**Recommendation**: Use Moondream2 for vision tasks only. For pure text, use SmolVLM-500M-Instruct or other models.
-
-**Clone this model repository**
-- Make sure git-lfs is installed (https://git-lfs.com)
-git lfs install
-git clone https://huggingface.co/vikhyatk/moondream2
-
-- If you want to clone without large files - just their pointers
-GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/vikhyatk/moondream2
-
-**Citation**
-```bibtex
-@misc{vik_2024,
-	author       = { vik },
-	title        = { moondream2 (Revision 92d3d73) },
-	year         = 2024,
-	url          = { https://huggingface.co/vikhyatk/moondream2 },
-	doi          = { 10.57967/hf/3219 },
-	publisher    = { Hugging Face }
-}
-```
-
-## llava-hf/llava-1.5-7b-hf -> mlx-community/llava-v1.6-mistral-7b-4bit
-
-### ⚠️ Technical Notes
-> **Important**: The original `llava-hf/llava-1.5-7b-hf` model, when loaded with transformers, is too large and slow for typical consumer hardware (like a MacBook Air M3 with 16GB RAM), resulting in consistent timeouts.
->
-> **MLX is REQUIRED for LLaVA on Apple Silicon**:
-> - The MLX-optimized model (`mlx-community/llava-v1.6-mistral-7b-4bit`) is the only viable solution. It loads quickly and provides fast inference.
-> - **Known Limitation**: There is a bug in the `mlx-vlm` library where the model fails to process certain synthetic, square images (e.g., `test_image.jpg`). It works perfectly with natural, photographic images.
-> - **Solution**: We have implemented an **exclusion list** in `vlm_tester.py` to prevent the LLaVA model from processing images it is known to be incompatible with. This ensures accurate and successful test runs.
-
-### 📖 Official Usage Examples (MLX)
-**Installation:**
-```bash
-pip install -U mlx-vlm
-```
-
-**Usage:**
-```python
-from mlx_vlm import load, generate
-
-# Load the MLX-optimized model
-model, processor = load("mlx-community/llava-v1.6-mistral-7b-4bit")
-
-# Prepare input (use a compatible image)
-image = "path/to/your/photograph.jpg"
-prompt = "Describe this image."
-
-# Generate output
-output = generate(model, processor, prompt, image=image)
-print(output)
-```
-
-### ✅ VLM Tester Implementation
-**Correct loading method used in `vlm_tester.py`:**
-```python
-@staticmethod
-def load_llava_mlx(model_id="mlx-community/llava-v1.6-mistral-7b-4bit"):
-    """載入 MLX-LLaVA (Apple Silicon optimized)"""
-    print(f"載入 MLX-LLaVA {model_id}...")
-    try:
-        from mlx_vlm import load
-        print("正在載入 MLX 優化的 LLaVA 模型...")
-        model, processor = load(model_id)
-        print("MLX-LLaVA 載入成功!")
-        return model, processor
-    except ImportError as e:
-        print("MLX-VLM 未安裝。請運行: pip install mlx-vlm")
-        raise RuntimeError("MLX-VLM 套件未安裝，無法使用 MLX 優化")
-    except Exception as e:
-        print(f"MLX-LLaVA 載入失敗: {str(e)}")
-        raise RuntimeError(f"MLX-LLaVA 模型載入失敗: {str(e)}")
-```
-
-**Inference method (MLX with error handling):**
-```python
-# Check if this is MLX-LLaVA 
-if "MLX" in model_name:
-    try:
-        from mlx_vlm import generate
-        print("  🚀 Using MLX-VLM for LLaVA...")
-        response = generate(
-            model, 
-            processor, 
-            self.prompt, 
-            image=str(image_path),
-            max_tokens=unified_generation_params["max_new_tokens"],
-            verbose=False
-        )
-        
-        # Handle response format
-        if isinstance(response, tuple) and len(response) >= 1:
-            text_response = response[0] if response[0] else ""
-        else:
-            text_response = str(response) if response else ""
-        
-        return text_response
-    except Exception as e:
-        print(f"  ⚠️ MLX-VLM failed: {e}")
-        return f"MLX-VLM inference failed: {str(e)}"
-```
-
-### 🚀 **Pure Text Capability** ✅ 🎨
-**Success Rate**: 100% (3/3) | **Avg Speed**: 4.08s | **Best Use**: Creative writing, poetry
-
-**Pure text inference method:**
-```python
-# Pure text inference with MLX-VLM (no image required)
-from mlx_vlm import generate
-
-response = generate(
-    model=model,
-    processor=processor,
-    prompt="Write a short poem about technology",
-    max_tokens=100,
-    verbose=False
-)
-
-# Handle response format
-if isinstance(response, tuple) and len(response) >= 1:
-    text_response = response[0] if response[0] else ""
-else:
-    text_response = str(response) if response else ""
-```
-
-**Sample pure text responses:**
-- Q: "What is the capital of France?" → "The capital of France is Paris."
-- Q: "Write a short poem about technology." → 
-  ```
-  "In a world where technology reigns,
-  We're connected, yet sometimes pained.
-  Through screens and wires, we communicate,
-  But sometimes, we neglect.
-  To look up, to see the sky,
-  To feel the warmth, to touch the high..."
-  ```
-
-**🎨 Creative Highlight**: Best model for creative writing and poetry generation
-
-**Clone this model repository**
-- Make sure git-lfs is installed (https://git-lfs.com)
-git lfs install
-git clone https://huggingface.co/mlx-community/llava-v1.6-mistral-7b-4bit
-
-- If you want to clone without large files - just their pointers
-GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/mlx-community/llava-v1.6-mistral-7b-4bit
-
-## microsoft/Phi-3.5-vision-instruct -> lokinfey/Phi-3.5-vision-mlx-int4
-
-### 📖 Official Usage Examples
-**MLX-VLM approach (recommended for Apple Silicon):**
-```python
-from mlx_vlm import load, generate
-
-# Load the MLX-optimized model
-model, processor = load("lokinfey/Phi-3.5-vision-mlx-int4", trust_remote_code=True)
-
-# Generate response
-output = generate(
-    model=model, 
-    processor=processor, 
-    image="path/to/your/image.jpg", 
-    prompt="<|image_1|>\nUser: Describe what you see in this image.\nAssistant:",
-    max_tokens=100,
-    verbose=False
-)
-print(output)
-```
-
-**Installation:**
-```bash
-pip install -U mlx-vlm
-```
-
-
-
-### ⚠️ Technical Notes
-> **Important**: Phi-3.5-Vision requires special implementation. For Apple Silicon (M1/M2/M3), MLX framework provides optimized performance.
-
-### 🍎 Apple Silicon Optimization (Required)
-**MLX-VLM installation for M1/M2/M3:**
-```bash
-# Install system dependencies (if needed)
-brew install sentencepiece protobuf
-
-# Set environment variable for proper builds
-export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$PKG_CONFIG_PATH"
-
-# Install MLX-VLM for Apple Silicon optimization
-pip install mlx-vlm
-
-# Verify installation
-python -c "import mlx_vlm; print('MLX-VLM installed successfully!')"
-```
-
-**Why MLX is Essential (Not Optional):**
-- **Transformers approach COMPLETELY FAILS** (135s+ loading → 180s+ timeout → unusable)
-- **MLX is the ONLY working solution** (1.58s loading, 15.71s inference, 100% success)
-- **No fallback exists** - transformers method doesn't work on Apple Silicon
-- **MLX is REQUIRED** - Phi-3.5-Vision cannot function without it on MacBook M1/M2/M3
-
-### ✅ VLM Tester Implementation
-**Primary loading method (MLX-optimized for Apple Silicon):**
-```python
-@staticmethod
-def load_phi3_vision(model_id="lokinfey/Phi-3.5-vision-mlx-int4"):
-    """Load Phi-3.5-Vision-Instruct using MLX (Apple Silicon optimized)"""
-    print(f"Loading {model_id} with MLX framework...")
-    try:
-        # Use MLX-VLM for Apple Silicon optimization
-        import mlx.core as mx
-        from mlx_vlm import load, generate
-        from mlx_vlm.utils import load_config
-        
-        print("Loading MLX-optimized Phi-3.5-Vision model...")
-        model, processor = load(model_id, trust_remote_code=True)
-        print("MLX model loaded successfully!")
-        
-        return model, processor
-        
-    except ImportError as e:
-        print("MLX-VLM not installed. Installing MLX-VLM...")
-        print("Please run: pip install mlx-vlm")
-        print("Falling back to original transformers approach...")
-        
-        # Fallback to original approach if MLX not available
-        from transformers import AutoModelForCausalLM, AutoProcessor
-        print("Using memory-optimized loading for Apple Silicon...")
-        model = AutoModelForCausalLM.from_pretrained(
-            "microsoft/Phi-3.5-vision-instruct", 
-            trust_remote_code=True,
-            torch_dtype=torch.float16,
-            _attn_implementation="eager",  # Disable FlashAttention2
-            device_map="cpu",  # Force CPU to avoid memory issues
-            low_cpu_mem_usage=True  # Use less CPU memory
-        )
-        processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
-        return model, processor
-        
-    except Exception as e:
-        print(f"MLX loading failed: {str(e)}")
-        print("Falling back to original transformers approach...")
-        
-        # Fallback to original approach
-        from transformers import AutoModelForCausalLM, AutoProcessor
-        print("Using memory-optimized loading for Apple Silicon...")
-        model = AutoModelForCausalLM.from_pretrained(
-            "microsoft/Phi-3.5-vision-instruct", 
-            trust_remote_code=True,
-            torch_dtype=torch.float16,
-            _attn_implementation="eager",  # Disable FlashAttention2
-            device_map="cpu",  # Force CPU to avoid memory issues
-            low_cpu_mem_usage=True  # Use less CPU memory
-        )
-        processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
-        return model, processor
-```
-
-**❌ Original loading method (fails on MacBook Air):**
-```python
-# WARNING: This method FAILS on MacBook Air M3 (135s+ loading, 180s+ timeout)
-# Included for reference only - DO NOT USE on Apple Silicon
-from transformers import AutoModelForCausalLM, AutoProcessor
-model = AutoModelForCausalLM.from_pretrained(
-    "microsoft/Phi-3.5-vision-instruct", 
-    trust_remote_code=True,
-    torch_dtype=torch.float16,
-    _attn_implementation="eager"  # Disable FlashAttention2
-)
-processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
-```
-
-**Primary inference method (MLX-optimized with fallback):**
-```python
-# Check if this is an MLX model or transformers model
-try:
-    # Use MLX inference - it's much faster than transformers
-    
-    # Try MLX inference first
-    from mlx_vlm import generate
-    print("  🚀 Using MLX inference for Phi-3.5-Vision...")
-    
-    # Try simpler prompt format that works better with quantized models
-    mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
-    response = generate(
-        model=model, 
-        processor=processor, 
-        image=str(image_path), 
-        prompt=mlx_prompt,
-        max_tokens=unified_generation_params["max_new_tokens"],
-        temp=0.7,  # Increase temperature for more diverse output
-        repetition_penalty=1.2,  # Stronger repetition penalty
-        top_p=0.9,  # Add nucleus sampling
-        verbose=False  # Reduce MLX verbosity
-    )
-    
-    # Handle MLX response format (might be list with text and metadata)
-    if isinstance(response, list) and len(response) > 0:
-        # Extract just the text part if it's a list
-        text_response = response[0] if isinstance(response[0], str) else str(response[0])
-    else:
-        text_response = str(response)
-    
-    # Clean up repetitive tokens
-    text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
-    text_response = ' '.join(text_response.split())  # Clean up whitespace
-    
-    return text_response
-    
-except (ImportError, AttributeError, TypeError, Exception) as e:
-    print(f"  ⚠️ MLX inference failed ({e}), loading transformers model...")
-    
-    # Load transformers model for fallback (MLX model can't be used with transformers)
-    from transformers import AutoModelForCausalLM, AutoProcessor
-    print("  📥 Loading transformers Phi-3.5-Vision for fallback...")
-    
-    fallback_model = AutoModelForCausalLM.from_pretrained(
-        "microsoft/Phi-3.5-vision-instruct", 
-        trust_remote_code=True,
-        torch_dtype=torch.float16,
-        _attn_implementation="eager",  # Disable FlashAttention2
-        device_map="cpu",  # Force CPU to avoid memory issues
-        low_cpu_mem_usage=True  # Use less CPU memory
-    )
-    fallback_processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
-    
-    # Phi-3.5 Vision special format (model compatibility requirement)
-    messages = [
-        {"role": "user", "content": f"<|image_1|>\n{prompt}"}
-    ]
-    
-    prompt = fallback_processor.tokenizer.apply_chat_template(
-        messages, 
-        tokenize=False, 
-        add_generation_prompt=True
-    )
-    
-    inputs = fallback_processor(prompt, [image], return_tensors="pt")
-    
-    # Move to correct device
-    device = next(fallback_model.parameters()).device
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    
-    # Technical fix: avoid DynamicCache error
-    with torch.no_grad():
-        outputs = fallback_model.generate(
-            **inputs, 
-            **unified_generation_params,  # Use unified parameters
-            use_cache=False,  # Disable cache to avoid DynamicCache error
-            pad_token_id=fallback_processor.tokenizer.eos_token_id
-        )
-    
-    result = fallback_processor.decode(outputs[0], skip_special_tokens=True)
-    
-    # Clean up fallback model
-    del fallback_model, fallback_processor
-    gc.collect()
-    if torch.backends.mps.is_available():
-        torch.mps.empty_cache()
-    
-    return result
-```
-
-**❌ Original inference method (fails with timeouts):**
-```python
-# WARNING: This method consistently FAILS with 180s+ timeouts on MacBook Air M3
-# Included for reference only - shows why MLX is essential
-# Phi-3.5 Vision special format (model compatibility requirement)
-messages = [
-    {"role": "user", "content": f"<|image_1|>\n{prompt}"}
-]
-
-prompt = processor.tokenizer.apply_chat_template(
-    messages, 
-    tokenize=False, 
-    add_generation_prompt=True
-)
-
-inputs = processor(prompt, [image], return_tensors="pt")
-
-# Move to correct device
-device = next(model.parameters()).device
-inputs = {k: v.to(device) for k, v in inputs.items()}
-
-# Technical fix: avoid DynamicCache error
-with torch.no_grad():
-    outputs = model.generate(
-        **inputs, 
-        **unified_generation_params,  # Use unified parameters
-        use_cache=False,        # Disable cache to avoid DynamicCache error
-        pad_token_id=processor.tokenizer.eos_token_id
-    )
-
-response = processor.decode(outputs[0], skip_special_tokens=True)
-```
-
-### 🚀 **Pure Text Capability** ✅ 📚
-**Success Rate**: 100% (3/3) | **Avg Speed**: 16.38s | **Best Use**: Detailed analysis, education
-
-**Pure text inference method:**
-```python
-# Pure text inference with MLX (no image required)
-from mlx_vlm import generate
-
-response = generate(
-    model=model,
-    processor=processor,
-    prompt="Explain the concept of machine learning in simple terms",
-    max_tokens=100,
-    verbose=False
-)
-
-# Handle response format and clean up tokens
-if isinstance(response, tuple):
-    text_response = response[0]
-else:
-    text_response = str(response)
-
-# Clean up MLX tokens
-text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
-text_response = ' '.join(text_response.split())
-```
-
-**Sample pure text responses:**
-- Q: "What is the capital of France?" → "Paris is the capital of France. It is not only the largest city in France but also one of the most populous cities in Europe. Paris is known for its history, culture, and landmarks such as the Eiffel Tower, Notre-Dame Cathedral, and the Louvre Museum."
-- Q: "Write a short poem about technology." → 
-  ```
-  "In circuits and bytes, our world is woven,
-  A tapestry of data, silently spoken.
-  From the hum of servers to the glow of screens,
-  Our lives are intertwined with digital dreams."
-  ```
-
-**📚 Educational Highlight**: Most detailed and comprehensive responses - perfect for educational applications
-
-**Clone model repository**
-**✅ MLX-optimized model (REQUIRED for Apple Silicon):**
-```bash
-# Make sure git-lfs is installed (https://git-lfs.com)
-git lfs install
-git clone https://huggingface.co/lokinfey/Phi-3.5-vision-mlx-int4
-
-# If you want to clone without large files - just their pointers
-GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/lokinfey/Phi-3.5-vision-mlx-int4
-```
-
-**❌ Original model (DOES NOT WORK on Apple Silicon):**
-```bash
-# WARNING: This model FAILS on MacBook Air M3 - included for reference only
-git lfs install
-git clone https://huggingface.co/microsoft/Phi-3.5-vision-instruct
-
-# If you want to clone without large files - just their pointers
-GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/microsoft/Phi-3.5-vision-instruct
-```
+#### **Performance**
+- **Load Time**: 5.56s
+- **Inference**: 6.61s avg (fastest vision)
+- **Best Use**: Vision-only tasks
 
 ---
 
-## 🧪 Test Results Summary
+### **4. LLaVA-v1.6-Mistral-7B-MLX**
+**HuggingFace ID**: `mlx-community/llava-v1.6-mistral-7b-4bit`
 
-### ✅ **Performance on MacBook Air M3 (16GB)**
+#### **Requirements**
+```bash
+pip install mlx-vlm
+```
 
-| Model | Load Time | Inference Time | Status | Notes |
-|-------|-----------|----------------|--------|-------|
-| **SmolVLM2-500M-Video** | 2.53s | 15.36s | ✅ Success | Fastest loading |
-| **SmolVLM-500M-Instruct** | 3.86s | 11.86s | ✅ Success | Balanced performance |
-| **Moondream2** | 5.39s | 5.94s | ✅ Success | Fast inference |
-| **Phi-3.5-Vision-MLX** | **1.58s** | **15.71s** | ✅ Success | 🏆 **MLX optimization success!** |
-| **LLaVA-v1.5-7B** | 2.41s | Timeout(180s) | ❌ Failed | CPU inference too slow |
-| **Phi-3.5-Vision (orig)** | 135s+ | Timeout(180s) | ❌ Failed | Transformers approach fails |
+#### **Loading Method**
+```python
+from mlx_vlm import load
 
-### 📝 **Key Findings**
-- **MLX Optimization Success**: Phi-3.5-Vision with MLX achieves **fastest loading** (1.58s) and excellent inference (15.71s)
-- **Apple Silicon Advantage**: MLX framework provides 85x speed improvement for Phi-3.5-Vision on M1/M2/M3
-- **Small Model Performance**: 500M parameter models consistently perform well on M3
-- **Framework Impact**: MLX vs transformers makes the difference between complete success and complete failure
-- **No Fallback**: Transformers approach completely fails on Apple Silicon - MLX is the only option
-- **Large Model Limitations**: 7B+ parameter models require optimization (MLX/quantization) for practical use
-- **Unified Testing**: Achieved fair comparison environment with consistent parameters
+def load_llava_mlx(model_id="mlx-community/llava-v1.6-mistral-7b-4bit"):
+    model, processor = load(model_id)
+    return model, processor
+```
 
-### 🚀 **MLX Optimization Success Story**
+#### **Inference Method**
+```python
+from mlx_vlm import generate
 
-**Phi-3.5-Vision Transformation:**
-- **Before (transformers)**: 135s+ loading, 180s+ timeout → **Complete failure**
-- **After (MLX)**: 1.58s loading, 15.71s inference → **Complete success**
+# Vision + Text
+response = generate(
+    model, processor, prompt, 
+    image=str(image_path),
+    max_tokens=100,
+    verbose=False
+)
 
-**Key MLX Benefits (vs Complete Failure):**
-- ✅ **From Impossible to Fastest**: 1.58s loading vs 135s+ failure
-- ✅ **From Timeout to Success**: 15.71s inference vs 180s+ timeout
-- ✅ **Only Working Solution**: 100% success rate vs 0% with transformers
-- ✅ **Memory Efficient**: 0.81GB usage with INT4 quantization
-- ✅ **Quality Output**: Generates coherent, detailed image descriptions
-- ✅ **Apple Silicon Native**: The ONLY way to run Phi-3.5-Vision on M1/M2/M3
+# Pure Text
+response = generate(
+    model, processor, "Write a poem about technology",
+    max_tokens=100,
+    verbose=False
+)
+```
 
-**Sample MLX Output:**
-> *"The image shows a simple graphic representation of the phi-3 protein (abbreviated as PH3). It consists of a large red circle labeled "PH3" centered within the graphic, surrounded by an outer blue square. The background of the image is white with a light gray border around it, giving prominence to the central graphic."*
+#### **Known Issues**
+- **Synthetic Images**: Processing bug with geometric images
+- **State Memory**: Same response for different images
+- **Solution**: Exclusion list for problematic images
 
-**Performance Metrics:**
-- **Prompt Processing**: 145-177 tokens/sec
-- **Generation Speed**: 9-15 tokens/sec  
-- **Peak Memory**: 4.4GB
-- **Success Rate**: 100% (vs 0% with transformers)
+#### **Performance**
+- **Load Time**: 3.04s (fastest)
+- **Inference**: 8.57s avg
+- **Pure Text**: 4.08s avg
+- **Best Use**: Creative writing, poetry
+
+---
+
+### **5. Phi-3.5-Vision-Instruct**
+**HuggingFace ID**: `lokinfey/Phi-3.5-vision-mlx-int4`
+
+#### **Requirements**
+```bash
+pip install mlx-vlm
+```
+
+#### **Loading Method**
+```python
+from mlx_vlm import load
+
+def load_phi3_vision(model_id="lokinfey/Phi-3.5-vision-mlx-int4"):
+    model, processor = load(model_id, trust_remote_code=True)
+    return model, processor
+```
+
+#### **Inference Method**
+```python
+from mlx_vlm import generate
+
+# Vision + Text
+mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
+response = generate(
+    model, processor, mlx_prompt,
+    image=str(image_path),
+    max_tokens=100,
+    temp=0.7,
+    repetition_penalty=1.2,
+    top_p=0.9,
+    verbose=False
+)
+
+# Pure Text
+response = generate(
+    model, processor, "Explain machine learning",
+    max_tokens=100,
+    verbose=False
+)
+```
+
+#### **MLX Optimization Success**
+- **Before**: 135s+ loading timeout → Complete failure
+- **After**: 3.01s loading → 100% success
+- **Improvement**: 98%+ speed increase
+
+#### **Performance**
+- **Load Time**: 3.01s
+- **Inference**: 32.79s avg (slowest)
+- **Pure Text**: 16.38s avg
+- **Best Use**: Detailed analysis, education
+
+## 🛠️ **Technical Notes**
+
+### **Apple Silicon Optimization**
+- **MLX Framework**: Required for LLaVA and Phi-3.5-Vision
+- **Installation**: `pip install mlx-vlm`
+- **Performance**: 98%+ speed improvement vs transformers
+- **Memory**: More efficient usage with INT4 quantization
+
+### **Local Image Adaptation**
+- **Standard Format**: `{"type": "image", "image": image_object}`
+- **Phi-3.5-Vision**: Uses `str(image_path)` instead
+- **Preprocessing**: Unified scaling to max 1024px
+- **Support**: JPG, JPEG, PNG, BMP
+
+### **Memory Management**
+- **Sequential Loading**: One model at a time
+- **Cleanup**: `del model, gc.collect(), torch.mps.empty_cache()`
+- **Timeout**: 60s (small), 180s (large models)
+
+## 📊 **Performance Comparison**
+
+### **Loading Speed**
+1. **LLaVA-MLX**: 3.04s
+2. **Phi-3.5-Vision**: 3.01s
+3. **SmolVLM-500M**: 3.81s
+4. **SmolVLM2-Video**: 4.71s
+5. **Moondream2**: 5.56s
+
+### **Inference Speed**
+1. **Moondream2**: 6.61s avg
+2. **SmolVLM-500M**: 6.51s avg
+3. **SmolVLM2-Video**: 6.61s avg
+4. **LLaVA-MLX**: 8.57s avg
+5. **Phi-3.5-Vision**: 32.79s avg
+
+### **Pure Text Speed**
+1. **SmolVLM-500M**: 1.72s avg
+2. **SmolVLM2-Video**: 3.70s avg
+3. **LLaVA-MLX**: 4.08s avg
+4. **Phi-3.5-Vision**: 16.38s avg
+5. **Moondream2**: Not supported
+
+## 🎯 **Recommendations**
+
+### **Best Use Cases**
+- **General Purpose**: SmolVLM-500M-Instruct
+- **Fast Q&A**: SmolVLM-500M-Instruct
+- **Creative Writing**: LLaVA-MLX
+- **Educational**: Phi-3.5-Vision
+- **Vision-Only**: Moondream2
+
+### **Avoid**
+- **LLaVA-MLX**: State memory issues
+- **Phi-3.5-Vision**: Technical problems, slow inference
+- **Transformers Phi-3.5**: Complete failure on Apple Silicon

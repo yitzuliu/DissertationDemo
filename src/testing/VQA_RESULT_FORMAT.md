@@ -1,15 +1,17 @@
 # 🎯 VQA Test Result Format Documentation
 
-## 📊 Result File Structure
+## 📊 **Result Structure Overview**
 
-### 🔍 **Question and Image Reference Information**
-
-Each VQA test result now contains complete question-image reference information directly in the question results:
+### **Question-Image Reference System**
+Each VQA test result contains complete question-image reference information:
 
 ```json
 {
   "test_metadata": {
-    "image_reference_note": "Each question's image_id corresponds to image_filename, image files are located in testing_material/vqa2/images/val2014_sample/ directory"
+    "test_date": "2025-07-18 22:21:26",
+    "test_mode": "coco",
+    "num_questions": 20,
+    "framework_version": "unified_v1.1"
   },
   "results": {
     "moondream2": {
@@ -20,7 +22,10 @@ Each VQA test result now contains complete question-image reference information 
           "image_filename": "COCO_val2014_000000100187.jpg",
           "question": "Is it daytime?",
           "model_answer": "Yes",
-          "ground_truth": "no"
+          "ground_truth": "no",
+          "is_correct": false,
+          "vqa_accuracy": 0.0,
+          "inference_time": 4.23
         }
       ]
     }
@@ -39,62 +44,75 @@ Image ID: 100187       (COCO image identifier)
 Filename: COCO_val2014_000000100187.jpg  (Actual image file)
 ```
 
-### **Methods to Find Corresponding Images**
+### **Image File Location**
+- **Path**: `testing_material/vqa2/images/val2014_sample/`
+- **Format**: `COCO_val2014_000000100187.jpg` (12-digit zero-padded)
 
-1. **Search by Question ID:**
-   - Find `question_id` in `question_results`
-   - Check corresponding `image_id` and `image_filename`
-
-2. **Direct image access:**
-   ```bash
-   # Image file location
-   testing_material/vqa2/images/val2014_sample/COCO_val2014_000000100187.jpg
-   ```
-
-## 📋 **Detailed Field Description**
+## 📋 **Field Descriptions**
 
 ### **Question Result Fields**
-- `question_id`: Unique question ID in VQA dataset
-- `image_id`: Corresponding COCO image ID  
-- `image_filename`: Image filename
-- `question`: Question text
-- `model_answer`: Model response
-- `ground_truth`: Ground truth answer
-- `is_correct`: Whether the answer is correct
-- `vqa_accuracy`: Official VQA evaluation accuracy
-- `inference_time`: Inference time (seconds)
+| Field | Type | Description |
+|-------|------|-------------|
+| `question_id` | int | Unique question ID in VQA dataset |
+| `image_id` | int | Corresponding COCO image ID |
+| `image_filename` | str | Image filename |
+| `question` | str | Question text |
+| `model_answer` | str | Model response |
+| `ground_truth` | str | Ground truth answer |
+| `is_correct` | bool | Whether answer is correct |
+| `vqa_accuracy` | float | Official VQA evaluation accuracy |
+| `inference_time` | float | Inference time (seconds) |
 
-### **Image File Path**
-All image files are stored in:
-- `testing_material/vqa2/images/val2014_sample/` directory
-- Filename format: `COCO_val2014_000000100187.jpg` (12-digit zero-padded)
+### **Model Result Fields**
+| Field | Type | Description |
+|-------|------|-------------|
+| `accuracy` | float | Simple accuracy (correct/total) |
+| `vqa_accuracy` | float | Average VQA accuracy |
+| `correct` | int | Number of correct answers |
+| `total` | int | Total number of questions |
+| `avg_time` | float | Average inference time |
 
 ## 🎯 **Usage Examples**
 
-### **Find image for specific question:**
+### **Find Image for Specific Question**
 ```python
 # Find corresponding image for question ID 100187002
 question_id = 100187002
 
-# Find this question in results
 for result in results['moondream2']['question_results']:
     if result['question_id'] == question_id:
         image_file = result['image_filename']
-        print(f"Question {question_id} corresponds to image: {image_file}")
+        print(f"Question {question_id} → {image_file}")
         break
 ```
 
-### **Verify image file exists:**
+### **Verify Image File Exists**
 ```bash
 ls testing_material/vqa2/images/val2014_sample/COCO_val2014_000000100187.jpg
 ```
 
-## ✅ **New Version Advantages**
+### **Calculate Model Performance**
+```python
+# Get model performance metrics
+model_results = results['moondream2']
+accuracy = model_results['accuracy']
+vqa_accuracy = model_results['vqa_accuracy']
+avg_time = model_results['avg_time']
 
-1. **Complete reference information**: Each question has clear image ID and filename
-2. **Quick lookup**: Direct access to image information in question results
-3. **Path transparency**: Clear indication of image file storage location
-4. **Debug friendly**: Easy to check and verify test results
+print(f"Accuracy: {accuracy:.1%}")
+print(f"VQA Accuracy: {vqa_accuracy:.1%}")
+print(f"Avg Time: {avg_time:.2f}s")
+```
+
+## ✅ **Key Features**
+
+1. **Complete Reference**: Each question has clear image ID and filename
+2. **Quick Lookup**: Direct access to image information
+3. **Path Transparency**: Clear image file storage location
+4. **Debug Friendly**: Easy to verify test results
+5. **Performance Metrics**: Comprehensive accuracy and timing data
 
 ---
-**Version Info**: framework_version "unified_v1.1" supports complete image reference information
+
+**Version**: unified_v1.1  
+**Last Updated**: July 18, 2025

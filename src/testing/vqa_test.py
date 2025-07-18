@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
 VQA 2.0 Testing Framework - COCO Real Data Version
-Integrates all VQA 2.0 testing functionality, supports multiple VLM models, unified use of COCO real data
+Integrates all VQA 2.0 testing functionality, supports multiple VLM models
 
 Usage:
-    python vqa_test.py --questions 20           # COCO real data test (default)
-    python vqa_test.py --quick --questions 20   # Same as above (explicitly specify quick mode)
-    python vqa_test.py --models moondream2 --questions 10  # Test specific model
-    python vqa_test.py --help                   # View all options
+    python vqa_test.py                    # Basic test (20 questions, all models)
+    python vqa_test.py --questions 10     # Test with 10 questions
+    python vqa_test.py --models moondream2  # Test specific model
+    python vqa_test.py --help             # View all options
 
 Author: AI Manual Assistant Team
 Date: 2025-01-27
@@ -25,17 +25,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 def main():
     parser = argparse.ArgumentParser(description="VQA 2.0 Testing Tool")
     
-    # Test mode (only keep quick mode, using COCO real data)
-    parser.add_argument('--quick', action='store_true', default=True,
-                       help='Use 20 COCO real images for testing (default mode)')
-    
     # Test parameters
     parser.add_argument('--questions', type=int, default=20,
-                       help='Number of test questions (default: 20, max 20 COCO images)')
+                       help='Number of test questions (default: 20, max 20)')
     parser.add_argument('--models', nargs='+', 
                        default=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
                        choices=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
-                       help='List of models to test (default: test all models)')
+                       help='Models to test (default: all models)')
     
     # Advanced options
     parser.add_argument('--verbose', action='store_true',
@@ -73,12 +69,10 @@ def main():
     start_time = time.time()
     
     try:
-        # Use COCO real data for testing
-        print(f"\n⚡ Running COCO real data test...")
-        print("📝 Using 20 COCO images and real VQA data")
-        # Limit to max 20 questions (corresponding to 20 COCO images)
+        # Load COCO real data
+        print(f"\n⚡ Loading COCO real data...")
         questions, annotations = framework.load_sample_data(min(args.questions, 20))
-        print(f"✅ Using up to 20 COCO images: {len(questions)} questions")
+        print(f"✅ Loaded {len(questions)} questions")
         
         # Check image availability
         print(f"\n🖼️ Checking image availability...")
@@ -131,10 +125,10 @@ def main():
             print(f"   🎯 VQA accuracy: {vqa_accuracy:.1%}")
             print(f"   ⏱️ Average inference time: {avg_time:.2f}s")
             
-            # Show question and image mapping information
+            # Show question details in verbose mode
             if args.verbose and "question_results" in results:
                 print(f"   📋 Question details:")
-                for i, q_result in enumerate(results["question_results"][:5], 1):  # Only show first 5
+                for i, q_result in enumerate(results["question_results"][:5], 1):
                     q_id = q_result.get('question_id', 'N/A')
                     img_id = q_result.get('image_id', 'N/A')
                     img_file = q_result.get('image_filename', 'N/A')

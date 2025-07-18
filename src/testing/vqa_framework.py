@@ -24,6 +24,7 @@ import torch
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
+import gc # Added for fallback model cleanup
 
 # Import existing VLM infrastructure
 from vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage
@@ -31,28 +32,62 @@ from vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage
 class VQAFramework:
     """VQA 2.0 Unified Framework - Integrates all functionality"""
     
-    def __init__(self, data_dir: str = None):
+    def __init__(self, data_dir: Optional[str] = None):
         """Initialize VQA Framework
         
         Args:
-            data_dir: VQA data directory path
+            data_dir: Optional custom data directory
         """
-        self.data_dir = Path(data_dir) if data_dir else Path(__file__).parent / "testing_material" / "vqa2"
-        self.data_dir.mkdir(parents=True, exist_ok=True)
+        # Set up data directory
+        if data_dir:
+            self.data_dir = Path(data_dir)
+        else:
+            # Default to testing_material/vqa2
+            possible_paths = [
+                Path("src/testing/testing_material/vqa2"),  # From project root
+                Path("testing_material/vqa2"),              # From src/testing
+                Path("./testing_material/vqa2")             # Current directory
+            ]
+            
+            self.data_dir = None
+            for path in possible_paths:
+                if path.exists():
+                    self.data_dir = path
+                    break
+            
+            if self.data_dir is None:
+                # Create default directory
+                self.data_dir = Path("testing_material/vqa2")
+                self.data_dir.mkdir(parents=True, exist_ok=True)
         
+        # Ensure images directory exists
         self.images_dir = self.data_dir / "images"
-        self.images_dir.mkdir(exist_ok=True)
+        self.images_dir.mkdir(parents=True, exist_ok=True)
         
-        self.results_dir = Path(__file__).parent / "results"
-        self.results_dir.mkdir(exist_ok=True)
+        # Set up results directory
+        possible_results_dirs = [
+            Path("src/testing/results"),  # From project root
+            Path("results"),              # From src/testing
+            Path("./results")             # Current directory
+        ]
         
-        # VQA 2.0 dataset URLs
-        self.vqa2_urls = {
-            "val_questions": "https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Questions_Val_mscoco.zip",
-            "val_annotations": "https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Annotations_Val_mscoco.zip",
+        self.results_dir = None
+        for path in possible_results_dirs:
+            if path.exists():
+                self.results_dir = path
+                break
+        
+        if self.results_dir is None:
+            self.results_dir = Path("results")
+            self.results_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Unified generation parameters (same as vlm_tester.py)
+        self.generation_params = {
+            "max_new_tokens": 100,
+            "do_sample": False
         }
         
-        # Supported model configurations
+        # Model configuration (same as vlm_tester.py)
         self.models_config = {
             "smolvlm_instruct": {
                 "loader": VLMModelLoader.load_smolvlm_instruct,
@@ -76,23 +111,24 @@ class VQAFramework:
             }
         }
         
-        # Generation parameters
-        self.generation_params = {
-            "max_new_tokens": 50,
-            "do_sample": False
-        }
-        
         # Image cache
         self.image_cache = {}
         
-        print(f"🧪 VQA 2.0 Framework Initialized")
-        print(f"📁 Data directory: {self.data_dir}")
+        print(f"✅ VQA Framework initialized")
+        print(f"   📁 Data directory: {self.data_dir}")
+        print(f"   📊 Results directory: {self.results_dir}")
     
     def download_vqa_data(self):
         """Download VQA 2.0 dataset"""
         print("📥 Downloading VQA 2.0 Dataset...")
         
-        for component, url in self.vqa2_urls.items():
+        # VQA 2.0 dataset URLs
+        vqa2_urls = {
+            "val_questions": "https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Questions_Val_mscoco.zip",
+            "val_annotations": "https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Annotations_Val_mscoco.zip",
+        }
+        
+        for component, url in vqa2_urls.items():
             zip_file = self.data_dir / f"{component}.zip"
             
             if not zip_file.exists():
@@ -265,7 +301,7 @@ class VQAFramework:
     def _ensure_sample_images(self, sample_size: int):
         """Ensure COCO sample images exist"""
         sample_dir = self.images_dir / "val2014_sample"
-        sample_dir.mkdir(exist_ok=True)
+        sample_dir.mkdir(parents=True, exist_ok=True)
         
         # Check if enough images already exist
         existing_images = list(sample_dir.glob("*.jpg"))
@@ -317,7 +353,7 @@ class VQAFramework:
     def _ensure_coco_images_for_questions(self, questions: List[Dict]):
         """Download corresponding COCO images for question list"""
         sample_dir = self.images_dir / "val2014_sample"
-        sample_dir.mkdir(exist_ok=True)
+        sample_dir.mkdir(parents=True, exist_ok=True)
         
         # Collect all required image IDs
         image_ids = set()
@@ -413,7 +449,7 @@ class VQAFramework:
         return None
     
     def evaluate_model(self, model_name: str, questions: List[Dict], 
-                      annotations: Dict, max_questions: int = None,
+                      annotations: Dict, max_questions: Optional[int] = None,
                       verbose: bool = False) -> Dict:
         """Evaluate model"""
         print(f"🤖 Evaluating {model_name} on VQA 2.0...")
@@ -544,15 +580,187 @@ class VQAFramework:
     
     def _get_model_answer(self, model, processor, model_name: str, 
                          question: str, image_id: int) -> str:
-        """Get model answer"""
+        """Get model answer using unified inference logic (same as vlm_tester.py)"""
         # Load image
         image = self._load_image(image_id)
         if image is None:
             return "no image available"
         
         try:
-            if "smolvlm" in model_name.lower():
-                # SmolVLM processing - use correct format
+            # Unified image preprocessing (same as vlm_tester.py)
+            original_size = image.size
+            unified_image_size = 1024
+            if max(image.size) > unified_image_size:
+                ratio = unified_image_size / max(image.size)
+                new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
+                image = image.resize(new_size, Image.Resampling.LANCZOS)
+            
+            # Unified generation parameters
+            unified_generation_params = {
+                "max_new_tokens": self.generation_params["max_new_tokens"],
+                "do_sample": self.generation_params["do_sample"]
+            }
+            
+            # Model-specific inference (same logic as vlm_tester.py)
+            if "moondream2" in model_name.lower():
+                # Moondream2 special API
+                device = next(model.parameters()).device
+                enc_image = model.encode_image(image)
+                if hasattr(enc_image, 'to'):
+                    enc_image = enc_image.to(device)
+                return model.answer_question(enc_image, question, processor)
+                
+            elif "phi35_vision" in model_name.lower() or "phi-3.5" in model_name.lower():
+                # Phi-3.5-Vision inference (same as vlm_tester.py)
+                try:
+                    # Try MLX inference first
+                    from mlx_vlm import generate
+                    print("  🚀 Using MLX inference for Phi-3.5-Vision...")
+                    
+                    # Try simpler prompt format that works better with quantized models
+                    mlx_prompt = f"<|image_1|>\\nUser: {question}\\nAssistant:"
+                    
+                    # Try different possible image paths
+                    possible_image_paths = [
+                        str(self.images_dir / f"COCO_val2014_{image_id:012d}.jpg"),
+                        str(self.images_dir / "val2014_sample" / f"COCO_val2014_{image_id:012d}.jpg"),
+                        str(self.images_dir / "val2014" / f"COCO_val2014_{image_id:012d}.jpg")
+                    ]
+                    
+                    current_image_path = None
+                    for path in possible_image_paths:
+                        if os.path.exists(path):
+                            current_image_path = path
+                            break
+                    
+                    if current_image_path is None:
+                        return f"Image file not found for image_id {image_id}"
+                    
+                    response = generate(
+                        model=model, 
+                        processor=processor, 
+                        image=current_image_path, 
+                        prompt=mlx_prompt,
+                        max_tokens=unified_generation_params["max_new_tokens"],
+                        temp=0.7,  # Increase temperature for more diverse output
+                        repetition_penalty=1.2,  # Stronger repetition penalty
+                        top_p=0.9,  # Add nucleus sampling
+                        verbose=False  # Reduce MLX verbosity
+                    )
+                    
+                    # Handle MLX response format (might be tuple with text and metadata)
+                    if isinstance(response, tuple) and len(response) >= 2:
+                        # MLX returns (text, metadata_dict) - extract just the text
+                        text_response = response[0]
+                    elif isinstance(response, list) and len(response) > 0:
+                        # Extract just the text part if it's a list
+                        text_response = response[0] if isinstance(response[0], str) else str(response[0])
+                    else:
+                        text_response = str(response)
+                    
+                    # Clean up repetitive tokens and unwanted text
+                    text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
+                    # Remove any trailing questions that might be part of the model's training data
+                    if "1. What is meant by" in text_response:
+                        text_response = text_response.split("1. What is meant by")[0].strip()
+                    text_response = ' '.join(text_response.split())  # Clean up whitespace
+                    
+                    return text_response
+                    
+                except (ImportError, AttributeError, TypeError, Exception) as e:
+                    print(f"  ⚠️ MLX inference failed ({e}), loading transformers model...")
+                    
+                    # Load transformers model for fallback (MLX model can't be used with transformers)
+                    from transformers import AutoModelForCausalLM, AutoProcessor
+                    print("  📥 Loading transformers Phi-3.5-Vision for fallback...")
+                    
+                    fallback_model = AutoModelForCausalLM.from_pretrained(
+                        "microsoft/Phi-3.5-vision-instruct", 
+                        trust_remote_code=True,
+                        torch_dtype=torch.float16,
+                        _attn_implementation="eager",  # Disable FlashAttention2
+                        device_map="cpu",  # Force CPU to avoid memory issues
+                        low_cpu_mem_usage=True  # Use less CPU memory
+                    )
+                    fallback_processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
+                    
+                    # Phi-3.5 Vision special format (model compatibility requirement)
+                    messages = [
+                        {"role": "user", "content": f"<|image_1|>\\n{question}"}
+                    ]
+                    
+                    prompt = fallback_processor.tokenizer.apply_chat_template(
+                        messages, 
+                        tokenize=False, 
+                        add_generation_prompt=True
+                    )
+                    
+                    inputs = fallback_processor(prompt, [image], return_tensors="pt")
+                    
+                    # Move to correct device
+                    device = next(fallback_model.parameters()).device
+                    inputs = {k: v.to(device) for k, v in inputs.items()}
+                    
+                    # Technical fix: avoid DynamicCache error
+                    with torch.no_grad():
+                        outputs = fallback_model.generate(
+                            **inputs, 
+                            **unified_generation_params,  # Use unified parameters
+                            use_cache=False,  # Disable cache to avoid DynamicCache error
+                            pad_token_id=fallback_processor.tokenizer.eos_token_id
+                        )
+                    
+                    result = fallback_processor.decode(outputs[0], skip_special_tokens=True)
+                    
+                    # Clean up fallback model
+                    del fallback_model, fallback_processor
+                    gc.collect()
+                    if torch.backends.mps.is_available():
+                        torch.mps.empty_cache()
+                    
+                    return result
+                    
+            elif "llava_mlx" in model_name.lower() or "llava" in model_name.lower():
+                # LLaVA-MLX inference
+                try:
+                    from mlx_vlm import generate
+                    # Try different possible image paths
+                    possible_image_paths = [
+                        str(self.images_dir / f"COCO_val2014_{image_id:012d}.jpg"),
+                        str(self.images_dir / "val2014_sample" / f"COCO_val2014_{image_id:012d}.jpg"),
+                        str(self.images_dir / "val2014" / f"COCO_val2014_{image_id:012d}.jpg")
+                    ]
+                    
+                    current_image_path = None
+                    for path in possible_image_paths:
+                        if os.path.exists(path):
+                            current_image_path = path
+                            break
+                    
+                    if current_image_path is None:
+                        return f"Image file not found for image_id {image_id}"
+                    
+                    response = generate(
+                        model, 
+                        processor, 
+                        question, 
+                        image=current_image_path,
+                        max_tokens=unified_generation_params["max_new_tokens"],
+                        verbose=False
+                    )
+                    
+                    if isinstance(response, tuple) and len(response) >= 1:
+                        text_response = response[0] if response[0] else ""
+                    else:
+                        text_response = str(response) if response else ""
+                    
+                    return text_response
+                    
+                except Exception as e:
+                    return f"LLaVA-MLX inference failed: {str(e)}"
+                    
+            elif "smolvlm" in model_name.lower():
+                # SmolVLM processing
                 messages = [
                     {
                         "role": "user", 
@@ -566,20 +774,19 @@ class VQAFramework:
                 inputs = processor(text=input_text, images=image, return_tensors="pt")
                 
                 with torch.no_grad():
-                    generated_ids = model.generate(**inputs, **self.generation_params)
+                    generated_ids = model.generate(**inputs, **unified_generation_params)
                     response = processor.decode(generated_ids[0], skip_special_tokens=True)
                 
                 # Extract answer - remove input text
                 answer = response.replace(input_text, "").strip()
                 return self._extract_answer(answer, model_name, question)
                 
-            elif "moondream" in model_name.lower():
-                # Moondream processing  
-                answer = model.answer_question(image, question, processor)
-                return answer
-                
             else:
-                return "model not supported"
+                # Generic processing for other models
+                inputs = processor(text=question, images=image, return_tensors="pt")
+                with torch.no_grad():
+                    outputs = model.generate(**inputs, **unified_generation_params)
+                return processor.decode(outputs[0], skip_special_tokens=True)
                 
         except Exception as e:
             return f"error: {str(e)}"
