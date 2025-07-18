@@ -1,0 +1,479 @@
+{
+  "test_timestamp": "2025-07-18 10:48:29",
+  "system_info": {
+    "device": "MacBook Air M3",
+    "memory": "16GB",
+    "mps_available": true
+  },
+  "models": {
+    "SmolVLM2-500M-Video-Instruct": {
+      "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "seeding_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "A dog with a tan and white coat is sitting on a tiled floor. The dog is looking directly at the camera with a neutral expression.",
+            "inference_time": 9.529754161834717
+          },
+          "recall_phase": {
+            "question_1": {
+              "prompt": "Based on the description you just gave me, what were the most prominent colors in the image?",
+              "response": "The most prominent colors in the image are black and white.",
+              "inference_time": 7.244009017944336
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "No.",
+              "inference_time": 6.709579944610596
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "A black screen.",
+              "inference_time": 6.813732147216797
+            }
+          },
+          "full_conversation_history": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "text",
+                  "text": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant:"
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "A dog with a tan and white coat is sitting on a tiled floor. The dog is looking directly at the camera with a neutral expression."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Based on the description you just gave me, what were the most prominent colors in the image?"
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "The most prominent colors in the image are black and white."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "No."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Summarize the main subject or scene of the image in one sentence."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Summarize the main subject or scene of the image in one sentence.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "A black screen."
+            }
+          ],
+          "debug_info": {
+            "seeding_prompt": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "text",
+                  "text": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant:"
+              }
+            },
+            "recall_prompt_1": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Based on the description you just gave me, what were the most prominent colors in the image?"
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            "recall_prompt_2": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            "recall_prompt_3": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Summarize the main subject or scene of the image in one sentence."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Summarize the main subject or scene of the image in one sentence.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            }
+          }
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "seeding_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "A person is holding a passport in their hand. The passport is white with blue and red text. The person is wearing a white shirt with blue text on it.",
+            "inference_time": 6.670626878738403
+          },
+          "recall_phase": {
+            "question_1": {
+              "prompt": "Based on the description you just gave me, what were the most prominent colors in the image?",
+              "response": "The most prominent colors in the image are black and white.",
+              "inference_time": 7.2663960456848145
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "No.",
+              "inference_time": 6.9655187129974365
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "A black screen.",
+              "inference_time": 7.11570405960083
+            }
+          },
+          "full_conversation_history": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "text",
+                  "text": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant:"
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "A person is holding a passport in their hand. The passport is white with blue and red text. The person is wearing a white shirt with blue text on it."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Based on the description you just gave me, what were the most prominent colors in the image?"
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "The most prominent colors in the image are black and white."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "No."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Summarize the main subject or scene of the image in one sentence."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Summarize the main subject or scene of the image in one sentence.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "A black screen."
+            }
+          ],
+          "debug_info": {
+            "seeding_prompt": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "text",
+                  "text": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant:"
+              }
+            },
+            "recall_prompt_1": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Based on the description you just gave me, what were the most prominent colors in the image?"
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            "recall_prompt_2": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            "recall_prompt_3": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Summarize the main subject or scene of the image in one sentence."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Summarize the main subject or scene of the image in one sentence.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            }
+          }
+        },
+        {
+          "image_name": "test_image.jpg",
+          "seeding_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "The image depicts a red circle with the letter \"PH-3\" inscribed within it. The circle is set against a light blue background, which serves as the backdrop for the image. The letter \"PH-3\" is inscribed in the center of the red circle, indicating a possible chemical or molecular structure. The image does not contain any other objects or text.",
+            "inference_time": 10.858349084854126
+          },
+          "recall_phase": {
+            "question_1": {
+              "prompt": "Based on the description you just gave me, what were the most prominent colors in the image?",
+              "response": "The most prominent colors in the image are black and white.",
+              "inference_time": 8.204304933547974
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "No.",
+              "inference_time": 7.187711000442505
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "A black screen.",
+              "inference_time": 7.383500099182129
+            }
+          },
+          "full_conversation_history": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "text",
+                  "text": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant:"
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "The image depicts a red circle with the letter \"PH-3\" inscribed within it. The circle is set against a light blue background, which serves as the backdrop for the image. The letter \"PH-3\" is inscribed in the center of the red circle, indicating a possible chemical or molecular structure. The image does not contain any other objects or text."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Based on the description you just gave me, what were the most prominent colors in the image?"
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "The most prominent colors in the image are black and white."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "No."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Summarize the main subject or scene of the image in one sentence."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Summarize the main subject or scene of the image in one sentence.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "A black screen."
+            }
+          ],
+          "debug_info": {
+            "seeding_prompt": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "image"
+                },
+                {
+                  "type": "text",
+                  "text": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant:"
+              }
+            },
+            "recall_prompt_1": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Based on the description you just gave me, what were the most prominent colors in the image?"
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            "recall_prompt_2": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            },
+            "recall_prompt_3": {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Summarize the main subject or scene of the image in one sentence."
+                }
+              ],
+              "debug_info": {
+                "final_prompt_to_model": "<|im_start|>User:<image>You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Based on the description you just gave me, what were the most prominent colors in the image?<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.<end_of_utterance>\nAssistant: <end_of_utterance>\nUser: Summarize the main subject or scene of the image in one sentence.<end_of_utterance>\nAssistant:",
+                "used_black_image_test": true
+              }
+            }
+          }
+        }
+      ],
+      "load_time": 7.358515977859497,
+      "memory_before": 0.1764678955078125,
+      "memory_after": 0.399658203125,
+      "memory_diff": 0.2231903076171875,
+      "memory_after_cleanup": 2.7873687744140625
+    }
+  }
+}
