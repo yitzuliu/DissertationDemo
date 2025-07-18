@@ -1,0 +1,116 @@
+{
+  "test_timestamp": "2025-07-18 22:28:35",
+  "system_info": {
+    "device": "MacBook Air M3",
+    "memory": "16GB",
+    "mps_available": true
+  },
+  "test_type": "vqa_comprehensive",
+  "framework_version": "unified_v1.1",
+  "models": {
+    "moondream2": {
+      "model_id": "vikhyatk/moondream2",
+      "description": "Lightweight model, fastest inference",
+      "test_started": "2025-07-18 22:28:37",
+      "memory_before_loading": 1.057861328125,
+      "test_completed": true,
+      "load_time": 5.62614893913269,
+      "memory_after_loading": 0.0233306884765625,
+      "memory_diff_loading": -1.0345306396484375,
+      "loading_successful": true,
+      "evaluation_time": 24.335430145263672,
+      "memory_after_evaluation": 1.1521148681640625,
+      "total_questions": 3,
+      "correct_answers": 1,
+      "accuracy": 0.3333333333333333,
+      "vqa_accuracy": 0.6666666666666666,
+      "avg_inference_time": 4.41323725382487,
+      "performance_analysis": {
+        "timing_stats": {
+          "min_inference_time": 3.808619737625122,
+          "max_inference_time": 5.232854127883911,
+          "median_inference_time": 4.198237895965576,
+          "std_dev_time": 0.6009877661033751
+        },
+        "accuracy_stats": {
+          "perfect_answers": 2,
+          "partial_answers": 0,
+          "failed_answers": 1,
+          "avg_vqa_accuracy": 0.6666666666666666
+        },
+        "question_types": {
+          "yes_no": {
+            "count": 3,
+            "avg_accuracy": 0.6666666666666666,
+            "best_accuracy": 1.0,
+            "worst_accuracy": 0.0
+          },
+          "what": {
+            "count": 0,
+            "avg_accuracy": 0
+          },
+          "how_many": {
+            "count": 0,
+            "avg_accuracy": 0
+          },
+          "where": {
+            "count": 0,
+            "avg_accuracy": 0
+          },
+          "other": {
+            "count": 0,
+            "avg_accuracy": 0
+          }
+        },
+        "consistency": {
+          "timing_consistency": "high",
+          "accuracy_consistency": true
+        }
+      },
+      "question_results": [
+        {
+          "question_id": 100187002,
+          "image_id": 100187,
+          "image_filename": "COCO_val2014_000000100187.jpg",
+          "question": "Is it daytime?",
+          "model_answer": "Yes",
+          "ground_truth": "no",
+          "is_correct": false,
+          "vqa_accuracy": 0.0,
+          "inference_time": 5.232854127883911
+        },
+        {
+          "question_id": 278161005,
+          "image_id": 278161,
+          "image_filename": "COCO_val2014_000000278161.jpg",
+          "question": "Is there another bus behind this one?",
+          "model_answer": "No, there isn't another bus behind this yellow school bus in the image.",
+          "ground_truth": "no",
+          "is_correct": true,
+          "vqa_accuracy": 1.0,
+          "inference_time": 4.198237895965576
+        },
+        {
+          "question_id": 134483004,
+          "image_id": 134483,
+          "image_filename": "COCO_val2014_000000134483.jpg",
+          "question": "Is the light on?",
+          "model_answer": "No, the light is not on in the image.",
+          "ground_truth": "yes",
+          "is_correct": false,
+          "vqa_accuracy": 1.0,
+          "inference_time": 3.808619737625122
+        }
+      ],
+      "detailed_metrics": {
+        "questions_per_second": 0.12327704840606159,
+        "total_inference_time": 13.23971176147461,
+        "overhead_time": 11.095718383789062,
+        "success_rate": 1.0,
+        "performance_grade": "C"
+      },
+      "memory_after_cleanup": 1.1521453857421875,
+      "test_ended": "2025-07-18 22:29:09"
+    }
+  }
+}

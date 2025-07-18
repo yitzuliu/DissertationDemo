@@ -1,15 +1,15 @@
-# 🎯 VQA測試結果格式說明
+# 🎯 VQA Test Result Format Documentation
 
-## 📊 結果文件結構
+## 📊 Result File Structure
 
-### 🔍 **問題和圖像對照信息**
+### 🔍 **Question and Image Reference Information**
 
-每個VQA測試結果現在包含完整的問題-圖像對照信息，直接在問題結果中：
+Each VQA test result now contains complete question-image reference information directly in the question results:
 
 ```json
 {
   "test_metadata": {
-    "image_reference_note": "每個問題的 image_id 對應 image_filename，圖像文件位於 testing_material/vqa2/images/val2014_sample/ 目錄"
+    "image_reference_note": "Each question's image_id corresponds to image_filename, image files are located in testing_material/vqa2/images/val2014_sample/ directory"
   },
   "results": {
     "moondream2": {
@@ -28,73 +28,73 @@
 }
 ```
 
-## 🔗 **對照關係說明**
+## 🔗 **Reference Relationship**
 
-### **Question ID → Image ID → 文件名**
+### **Question ID → Image ID → Filename**
 ```
-Question ID: 100187002  （VQA問題唯一標識符）
+Question ID: 100187002  (VQA question unique identifier)
      ↓
-Image ID: 100187       （COCO圖像標識符）
+Image ID: 100187       (COCO image identifier)
      ↓
-文件名: COCO_val2014_000000100187.jpg  （實際圖像文件）
+Filename: COCO_val2014_000000100187.jpg  (Actual image file)
 ```
 
-### **查找對應圖像的方法**
+### **Methods to Find Corresponding Images**
 
-1. **通過問題ID查找：**
-   - 在 `question_results` 中找到 `question_id`
-   - 查看對應的 `image_id` 和 `image_filename`
+1. **Search by Question ID:**
+   - Find `question_id` in `question_results`
+   - Check corresponding `image_id` and `image_filename`
 
-2. **直接查看圖像：**
+2. **Direct image access:**
    ```bash
-   # 圖像文件位置
+   # Image file location
    testing_material/vqa2/images/val2014_sample/COCO_val2014_000000100187.jpg
    ```
 
-## 📋 **詳細字段說明**
+## 📋 **Detailed Field Description**
 
-### **問題結果字段**
-- `question_id`: VQA數據集中的問題唯一ID
-- `image_id`: 對應的COCO圖像ID  
-- `image_filename`: 圖像文件名
-- `question`: 問題文本
-- `model_answer`: 模型回答
-- `ground_truth`: 標準答案
-- `is_correct`: 是否回答正確
-- `vqa_accuracy`: VQA官方評估準確度
-- `inference_time`: 推理時間（秒）
+### **Question Result Fields**
+- `question_id`: Unique question ID in VQA dataset
+- `image_id`: Corresponding COCO image ID  
+- `image_filename`: Image filename
+- `question`: Question text
+- `model_answer`: Model response
+- `ground_truth`: Ground truth answer
+- `is_correct`: Whether the answer is correct
+- `vqa_accuracy`: Official VQA evaluation accuracy
+- `inference_time`: Inference time (seconds)
 
-### **圖像文件路徑**
-所有圖像文件統一存放在：
-- `testing_material/vqa2/images/val2014_sample/` 目錄
-- 文件名格式：`COCO_val2014_000000100187.jpg`（12位數字補零）
+### **Image File Path**
+All image files are stored in:
+- `testing_material/vqa2/images/val2014_sample/` directory
+- Filename format: `COCO_val2014_000000100187.jpg` (12-digit zero-padded)
 
-## 🎯 **使用示例**
+## 🎯 **Usage Examples**
 
-### **查找特定問題的圖像：**
+### **Find image for specific question:**
 ```python
-# 假設要查找問題ID 100187002的對應圖像
+# Find corresponding image for question ID 100187002
 question_id = 100187002
 
-# 在結果中找到這個問題
+# Find this question in results
 for result in results['moondream2']['question_results']:
     if result['question_id'] == question_id:
         image_file = result['image_filename']
-        print(f"問題 {question_id} 對應圖像: {image_file}")
+        print(f"Question {question_id} corresponds to image: {image_file}")
         break
 ```
 
-### **驗證圖像文件存在：**
+### **Verify image file exists:**
 ```bash
 ls testing_material/vqa2/images/val2014_sample/COCO_val2014_000000100187.jpg
 ```
 
-## ✅ **新版本優勢**
+## ✅ **New Version Advantages**
 
-1. **完整對照信息**：每個問題都有明確的圖像ID和文件名
-2. **快速查找**：圖像對照表提供集中的圖像信息
-3. **路徑透明**：明確顯示圖像文件的存放位置
-4. **調試友好**：便於檢查和驗證測試結果
+1. **Complete reference information**: Each question has clear image ID and filename
+2. **Quick lookup**: Direct access to image information in question results
+3. **Path transparency**: Clear indication of image file storage location
+4. **Debug friendly**: Easy to check and verify test results
 
 ---
-**版本信息**：framework_version "unified_v1.1" 開始支持完整圖像對照信息
+**Version Info**: framework_version "unified_v1.1" supports complete image reference information

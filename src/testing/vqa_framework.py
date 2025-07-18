@@ -619,9 +619,30 @@ class VQAFramework:
         return accuracy
     
     def save_results(self, results: Dict, test_mode: str, num_questions: int) -> Path:
-        """保存測試結果"""
+        """保存測試結果（簡化版本）"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = self.results_dir / f"vqa2_results_{test_mode}_{timestamp}.json"
+        
+        # 簡化結果格式，只保留關鍵資訊
+        simplified_results = {}
+        
+        for model_name, model_results in results.items():
+            if "error" in model_results:
+                simplified_results[model_name] = {"error": model_results["error"]}
+                continue
+                
+            # 只保留關鍵指標
+            simplified_results[model_name] = {
+                "model_id": model_results.get("model_id", model_name),
+                "test_time": model_results.get("evaluation_time", 0),
+                "total_questions": model_results.get("total", 0),
+                "correct_answers": model_results.get("correct", 0),
+                "accuracy": model_results.get("accuracy", 0),
+                "vqa_accuracy": model_results.get("vqa_accuracy", 0),
+                "avg_inference_time": model_results.get("avg_time", 0),
+                "performance_grade": model_results.get("detailed_metrics", {}).get("performance_grade", "N/A"),
+                "question_results": model_results.get("question_results", [])
+            }
         
         # 準備保存的數據
         save_data = {
@@ -629,10 +650,9 @@ class VQAFramework:
                 "test_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "test_mode": test_mode,
                 "num_questions": num_questions,
-                "framework_version": "unified_v1.1",
-                "image_reference_note": "每個問題的 image_id 對應 image_filename，圖像文件位於 testing_material/vqa2/images/val2014_sample/ 目錄"
+                "framework_version": "unified_v1.1_simplified"
             },
-            "results": results
+            "results": simplified_results
         }
         
         with open(results_file, 'w', encoding='utf-8') as f:

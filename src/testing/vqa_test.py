@@ -33,9 +33,9 @@ def main():
     parser.add_argument('--questions', type=int, default=20,
                        help='測試問題數量 (默認: 20，最多20張COCO圖像)')
     parser.add_argument('--models', nargs='+', 
-                       default=['moondream2'],
+                       default=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
                        choices=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
-                       help='要測試的模型列表')
+                       help='要測試的模型列表 (默認: 測試所有模型)')
     
     # 高級選項
     parser.add_argument('--verbose', action='store_true',
