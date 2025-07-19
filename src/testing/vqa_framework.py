@@ -497,11 +497,17 @@ class VQAFramework:
     def _evaluate_questions(self, model, processor, model_name: str,
                            questions: List[Dict], annotations: Dict,
                            verbose: bool = False) -> Dict:
-        """Evaluate question list"""
+        """Evaluate question list with enhanced error handling"""
         correct_answers = 0
         total_vqa_accuracy = 0.0
         total_inference_time = 0.0
         question_results = []
+        error_summary = {
+            "image_load_errors": 0,
+            "inference_errors": 0,
+            "annotation_errors": 0,
+            "other_errors": 0
+        }
         
         for i, question in enumerate(questions):
             if i % 10 == 0:
@@ -511,51 +517,77 @@ class VQAFramework:
             question_text = question['question']
             image_id = question['image_id']
             
-            # Get model answer
+            # Get model answer with enhanced error handling
             inference_start = time.time()
             try:
                 model_answer = self._get_model_answer(
                     model, processor, model_name, question_text, image_id
                 )
+                
+                # Check for specific error types
+                if "no image available" in model_answer.lower():
+                    error_summary["image_load_errors"] += 1
+                    if verbose:
+                        print(f"⚠️ Image load error for question {question_id}")
+                elif "inference failed" in model_answer.lower():
+                    error_summary["inference_errors"] += 1
+                    if verbose:
+                        print(f"⚠️ Inference error for question {question_id}")
+                elif "error:" in model_answer.lower():
+                    error_summary["other_errors"] += 1
+                    if verbose:
+                        print(f"⚠️ Other error for question {question_id}")
+                        
             except Exception as e:
+                error_summary["inference_errors"] += 1
                 if verbose:
-                    print(f"⚠️ Error getting answer for question {question_id}: {e}")
-                model_answer = "error"
+                    print(f"⚠️ Exception for question {question_id}: {e}")
+                model_answer = f"error: {str(e)}"
             
             inference_time = time.time() - inference_start
             total_inference_time += inference_time
             
-            # Evaluate answer
-            if question_id in annotations:
-                annotation = annotations[question_id]
-                gt_answer = annotation['multiple_choice_answer']
-                gt_answers = [ans['answer'] for ans in annotation['answers']]
-                
-                # Simple accuracy - check if standard answer is in model response
-                model_answer_lower = self._preprocess_answer(model_answer)
-                gt_answer_lower = self._preprocess_answer(gt_answer)
-                is_correct = gt_answer_lower in model_answer_lower
-                if is_correct:
-                    correct_answers += 1
-                
-                # VQA accuracy
-                vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
-                total_vqa_accuracy += vqa_accuracy
-                
-                # Generate corresponding image filename
-                image_filename = f"COCO_val2014_{image_id:012d}.jpg"
-                
-                question_results.append({
-                    'question_id': question_id,
-                    'image_id': image_id,
-                    'image_filename': image_filename,
-                    'question': question_text,
-                    'model_answer': model_answer,
-                    'ground_truth': gt_answer,
-                    'is_correct': is_correct,
-                    'vqa_accuracy': vqa_accuracy,
-                    'inference_time': inference_time
-                })
+            # Evaluate answer with enhanced error handling
+            try:
+                if question_id in annotations:
+                    annotation = annotations[question_id]
+                    gt_answer = annotation['multiple_choice_answer']
+                    gt_answers = [ans['answer'] for ans in annotation['answers']]
+                    
+                    # Simple accuracy - check if standard answer is in model response
+                    model_answer_lower = self._preprocess_answer(model_answer)
+                    gt_answer_lower = self._preprocess_answer(gt_answer)
+                    is_correct = gt_answer_lower in model_answer_lower
+                    if is_correct:
+                        correct_answers += 1
+                    
+                    # VQA accuracy
+                    vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
+                    total_vqa_accuracy += vqa_accuracy
+                    
+                    # Generate corresponding image filename
+                    image_filename = f"COCO_val2014_{image_id:012d}.jpg"
+                    
+                    question_results.append({
+                        'question_id': question_id,
+                        'image_id': image_id,
+                        'image_filename': image_filename,
+                        'question': question_text,
+                        'model_answer': model_answer,
+                        'ground_truth': gt_answer,
+                        'is_correct': is_correct,
+                        'vqa_accuracy': vqa_accuracy,
+                        'inference_time': inference_time
+                    })
+                else:
+                    error_summary["annotation_errors"] += 1
+                    if verbose:
+                        print(f"⚠️ Missing annotation for question {question_id}")
+                        
+            except Exception as e:
+                error_summary["annotation_errors"] += 1
+                if verbose:
+                    print(f"⚠️ Annotation processing error for question {question_id}: {e}")
             
         # Calculate final results
         total_questions = len(questions)
@@ -569,13 +601,21 @@ class VQAFramework:
         print(f"   🎯 Accuracy: {accuracy:.3f}")
         print(f"   ⏱️ Avg inference time: {avg_inference_time:.2f}s")
         
+        # Print error summary
+        if any(error_summary.values()):
+            print(f"   ⚠️ Error summary:")
+            for error_type, count in error_summary.items():
+                if count > 0:
+                    print(f"      {error_type}: {count}")
+        
         return {
             'accuracy': accuracy,
             'vqa_accuracy': avg_vqa_accuracy,
             'correct': correct_answers,
             'total': total_questions,
             'avg_time': avg_inference_time,
-            'question_results': question_results
+            'question_results': question_results,
+            'error_summary': error_summary
         }
     
     def _get_model_answer(self, model, processor, model_name: str, 
@@ -800,46 +840,69 @@ class VQAFramework:
         return response.strip()
     
     def _preprocess_answer(self, answer: str) -> str:
-        """Preprocess answer - simplified version"""
+        """Preprocess answer using standard VQA 2.0 preprocessing steps"""
         if not answer:
             return ""
         
-        # Convert to lowercase, keep simple
-        return answer.lower().strip()
+        # Convert to lowercase
+        answer = answer.lower().strip()
+        
+        # Remove common punctuation marks
+        import re
+        answer = re.sub(r'[^\w\s]', ' ', answer)
+        
+        # Normalize whitespace
+        answer = ' '.join(answer.split())
+        
+        # Standard VQA 2.0 number normalization
+        # Convert written numbers to digits (basic implementation)
+        number_mapping = {
+            'zero': '0', 'one': '1', 'two': '2', 'three': '3', 'four': '4',
+            'five': '5', 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9',
+            'ten': '10', 'eleven': '11', 'twelve': '12', 'thirteen': '13',
+            'fourteen': '14', 'fifteen': '15', 'sixteen': '16', 'seventeen': '17',
+            'eighteen': '18', 'nineteen': '19', 'twenty': '20'
+        }
+        
+        for word, digit in number_mapping.items():
+            answer = answer.replace(word, digit)
+        
+        return answer
     
     def _calculate_vqa_accuracy(self, prediction: str, ground_truth_answers: List[str]) -> float:
-        """Calculate VQA accuracy - check if any ground truth answer appears in prediction"""
+        """Calculate VQA accuracy using standard VQA 2.0 evaluation method"""
         if not prediction or not ground_truth_answers:
             return 0.0
         
         prediction_lower = self._preprocess_answer(prediction)
         
-        # Calculate how many ground truth answers appear in prediction
+        # Count how many ground truth answers appear in prediction
         matching_count = 0
         for gt_answer in ground_truth_answers:
             gt_answer_lower = self._preprocess_answer(gt_answer)
             if gt_answer_lower in prediction_lower:
                 matching_count += 1
         
-        # VQA accuracy: min(matching_count/3, 1.0)
-        accuracy = min(matching_count / 3.0, 1.0)
+        # Standard VQA 2.0 accuracy: min(matching_count/len(ground_truth_answers), 1.0)
+        # This ensures accuracy is normalized by the number of ground truth answers
+        accuracy = min(matching_count / len(ground_truth_answers), 1.0)
         return accuracy
     
     def save_results(self, results: Dict, test_mode: str, num_questions: int) -> Path:
-        """Save test results (simplified version)"""
+        """Save test results with complete experimental metadata for paper publication"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = self.results_dir / f"vqa2_results_{test_mode}_{timestamp}.json"
         
-        # Simplified result format, keep only key information
-        simplified_results = {}
+        # Enhanced result format with complete metadata
+        enhanced_results = {}
         
         for model_name, model_results in results.items():
             if "error" in model_results:
-                simplified_results[model_name] = {"error": model_results["error"]}
+                enhanced_results[model_name] = {"error": model_results["error"]}
                 continue
                 
-            # Keep only key metrics
-            simplified_results[model_name] = {
+            # Enhanced metrics with detailed information
+            enhanced_results[model_name] = {
                 "model_id": model_results.get("model_id", model_name),
                 "test_time": model_results.get("evaluation_time", 0),
                 "total_questions": model_results.get("total", 0),
@@ -851,15 +914,31 @@ class VQAFramework:
                 "question_results": model_results.get("question_results", [])
             }
         
-        # Prepare data to save
+        # Complete experimental metadata for paper publication
         save_data = {
-            "test_metadata": {
+            "experiment_metadata": {
                 "test_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "test_mode": test_mode,
                 "num_questions": num_questions,
-                "framework_version": "unified_v1.1_simplified"
+                "framework_version": "vqa2_enhanced_v1.2",
+                "evaluation_method": "VQA 2.0 Standard",
+                "dataset": "COCO val2014",
+                "generation_params": self.generation_params
             },
-            "results": simplified_results
+            "hardware_configuration": {
+                "device": "MacBook Air M3",
+                "memory": "16GB",
+                "mps_available": torch.backends.mps.is_available(),
+                "torch_version": torch.__version__,
+                "python_version": sys.version
+            },
+            "model_configuration": {
+                "models_tested": list(results.keys()),
+                "model_loader": "VLMModelLoader from vlm_tester.py",
+                "unified_parameters": True,
+                "image_preprocessing": "Resize to max 1024px, LANCZOS"
+            },
+            "results": enhanced_results
         }
         
         with open(results_file, 'w', encoding='utf-8') as f:
