@@ -26,15 +26,15 @@
 ### Q: Which AI models are supported?
 **A:** We support multiple vision-language models for testing different approaches:
 
-**🧪 Testing Phase Models:**
-- **SmolVLM2-Video** - Continuous video understanding (under testing)
-- **SmolVLM** - Enhanced image analysis (current working baseline)
+**🏆 Best Performance Models (VQA 2.0 Tested):**
+- **SmolVLM2-500M-Video-Instruct** - Best overall (66.0% VQA accuracy, 6.61s)
+- **SmolVLM-500M-Instruct** - Excellent alternative (64.0% VQA accuracy, 5.98s)
+- **Moondream2** - Fastest inference (56.0% VQA accuracy, 4.06s)
 
 **Additional Models:**
-- **Phi-3 Vision** - High-accuracy image analysis
-- **LLaVA** - Multi-turn conversations
+- **Phi-3.5-Vision (MLX)** - High-accuracy analysis (60.0% VQA accuracy, 19.02s)
+- **LLaVA-MLX** - Conversational (34.0% VQA accuracy, 17.86s) ⚠️ Underperforming
 - **YOLO8** - Real-time object detection
-- **Moondream2** - Specialized processing
 
 ### Q: Can I switch between models?
 **A:** Yes! The system supports dynamic model switching. You can change models through the configuration or by restarting with a different model server.
@@ -65,15 +65,16 @@ See our [Developer Setup Guide](./DEVELOPER_SETUP.md) for detailed instructions.
 ## Usage Questions
 
 ### Q: How accurate is the object recognition?
-**A:** Accuracy varies by model and approach:
+**A:** Accuracy varies by model and approach, based on our latest VQA 2.0 testing:
 
-**Image Analysis (Proven):**
-- SmolVLM: ~78% overall accuracy  
-- Phi-3 Vision: ~88% overall accuracy
-- LLaVA: ~86% overall accuracy
+**🏆 Best Performing Models:**
+- **SmolVLM2-500M-Video-Instruct**: 66.0% VQA accuracy, 6.61s average
+- **SmolVLM-500M-Instruct**: 64.0% VQA accuracy, 5.98s average
+- **Moondream2**: 56.0% VQA accuracy, 4.06s average (fastest)
 
-**Video Understanding (Testing):**
-- SmolVLM2-Video: Currently under evaluation to compare with image approaches
+**Other Models:**
+- **Phi-3.5-Vision (MLX)**: 60.0% VQA accuracy, 19.02s average
+- **LLaVA-MLX**: 34.0% VQA accuracy, 17.86s average ⚠️ Underperforming
 
 See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks and testing status.
 
@@ -92,12 +93,27 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 - Keep objects clearly visible
 - Speak clearly when asking questions
 - Provide context about what you're trying to accomplish
+- Use the recommended models (SmolVLM2 or SmolVLM for best results)
 
-### Q: Why does the LLaVA model fail on some images but not others?
-**A:** This is a known issue with the MLX-optimized version of LLaVA.
-- **It excels with photographs**: The model is highly reliable for analyzing real-world images from a camera.
-- **It fails on synthetic images**: It consistently produces an error when trying to process simple, computer-generated images (e.g., diagrams with geometric shapes). This is caused by a bug in the underlying `mlx-vlm` library.
-- **Conclusion**: For the best results, use the LLaVA model for tasks involving real-world objects and scenes.
+### Q: Why does the LLaVA model have performance issues?
+**A:** The LLaVA-MLX model has shown significant performance degradation in recent tests:
+- **Previous Performance**: 56% VQA accuracy
+- **Current Performance**: 34% VQA accuracy
+- **Root Cause**: Model reloading for each image causes overhead and state management issues
+- **Recommendation**: Use SmolVLM2 or SmolVLM instead for better performance
+
+### Q: Which model should I use for my specific needs?
+**A:** Based on our VQA 2.0 testing:
+
+**For Production Use:**
+- **Best Overall**: SmolVLM2-500M-Video-Instruct (66.0% accuracy, good speed)
+- **Fastest**: Moondream2 (4.06s average, 56.0% accuracy)
+- **Most Reliable**: SmolVLM-500M-Instruct (64.0% accuracy, stable performance)
+
+**For Different Scenarios:**
+- **Quick Testing (10 questions)**: Moondream2 (~41 seconds)
+- **Standard Testing (15 questions)**: SmolVLM2 (~98 seconds)
+- **Comprehensive Testing (20 questions)**: SmolVLM2 (~130 seconds)
 
 ## Troubleshooting
 
@@ -111,9 +127,10 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 ### Q: The AI responses are slow or inaccurate. How can I fix this?
 **A:**
 1. Check system resources (CPU/Memory usage)
-2. Try switching to a faster model (SmolVLM for speed)
+2. Try switching to a faster model (Moondream2 for speed, SmolVLM2 for balance)
 3. Improve lighting conditions
 4. Restart the model server
+5. Avoid using LLaVA-MLX due to performance issues
 
 ### Q: I'm getting "Model server not responding" errors. What should I do?
 **A:**
@@ -121,19 +138,22 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 2. Restart the model server
 3. Check log files for error messages
 4. Ensure sufficient system memory
+5. Try a different model if one is failing
 
 ### Q: The system is using too much memory. How can I reduce usage?
 **A:**
-1. Switch to SmolVLM (uses less memory)
-2. Close other applications
-3. Restart the system to clear memory
-4. Consider quantized models for lower memory usage
+1. Switch to Moondream2 (uses only 0.10GB memory)
+2. Use SmolVLM-500M-Instruct (uses 1.58GB)
+3. Close other applications
+4. Restart the system to clear memory
+5. Consider quantized models for lower memory usage
 
 ## Performance and Optimization
 
 ### Q: How can I improve response time?
 **A:**
-- Use SmolVLM for fastest responses
+- Use Moondream2 for fastest responses (4.06s average)
+- Use SmolVLM2 for best balance (6.61s average)
 - Ensure good hardware (Apple Silicon recommended)
 - Close unnecessary applications
 - Use lower image quality settings if needed
@@ -143,6 +163,30 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 
 ### Q: How do I optimize for my specific hardware?
 **A:** See our [VLM Enhancement Guide](../VLM_Enhancement_Guide.md) for hardware-specific optimization tips and guidance on testing both image and video approaches on your hardware.
+
+### Q: What are the time estimates for different test scenarios?
+**A:** Based on our VQA 2.0 testing:
+
+**10 Questions Test:**
+- Moondream2: ~41 seconds
+- SmolVLM2: ~66 seconds
+- SmolVLM: ~60 seconds
+- Phi-3.5: ~190 seconds
+- LLaVA-MLX: ~179 seconds
+
+**15 Questions Test:**
+- Moondream2: ~55 seconds
+- SmolVLM2: ~98 seconds
+- SmolVLM: ~90 seconds
+- Phi-3.5: ~201 seconds
+- LLaVA-MLX: ~260 seconds
+
+**20 Questions Test:**
+- Moondream2: ~74 seconds
+- SmolVLM2: ~130 seconds
+- SmolVLM: ~120 seconds
+- Phi-3.5: ~268 seconds
+- LLaVA-MLX: ~346 seconds
 
 ## Development and Customization
 
@@ -165,6 +209,21 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 
 ### Q: Is there a mobile app?
 **A:** Currently, the system runs as a web application that works on mobile browsers. Native mobile apps are planned for future releases.
+
+## Testing and Evaluation
+
+### Q: How do you evaluate model performance?
+**A:** We use the VQA 2.0 (Visual Question Answering) benchmark with real COCO dataset questions and images. Our testing framework evaluates:
+- **Simple Accuracy**: Binary correct/incorrect answers
+- **VQA Accuracy**: Standard VQA 2.0 evaluation with partial credit
+- **Inference Time**: Average response time per question
+- **Memory Usage**: Resource consumption tracking
+
+### Q: Where can I find detailed test results?
+**A:** See `src/testing/vqa_test_result.md` for comprehensive test results, time analysis, and performance comparisons.
+
+### Q: How often do you update model performance data?
+**A:** We regularly test and update model performance data. The latest results are from July 19, 2025, using VQA 2.0 testing framework.
 
 ## Support and Community
 
@@ -198,4 +257,6 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 
 ---
 
-**Still have questions?** Create an issue on our [GitHub repository](https://github.com/yitzuliu/DissertationDemo/issues) or contact the development team. 
+**Last Updated**: July 19, 2025  
+**Test Framework**: VQA 2.0 Standard Evaluation  
+**Hardware**: MacBook Air M3, 16GB RAM 

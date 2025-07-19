@@ -121,27 +121,25 @@ class VLMModelLoader:
             raise RuntimeError(f"MLX-LLaVA 模型載入失敗: {str(e)}")
     
     @staticmethod
-    def load_phi3_vision(model_id="lokinfey/Phi-3.5-vision-mlx-int4"):
-        """Load Phi-3.5-Vision-Instruct using MLX (Apple Silicon optimized)"""
-        print(f"Loading {model_id} with MLX framework...")
+    def load_phi3_vision(model_id="mlx-community/Phi-3.5-vision-instruct-4bit"):
+        """Load Phi-3.5-Vision-Instruct using MLX-VLM framework (Apple Silicon optimized)"""
+        print(f"Loading {model_id} with MLX-VLM framework...")
         try:
-            # Use MLX-VLM for Apple Silicon optimization
-            import mlx.core as mx
-            from mlx_vlm import load, generate
-            from mlx_vlm.utils import load_config
+            # Use MLX-VLM for Apple Silicon optimization (supports vision)
+            from mlx_vlm import load
             
-            print("Loading MLX-optimized Phi-3.5-Vision model...")
+            print("Loading MLX-VLM optimized Phi-3.5-Vision-Instruct model...")
             model, processor = load(model_id, trust_remote_code=True)
-            print("MLX model loaded successfully!")
+            print("MLX-VLM model loaded successfully!")
             
             return model, processor
             
         except ImportError as e:
-            print("MLX-VLM not installed. Installing MLX-VLM...")
+            print("MLX-VLM not installed. Please install MLX-VLM...")
             print("Please run: pip install mlx-vlm")
             print("Falling back to original transformers approach...")
             
-            # Fallback to original approach if MLX not available
+            # Fallback to original approach if MLX-VLM not available
             from transformers import AutoModelForCausalLM, AutoProcessor
             print("Using memory-optimized loading for Apple Silicon...")
             model = AutoModelForCausalLM.from_pretrained(
@@ -152,11 +150,15 @@ class VLMModelLoader:
                 device_map="cpu",  # Force CPU to avoid memory issues
                 low_cpu_mem_usage=True  # Use less CPU memory
             )
-            processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
+            processor = AutoProcessor.from_pretrained(
+                "microsoft/Phi-3.5-vision-instruct", 
+                trust_remote_code=True,
+                num_crops=4  # For single-frame images
+            )
             return model, processor
             
         except Exception as e:
-            print(f"MLX loading failed: {str(e)}")
+            print(f"MLX-VLM loading failed: {str(e)}")
             print("Falling back to original transformers approach...")
             
             # Fallback to original approach
@@ -170,7 +172,11 @@ class VLMModelLoader:
                 device_map="cpu",  # Force CPU to avoid memory issues
                 low_cpu_mem_usage=True  # Use less CPU memory
             )
-            processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
+            processor = AutoProcessor.from_pretrained(
+                "microsoft/Phi-3.5-vision-instruct", 
+                trust_remote_code=True,
+                num_crops=4  # For single-frame images
+            )
             return model, processor
 
 class VLMTester:
@@ -208,7 +214,7 @@ class VLMTester:
             },
             "Phi-3.5-Vision-Instruct": {
                 "loader": VLMModelLoader.load_phi3_vision,
-                "model_id": "lokinfey/Phi-3.5-vision-mlx-int4",
+                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
                 "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
             }
         }
@@ -446,49 +452,52 @@ class VLMTester:
                     # 使用統一提示詞，但無法控制 max_tokens（API 限制）
                     return model.answer_question(enc_image, self.prompt, processor)
                 elif "Phi-3.5" in model_name:
-                    # Check if this is an MLX model or transformers model
+                    # Check if this is an MLX-VLM model or transformers model
                     try:
-                        # Use MLX inference - it's much faster than transformers
-                        
-                        # Try MLX inference first
+                        # Use MLX-VLM inference for vision model (official way)
                         from mlx_vlm import generate
-                        print("  🚀 Using MLX inference for Phi-3.5-Vision...")
+                        from mlx_vlm.prompt_utils import apply_chat_template
+                        from mlx_vlm.utils import load_config
+                        print("  🚀 Using MLX-VLM inference for Phi-3.5-Vision-Instruct...")
                         
-                        # Try simpler prompt format that works better with quantized models
-                        mlx_prompt = f"<|image_1|>\\nUser: {self.prompt}\\nAssistant:"
-                        response = generate(
-                            model=model, 
-                            processor=processor, 
-                            image=current_image_path, 
-                            prompt=mlx_prompt,
-                            max_tokens=unified_generation_params["max_new_tokens"],
-                            temp=0.7,  # Increase temperature for more diverse output
-                            repetition_penalty=1.2,  # Stronger repetition penalty
-                            top_p=0.9,  # Add nucleus sampling
-                            verbose=False  # Reduce MLX verbosity
-                        )
+                        # Load config for proper prompt formatting
+                        config = load_config("mlx-community/Phi-3.5-vision-instruct-4bit")
                         
-                        # Handle MLX response format (might be tuple with text and metadata)
-                        if isinstance(response, tuple) and len(response) >= 2:
-                            # MLX returns (text, metadata_dict) - extract just the text
-                            text_response = response[0]
-                        elif isinstance(response, list) and len(response) > 0:
-                            # Extract just the text part if it's a list
-                            text_response = response[0] if isinstance(response[0], str) else str(response[0])
-                        else:
-                            text_response = str(response)
+                        # Save image to temporary file for MLX-VLM
+                        temp_image_path = "temp_mlx_image.jpg"
+                        image.save(temp_image_path)
                         
-                        # Clean up repetitive tokens and unwanted text
+                        try:
+                            # Use simple prompt format for MLX-VLM
+                            mlx_prompt = f"<|image_1|>\nUser: {self.prompt}\nAssistant:"
+                            
+                            response = generate(
+                                model, 
+                                processor, 
+                                mlx_prompt,
+                                image=temp_image_path,
+                                max_tokens=unified_generation_params["max_new_tokens"],
+                                temp=0.0,  # Use 0.0 for deterministic output
+                                verbose=False
+                            )
+                        finally:
+                            # Clean up temporary file
+                            if os.path.exists(temp_image_path):
+                                os.remove(temp_image_path)
+                        
+                        # MLX-VLM returns string directly, not tuple
+                        text_response = str(response)
+                        
+                        # Clean up response
                         text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
-                        # Remove any trailing questions that might be part of the model's training data
                         if "1. What is meant by" in text_response:
                             text_response = text_response.split("1. What is meant by")[0].strip()
-                        text_response = ' '.join(text_response.split())  # Clean up whitespace
+                        text_response = ' '.join(text_response.split())
                         
                         return text_response
                         
                     except (ImportError, AttributeError, TypeError, Exception) as e:
-                        print(f"  ⚠️ MLX inference failed ({e}), loading transformers model...")
+                        print(f"  ⚠️ MLX-VLM inference failed ({e}), loading transformers model...")
                         
                         # Load transformers model for fallback (MLX model can't be used with transformers)
                         from transformers import AutoModelForCausalLM, AutoProcessor
@@ -502,7 +511,11 @@ class VLMTester:
                             device_map="cpu",  # Force CPU to avoid memory issues
                             low_cpu_mem_usage=True  # Use less CPU memory
                         )
-                        fallback_processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
+                        fallback_processor = AutoProcessor.from_pretrained(
+                            "microsoft/Phi-3.5-vision-instruct", 
+                            trust_remote_code=True,
+                            num_crops=4  # For single-frame images
+                        )
                         
                         # Phi-3.5 Vision special format (model compatibility requirement)
                         messages = [
@@ -556,12 +569,8 @@ class VLMTester:
                                 verbose=False
                             )
                             
-                            # Handle MLX-VLM response format (tuple with text and metadata)
-                            if isinstance(response, tuple) and len(response) >= 1:
-                                # Extract just the text part
-                                text_response = response[0] if response[0] else ""
-                            else:
-                                text_response = str(response) if response else ""
+                            # MLX-VLM returns string directly, not tuple
+                            text_response = str(response)
                             
                             return text_response
                         except Exception as e:
@@ -797,45 +806,29 @@ class VLMTester:
                 return f"Moondream2 純文字推理失敗: {str(e)} | 備用方法: {str(e2)}"
     
     def _test_phi35_text_only(self, model, processor, prompt):
-        """Phi-3.5-Vision 純文字測試"""
+        """Phi-3.5-Vision-Instruct 純文字測試"""
         try:
-            # 方法1: MLX 模型純文字推理
-            if not hasattr(model, 'generate'):
-                try:
-                    from mlx_vlm import generate
-                    # MLX 模型嘗試純文字推理
-                    response = generate(
-                        model=model,
-                        processor=processor,
-                        prompt=prompt,
-                        max_tokens=self.unified_max_tokens,
-                        verbose=False
-                    )
-                    if isinstance(response, tuple):
-                        response = response[0]
-                    return str(response)
-                except Exception as mlx_e:
-                    return f"MLX 純文字推理失敗: {str(mlx_e)}"
+            # 使用 MLX-VLM 進行純文字推理（簡化方式）
+            try:
+                from mlx_vlm import generate
+                print("  🚀 Using MLX-VLM for Phi-3.5-Vision-Instruct text-only...")
+                
+                # Generate text output - use simple prompt for text-only
+                response = generate(
+                    model,
+                    processor,
+                    prompt,  # Use simple string prompt
+                    max_tokens=self.unified_max_tokens,
+                    temp=0.0,
+                    verbose=False
+                )
+                return str(response)
+                
+            except Exception as mlx_e:
+                return f"MLX-VLM 純文字推理失敗: {str(mlx_e)}"
             
-            # 方法2: Transformers 模型純文字推理
-            else:
-                inputs = processor.tokenizer(prompt, return_tensors="pt")
-                device = next(model.parameters()).device
-                inputs = {k: v.to(device) for k, v in inputs.items()}
-                
-                with torch.no_grad():
-                    outputs = model.generate(
-                        **inputs,
-                        max_new_tokens=self.unified_max_tokens,
-                        do_sample=False,
-                        pad_token_id=processor.tokenizer.eos_token_id
-                    )
-                
-                response = processor.tokenizer.decode(outputs[0], skip_special_tokens=True)
-                return response.replace(prompt, "").strip()
-                
         except Exception as e:
-            return f"Phi-3.5-Vision 純文字推理失敗: {str(e)}"
+            return f"Phi-3.5-Vision-Instruct 純文字推理失敗: {str(e)}"
     
     def _test_smolvlm2_text_only(self, model, processor, prompt):
         """SmolVLM2-500M-Video 純文字測試"""

@@ -55,12 +55,14 @@ class VQAFramework:
                     self.data_dir = path
                     break
             
+            # Always ensure we have a valid data directory
             if self.data_dir is None:
                 # Create default directory
                 self.data_dir = Path("testing_material/vqa2")
                 self.data_dir.mkdir(parents=True, exist_ok=True)
         
         # Ensure images directory exists
+        assert self.data_dir is not None, "Data directory must be initialized"
         self.images_dir = self.data_dir / "images"
         self.images_dir.mkdir(parents=True, exist_ok=True)
         
@@ -103,7 +105,8 @@ class VQAFramework:
             },
             "llava_mlx": {
                 "loader": VLMModelLoader.load_llava_mlx,
-                "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit"
+                "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
             },
             "phi35_vision": {
                 "loader": VLMModelLoader.load_phi3_vision,
@@ -128,6 +131,7 @@ class VQAFramework:
             "val_annotations": "https://s3.amazonaws.com/cvmlp/vqa/mscoco/vqa/v2_Annotations_Val_mscoco.zip",
         }
         
+        assert self.data_dir is not None, "Data directory must be initialized"
         for component, url in vqa2_urls.items():
             zip_file = self.data_dir / f"{component}.zip"
             
@@ -200,6 +204,8 @@ class VQAFramework:
     def load_real_data(self, sample_size: int = 20) -> Tuple[List[Dict], Dict]:
         """Load real VQA 2.0 data"""
         print(f"📖 Loading real VQA 2.0 data...")
+        
+        assert self.data_dir is not None, "Data directory must be initialized"
         
         # Load questions
         questions_file = self.data_dir / "v2_OpenEnded_mscoco_val2014_questions.json"
@@ -289,6 +295,7 @@ class VQAFramework:
         questions_data = {"questions": questions}
         annotations_data = {"annotations": list(annotations.values())}
         
+        assert self.data_dir is not None, "Data directory must be initialized"
         with open(self.data_dir / "val_questions_sample.json", 'w') as f:
             json.dump(questions_data, f, indent=2)
             
@@ -509,6 +516,11 @@ class VQAFramework:
             "other_errors": 0
         }
         
+        # For LLaVA-MLX, we need to reload the model for each image to avoid state bug
+        current_model = model
+        current_processor = processor
+        model_loader = self.models_config[model_name]["loader"]
+        
         for i, question in enumerate(questions):
             if i % 10 == 0:
                 print(f"Progress: {i}/{len(questions)}")
@@ -517,11 +529,19 @@ class VQAFramework:
             question_text = question['question']
             image_id = question['image_id']
             
+            # For LLaVA-MLX, reload the model for each image to avoid state bug
+            if "llava_mlx" in model_name.lower():
+                if i > 0:  # Don't reload for the first image
+                    print(f"  >> LLaVA-MLX: Reloading model to clear state...")
+                    clear_model_memory(current_model, current_processor)
+                    current_model, current_processor = model_loader()
+                    print(f"  >> LLaVA-MLX: Reload successful.")
+            
             # Get model answer with enhanced error handling
             inference_start = time.time()
             try:
                 model_answer = self._get_model_answer(
-                    model, processor, model_name, question_text, image_id
+                    current_model, current_processor, model_name, question_text, image_id
                 )
                 
                 # Check for specific error types
@@ -549,36 +569,36 @@ class VQAFramework:
             
             # Evaluate answer with enhanced error handling
             try:
-                if question_id in annotations:
-                    annotation = annotations[question_id]
-                    gt_answer = annotation['multiple_choice_answer']
-                    gt_answers = [ans['answer'] for ans in annotation['answers']]
-                    
-                    # Simple accuracy - check if standard answer is in model response
-                    model_answer_lower = self._preprocess_answer(model_answer)
-                    gt_answer_lower = self._preprocess_answer(gt_answer)
-                    is_correct = gt_answer_lower in model_answer_lower
-                    if is_correct:
-                        correct_answers += 1
-                    
-                    # VQA accuracy
-                    vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
-                    total_vqa_accuracy += vqa_accuracy
-                    
-                    # Generate corresponding image filename
-                    image_filename = f"COCO_val2014_{image_id:012d}.jpg"
-                    
-                    question_results.append({
-                        'question_id': question_id,
-                        'image_id': image_id,
-                        'image_filename': image_filename,
-                        'question': question_text,
-                        'model_answer': model_answer,
-                        'ground_truth': gt_answer,
-                        'is_correct': is_correct,
-                        'vqa_accuracy': vqa_accuracy,
-                        'inference_time': inference_time
-                    })
+            if question_id in annotations:
+                annotation = annotations[question_id]
+                gt_answer = annotation['multiple_choice_answer']
+                gt_answers = [ans['answer'] for ans in annotation['answers']]
+                
+                # Simple accuracy - check if standard answer is in model response
+                model_answer_lower = self._preprocess_answer(model_answer)
+                gt_answer_lower = self._preprocess_answer(gt_answer)
+                is_correct = gt_answer_lower in model_answer_lower
+                if is_correct:
+                    correct_answers += 1
+                
+                # VQA accuracy
+                vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
+                total_vqa_accuracy += vqa_accuracy
+                
+                # Generate corresponding image filename
+                image_filename = f"COCO_val2014_{image_id:012d}.jpg"
+                
+                question_results.append({
+                    'question_id': question_id,
+                    'image_id': image_id,
+                    'image_filename': image_filename,
+                    'question': question_text,
+                    'model_answer': model_answer,
+                    'ground_truth': gt_answer,
+                    'is_correct': is_correct,
+                    'vqa_accuracy': vqa_accuracy,
+                    'inference_time': inference_time
+                })
                 else:
                     error_summary["annotation_errors"] += 1
                     if verbose:
@@ -588,6 +608,14 @@ class VQAFramework:
                 error_summary["annotation_errors"] += 1
                 if verbose:
                     print(f"⚠️ Annotation processing error for question {question_id}: {e}")
+        
+        # Clean up the current model (if it's different from the original)
+        try:
+            if current_model is not model:
+                clear_model_memory(current_model, current_processor)
+        except Exception as e:
+            print(f"  ⚠️ Error during model cleanup: {e}")
+            # Continue anyway
             
         # Calculate final results
         total_questions = len(questions)
@@ -760,10 +788,14 @@ class VQAFramework:
                     
                     return result
                     
-            elif "llava_mlx" in model_name.lower() or "llava" in model_name.lower():
-                # LLaVA-MLX inference
+            elif "llava_mlx" in model_name.lower():
+                # LLaVA-MLX inference (same as vlm_tester.py)
+                if "mlx" in model_name.lower():
+                    # MLX-LLaVA inference
                 try:
                     from mlx_vlm import generate
+                        print("  🚀 Using MLX-VLM for LLaVA...")
+                        
                     # Try different possible image paths
                     possible_image_paths = [
                         str(self.images_dir / f"COCO_val2014_{image_id:012d}.jpg"),
@@ -780,6 +812,7 @@ class VQAFramework:
                     if current_image_path is None:
                         return f"Image file not found for image_id {image_id}"
                     
+                        # Simple prompt for MLX-LLaVA (same as vlm_tester.py)
                     response = generate(
                         model, 
                         processor, 
@@ -789,15 +822,39 @@ class VQAFramework:
                         verbose=False
                     )
                     
+                        # Handle MLX-VLM response format (tuple with text and metadata)
                     if isinstance(response, tuple) and len(response) >= 1:
+                            # Extract just the text part
                         text_response = response[0] if response[0] else ""
                     else:
                         text_response = str(response) if response else ""
                     
                     return text_response
-                    
                 except Exception as e:
-                    return f"LLaVA-MLX inference failed: {str(e)}"
+                        print(f"  ⚠️ MLX-VLM failed: {e}")
+                        # Fallback: Return descriptive error but don't crash
+                        return f"MLX-VLM inference failed: {str(e)}"
+                else:
+                    # Standard LLaVA Pipeline 方式
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "image", "image": image},  # 使用本地圖像格式（與 SmolVLM 一致）
+                                {"type": "text", "text": question}  # 使用統一提示詞
+                            ]
+                        },
+                    ]
+                    # 🚀 優化：添加生成參數控制
+                    response = model(
+                        text=messages, 
+                        **unified_generation_params,  # 使用統一參數
+                        return_full_text=False  # 只返回生成部分
+                    )
+                    if isinstance(response, list) and len(response) > 0:
+                        return response[0].get('generated_text', str(response))
+                    else:
+                        return str(response)
                     
             elif "smolvlm" in model_name.lower():
                 # SmolVLM processing
@@ -888,10 +945,20 @@ class VQAFramework:
         accuracy = min(matching_count / len(ground_truth_answers), 1.0)
         return accuracy
     
-    def save_results(self, results: Dict, test_mode: str, num_questions: int) -> Path:
+    def save_results(self, results: Dict, test_mode: str, num_questions: int, suffix: str = "") -> Path:
         """Save test results with complete experimental metadata for paper publication"""
+        assert self.results_dir is not None, "Results directory must be initialized"
+        
+        # Determine filename based on suffix
+        if suffix:
+            # Single model test or intermediate results - use fixed name (can be overwritten)
+            filename = f"vqa2_results_{suffix}.json"
+        else:
+            # Complete test - use timestamp to avoid overwriting
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        results_file = self.results_dir / f"vqa2_results_{test_mode}_{timestamp}.json"
+            filename = f"vqa2_results_{test_mode}_{timestamp}.json"
+        
+        results_file = self.results_dir / filename
         
         # Enhanced result format with complete metadata
         enhanced_results = {}

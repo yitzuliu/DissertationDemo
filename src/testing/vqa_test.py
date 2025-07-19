@@ -153,6 +153,13 @@ def main():
         # Save results
         if args.save_results and all_results:
             try:
+                # Determine if this is a single model test or complete test
+                if len(args.models) == 1:
+                    # Single model test - use fixed filename
+                    suffix = args.models[0]
+                    results_file = framework.save_results(all_results, "coco", args.questions, suffix)
+                else:
+                    # Complete test - use timestamp
                 results_file = framework.save_results(all_results, "coco", args.questions)
                 print(f"\n💾 Results saved to: {results_file}")
             except Exception as e:

@@ -436,8 +436,8 @@ class VLMContextTester:
                         if image is None and hist_entry["role"] == "user" and isinstance(hist_entry["content"], list):
                             # For context-based questions, filter out image tokens but keep text
                             text_content = [item for item in hist_entry["content"] if item["type"] == "text"]
-                            if text_content:
-                                conversation.append({"role": hist_entry["role"], "content": text_content})
+                                if text_content:
+                                    conversation.append({"role": hist_entry["role"], "content": text_content})
                         else:
                             conversation.append(hist_entry)
                     
@@ -504,20 +504,20 @@ class VLMContextTester:
                             temp_image_path = "temp_mlx_image.png"
                             image.save(temp_image_path)
                             try:
-                                response = generate(
-                                    model=model, 
-                                    processor=processor, 
-                                    image=temp_image_path, 
-                                    prompt=mlx_prompt,
-                                    max_tokens=self.unified_max_tokens,
-                                    temp=0.1,  # Very low temperature for focused output
-                                    repetition_penalty=1.5,  # Strong repetition penalty to avoid repeats
-                                    top_p=0.9,  # Lower top_p for more focused generation
-                                    verbose=False
-                                )
+                            response = generate(
+                                model=model, 
+                                processor=processor, 
+                                image=temp_image_path, 
+                                prompt=mlx_prompt,
+                                max_tokens=self.unified_max_tokens,
+                                temp=0.1,  # Very low temperature for focused output
+                                repetition_penalty=1.5,  # Strong repetition penalty to avoid repeats
+                                top_p=0.9,  # Lower top_p for more focused generation
+                                verbose=False
+                            )
                             finally:
-                                if os.path.exists(temp_image_path):
-                                    os.remove(temp_image_path)
+                            if os.path.exists(temp_image_path):
+                                os.remove(temp_image_path)
                         else:
                             # Context-based question - use simple format
                             mlx_prompt = f"Question: {prompt}\nAnswer:"
@@ -704,7 +704,7 @@ class VLMContextTester:
         if results_dir is None:
             # Create the first directory in the list
             results_dir = possible_results_dirs[0]
-            results_dir.mkdir(parents=True, exist_ok=True)
+        results_dir.mkdir(parents=True, exist_ok=True)
         
         if suffix:
             filename = f"context_understanding_test_results_{suffix}.json"

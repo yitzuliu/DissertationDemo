@@ -74,7 +74,7 @@ rm -rf ~/.cache/torch/hub/
 rm -rf ~/.cache/huggingface/
 
 # Restart with lower memory model
-python src/models/smolvlm/start_server.py
+python src/models/moondream2/run_moondream2_optimized.py  # Only 0.10GB memory
 ```
 
 **Connection Issues:**
@@ -130,8 +130,11 @@ pip install -r requirements.txt
 
 **Optimize Model Settings:**
 ```bash
-# Use fastest model
-python src/models/smolvlm/start_server.py
+# Use fastest model (Moondream2)
+python src/models/moondream2/run_moondream2_optimized.py
+
+# Use best balance model (SmolVLM2)
+python src/models/smolvlm2/run_smolvlm2.py
 
 # Reduce image quality
 # Edit frontend/index.html, change capture quality to 0.7
@@ -145,7 +148,34 @@ python src/models/smolvlm/start_server.py
 top -o cpu
 ```
 
-### 5. Network Connectivity
+### 5. LLaVA-MLX Performance Issues
+
+#### Symptoms:
+- Very slow responses (17+ seconds)
+- Low accuracy (34% VQA accuracy)
+- Model reloading messages in logs
+
+#### Root Cause:
+LLaVA-MLX requires model reloading for each image due to state management issues, causing significant performance degradation.
+
+#### Solutions:
+
+**Immediate Fix:**
+```bash
+# Switch to better performing model
+# Stop LLaVA-MLX (Ctrl+C)
+# Start SmolVLM2 instead
+python src/models/smolvlm2/run_smolvlm2.py
+```
+
+**Performance Comparison:**
+- **LLaVA-MLX**: 34.0% VQA accuracy, 17.86s average
+- **SmolVLM2**: 66.0% VQA accuracy, 6.61s average
+- **Moondream2**: 56.0% VQA accuracy, 4.06s average
+
+**Recommendation:** Avoid LLaVA-MLX until the reloading issue is resolved.
+
+### 6. Network Connectivity
 
 #### Symptoms:
 - Frontend can't connect to backend
@@ -172,6 +202,98 @@ sudo pfctl -f /etc/pf.conf
 sudo iptables -A INPUT -p tcp --dport 8000 -j ACCEPT
 ```
 
+## Model-Specific Issues
+
+### SmolVLM2-500M-Video-Instruct Issues
+
+#### Symptoms:
+- Model loading failures
+- Memory errors
+
+#### Solutions:
+```bash
+# Ensure sufficient memory (2.08GB required)
+free -h  # Check available memory
+
+# Clear cache and restart
+rm -rf ~/.cache/huggingface/
+python src/models/smolvlm2/run_smolvlm2.py
+```
+
+### Moondream2 Issues
+
+#### Symptoms:
+- Fast but inaccurate responses
+- Low VQA accuracy
+
+#### Solutions:
+```bash
+# This is expected - Moondream2 prioritizes speed over accuracy
+# For better accuracy, switch to SmolVLM2
+python src/models/smolvlm2/run_smolvlm2.py
+```
+
+### Phi-3.5-Vision Issues
+
+#### Symptoms:
+- Very slow responses (19+ seconds)
+- MLX-related errors
+
+#### Solutions:
+```bash
+# Ensure MLX is properly installed
+pip install mlx-vlm
+
+# Check Apple Silicon compatibility
+uname -m  # Should show arm64
+
+# For faster responses, switch to SmolVLM2
+python src/models/smolvlm2/run_smolvlm2.py
+```
+
+## Performance Optimization
+
+### Model Selection Guide
+
+#### For Best Overall Performance:
+```bash
+python src/models/smolvlm2/run_smolvlm2.py
+# VQA Accuracy: 66.0%, Time: 6.61s, Memory: 2.08GB
+```
+
+#### For Speed-Critical Applications:
+```bash
+python src/models/moondream2/run_moondream2_optimized.py
+# VQA Accuracy: 56.0%, Time: 4.06s, Memory: 0.10GB
+```
+
+#### For Resource-Constrained Environments:
+```bash
+python src/models/moondream2/run_moondream2_optimized.py
+# Lowest memory usage: 0.10GB
+```
+
+#### ⚠️ Avoid This Model:
+```bash
+python src/models/llava_mlx/run_llava_mlx.py
+# Poor performance: 34.0% VQA accuracy, 17.86s average
+```
+
+### Testing Model Performance
+
+Use the built-in VQA testing framework:
+
+```bash
+# Quick performance test (10 questions)
+python src/testing/vqa_test.py --questions 10 --models smolvlm_v2_instruct
+
+# Compare multiple models
+python src/testing/vqa_test.py --questions 10 --models smolvlm_v2_instruct moondream2
+
+# Comprehensive test (20 questions)
+python src/testing/vqa_test.py --questions 20 --models smolvlm_v2_instruct
+```
+
 ## Advanced Troubleshooting
 
 ### Debug Mode
@@ -185,7 +307,7 @@ python src/backend/main.py
 
 # Model server debug mode
 export MODEL_DEBUG=1
-python src/models/smolvlm/start_server.py --debug
+python src/models/smolvlm2/run_smolvlm2.py --debug
 ```
 
 ### Log Analysis
@@ -198,250 +320,95 @@ tail -f logs/app.log | grep ERROR
 
 # System logs (macOS)
 log show --predicate 'process == "Python"' --last 1h
-
-# Browser console logs
-# Open Developer Tools > Console tab
 ```
 
-### Memory Debugging
+### Performance Monitoring
 
-Monitor memory usage:
+Monitor real-time performance:
 
 ```bash
-# Python memory profiler
-pip install memory-profiler
-python -m memory_profiler src/backend/main.py
+# Check model server response time
+curl -w "@-" -o /dev/null -s "http://localhost:8080/health" <<'EOF'
+     time_namelookup:  %{time_namelookup}\n
+        time_connect:  %{time_connect}\n
+     time_appconnect:  %{time_appconnect}\n
+    time_pretransfer:  %{time_pretransfer}\n
+       time_redirect:  %{time_redirect}\n
+  time_starttransfer:  %{time_starttransfer}\n
+                     ----------\n
+          time_total:  %{time_total}\n
+EOF
 
-# System memory monitoring
-watch -n 1 free -h  # Linux
-while true; do vm_stat; sleep 1; done  # macOS
+# Monitor memory usage
+watch -n 1 'ps aux | grep python | grep -v grep'
 ```
 
-## Model-Specific Issues
+## Common Error Messages
 
-### SmolVLM Issues
+### "Model server not responding"
+- Check if model server is running on port 8080
+- Restart the model server
+- Try a different model
 
-**Slow responses:**
-- Check image preprocessing settings
-- Ensure proper quantization
-- Monitor memory usage
+### "Out of memory"
+- Close other applications
+- Switch to Moondream2 (lowest memory usage)
+- Restart the system
 
-```bash
-# Optimize SmolVLM
-python src/models/smolvlm/start_server.py --quantize int8
-```
+### "LLaVA model reloading"
+- This is expected behavior for LLaVA-MLX
+- Consider switching to SmolVLM2 for better performance
 
-### Phi-3 Vision Issues
+### "MLX not found"
+- Install MLX for Apple Silicon: `pip install mlx-vlm`
+- Ensure you're on Apple Silicon Mac
 
-**High memory usage:**
-- Use quantized version
-- Reduce context window
-- Monitor GPU memory
+## Performance Benchmarks
 
-```bash
-# Phi-3 with optimization
-PHI3_QUANTIZE=true python src/models/phi3_vision/start_server.py
-```
+### Latest VQA 2.0 Test Results (July 19, 2025)
 
-### LLaVA-v1.6 (MLX) Issues
+**10 Questions Test:**
+- SmolVLM2: ~66s, 66.0% accuracy
+- SmolVLM: ~60s, 64.0% accuracy
+- Moondream2: ~41s, 56.0% accuracy
+- Phi-3.5: ~190s, 60.0% accuracy
+- LLaVA-MLX: ~179s, 34.0% accuracy
 
-**Inference fails on some images:**
-- **Symptom**: The model works perfectly for photographs but returns an error when processing simple, synthetic images (like diagrams or geometric shapes).
-- **Error Message**: The console log for the model server will show an error similar to `mlx_vlm.errors.VlmError: input operand has more dimensions than allowed by the axis remapping`.
-- **Cause**: This is a known issue in the underlying `mlx-vlm` library when handling images that may lack standard metadata or have specific dimension properties.
-- **Solution**: There is no direct fix, as the issue is with the library. The model should be used for its primary strength: analyzing real-world photographic images. For testing, these synthetic images are excluded, but for production use, ensure the input is from a camera or a photograph.
-
-### YOLO8 Issues
-
-**Detection accuracy:**
-- Check lighting conditions
-- Verify object categories
-- Adjust confidence threshold
-
-```bash
-# YOLO8 with custom threshold
-python src/models/yolo8/start_server.py --confidence 0.5
-```
-
-## Environment-Specific Issues
-
-### macOS Specific
-
-**Apple Silicon Optimization:**
-```bash
-# Install Apple Silicon optimized packages
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-# Enable Metal Performance Shaders
-export PYTORCH_ENABLE_MPS_FALLBACK=1
-```
-
-**Security Restrictions:**
-```bash
-# Allow unsigned packages
-sudo spctl --master-disable
-
-# Reset application permissions
-tccutil reset Camera
-```
-
-### Linux Specific
-
-**GPU Issues:**
-```bash
-# Check CUDA installation
-nvidia-smi
-nvcc --version
-
-# Install CUDA support
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-```
-
-**Audio/Video Permissions:**
-```bash
-# Add user to video group
-sudo usermod -a -G video $USER
-
-# Install video codecs
-sudo apt install ubuntu-restricted-extras
-```
-
-## Recovery Procedures
-
-### Complete System Reset
-
-If all else fails:
-
-```bash
-# 1. Stop all services
-pkill -f "python.*start_server"
-pkill -f "python.*main.py"
-
-# 2. Clean cache and temporary files
-rm -rf ~/.cache/torch/
-rm -rf ~/.cache/huggingface/
-rm -rf logs/*
-
-# 3. Reset virtual environment
-deactivate
-rm -rf ai_vision_env
-python3 -m venv ai_vision_env
-source ai_vision_env/bin/activate
-
-# 4. Fresh installation
-pip install --upgrade pip
-pip install -r requirements.txt
-
-# 5. Restart services in order
-python src/models/smolvlm/start_server.py &
-sleep 10
-python src/backend/main.py &
-sleep 5
-cd src/frontend && python -m http.server 5500
-```
-
-### Backup and Restore
-
-**Create system backup:**
-```bash
-# Backup configuration
-cp -r src/config/ config_backup_$(date +%Y%m%d)/
-
-# Backup logs
-cp -r logs/ logs_backup_$(date +%Y%m%d)/
-```
-
-**Restore from backup:**
-```bash
-# Restore configuration
-cp -r config_backup_YYYYMMDD/* src/config/
-```
+**15 Questions Test:**
+- SmolVLM2: ~98s, 58-66% accuracy
+- SmolVLM: ~90s, 49-64% accuracy
+- Moondream2: ~55s, 56-60% accuracy
+- Phi-3.5: ~201s, 56-60% accuracy
+- LLaVA-MLX: ~260s, 24-34% accuracy
 
 ## Getting Help
 
-### Collect Diagnostic Information
+### Before Asking for Help
 
-Before seeking help, gather this information:
+1. **Check this troubleshooting guide**
+2. **Run the VQA test** to verify model performance
+3. **Check system resources** (memory, CPU)
+4. **Try a different model** if one is underperforming
 
-```bash
-# System information
-uname -a
-python --version
-pip list > installed_packages.txt
+### When Reporting Issues
 
-# Service status
-ps aux | grep python > running_processes.txt
+Include the following information:
+- **System**: macOS/Linux version, hardware specs
+- **Model**: Which model you're using
+- **Error**: Exact error message
+- **Steps**: How to reproduce the issue
+- **Performance**: VQA test results if applicable
 
-# Log files
-cp logs/app.log debug_logs.txt
+### Additional Resources
 
-# Configuration
-cp src/config/app_config.json config_info.txt
-```
-
-### Report Issues
-
-When reporting issues, include:
-1. System information (OS, Python version)
-2. Steps to reproduce the problem
-3. Error messages and log files
-4. Screenshots if applicable
-
-### Community Support
-
-- **GitHub Issues**: [Create an issue](https://github.com/yitzuliu/DissertationDemo/issues)
-- **Documentation**: Check [docs directory](../)
-- **FAQ**: See [FAQ.md](./FAQ.md)
-
-## Prevention Tips
-
-### Regular Maintenance
-
-```bash
-# Weekly maintenance script
-#!/bin/bash
-# clean_system.sh
-
-# Clear logs older than 7 days
-find logs/ -name "*.log" -mtime +7 -delete
-
-# Update packages
-pip list --outdated
-# pip install --upgrade <package_name>
-
-# Check disk space
-df -h
-
-# Restart services
-./restart_services.sh
-```
-
-### Monitoring
-
-Set up basic monitoring:
-
-```bash
-# Create monitoring script
-#!/bin/bash
-# monitor.sh
-
-while true; do
-    echo "$(date): Checking services..."
-    curl -s http://localhost:8000/status || echo "Backend down"
-    curl -s http://localhost:8080/v1/models || echo "Model server down"
-    curl -s http://localhost:5500 || echo "Frontend down"
-    sleep 60
-done
-```
-
-### Best Practices
-
-1. **Regular Updates**: Keep dependencies updated
-2. **Clean Shutdowns**: Always stop services properly
-3. **Resource Monitoring**: Watch memory and CPU usage
-4. **Log Rotation**: Prevent log files from growing too large
-5. **Backup Configurations**: Save working configurations
+- **Model Comparison**: `docs/MODEL_COMPARISON.md`
+- **API Documentation**: `docs/API.md`
+- **Developer Setup**: `docs/DEVELOPER_SETUP.md`
+- **FAQ**: `docs/FAQ.md`
+- **Test Results**: `src/testing/vqa_test_result.md`
 
 ---
 
-**Need more help?** Check our [FAQ](./FAQ.md) or create an issue on [GitHub](https://github.com/yitzuliu/DissertationDemo/issues). 
+**Last Updated**: July 19, 2025  
+**Test Framework**: VQA 2.0 Standard Evaluation  
+**Hardware**: MacBook Air M3, 16GB RAM 

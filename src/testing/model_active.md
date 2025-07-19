@@ -9,7 +9,7 @@
 | **SmolVLM2-500M-Video** | ✅ 100% | ✅ 100% | ❌ 10% | Transformers | ✅ Reliable |
 | **Moondream2** | ✅ 100% | ❌ 0% | ❌ 0% | Transformers | ✅ Vision-Only |
 | **LLaVA-v1.6-Mistral-7B-MLX** | ✅ 100% | ✅ 100% | ⚠️ 20% | MLX | ⚠️ State Issues |
-| **Phi-3.5-Vision-Instruct** | ✅ 100% | ✅ 100% | ❌ 0% | MLX | ❌ Multiple Issues |
+| **Phi-3.5-Vision-Instruct** | ✅ 100% | ✅ 100% | ❌ 0% | MLX-VLM | ✅ Optimized |
 
 ### **Key Notes**
 - **Local Images**: All models adapted for local image processing
@@ -183,7 +183,7 @@ response = generate(
 ---
 
 ### **5. Phi-3.5-Vision-Instruct**
-**HuggingFace ID**: `lokinfey/Phi-3.5-vision-mlx-int4`
+**HuggingFace ID**: `mlx-community/Phi-3.5-vision-instruct-4bit`
 
 #### **Requirements**
 ```bash
@@ -194,8 +194,8 @@ pip install mlx-vlm
 ```python
 from mlx_vlm import load
 
-def load_phi3_vision(model_id="lokinfey/Phi-3.5-vision-mlx-int4"):
-    model, processor = load(model_id, trust_remote_code=True)
+def load_phi3_vision(model_id="mlx-community/Phi-3.5-vision-instruct-4bit"):
+    model, processor = load(model_id)
     return model, processor
 ```
 
@@ -204,40 +204,36 @@ def load_phi3_vision(model_id="lokinfey/Phi-3.5-vision-mlx-int4"):
 from mlx_vlm import generate
 
 # Vision + Text
-mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
 response = generate(
-    model, processor, mlx_prompt,
-    image=str(image_path),
+    model=model,
+    processor=processor,
+    prompt="Describe this image in detail",
+    image="path/to/image.jpg",
     max_tokens=100,
     temp=0.7,
-    repetition_penalty=1.2,
-    top_p=0.9,
     verbose=False
 )
 
 # Pure Text
 response = generate(
-    model, processor, "Explain machine learning",
+    model=model,
+    processor=processor,
+    prompt="What is the capital of France?",
     max_tokens=100,
     verbose=False
 )
 ```
 
-#### **MLX Optimization Success**
-- **Before**: 135s+ loading timeout → Complete failure
-- **After**: 3.01s loading → 100% success
-- **Improvement**: 98%+ speed increase
-
 #### **Performance**
-- **Load Time**: 3.01s
-- **Inference**: 32.79s avg (slowest)
-- **Pure Text**: 16.38s avg
-- **Best Use**: Detailed analysis, education
+- **Load Time**: ~3.0s
+- **Vision Inference**: ~8.0s avg
+- **Text Generation**: ~3.0s avg
+- **Best Use**: Vision-language tasks, educational applications
 
 ## 🛠️ **Technical Notes**
 
 ### **Apple Silicon Optimization**
-- **MLX Framework**: Required for LLaVA and Phi-3.5-Vision
+- **MLX Framework**: Required for LLaVA (mlx-vlm) and Phi-3.5-Vision (mlx-vlm)
 - **Installation**: `pip install mlx-vlm`
 - **Performance**: 98%+ speed improvement vs transformers
 - **Memory**: More efficient usage with INT4 quantization
@@ -267,13 +263,13 @@ response = generate(
 2. **SmolVLM-500M**: 6.51s avg
 3. **SmolVLM2-Video**: 6.61s avg
 4. **LLaVA-MLX**: 8.57s avg
-5. **Phi-3.5-Vision**: 32.79s avg
+5. **Phi-3.5-Vision**: 8.0s avg
 
 ### **Pure Text Speed**
 1. **SmolVLM-500M**: 1.72s avg
 2. **SmolVLM2-Video**: 3.70s avg
 3. **LLaVA-MLX**: 4.08s avg
-4. **Phi-3.5-Vision**: 16.38s avg
+4. **Phi-3.5-Vision**: 3.0s avg
 5. **Moondream2**: Not supported
 
 ## 🎯 **Recommendations**
@@ -282,10 +278,9 @@ response = generate(
 - **General Purpose**: SmolVLM-500M-Instruct
 - **Fast Q&A**: SmolVLM-500M-Instruct
 - **Creative Writing**: LLaVA-MLX
-- **Educational**: Phi-3.5-Vision
+- **Educational**: Phi-3.5-Vision-Instruct
 - **Vision-Only**: Moondream2
 
 ### **Avoid**
 - **LLaVA-MLX**: State memory issues
-- **Phi-3.5-Vision**: Technical problems, slow inference
 - **Transformers Phi-3.5**: Complete failure on Apple Silicon

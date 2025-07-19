@@ -59,17 +59,38 @@ The data flow is a straightforward request-response cycle for image analysis.
 
 This architecture decouples the core application logic from the AI models, allowing for independent development and testing.
 
-## Supported Models
+## Supported Models (Updated with VQA 2.0 Results)
 
 The system supports a variety of models, each with its own strengths. Models optimized with MLX are recommended for users on Apple Silicon for significantly better performance.
 
-| Model | Key Strengths | Recommended Use Case |
-|-----------------------------|--------------------------------------------|---------------------------------|
-| **LLaVA-v1.6 (MLX)** | Excellent conversational ability | Multi-turn, interactive guidance for photographic images. Fails on synthetic images. |
-| **Phi-3.5-Vision (MLX)** | High accuracy, strong reasoning | Detailed single-image analysis |
-| **Moondream2** | Extremely fast and lightweight | Quick, general-purpose analysis |
-| **SmolVLM / SmolVLM2** | Efficient and balanced performance | Reliable, all-around use |
-| **YOLOv8** | Specialized for object detection | High-speed object localization |
+| Model | VQA Accuracy (10題) | Avg Inference Time | Memory Usage | Recommended Use Case |
+|-----------------------------|---------------------|-------------------|--------------|---------------------------------|
+| **SmolVLM2-500M-Video-Instruct** | 🏆 66.0% | 6.61s | 2.08GB | **Best overall performance** |
+| **SmolVLM-500M-Instruct** | 64.0% | 5.98s | 1.58GB | Reliable, all-around use |
+| **Moondream2** | 56.0% | 🏆 4.06s | 0.10GB | **Fastest inference** |
+| **Phi-3.5-Vision (MLX)** | 60.0% | 19.02s | 1.53GB | Detailed single-image analysis |
+| **LLaVA-v1.6 (MLX)** | ⚠️ 34.0% | 17.86s | 1.16GB | ⚠️ **Underperforming** |
+
+### Model Performance Analysis
+
+#### 🏆 Best Overall: SmolVLM2-500M-Video-Instruct
+- **VQA Accuracy**: 66.0% (highest among tested models)
+- **Inference Time**: 6.61s (balanced)
+- **Memory Usage**: 2.08GB
+- **Use Case**: Production environments requiring reliable performance
+
+#### ⚡ Speed Champion: Moondream2
+- **VQA Accuracy**: 56.0%
+- **Inference Time**: 4.06s (fastest)
+- **Memory Usage**: 0.10GB (lowest)
+- **Use Case**: Speed-critical applications
+
+#### ⚠️ Underperforming: LLaVA-MLX
+- **VQA Accuracy**: 34.0% (significant degradation from previous 56%)
+- **Inference Time**: 17.86s (slow due to model reloading)
+- **Memory Usage**: 1.16GB
+- **Issue**: Model reloading for each image causing performance degradation
+- **Status**: Functional but not recommended
 
 ## Configuration Management
 
@@ -99,6 +120,34 @@ While JSON files are primary, the system can be enhanced to allow environment va
 - `MODEL_SERVER_URL`: URL of the active model server (e.g., `http://localhost:8080`)
 - `LOG_LEVEL`: Logging verbosity.
 
+## Performance Testing Framework
+
+### VQA 2.0 Testing
+The system includes a comprehensive VQA 2.0 testing framework located in `src/testing/`:
+
+- **Test Framework**: `vqa_framework.py` - Core testing infrastructure
+- **Test Runner**: `vqa_test.py` - Executes VQA tests with different question counts
+- **Results**: `vqa_test_result.md` - Comprehensive test results and time analysis
+
+### Testing Capabilities
+- **Real COCO Dataset**: Uses actual VQA 2.0 questions and images
+- **Multiple Question Counts**: 5, 10, 15, 20 questions
+- **Performance Metrics**: VQA accuracy, inference time, memory usage
+- **Time Analysis**: Detailed time breakdown and recommendations
+
+### Test Results Summary
+Based on latest VQA 2.0 testing (July 19, 2025):
+
+**10 Questions Test:**
+- SmolVLM2: ~66s, 66.0% accuracy
+- SmolVLM: ~60s, 64.0% accuracy
+- Moondream2: ~41s, 56.0% accuracy
+
+**15 Questions Test:**
+- SmolVLM2: ~98s, 58-66% accuracy
+- SmolVLM: ~90s, 49-64% accuracy
+- Moondream2: ~55s, 56-60% accuracy
+
 ## Error Handling
 
 ### 1. Error Categories
@@ -127,6 +176,19 @@ While JSON files are primary, the system can be enhanced to allow environment va
 - GPU utilization optimization
 - Connection pooling
 - Cache management
+
+### 3. Model Selection Guidelines
+
+#### For Production Use
+1. **Primary Choice**: SmolVLM2-500M-Video-Instruct (best accuracy/speed balance)
+2. **Backup Option**: SmolVLM-500M-Instruct (excellent alternative)
+3. **Speed Option**: Moondream2 (fastest inference)
+4. **⚠️ Avoid**: LLaVA-MLX (underperforming due to reloading overhead)
+
+#### For Different Scenarios
+- **Quick Testing (10 questions)**: Moondream2 (~41 seconds)
+- **Standard Testing (15 questions)**: SmolVLM2 (~98 seconds)
+- **Comprehensive Testing (20 questions)**: SmolVLM2 (~130 seconds)
 
 ## Security Measures
 
@@ -188,6 +250,12 @@ Production Deployment
 - Offline mode support
 - Mobile optimization
 
+### 3. Performance Improvements
+- Model state persistence
+- Reduced reloading overhead
+- Memory optimization
+- Inference acceleration
+
 ## Component Diagrams
 
 ### Image Processing Pipeline
@@ -201,25 +269,16 @@ Production Deployment
 └───────────────┘      └───────────────┘      └───────────────┘
 ```
 
-### Error Handling Flow
+### Model Performance Pipeline
 ```ascii
 ┌───────────────┐      ┌───────────────┐      ┌───────────────┐
-│ Error Occurs  │─────▶│   Logging     │─────▶│ Notification  │
-└───────┬───────┘      └───────────────┘      └───────────────┘
-        │
-        │              ┌───────────────┐      ┌───────────────┐
-        └─────────────▶│ Recovery Plan │─────▶│   Fallback    │
-                       └───────────────┘      └───────────────┘
+│ VQA 2.0 Test  │─────▶│ Performance   │─────▶│ Results       │
+│ Framework     │      │ Analysis      │      │ Documentation │
+└───────────────┘      └───────────────┘      └───────────────┘
 ```
 
-## Architecture Constraints
+---
 
-**Memory Management:** The system is designed around single-model operation to ensure optimal performance and memory usage. Model switching is supported but requires stopping one model before starting another.
-
-## References
-
-- [API Documentation](./API.md)
-- [Model Comparison Guide](./MODEL_COMPARISON.md)
-- [Developer Setup Guide](./DEVELOPER_SETUP.md)
-- [Troubleshooting Guide](./TROUBLESHOOTING.md)
-- [FAQ](./FAQ.md)
+**Last Updated**: July 19, 2025  
+**Test Framework**: VQA 2.0 Standard Evaluation  
+**Hardware**: MacBook Air M3, 16GB RAM
