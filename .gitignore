@@ -69,6 +69,27 @@ src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/model.safetensors
 **/processor_config.json
 **/generation_config.json
 
+# ===== TESTING & RESULTS =====
+# Test results and outputs
+/src/testing/results/
+/results/
+/test_results_*.json
+/context_understanding_test_results_*.json
+/vqa2_results_*.json
+/performance_comparison_*.json
+/test_results_intermediate_*.json
+/test_results_single_*.json
+
+# Debug and temporary test files
+/debug/output/
+/test_output/
+**/test_output/
+**/debug_output/
+**/temp_*.png
+**/temp_*.jpg
+**/temp_*.jpeg
+temp_mlx_image.png
+
 # ===== LOGS & TEMPORARY FILES =====
 /logs/
 *.log
@@ -98,6 +119,23 @@ src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/model.safetensors
 ehthumbs.db
 Thumbs.db
 
+# ===== CACHE & TEMPORARY FILES =====
+# Hugging Face cache
+.cache/
+~/.cache/huggingface/
+.huggingface/
+
+# MLX cache
+.mlx/
+
+# PyTorch cache
+.torch/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
 # ===== PROJECT SPECIFIC =====
 # Test outputs and temporary files
 /debug/output/
@@ -115,6 +153,7 @@ quick_test_smolvlm2.py
 !**/requirements.txt
 !**/README.md
 !**/TODOLIST.md
+
 # All model files in SmolVLM2-500M-Video-Instruct root
 src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/added_tokens.json
 src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/chat_template.json
@@ -126,3 +165,83 @@ src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/special_tokens_map.json
 src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/tokenizer.json
 src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/tokenizer_config.json
 src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/vocab.json
+
+# ===== DATA & DATASETS =====
+# VQA dataset files
+/src/testing/testing_material/vqa2/
+/testing_material/vqa2/
+*.zip
+
+# Large image datasets
+/datasets/
+/data/
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.gif
+*.tiff
+*.webp
+
+# ===== ENVIRONMENT & CONFIG =====
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Configuration files with sensitive data
+config.ini
+secrets.json
+credentials.json
+
+# ===== JUPYTER NOTEBOOKS =====
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# ===== PACKAGING =====
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===== PROFILING & DEBUGGING =====
+# Profiling data
+*.prof
+*.lprof
+
+# Debug symbols
+*.dSYM/
+
+# ===== VERSION CONTROL =====
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# ===== DOCUMENTATION =====
+# Generated documentation
+docs/_build/
+docs/build/
+site/
+
+# ===== DEPLOYMENT =====
+# Deployment files
+deploy/
+deployment/
+*.tar.gz
+*.zip
