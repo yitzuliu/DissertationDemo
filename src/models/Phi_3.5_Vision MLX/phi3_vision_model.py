@@ -279,32 +279,32 @@ class Phi3VisionServer:
                 )
                 
                 # Phi-3.5 Vision special format (model compatibility requirement)
-                messages = [
+            messages = [
                     {"role": "user", "content": f"<|image_1|>\\n{prompt}"}
-                ]
-                
+            ]
+            
                 prompt_text = fallback_processor.tokenizer.apply_chat_template(
-                    messages, 
-                    tokenize=False, 
-                    add_generation_prompt=True
-                )
-                
+                messages, 
+                tokenize=False, 
+                add_generation_prompt=True
+            )
+            
                 inputs = fallback_processor(prompt_text, [image], return_tensors="pt")
-                
+            
                 # Move to correct device
                 device = next(fallback_model.parameters()).device
-                inputs = {k: v.to(device) for k, v in inputs.items()}
-                
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            
                 # Technical fix: avoid DynamicCache error
-                with torch.no_grad():
+            with torch.no_grad():
                     outputs = fallback_model.generate(
-                        **inputs, 
-                        max_new_tokens=max_tokens,
-                        do_sample=False,
-                        use_cache=False,  # Disable cache to avoid DynamicCache error
+                    **inputs,
+                    max_new_tokens=max_tokens,
+                    do_sample=False,
+                    use_cache=False,  # Disable cache to avoid DynamicCache error
                         pad_token_id=fallback_processor.tokenizer.eos_token_id
-                    )
-                
+                )
+            
                 result = fallback_processor.decode(outputs[0], skip_special_tokens=True)
                 
                 # Clean up fallback model
@@ -312,15 +312,15 @@ class Phi3VisionServer:
                 gc.collect()
                 if torch.backends.mps.is_available():
                     torch.mps.empty_cache()
-                
-                inference_time = time.time() - start_time
-                
-                return {
-                    "success": True,
+            
+            inference_time = time.time() - start_time
+            
+            return {
+                "success": True,
                     "response": result,
                     "inference_time": inference_time,
                     "method": "Transformers-Fallback"
-                }
+            }
             
         except Exception as e:
             logger.error(f"Error during Phi-3.5-Vision inference: {e}")

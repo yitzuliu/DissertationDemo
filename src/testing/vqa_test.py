@@ -160,7 +160,7 @@ def main():
                     results_file = framework.save_results(all_results, "coco", args.questions, suffix)
                 else:
                     # Complete test - use timestamp
-                    results_file = framework.save_results(all_results, "coco", args.questions)
+                results_file = framework.save_results(all_results, "coco", args.questions)
                 print(f"\n💾 Results saved to: {results_file}")
             except Exception as e:
                 print(f"\n⚠️ Failed to save results: {e}")

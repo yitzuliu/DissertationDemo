@@ -336,7 +336,18 @@ class VLMTester:
         # 載入模型
         start_time = time.time()
         try:
-            model, processor = config["loader"]()
+            load_result = config["loader"]()
+            
+            # Handle different return types
+            if len(load_result) == 3:
+                # LLaVA MLX returns (model, processor, config) - OLD VERSION
+                model, processor, config = load_result
+                # Store config in model object for later use
+                model._mlx_config = config
+            else:
+                # Other models return (model, processor) - CURRENT VERSION
+                model, processor = load_result
+            
             load_time = time.time() - start_time
             
             # 記錄載入後記憶體
@@ -346,7 +357,7 @@ class VLMTester:
             
             # 初始化模型結果
             model_results = {
-                "model_id": config["model_id"],
+                "model_id": self.models_config[model_name]["model_id"],
                 "load_time": load_time,
                 "memory_before": memory_before,
                 "memory_after": memory_after,
@@ -373,7 +384,7 @@ class VLMTester:
                     if "LLaVA-v1.6-Mistral-7B-MLX" in model_name:
                         print("  >> LLaVA-MLX: Reloading model to clear state...")
                         clear_model_memory(model, processor)
-                        model, processor = config["loader"]()
+                        model, processor = self.models_config[model_name]["loader"]()
 
                     image_result = self.test_single_image(model, processor, image_path, model_name)
                     model_results["images"][image_path.name] = image_result
@@ -436,7 +447,7 @@ class VLMTester:
         except Exception as e:
             print(f"載入模型 {model_name} 時發生錯誤: {str(e)}")
             model_results = {
-                "model_id": config["model_id"],
+                "model_id": self.models_config[model_name]["model_id"],
                 "load_error": str(e),
                 "memory_before": memory_before,
                 "memory_after": memory_before,  # 載入失敗，記憶體無變化
@@ -618,11 +629,12 @@ class VLMTester:
                 elif "LLaVA" in model_name:
                     # Check if this is MLX-LLaVA or standard LLaVA
                     if "MLX" in model_name:
-                        # MLX-LLaVA inference
+                        # MLX-LLaVA inference using simple method (same as other models)
                         try:
                             from mlx_vlm import generate
                             print("  🚀 Using MLX-VLM for LLaVA...")
-                            # Simple prompt for MLX-LLaVA
+                            
+                            # Simple prompt for MLX-LLaVA (same as other models)
                             response = generate(
                                 model, 
                                 processor, 
@@ -632,10 +644,8 @@ class VLMTester:
                                 verbose=False
                             )
                             
-                            # MLX-VLM returns string directly, not tuple
-                            text_response = str(response)
+                            return str(response)
                             
-                            return text_response
                         except Exception as e:
                             print(f"  ⚠️ MLX-VLM failed: {e}")
                             # Fallback: Return descriptive error but don't crash
@@ -1121,7 +1131,7 @@ class VLMTester:
     def _test_llava_text_only(self, model, processor, prompt):
         """LLaVA-MLX 純文字測試"""
         try:
-            # 方法1: MLX-VLM 純文字推理
+            # 方法1: MLX-VLM 簡單純文字推理
             from mlx_vlm import generate
             response = generate(
                 model=model,
@@ -1131,12 +1141,7 @@ class VLMTester:
                 verbose=False
             )
             
-            if isinstance(response, tuple) and len(response) >= 1:
-                text_response = response[0] if response[0] else ""
-            else:
-                text_response = str(response) if response else ""
-            
-            return text_response
+            return str(response) if response else ""
             
         except Exception as e:
             # 方法2: 嘗試 pipeline 方式（如果支援）
