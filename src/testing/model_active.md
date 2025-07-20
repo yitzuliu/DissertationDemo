@@ -20,51 +20,75 @@
 ## 🚀 **Model Implementation Guide**
 
 ### **1. SmolVLM2-500M-Video-Instruct**
-**HuggingFace ID**: `HuggingFaceTB/SmolVLM2-500M-Video-Instruct`
+**HuggingFace ID**: `mlx-community/SmolVLM2-500M-Video-Instruct-mlx`
 
 #### **Loading Method**
 ```python
-from transformers import AutoProcessor, AutoModelForImageTextToText
+from mlx_vlm import load
 
-def load_smolvlm2_video(model_id="HuggingFaceTB/SmolVLM2-500M-Video-Instruct"):
-    processor = AutoProcessor.from_pretrained(model_id)
-    model = AutoModelForImageTextToText.from_pretrained(model_id)
-    return model, processor
+def load_smolvlm2_video(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
+    try:
+        # 優先使用 MLX-VLM 框架
+        from mlx_vlm import load
+        model, processor = load(model_id)
+        model._is_mlx_model = True
+        return model, processor
+    except ImportError:
+        # 回退到原始版本
+        fallback_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+        from transformers import AutoProcessor, AutoModelForImageTextToText
+        processor = AutoProcessor.from_pretrained(fallback_id)
+        model = AutoModelForImageTextToText.from_pretrained(fallback_id)
+        return model, processor
 ```
 
 #### **Inference Method**
 ```python
-# Vision + Text
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"type": "image", "image": image},
-            {"type": "text", "text": prompt}
-        ]
-    }
-]
-input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-inputs = processor(text=input_text, images=image, return_tensors="pt")
-with torch.no_grad():
-    outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
-response = processor.decode(outputs[0], skip_special_tokens=True)
-
-# Pure Text
-messages = [
-    {
-        "role": "user",
-        "content": [{"type": "text", "text": "What is the capital of France?"}]
-    }
-]
-# Same processing as above, but without image
+# MLX 版本推理
+if hasattr(model, '_is_mlx_model'):
+    import subprocess
+    import tempfile
+    
+    # 創建臨時圖像文件
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+        temp_image_path = tmp_file.name
+        image.save(temp_image_path)
+    
+    # 使用 MLX-VLM 命令行工具
+    cmd = [
+        sys.executable, '-m', 'mlx_vlm.generate',
+        '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+        '--image', temp_image_path,
+        '--prompt', prompt,
+        '--max-tokens', '100',
+        '--temperature', '0.0'
+    ]
+    
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    # 解析輸出...
+else:
+    # 標準 transformers 推理
+    messages = [
+        {
+            "role": "user", 
+            "content": [
+                {"type": "image", "image": image},
+                {"type": "text", "text": prompt}
+            ]
+        }
+    ]
+    input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    inputs = processor(text=input_text, images=image, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
+    response = processor.decode(outputs[0], skip_special_tokens=True)
 ```
 
 #### **Performance**
-- **Load Time**: 4.71s
-- **Inference**: 6.61s avg
-- **Pure Text**: 3.70s avg
-- **Best Use**: Multi-media applications
+- **Load Time**: 0.53s (MLX optimized)
+- **Inference**: 5.75s avg (MLX optimized)
+- **Pure Text**: 5.37s avg (MLX optimized)
+- **Best Use**: Multi-media applications with Apple Silicon optimization
 
 ---
 
@@ -203,7 +227,7 @@ def load_phi3_vision(model_id="mlx-community/Phi-3.5-vision-instruct-4bit"):
 ```python
 from mlx_vlm import generate
 
-# Vision + Text
+# Vision + Text (Simplified - No load_config required)
 response = generate(
     model=model,
     processor=processor,
@@ -225,10 +249,16 @@ response = generate(
 )
 ```
 
+#### **Key Improvements (2025-07-18)**
+- **✅ Simplified Inference**: Removed unnecessary `load_config` calls
+- **✅ No Manual Confirmation**: Eliminated interactive prompts
+- **✅ Consistent Implementation**: All files use same inference method
+- **✅ Optimized Performance**: Faster loading and inference
+
 #### **Performance**
 - **Load Time**: 1.38s (optimized)
-- **Vision Inference**: 11.79-14.75s avg
-- **Text Generation**: 4.66-7.61s avg
+- **Vision Inference**: 10.00s avg (improved)
+- **Text Generation**: 5.30s avg (improved)
 - **Best Use**: Vision-language tasks, educational applications
 
 ## 🛠️ **Technical Notes**

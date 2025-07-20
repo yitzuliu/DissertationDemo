@@ -84,12 +84,41 @@ class VLMModelLoader:
     """VLM Model Loader - Consistent with vlm_tester.py"""
     
     @staticmethod
-    def load_smolvlm2_video(model_id="HuggingFaceTB/SmolVLM2-500M-Video-Instruct"):
-        from transformers import AutoProcessor, AutoModelForImageTextToText
-        print(f"Loading {model_id}...")
-        processor = AutoProcessor.from_pretrained(model_id)
-        model = AutoModelForImageTextToText.from_pretrained(model_id)
-        return model, processor
+    def load_smolvlm2_video(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
+        """載入 SmolVLM2-500M-Video-Instruct (優先使用 MLX 版本)"""
+        print(f"載入 SmolVLM2-500M-Video-Instruct (優先使用 MLX 版本)...")
+        
+        try:
+            # 首先嘗試使用 MLX-VLM 框架（與 vlm_tester.py 相同的方法）
+            from mlx_vlm import load
+            print("正在載入 MLX-VLM 優化的 SmolVLM2 模型...")
+            model, processor = load(model_id)
+            print("MLX-VLM SmolVLM2 載入成功!")
+            
+            # 標記為 MLX 模型，使用特殊的推理方式
+            model._is_mlx_model = True
+            
+            return model, processor
+            
+        except ImportError as e:
+            print("MLX-VLM 未安裝，使用原始 SmolVLM2 模型...")
+            print("請運行: pip install mlx-vlm")
+            # 回退到原始 SmolVLM2 模型
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            from transformers import AutoProcessor, AutoModelForImageTextToText
+            processor = AutoProcessor.from_pretrained(fallback_model_id)
+            model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
+            return model, processor
+            
+        except Exception as e:
+            print(f"MLX-VLM 載入失敗: {str(e)}")
+            print("使用原始 SmolVLM2 模型作為回退...")
+            # 回退到原始 SmolVLM2 模型
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            from transformers import AutoProcessor, AutoModelForImageTextToText
+            processor = AutoProcessor.from_pretrained(fallback_model_id)
+            model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
+            return model, processor
     
     @staticmethod
     def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
@@ -190,7 +219,11 @@ class VLMContextTester:
         
         # Test model configuration (same as vlm_tester.py)
         self.models_config = {
-            "SmolVLM2-500M-Video-Instruct": { "loader": VLMModelLoader.load_smolvlm2_video, "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct" },
+            "SmolVLM2-500M-Video-Instruct": { 
+                "loader": VLMModelLoader.load_smolvlm2_video, 
+                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
+            },
             "SmolVLM-500M-Instruct": { "loader": VLMModelLoader.load_smolvlm_instruct, "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct" },
             "Moondream2": { "loader": VLMModelLoader.load_moondream2, "model_id": "vikhyatk/moondream2" },
             "LLaVA-v1.6-Mistral-7B-MLX": { "loader": VLMModelLoader.load_llava_mlx, "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit" },
@@ -426,41 +459,165 @@ class VLMContextTester:
                 # Branch 1: Standard Transformers models (e.g., SmolVLM) - IMPROVED
                 # --------------------------------------------------------------------------
                 if "SmolVLM" in model_name:
-                    # Build conversation with history
-                    conversation = []
-                    
-                    # Add conversation history
-                    for hist_entry in history:
-                        if image is None and hist_entry["role"] == "user" and isinstance(hist_entry["content"], list):
-                            # For context-based questions, filter out image tokens but keep text
-                            text_content = [item for item in hist_entry["content"] if item["type"] == "text"]
-                            if text_content:
-                                conversation.append({"role": hist_entry["role"], "content": text_content})
+                    # 檢查是否為 MLX 模型
+                    if hasattr(model, '_is_mlx_model'):
+                        # MLX 版本的 SmolVLM2 推理
+                        try:
+                            import subprocess
+                            import tempfile
+                            
+                            print("  🚀 Using MLX-VLM command line for SmolVLM2...")
+                            
+                            if image is not None:
+                                # 創建臨時圖像文件
+                                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                                    temp_image_path = tmp_file.name
+                                    image.save(temp_image_path)
+                                
+                                try:
+                                    # 使用 MLX-VLM 命令行工具
+                                    cmd = [
+                                        sys.executable, '-m', 'mlx_vlm.generate',
+                                        '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                                        '--image', temp_image_path,
+                                        '--prompt', prompt,
+                                        '--max-tokens', str(self.unified_max_tokens),
+                                        '--temperature', '0.0'
+                                    ]
+                                    
+                                    result = subprocess.run(
+                                        cmd,
+                                        capture_output=True,
+                                        text=True,
+                                        timeout=timeout_seconds
+                                    )
+                                    
+                                    if result.returncode == 0:
+                                        # 解析輸出，提取生成的文本
+                                        output_lines = result.stdout.split('\n')
+                                        generated_text = ""
+                                        
+                                        # 保留完整的 Assistant 回覆
+                                        for i, line in enumerate(output_lines):
+                                            line = line.strip()
+                                            if line.startswith('Assistant:'):
+                                                # 找到 Assistant 行
+                                                generated_text = line
+                                                # 檢查下一行是否有內容
+                                                if i + 1 < len(output_lines):
+                                                    next_line = output_lines[i + 1].strip()
+                                                    if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                        # 下一行有內容，組合兩行
+                                                        generated_text = f"{line} {next_line}"
+                                                break
+                                            elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                # 找到其他非系統信息的內容行
+                                                if not generated_text:
+                                                    generated_text = line
+                                        
+                                        response = generated_text
+                                    else:
+                                        print(f"  ⚠️ MLX-VLM command failed: {result.stderr}")
+                                        raise Exception(f"MLX-VLM command failed: {result.stderr}")
+                                        
+                                finally:
+                                    # 清理臨時文件
+                                    if os.path.exists(temp_image_path):
+                                        os.remove(temp_image_path)
+                            else:
+                                # 純文字推理 - 創建簡單的測試圖像
+                                from PIL import Image
+                                test_image = Image.new('RGB', (224, 224), color='white')
+                                
+                                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                                    temp_image_path = tmp_file.name
+                                    test_image.save(temp_image_path)
+                                
+                                try:
+                                    # 使用 MLX-VLM 命令行工具進行純文字測試
+                                    cmd = [
+                                        sys.executable, '-m', 'mlx_vlm.generate',
+                                        '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                                        '--image', temp_image_path,
+                                        '--prompt', prompt,
+                                        '--max-tokens', str(self.unified_max_tokens),
+                                        '--temperature', '0.0'
+                                    ]
+                                    
+                                    result = subprocess.run(
+                                        cmd,
+                                        capture_output=True,
+                                        text=True,
+                                        timeout=timeout_seconds
+                                    )
+                                    
+                                    if result.returncode == 0:
+                                        # 解析輸出
+                                        output_lines = result.stdout.split('\n')
+                                        generated_text = ""
+                                        
+                                        for i, line in enumerate(output_lines):
+                                            line = line.strip()
+                                            if line.startswith('Assistant:'):
+                                                generated_text = line
+                                                if i + 1 < len(output_lines):
+                                                    next_line = output_lines[i + 1].strip()
+                                                    if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                        generated_text = f"{line} {next_line}"
+                                                break
+                                            elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                if not generated_text:
+                                                    generated_text = line
+                                        
+                                        response = generated_text
+                                    else:
+                                        response = f"MLX-VLM text-only command failed: {result.stderr}"
+                                        
+                                finally:
+                                    # 清理臨時文件
+                                    if os.path.exists(temp_image_path):
+                                        os.remove(temp_image_path)
+                            
+                        except Exception as e:
+                            print(f"  ⚠️ MLX-VLM SmolVLM2 inference failed: {e}")
+                            response = f"Error: MLX-VLM SmolVLM2 inference failed - {str(e)}"
+                    else:
+                        # 標準 SmolVLM 推理方式
+                        # Build conversation with history
+                        conversation = []
+                        
+                        # Add conversation history
+                        for hist_entry in history:
+                            if image is None and hist_entry["role"] == "user" and isinstance(hist_entry["content"], list):
+                                # For context-based questions, filter out image tokens but keep text
+                                text_content = [item for item in hist_entry["content"] if item["type"] == "text"]
+                                if text_content:
+                                    conversation.append({"role": hist_entry["role"], "content": text_content})
+                            else:
+                                conversation.append(hist_entry)
+                        
+                        # Add current message
+                        if image is not None:
+                            # With image: Standard image description
+                            content = [{"type": "image"}, {"type": "text", "text": prompt}]
+                            conversation.append({"role": "user", "content": content})
                         else:
-                            conversation.append(hist_entry)
-                    
-                    # Add current message
-                    if image is not None:
-                        # With image: Standard image description
-                        content = [{"type": "image"}, {"type": "text", "text": prompt}]
-                        conversation.append({"role": "user", "content": content})
-                    else:
-                        # Without image: Context-based question
-                        content = [{"type": "text", "text": prompt}]
-                        conversation.append({"role": "user", "content": content})
-                    
-                    final_prompt = processor.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True)
-                    if image is not None:
-                        inputs = processor(text=final_prompt, images=image, return_tensors="pt")
-                    else:
-                        inputs = processor(text=final_prompt, return_tensors="pt")
-                    
-                    with torch.no_grad():
-                        outputs = model.generate(**inputs, max_new_tokens=self.unified_max_tokens, do_sample=False)
-                    
-                    input_len = inputs["input_ids"].shape[1]
-                    generated_ids = outputs[0][input_len:]
-                    response = processor.decode(generated_ids, skip_special_tokens=True).strip()
+                            # Without image: Context-based question
+                            content = [{"type": "text", "text": prompt}]
+                            conversation.append({"role": "user", "content": content})
+                        
+                        final_prompt = processor.apply_chat_template(conversation, tokenize=False, add_generation_prompt=True)
+                        if image is not None:
+                            inputs = processor(text=final_prompt, images=image, return_tensors="pt")
+                        else:
+                            inputs = processor(text=final_prompt, return_tensors="pt")
+                        
+                        with torch.no_grad():
+                            outputs = model.generate(**inputs, max_new_tokens=self.unified_max_tokens, do_sample=False)
+                        
+                        input_len = inputs["input_ids"].shape[1]
+                        generated_ids = outputs[0][input_len:]
+                        response = processor.decode(generated_ids, skip_special_tokens=True).strip()
 
                 # --------------------------------------------------------------------------
                 # Branch 2: Moondream2 (Special API) - IMPROVED

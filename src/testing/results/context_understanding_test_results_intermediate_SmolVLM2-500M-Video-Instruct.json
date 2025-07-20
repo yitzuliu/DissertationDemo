@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-19 14:11:31",
+  "test_timestamp": "2025-07-20 02:30:52",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,30 +8,30 @@
   "test_type": "context_understanding",
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
-      "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+      "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
       "image_tests": [
         {
           "image_name": "IMG_0119.JPG",
           "image_description_phase": {
             "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
-            "response": "A dog with a tan and white coat is sitting on a tiled floor. The dog is looking directly at the camera with its mouth slightly open.",
-            "inference_time": 9.357555866241455
+            "response": "Assistant: A Shiba Inu dog is sitting on a tiled floor, looking directly at the camera. The dog has a light tan coat with darker tan markings on its face and paws. The dog's nose is black, and its eyes are dark brown. The dog is wearing a collar, but the collar is not visible in the image. The dog is sitting on a tiled floor, which is light beige in color. There is a green shoe on the floor to the left of the dog",
+            "inference_time": 6.071854829788208
           },
           "context_based_questions": {
             "question_1": {
               "prompt": "What were the most prominent colors in the image?",
-              "response": "The most prominent colors in the image are:\n\n1. **Red**: The main color of the flag, which is prominently displayed in the center of the image.\n2. **Blue**: The color of the flag's blue field, which is located at the top left corner of the image.\n3. **Green**: The color of the flag's green field, which is located at the top right corner of the image.\n4. **Yellow**: The color of the flag's yellow",
-              "inference_time": 3.818922996520996
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 5.185584783554077
             },
             "question_2": {
               "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
-              "response": "No, there were no people visible in the image.",
-              "inference_time": 0.5611238479614258
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.146497964859009
             },
             "question_3": {
               "prompt": "Summarize the main subject or scene of the image in one sentence.",
-              "response": "A person is holding a gun in a dark room.",
-              "inference_time": 0.6344461441040039
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.015868902206421
             }
           },
           "test_type": "context_understanding",
@@ -41,32 +41,32 @@
               "type": "image_description",
               "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
               "has_image": true,
-              "response": "A dog with a tan and white coat is sitting on a tiled floor. The dog is looking directly at the camera with its mouth slightly open.",
-              "inference_time": 9.357555866241455
+              "response": "Assistant: A Shiba Inu dog is sitting on a tiled floor, looking directly at the camera. The dog has a light tan coat with darker tan markings on its face and paws. The dog's nose is black, and its eyes are dark brown. The dog is wearing a collar, but the collar is not visible in the image. The dog is sitting on a tiled floor, which is light beige in color. There is a green shoe on the floor to the left of the dog",
+              "inference_time": 6.071854829788208
             },
             {
               "step": 2,
               "type": "context_question",
               "prompt": "What were the most prominent colors in the image?",
               "has_image": false,
-              "response": "The most prominent colors in the image are:\n\n1. **Red**: The main color of the flag, which is prominently displayed in the center of the image.\n2. **Blue**: The color of the flag's blue field, which is located at the top left corner of the image.\n3. **Green**: The color of the flag's green field, which is located at the top right corner of the image.\n4. **Yellow**: The color of the flag's yellow",
-              "inference_time": 3.818922996520996
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 5.185584783554077
             },
             {
               "step": 3,
               "type": "context_question",
               "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
               "has_image": false,
-              "response": "No, there were no people visible in the image.",
-              "inference_time": 0.5611238479614258
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.146497964859009
             },
             {
               "step": 4,
               "type": "context_question",
               "prompt": "Summarize the main subject or scene of the image in one sentence.",
               "has_image": false,
-              "response": "A person is holding a gun in a dark room.",
-              "inference_time": 0.6344461441040039
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.015868902206421
             }
           ]
         },
@@ -74,24 +74,24 @@
           "image_name": "IMG_2053.JPG",
           "image_description_phase": {
             "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
-            "response": "In the image, a person is seen holding a passport. The individual is wearing a white t-shirt with the text \"FKONKS\" printed on it. The passport is held in the person's right hand, with the left hand holding a passport card. The passport card is held in the person's left hand. The passport card has a blue and white design on it, with a person's face and a passport number printed on it. The passport card also has a barcode on it",
-            "inference_time": 10.871674299240112
+            "response": "Assistant: A person is holding a passport in their hand. The passport has a photo of a person on the front. The person is wearing a white shirt with the text \"FKONs\" on it.",
+            "inference_time": 5.083700895309448
           },
           "context_based_questions": {
             "question_1": {
               "prompt": "What were the most prominent colors in the image?",
-              "response": "The most prominent colors in the image are:\n\n1. **Red**: The main color of the flag, which is prominently displayed in the center of the image.\n2. **Blue**: The color of the flag's blue field, which is located at the top left corner of the image.\n3. **Green**: The color of the flag's green field, which is located at the top right corner of the image.\n4. **Yellow**: The color of the flag's yellow",
-              "inference_time": 3.848367929458618
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 4.9793479442596436
             },
             "question_2": {
               "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
-              "response": "No, there were no people visible in the image.",
-              "inference_time": 0.5778200626373291
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.370481014251709
             },
             "question_3": {
               "prompt": "Summarize the main subject or scene of the image in one sentence.",
-              "response": "A person is holding a gun in a dark room.",
-              "inference_time": 0.621178150177002
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.163628101348877
             }
           },
           "test_type": "context_understanding",
@@ -101,32 +101,32 @@
               "type": "image_description",
               "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
               "has_image": true,
-              "response": "In the image, a person is seen holding a passport. The individual is wearing a white t-shirt with the text \"FKONKS\" printed on it. The passport is held in the person's right hand, with the left hand holding a passport card. The passport card is held in the person's left hand. The passport card has a blue and white design on it, with a person's face and a passport number printed on it. The passport card also has a barcode on it",
-              "inference_time": 10.871674299240112
+              "response": "Assistant: A person is holding a passport in their hand. The passport has a photo of a person on the front. The person is wearing a white shirt with the text \"FKONs\" on it.",
+              "inference_time": 5.083700895309448
             },
             {
               "step": 2,
               "type": "context_question",
               "prompt": "What were the most prominent colors in the image?",
               "has_image": false,
-              "response": "The most prominent colors in the image are:\n\n1. **Red**: The main color of the flag, which is prominently displayed in the center of the image.\n2. **Blue**: The color of the flag's blue field, which is located at the top left corner of the image.\n3. **Green**: The color of the flag's green field, which is located at the top right corner of the image.\n4. **Yellow**: The color of the flag's yellow",
-              "inference_time": 3.848367929458618
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 4.9793479442596436
             },
             {
               "step": 3,
               "type": "context_question",
               "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
               "has_image": false,
-              "response": "No, there were no people visible in the image.",
-              "inference_time": 0.5778200626373291
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.370481014251709
             },
             {
               "step": 4,
               "type": "context_question",
               "prompt": "Summarize the main subject or scene of the image in one sentence.",
               "has_image": false,
-              "response": "A person is holding a gun in a dark room.",
-              "inference_time": 0.621178150177002
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.163628101348877
             }
           ]
         },
@@ -134,24 +134,24 @@
           "image_name": "test_image.jpg",
           "image_description_phase": {
             "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
-            "response": "The image depicts a red circle with the letter \"PH-3\" inscribed within it. The circle is set against a light blue background, which serves as the backdrop for the image. The letter \"PH-3\" is inscribed in the center of the red circle, indicating a possible chemical or molecular structure. The image does not contain any other objects or text.",
-            "inference_time": 11.240795850753784
+            "response": "Assistant: The image depicts a square frame with a red circle in the center. The circle is positioned centrally within the frame, and the frame itself is a solid light blue color. The image does not contain any text or additional objects. The relative positions of the objects are as follows:",
+            "inference_time": 6.32693076133728
           },
           "context_based_questions": {
             "question_1": {
               "prompt": "What were the most prominent colors in the image?",
-              "response": "The most prominent colors in the image are:\n\n1. **Red**: The main color of the flag, which is prominently displayed in the center of the image.\n2. **Blue**: The color of the flag's blue field, which is located at the top left corner of the image.\n3. **Green**: The color of the flag's green field, which is located at the top right corner of the image.\n4. **Yellow**: The color of the flag's yellow",
-              "inference_time": 3.831526041030884
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 5.606405019760132
             },
             "question_2": {
               "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
-              "response": "No, there were no people visible in the image.",
-              "inference_time": 0.5668599605560303
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.000334978103638
             },
             "question_3": {
               "prompt": "Summarize the main subject or scene of the image in one sentence.",
-              "response": "A person is holding a gun in a dark room.",
-              "inference_time": 0.6343328952789307
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.005680084228516
             }
           },
           "test_type": "context_understanding",
@@ -161,41 +161,41 @@
               "type": "image_description",
               "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
               "has_image": true,
-              "response": "The image depicts a red circle with the letter \"PH-3\" inscribed within it. The circle is set against a light blue background, which serves as the backdrop for the image. The letter \"PH-3\" is inscribed in the center of the red circle, indicating a possible chemical or molecular structure. The image does not contain any other objects or text.",
-              "inference_time": 11.240795850753784
+              "response": "Assistant: The image depicts a square frame with a red circle in the center. The circle is positioned centrally within the frame, and the frame itself is a solid light blue color. The image does not contain any text or additional objects. The relative positions of the objects are as follows:",
+              "inference_time": 6.32693076133728
             },
             {
               "step": 2,
               "type": "context_question",
               "prompt": "What were the most prominent colors in the image?",
               "has_image": false,
-              "response": "The most prominent colors in the image are:\n\n1. **Red**: The main color of the flag, which is prominently displayed in the center of the image.\n2. **Blue**: The color of the flag's blue field, which is located at the top left corner of the image.\n3. **Green**: The color of the flag's green field, which is located at the top right corner of the image.\n4. **Yellow**: The color of the flag's yellow",
-              "inference_time": 3.831526041030884
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 5.606405019760132
             },
             {
               "step": 3,
               "type": "context_question",
               "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
               "has_image": false,
-              "response": "No, there were no people visible in the image.",
-              "inference_time": 0.5668599605560303
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.000334978103638
             },
             {
               "step": 4,
               "type": "context_question",
               "prompt": "Summarize the main subject or scene of the image in one sentence.",
               "has_image": false,
-              "response": "A person is holding a gun in a dark room.",
-              "inference_time": 0.6343328952789307
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.005680084228516
             }
           ]
         }
       ],
-      "load_time": 4.421378135681152,
-      "memory_before": 0.178314208984375,
-      "memory_after": 0.4089508056640625,
-      "memory_diff": 0.2306365966796875,
-      "memory_after_cleanup": 2.976318359375
+      "load_time": 1.8408770561218262,
+      "memory_before": 0.1788482666015625,
+      "memory_after": 1.3374176025390625,
+      "memory_diff": 1.1585693359375,
+      "memory_after_cleanup": 0.2685546875
     }
   }
 }

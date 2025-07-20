@@ -97,7 +97,8 @@ class VQAFramework:
             },
             "smolvlm_v2_instruct": {
                 "loader": VLMModelLoader.load_smolvlm2_video,
-                "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
             },
             "moondream2": {
                 "loader": VLMModelLoader.load_moondream2,
@@ -822,25 +823,114 @@ class VQAFramework:
                 
             elif "smolvlm" in model_name.lower():
                 # SmolVLM processing
-                messages = [
-                    {
-                        "role": "user", 
-                        "content": [
-                            {"type": "image", "image": image},
-                            {"type": "text", "text": question}
+                # 檢查是否為 MLX 模型
+                if hasattr(model, '_is_mlx_model'):
+                    # MLX 版本的 SmolVLM2 推理
+                    try:
+                        import subprocess
+                        import tempfile
+                        
+                        print("  🚀 Using MLX-VLM command line for SmolVLM2...")
+                        
+                        # 創建臨時圖像文件
+                        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                            temp_image_path = tmp_file.name
+                            image.save(temp_image_path)
+                        
+                        try:
+                            # 使用 MLX-VLM 命令行工具
+                            cmd = [
+                                sys.executable, '-m', 'mlx_vlm.generate',
+                                '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                                '--image', temp_image_path,
+                                '--prompt', question,
+                                '--max-tokens', str(unified_generation_params["max_new_tokens"]),
+                                '--temperature', '0.0'
+                            ]
+                            
+                            result = subprocess.run(
+                                cmd,
+                                capture_output=True,
+                                text=True,
+                                timeout=60
+                            )
+                            
+                            if result.returncode == 0:
+                                # 解析輸出，提取生成的文本
+                                output_lines = result.stdout.split('\n')
+                                generated_text = ""
+                                
+                                # 保留完整的 Assistant 回覆
+                                for i, line in enumerate(output_lines):
+                                    line = line.strip()
+                                    if line.startswith('Assistant:'):
+                                        # 找到 Assistant 行
+                                        generated_text = line
+                                        # 檢查下一行是否有內容
+                                        if i + 1 < len(output_lines):
+                                            next_line = output_lines[i + 1].strip()
+                                            if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                # 下一行有內容，組合兩行
+                                                generated_text = f"{line} {next_line}"
+                                        break
+                                    elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                        # 找到其他非系統信息的內容行
+                                        if not generated_text:
+                                            generated_text = line
+                                
+                                return generated_text
+                            else:
+                                print(f"  ⚠️ MLX-VLM command failed: {result.stderr}")
+                                raise Exception(f"MLX-VLM command failed: {result.stderr}")
+                                
+                        finally:
+                            # 清理臨時文件
+                            if os.path.exists(temp_image_path):
+                                os.remove(temp_image_path)
+                        
+                    except Exception as e:
+                        print(f"  ⚠️ MLX-VLM SmolVLM2 inference failed: {e}")
+                        # Fallback to standard SmolVLM method
+                        print("  📥 Falling back to standard SmolVLM method...")
+                        messages = [
+                            {
+                                "role": "user", 
+                                "content": [
+                                    {"type": "image", "image": image},
+                                    {"type": "text", "text": question}
+                                ]
+                            }
                         ]
-                    }
-                ]
-                input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                inputs = processor(text=input_text, images=image, return_tensors="pt")
-                
-                with torch.no_grad():
-                    generated_ids = model.generate(**inputs, **unified_generation_params)
-                    response = processor.decode(generated_ids[0], skip_special_tokens=True)
-                
-                # Extract answer - remove input text
-                answer = response.replace(input_text, "").strip()
-                return self._extract_answer(answer, model_name, question)
+                        input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                        inputs = processor(text=input_text, images=image, return_tensors="pt")
+                        with torch.no_grad():
+                            generated_ids = model.generate(**inputs, **unified_generation_params)
+                        response = processor.decode(generated_ids[0], skip_special_tokens=True)
+                        
+                        # Extract answer - remove input text
+                        answer = response.replace(input_text, "").strip()
+                        return self._extract_answer(answer, model_name, question)
+                else:
+                    # 標準 SmolVLM 推理方式
+                    messages = [
+                        {
+                            "role": "user", 
+                            "content": [
+                                {"type": "image", "image": image},
+                                {"type": "text", "text": question}
+                            ]
+                        }
+                    ]
+                    input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                    inputs = processor(text=input_text, images=image, return_tensors="pt")
+                    
+                    with torch.no_grad():
+                        generated_ids = model.generate(**inputs, **unified_generation_params)
+                        response = processor.decode(generated_ids[0], skip_special_tokens=True)
+                    
+                    # Extract answer - remove input text
+                    answer = response.replace(input_text, "").strip()
+                    return self._extract_answer(answer, model_name, question)
                 
             else:
                 # Generic processing for other models

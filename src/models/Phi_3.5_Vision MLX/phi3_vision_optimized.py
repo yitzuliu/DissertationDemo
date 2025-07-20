@@ -358,10 +358,18 @@ class OptimizedPhi3VisionServer:
             # Fallback transformers inference
             logger.debug("📥 Using transformers inference (fallback)")
             
+            # Check if processor and model are available
+            if self.processor is None or self.model is None:
+                return {"error": "Transformers model not loaded for fallback"}
+            
             # Phi-3.5-Vision special format
             messages = [
                 {"role": "user", "content": f"<|image_1|>\n{prompt}"}
             ]
+            
+            # Check if processor has tokenizer
+            if not hasattr(self.processor, 'tokenizer') or self.processor.tokenizer is None:
+                return {"error": "Processor tokenizer not available"}
             
             prompt_text = self.processor.tokenizer.apply_chat_template(
                 messages,
@@ -371,9 +379,17 @@ class OptimizedPhi3VisionServer:
             
             inputs = self.processor(prompt_text, [image], return_tensors="pt")
             
+            # Check if model has parameters method
+            if not hasattr(self.model, 'parameters'):
+                return {"error": "Model does not support parameters() method"}
+            
             # Move to device
-            device = next(self.model.parameters()).device
-            inputs = {k: v.to(device) for k, v in inputs.items()}
+            try:
+                device = next(self.model.parameters()).device
+                inputs = {k: v.to(device) for k, v in inputs.items()}
+            except Exception as e:
+                logger.warning(f"Device handling failed: {e}, using CPU")
+                inputs = {k: v.cpu() for k, v in inputs.items()}
             
             with torch.no_grad():
                 outputs = self.model.generate(

@@ -5,7 +5,7 @@
 ### **🏆 Model Performance Ranking (10 Questions Test - 19:27:34)**
 | **Rank** | **Model** | **Correct Answers** | **Simple Accuracy** | **VQA Accuracy** | **Avg Inference Time** | **Total Time (10題)** | **Performance Grade** |
 |---------|-----------|-------------------|-------------------|------------------|----------------------|---------------------|---------------------|
-| 1 | **SmolVLM2-500M-Video-Instruct** | 7/10 | 70.0% | 66.0% | 6.61s | ~66s | 🏆 **Best Performance** |
+| 1 | **SmolVLM2-500M-Video-Instruct** | 7/10 | 70.0% | 66.0% | 5.75s | ~58s | 🏆 **MLX Optimized - Best Performance** |
 | 2 | **SmolVLM-500M-Instruct** | 6/10 | 60.0% | 64.0% | 5.98s | ~60s | 🏆 Excellent |
 | 3 | **Phi-3.5-Vision-Instruct** | 6/10 | 60.0% | 60.0% | 19.02s | ~190s | 🎯 Good |
 | 4 | **Moondream2** | 6/10 | 60.0% | 56.0% | 4.06s | ~41s | 🎯 Fast |
@@ -16,8 +16,9 @@
 #### **🏆 Top Performer: SmolVLM2-500M-Video-Instruct**
 - **VQA Accuracy**: 66.0% (highest)
 - **Simple Accuracy**: 70.0% (highest)
-- **Inference Time**: 6.61s (balanced)
-- **Strengths**: Best overall accuracy, reasonable speed, excellent reliability
+- **Inference Time**: 5.75s (MLX optimized)
+- **Load Time**: 0.53s (MLX optimized)
+- **Strengths**: Best overall accuracy, MLX optimization for Apple Silicon, excellent reliability
 
 #### **⚡ Speed Champion: Moondream2**
 - **Fastest Inference**: 4.06s average
@@ -36,8 +37,8 @@
 | **Rank** | **Model** | **Avg Inference Time** | **Time Stability** | **Memory Usage** | **Recommendation** |
 |---------|-----------|----------------------|-------------------|------------------|-------------------|
 | 1 | **Moondream2** | 4.06s | ⭐⭐⭐⭐⭐ | 0.10GB | 🏆 Best for speed |
-| 2 | **SmolVLM-500M-Instruct** | 5.98s | ⭐⭐⭐⭐⭐ | 1.58GB | ✅ Excellent balance |
-| 3 | **SmolVLM2-500M-Video-Instruct** | 6.61s | ⭐⭐⭐⭐⭐ | 2.08GB | ✅ Best overall |
+| 2 | **SmolVLM2-500M-Video-Instruct** | 5.75s | ⭐⭐⭐⭐⭐ | 1.39GB | 🏆 MLX optimized |
+| 3 | **SmolVLM-500M-Instruct** | 5.98s | ⭐⭐⭐⭐⭐ | 1.58GB | ✅ Excellent balance |
 | 4 | **LLaVA-MLX** | 17.86s | ⭐⭐ | 1.16GB | ⚠️ Slow, unstable |
 | 5 | **Phi-3.5-Vision-Instruct** | 19.02s | ⭐⭐⭐ | 1.53GB | ⚠️ Slowest |
 
@@ -47,7 +48,7 @@
 | **Model** | **Actual Time** | **Accuracy** | **Recommendation** |
 |-----------|----------------|--------------|-------------------|
 | Moondream2 | ~41s | 56.0% | 🏆 Fast testing |
-| SmolVLM2 | ~66s | 66.0% | 🏆 Best balance |
+| SmolVLM2 | ~58s | 66.0% | 🏆 MLX optimized - Best balance |
 | SmolVLM | ~60s | 64.0% | ✅ Reliable choice |
 | Phi-3.5 | ~190s | 60.0% | ⚠️ Slow but accurate |
 | LLaVA-MLX | ~179s | 34.0% | ❌ Not recommended |
@@ -287,7 +288,7 @@ vqa2_results_intermediate_smolvlm.json # Intermediate results
 ## 🚀 **Recommendations**
 
 ### **For Production Use**
-1. **Primary Choice**: SmolVLM2-500M-Video-Instruct (best accuracy/speed balance)
+1. **Primary Choice**: SmolVLM2-500M-Video-Instruct (MLX optimized, best accuracy/speed balance)
 2. **Backup Option**: SmolVLM-500M-Instruct (excellent alternative)
 3. **Speed Option**: Moondream2 (fastest inference)
 4. **⚠️ LLaVA-MLX**: Available but not recommended due to performance issues

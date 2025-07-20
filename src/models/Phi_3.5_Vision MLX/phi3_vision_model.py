@@ -211,12 +211,7 @@ class Phi3VisionServer:
             # Try MLX-VLM inference first (same as vlm_tester.py)
             try:
                 from mlx_vlm import generate
-                from mlx_vlm.prompt_utils import apply_chat_template
-                from mlx_vlm.utils import load_config
                 logger.debug("🚀 Using MLX-VLM inference for Phi-3.5-Vision-Instruct...")
-                
-                # Load config for proper prompt formatting
-                config = load_config("mlx-community/Phi-3.5-vision-instruct-4bit")
                 
                 # Save image to temporary file for MLX-VLM
                 temp_image_path = "temp_mlx_image.jpg"
@@ -226,10 +221,14 @@ class Phi3VisionServer:
                     # Use simple prompt format for MLX-VLM
                     mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
                     
+                    # Check if model and processor are loaded
+                    if self.model is None or self.processor is None:
+                        raise ValueError("Model or processor not loaded")
+                    
                     response = generate(
-                        self.model, 
-                        self.processor, 
-                        mlx_prompt,
+                        model=self.model, 
+                        processor=self.processor, 
+                        prompt=mlx_prompt,
                         image=temp_image_path,
                         max_tokens=max_tokens,
                         temp=0.0,  # Use 0.0 for deterministic output

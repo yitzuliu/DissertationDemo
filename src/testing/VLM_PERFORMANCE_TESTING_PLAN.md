@@ -5,9 +5,9 @@
 ### 🏆 **Performance Rankings**
 | Rank | Model | Load Time | Inference | Vision | Text | Context | Status |
 |------|-------|-----------|-----------|--------|------|---------|--------|
-| 🥇 | **SmolVLM-500M-Instruct** | 3.81s | 6.51s | ✅ 100% | ✅ 100% | ⚠️ 33% | ✅ Reliable |
-| 🥈 | **LLaVA-v1.6-Mistral-7B-MLX** | 3.04s | 8.57s | ✅ 100% | ✅ 100% | ⚠️ 20% | ⚠️ State Issues |
-| 🥉 | **SmolVLM2-500M-Video** | 4.71s | 6.61s | ✅ 100% | ✅ 100% | ❌ 10% | ✅ Reliable |
+| 🥇 | **SmolVLM2-500M-Video** | 0.53s | 5.75s | ✅ 100% | ✅ 100% | ❌ 10% | ✅ MLX Optimized |
+| 🥈 | **SmolVLM-500M-Instruct** | 3.81s | 6.51s | ✅ 100% | ✅ 100% | ⚠️ 33% | ✅ Reliable |
+| 🥉 | **LLaVA-v1.6-Mistral-7B-MLX** | 3.04s | 8.57s | ✅ 100% | ✅ 100% | ⚠️ 20% | ⚠️ State Issues |
 | 4️⃣ | **Moondream2** | 5.56s | 6.61s | ✅ 100% | ❌ 0% | ❌ 0% | ✅ Vision-Only |
 | 5️⃣ | **Phi-3.5-Vision-Instruct** | 1.38s | 13.61s | ✅ 100% | ✅ 100% | ✅ 100% | ✅ Optimized |
 
@@ -16,6 +16,7 @@
 - **Pure Text**: 4/5 models support (80% success rate)
 - **Context Understanding**: Limited capabilities as expected
 - **MLX Optimization**: Critical for Apple Silicon performance
+- **SmolVLM2 MLX**: 90%+ speed improvement with MLX optimization
 - **Phi-3.5-Vision**: Successfully optimized with trust_remote_code=True
 
 ## 🎯 **Testing Objectives**
@@ -49,7 +50,7 @@
 
 | Model | HuggingFace ID | Framework | Special Requirements |
 |-------|----------------|-----------|---------------------|
-| **SmolVLM2-500M-Video** | `HuggingFaceTB/SmolVLM2-500M-Video-Instruct` | Transformers | None |
+| **SmolVLM2-500M-Video** | `mlx-community/SmolVLM2-500M-Video-Instruct-mlx` | MLX | `pip install mlx-vlm` |
 | **SmolVLM-500M-Instruct** | `HuggingFaceTB/SmolVLM-500M-Instruct` | Transformers | None |
 | **Moondream2** | `vikhyatk/moondream2` | Transformers | Special API |
 | **LLaVA-v1.6-Mistral-7B-MLX** | `mlx-community/llava-v1.6-mistral-7b-4bit` | MLX | `pip install mlx-vlm` |
@@ -148,10 +149,11 @@ python vlm_context_tester.py            # Context understanding test
 ## 🎯 **Key Discoveries**
 
 ### **Performance Highlights**
-- **Fastest Loading**: Phi-3.5-Vision (1.38s optimized)
-- **Fastest Inference**: Moondream2 (6.61s avg)
+- **Fastest Loading**: SmolVLM2-Video (0.53s MLX optimized)
+- **Fastest Inference**: SmolVLM2-Video (5.75s avg MLX optimized)
 - **Best Text Model**: SmolVLM-500M-Instruct (1.72s avg)
 - **Most Reliable**: SmolVLM series
+- **MLX Champion**: SmolVLM2-Video (90%+ speed improvement)
 
 ### **Technical Insights**
 - **MLX Breakthrough**: 98%+ speed improvement on Apple Silicon
@@ -161,9 +163,10 @@ python vlm_context_tester.py            # Context understanding test
 - **Phi-3.5 Optimization**: trust_remote_code=True eliminates manual confirmation
 
 ### **Recommendations**
-- **General Use**: SmolVLM-500M-Instruct (balanced performance)
+- **General Use**: SmolVLM2-Video (MLX optimized, best performance)
 - **Fast Q&A**: SmolVLM-500M-Instruct (ultra-fast text)
 - **Creative Writing**: LLaVA-MLX (poetic responses)
 - **Educational**: Phi-3.5-Vision (detailed explanations, optimized loading)
 - **Vision-Only**: Moondream2 (excellent image quality)
+- **Apple Silicon**: SmolVLM2-Video (MLX optimized for M1/M2/M3)
 - **Avoid**: LLaVA-MLX (state issues)

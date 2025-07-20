@@ -5,6 +5,7 @@ MacBook Air M3 (16GB) 優化版本 - 逐一載入模型避免記憶體溢出
 """
 
 import os
+import sys
 import time
 import json
 import gc
@@ -72,12 +73,73 @@ class VLMModelLoader:
     """VLM 模型載入器 - 根據 active_model.md 實現"""
     
     @staticmethod
-    def load_smolvlm2_video(model_id="HuggingFaceTB/SmolVLM2-500M-Video-Instruct"):
-        """載入 SmolVLM2-500M-Video-Instruct"""
-        print(f"載入 {model_id}...")
-        processor = AutoProcessor.from_pretrained(model_id)
-        model = AutoModelForImageTextToText.from_pretrained(model_id)
-        return model, processor
+    def load_smolvlm2_video(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
+        """載入 SmolVLM2-500M-Video-Instruct (優先使用 MLX 版本)"""
+        print(f"載入 SmolVLM2-500M-Video-Instruct (優先使用 MLX 版本)...")
+        
+        try:
+            # 首先嘗試使用 MLX-VLM 框架（與 vlm_context_tester.py 相同的方法）
+            from mlx_vlm import load
+            print("正在載入 MLX-VLM 優化的 SmolVLM2 模型...")
+            model, processor = load(model_id)
+            print("MLX-VLM SmolVLM2 載入成功!")
+            
+            # 標記為 MLX 模型，使用特殊的推理方式
+            model._is_mlx_model = True
+            
+            return model, processor
+            
+        except ImportError as e:
+            print("MLX-VLM 未安裝，使用原始 SmolVLM2 模型...")
+            print("請運行: pip install mlx-vlm")
+            # 回退到原始 SmolVLM2 模型
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            processor = AutoProcessor.from_pretrained(fallback_model_id)
+            model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
+            return model, processor
+            
+        except Exception as e:
+            print(f"MLX-VLM 載入失敗: {str(e)}")
+            print("使用原始 SmolVLM2 模型作為回退...")
+            # 回退到原始 SmolVLM2 模型
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            processor = AutoProcessor.from_pretrained(fallback_model_id)
+            model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
+            return model, processor
+    
+    @staticmethod
+    def load_smolvlm2_video_mlx(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
+        """載入 MLX 優化的 SmolVLM2-500M-Video-Instruct"""
+        print(f"載入 MLX 優化的 {model_id}...")
+        try:
+            # 首先嘗試使用 MLX-VLM 框架
+            from mlx_vlm import load
+            print("正在載入 MLX-VLM 優化的 SmolVLM2 模型...")
+            model, processor = load(model_id)
+            print("MLX-VLM SmolVLM2 載入成功!")
+            
+            # 標記為 MLX 模型，使用特殊的推理方式
+            model._is_mlx_model = True
+            
+            return model, processor
+            
+        except ImportError as e:
+            print("MLX-VLM 未安裝，使用原始 SmolVLM2 模型...")
+            print("請運行: pip install mlx-vlm")
+            # 回退到原始 SmolVLM2 模型
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            processor = AutoProcessor.from_pretrained(fallback_model_id)
+            model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
+            return model, processor
+            
+        except Exception as e:
+            print(f"MLX-VLM 載入失敗: {str(e)}")
+            print("使用原始 SmolVLM2 模型作為回退...")
+            # 回退到原始 SmolVLM2 模型
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            processor = AutoProcessor.from_pretrained(fallback_model_id)
+            model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
+            return model, processor
     
     @staticmethod
     def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
@@ -197,7 +259,13 @@ class VLMTester:
         self.models_config = {
             "SmolVLM2-500M-Video-Instruct": {
                 "loader": VLMModelLoader.load_smolvlm2_video,
-                "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
+            },
+            "SmolVLM2-500M-Video-Instruct-MLX": {
+                "loader": VLMModelLoader.load_smolvlm2_video_mlx,
+                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX-VLM not available or incompatible"
             },
             "SmolVLM-500M-Instruct": {
                 "loader": VLMModelLoader.load_smolvlm_instruct,
@@ -456,19 +524,14 @@ class VLMTester:
                     try:
                         # Use MLX-VLM inference for vision model (official way)
                         from mlx_vlm import generate
-                        from mlx_vlm.prompt_utils import apply_chat_template
-                        from mlx_vlm.utils import load_config
                         print("  🚀 Using MLX-VLM inference for Phi-3.5-Vision-Instruct...")
-                        
-                        # Load config for proper prompt formatting
-                        config = load_config("mlx-community/Phi-3.5-vision-instruct-4bit")
                         
                         # Save image to temporary file for MLX-VLM
                         temp_image_path = "temp_mlx_image.jpg"
                         image.save(temp_image_path)
                         
                         try:
-                            # Use simple prompt format for MLX-VLM
+                            # Use simple prompt format for MLX-VLM (same as vlm_context_tester.py)
                             mlx_prompt = f"<|image_1|>\nUser: {self.prompt}\nAssistant:"
                             
                             response = generate(
@@ -600,20 +663,108 @@ class VLMTester:
                             return str(response)
                 elif "SmolVLM" in model_name:
                     # SmolVLM 優化方式
-                    messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "image", "image": image},
-                                {"type": "text", "text": self.prompt}
+                    if "MLX" in model_name or hasattr(model, '_is_mlx_model'):
+                        # MLX 版本的 SmolVLM2 推理
+                        try:
+                            # 使用 MLX-VLM 的命令行工具進行推理
+                            import subprocess
+                            import tempfile
+                            
+                            print("  🚀 Using MLX-VLM command line for SmolVLM2...")
+                            
+                            # 創建臨時圖像文件
+                            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                                temp_image_path = tmp_file.name
+                                image.save(temp_image_path)
+                            
+                            try:
+                                # 使用 MLX-VLM 命令行工具
+                                cmd = [
+                                    sys.executable, '-m', 'mlx_vlm.generate',
+                                    '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                                    '--image', temp_image_path,
+                                    '--prompt', self.prompt,
+                                    '--max-tokens', str(unified_generation_params["max_new_tokens"]),
+                                    '--temperature', '0.0'
+                                ]
+                                
+                                result = subprocess.run(
+                                    cmd,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=timeout_seconds
+                                )
+                                
+                                if result.returncode == 0:
+                                    # 解析輸出，提取生成的文本
+                                    output_lines = result.stdout.split('\n')
+                                    generated_text = ""
+                                    
+                                    # 保留完整的 Assistant 回覆
+                                    generated_text = ""
+                                    assistant_found = False
+                                    for i, line in enumerate(output_lines):
+                                        line = line.strip()
+                                        if line.startswith('Assistant:'):
+                                            # 找到 Assistant 行
+                                            assistant_found = True
+                                            generated_text = line
+                                            # 檢查下一行是否有內容
+                                            if i + 1 < len(output_lines):
+                                                next_line = output_lines[i + 1].strip()
+                                                if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                    # 下一行有內容，組合兩行
+                                                    generated_text = f"{line} {next_line}"
+                                            break
+                                        elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not line.startswith('Peak memory:'):
+                                            # 找到其他非系統信息的內容行
+                                            if not generated_text:
+                                                generated_text = line
+                                    
+                                    return generated_text
+                                else:
+                                    print(f"  ⚠️ MLX-VLM command failed: {result.stderr}")
+                                    raise Exception(f"MLX-VLM command failed: {result.stderr}")
+                                    
+                            finally:
+                                # 清理臨時文件
+                                if os.path.exists(temp_image_path):
+                                    os.remove(temp_image_path)
+                            
+                        except Exception as e:
+                            print(f"  ⚠️ MLX-VLM SmolVLM2 inference failed: {e}")
+                            # Fallback to standard SmolVLM method
+                            print("  📥 Falling back to standard SmolVLM method...")
+                            messages = [
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {"type": "image", "image": image},
+                                        {"type": "text", "text": self.prompt}
+                                    ]
+                                }
                             ]
-                        }
-                    ]
-                    input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                    inputs = processor(text=input_text, images=image, return_tensors="pt")
-                    with torch.no_grad():
-                        outputs = model.generate(**inputs, **unified_generation_params)  # 使用統一參數
-                    return processor.decode(outputs[0], skip_special_tokens=True)
+                            input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                            inputs = processor(text=input_text, images=image, return_tensors="pt")
+                            with torch.no_grad():
+                                outputs = model.generate(**inputs, **unified_generation_params)
+                            return processor.decode(outputs[0], skip_special_tokens=True)
+                    else:
+                        # 標準 SmolVLM 推理方式
+                        messages = [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "image", "image": image},
+                                    {"type": "text", "text": self.prompt}
+                                ]
+                            }
+                        ]
+                        input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                        inputs = processor(text=input_text, images=image, return_tensors="pt")
+                        with torch.no_grad():
+                            outputs = model.generate(**inputs, **unified_generation_params)  # 使用統一參數
+                        return processor.decode(outputs[0], skip_special_tokens=True)
                 else:
                     # 傳統方式
                     inputs = processor(text=self.prompt, images=image, return_tensors="pt")
@@ -833,6 +984,77 @@ class VLMTester:
     def _test_smolvlm2_text_only(self, model, processor, prompt):
         """SmolVLM2-500M-Video 純文字測試"""
         try:
+            # 檢查是否為 MLX 版本
+            if hasattr(model, '_is_mlx_model'):
+                # MLX 版本的純文字測試
+                try:
+                    import subprocess
+                    import tempfile
+                    
+                    print("  🚀 Using MLX-VLM command line for SmolVLM2 text-only...")
+                    
+                    # 創建一個簡單的測試圖像（MLX-VLM 需要圖像輸入）
+                    from PIL import Image
+                    test_image = Image.new('RGB', (224, 224), color='white')
+                    
+                    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                        temp_image_path = tmp_file.name
+                        test_image.save(temp_image_path)
+                    
+                    try:
+                        # 使用 MLX-VLM 命令行工具進行純文字測試
+                        cmd = [
+                            sys.executable, '-m', 'mlx_vlm.generate',
+                            '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                            '--image', temp_image_path,
+                            '--prompt', prompt,
+                            '--max-tokens', str(self.unified_max_tokens),
+                            '--temperature', '0.0'
+                        ]
+                        
+                        result = subprocess.run(
+                            cmd,
+                            capture_output=True,
+                            text=True,
+                            timeout=60
+                        )
+                        
+                        if result.returncode == 0:
+                            # 保留完整的 Assistant 回覆
+                            output_lines = result.stdout.split('\n')
+                            generated_text = ""
+                            
+                            for i, line in enumerate(output_lines):
+                                line = line.strip()
+                                if line.startswith('Assistant:'):
+                                    # 找到 Assistant 行
+                                    generated_text = line
+                                    # 檢查下一行是否有內容
+                                    if i + 1 < len(output_lines):
+                                        next_line = output_lines[i + 1].strip()
+                                        if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                            # 下一行有內容，組合兩行
+                                            generated_text = f"{line} {next_line}"
+                                    break
+                                elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not line.startswith('Peak memory:'):
+                                    # 找到其他非系統信息的內容行
+                                    if not generated_text:
+                                        generated_text = line
+                            
+                            return generated_text
+                        else:
+                            return f"MLX-VLM text-only command failed: {result.stderr}"
+                            
+                    finally:
+                        # 清理臨時文件
+                        if os.path.exists(temp_image_path):
+                            os.remove(temp_image_path)
+                    
+                except Exception as mlx_e:
+                    print(f"  ⚠️ MLX-VLM text-only failed: {mlx_e}")
+                    return f"MLX-VLM 純文字推理失敗: {str(mlx_e)}"
+            
+            # 標準 SmolVLM2 純文字測試
             # 方法1: 嘗試純文字消息格式
             messages = [
                 {

@@ -5,7 +5,11 @@ A comprehensive Visual Question Answering testing framework using real COCO data
 ## 📊 **Quick Summary**
 
 ### **Supported Models**
-
+- **SmolVLM2-500M-Video-Instruct**: MLX optimized for Apple Silicon (M1/M2/M3)
+- **SmolVLM-500M-Instruct**: Fast and reliable transformers model
+- **Moondream2**: Vision-only model with excellent image quality
+- **LLaVA-v1.6-Mistral-7B-MLX**: Creative writing with MLX optimization
+- **Phi-3.5-Vision-Instruct**: Educational applications with MLX optimization
 
 ### **Test Environment**
 - **Dataset**: VQA 2.0 + COCO val2014 images
@@ -103,9 +107,11 @@ src/testing/
 ## 📈 **Expected Performance**
 
 Based on previous test results:
-- **Moondream2**: ~60-80% VQA accuracy, fastest inference
-- **SmolVLM**: ~60-70% VQA accuracy, balanced performance  
-- **LLaVA**: ~50-70% VQA accuracy, larger model but stable
+- **SmolVLM2-500M-Video**: ~66% VQA accuracy, fastest MLX inference
+- **SmolVLM-500M-Instruct**: ~64% VQA accuracy, balanced performance  
+- **Moondream2**: ~56% VQA accuracy, fastest overall inference
+- **LLaVA-MLX**: ~34% VQA accuracy, creative responses
+- **Phi-3.5-Vision**: ~60% VQA accuracy, detailed explanations
 
 ## 🔍 **Troubleshooting**
 
@@ -116,9 +122,10 @@ Based on previous test results:
 
 ## 🎯 **Recommendations**
 
-- **Quick Testing**: Use `moondream2` (fastest, most reliable)
+- **Quick Testing**: Use `smolvlm_v2_instruct` (MLX optimized, best accuracy)
 - **Comprehensive Testing**: Use `smolvlm_instruct` (balanced performance)
-- **Avoid**: `llava_mlx` (state issues), `phi35_vision` (technical problems)
+- **Speed Testing**: Use `moondream2` (fastest inference)
+- **⚠️ Avoid**: `llava_mlx` (state issues), `phi35_vision` (slow inference)
 
 ---
 
