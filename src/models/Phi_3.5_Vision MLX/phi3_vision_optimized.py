@@ -163,7 +163,7 @@ class OptimizedPhi3VisionServer:
     High-performance Phi-3.5-Vision server with MLX optimization
     """
     
-    def __init__(self, model_id: str = "lokinfey/Phi-3.5-vision-mlx-int4", device: str = "auto"):
+    def __init__(self, model_id: str = "mlx-community/Phi-3.5-vision-instruct-4bit", device: str = "auto"):
         self.model_id = model_id
         self.device = self._get_optimal_device(device)
         self.model = None
@@ -468,7 +468,7 @@ class OptimizedPhi3VisionModel(BaseVisionModel):
         super().__init__(model_name, config)
         
         # Get model configuration
-        self.model_id = config.get("model_path", "lokinfey/Phi-3.5-vision-mlx-int4")
+        self.model_id = config.get("model_path", "mlx-community/Phi-3.5-vision-instruct-4bit")
         self.device = config.get("device", "auto")
         self.timeout = config.get("timeout", 60)  # Shorter timeout for optimized
         self.max_tokens = config.get("max_tokens", 100)

@@ -110,7 +110,7 @@ class VQAFramework:
             },
             "phi35_vision": {
                 "loader": VLMModelLoader.load_phi3_vision,
-                "model_id": "lokinfey/Phi-3.5-vision-mlx-int4"
+                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit"
             }
         }
         
@@ -569,36 +569,36 @@ class VQAFramework:
             
             # Evaluate answer with enhanced error handling
             try:
-            if question_id in annotations:
-                annotation = annotations[question_id]
-                gt_answer = annotation['multiple_choice_answer']
-                gt_answers = [ans['answer'] for ans in annotation['answers']]
-                
-                # Simple accuracy - check if standard answer is in model response
-                model_answer_lower = self._preprocess_answer(model_answer)
-                gt_answer_lower = self._preprocess_answer(gt_answer)
-                is_correct = gt_answer_lower in model_answer_lower
-                if is_correct:
-                    correct_answers += 1
-                
-                # VQA accuracy
-                vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
-                total_vqa_accuracy += vqa_accuracy
-                
-                # Generate corresponding image filename
-                image_filename = f"COCO_val2014_{image_id:012d}.jpg"
-                
-                question_results.append({
-                    'question_id': question_id,
-                    'image_id': image_id,
-                    'image_filename': image_filename,
-                    'question': question_text,
-                    'model_answer': model_answer,
-                    'ground_truth': gt_answer,
-                    'is_correct': is_correct,
-                    'vqa_accuracy': vqa_accuracy,
-                    'inference_time': inference_time
-                })
+                if question_id in annotations:
+                    annotation = annotations[question_id]
+                    gt_answer = annotation['multiple_choice_answer']
+                    gt_answers = [ans['answer'] for ans in annotation['answers']]
+                    
+                    # Simple accuracy - check if standard answer is in model response
+                    model_answer_lower = self._preprocess_answer(model_answer)
+                    gt_answer_lower = self._preprocess_answer(gt_answer)
+                    is_correct = gt_answer_lower in model_answer_lower
+                    if is_correct:
+                        correct_answers += 1
+                    
+                    # VQA accuracy
+                    vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
+                    total_vqa_accuracy += vqa_accuracy
+                    
+                    # Generate corresponding image filename
+                    image_filename = f"COCO_val2014_{image_id:012d}.jpg"
+                    
+                    question_results.append({
+                        'question_id': question_id,
+                        'image_id': image_id,
+                        'image_filename': image_filename,
+                        'question': question_text,
+                        'model_answer': model_answer,
+                        'ground_truth': gt_answer,
+                        'is_correct': is_correct,
+                        'vqa_accuracy': vqa_accuracy,
+                        'inference_time': inference_time
+                    })
                 else:
                     error_summary["annotation_errors"] += 1
                     if verbose:
@@ -679,64 +679,47 @@ class VQAFramework:
                 return model.answer_question(enc_image, question, processor)
                 
             elif "phi35_vision" in model_name.lower() or "phi-3.5" in model_name.lower():
-                # Phi-3.5-Vision inference (same as vlm_tester.py)
+                # Phi-3.5-Vision-Instruct inference (same as vlm_tester.py)
                 try:
-                    # Try MLX inference first
+                    # Use MLX-VLM inference for vision model (official way)
                     from mlx_vlm import generate
-                    print("  🚀 Using MLX inference for Phi-3.5-Vision...")
+                    print("  🚀 Using MLX-VLM inference for Phi-3.5-Vision-Instruct...")
                     
-                    # Try simpler prompt format that works better with quantized models
-                    mlx_prompt = f"<|image_1|>\\nUser: {question}\\nAssistant:"
+                    # Save image to temporary file for MLX-VLM
+                    temp_image_path = "temp_mlx_image.jpg"
+                    image.save(temp_image_path)
                     
-                    # Try different possible image paths
-                    possible_image_paths = [
-                        str(self.images_dir / f"COCO_val2014_{image_id:012d}.jpg"),
-                        str(self.images_dir / "val2014_sample" / f"COCO_val2014_{image_id:012d}.jpg"),
-                        str(self.images_dir / "val2014" / f"COCO_val2014_{image_id:012d}.jpg")
-                    ]
+                    try:
+                        # Use simple prompt format for MLX-VLM (same as vlm_tester.py)
+                        mlx_prompt = f"<|image_1|>\nUser: {question}\nAssistant:"
+                        
+                        response = generate(
+                            model, 
+                            processor, 
+                            mlx_prompt,
+                            image=temp_image_path,
+                            max_tokens=unified_generation_params["max_new_tokens"],
+                            temp=0.0,  # Use 0.0 for deterministic output
+                            verbose=False
+                        )
+                    finally:
+                        # Clean up temporary file
+                        if os.path.exists(temp_image_path):
+                            os.remove(temp_image_path)
                     
-                    current_image_path = None
-                    for path in possible_image_paths:
-                        if os.path.exists(path):
-                            current_image_path = path
-                            break
+                    # MLX-VLM returns string directly, not tuple
+                    text_response = str(response)
                     
-                    if current_image_path is None:
-                        return f"Image file not found for image_id {image_id}"
-                    
-                    response = generate(
-                        model=model, 
-                        processor=processor, 
-                        image=current_image_path, 
-                        prompt=mlx_prompt,
-                        max_tokens=unified_generation_params["max_new_tokens"],
-                        temp=0.7,  # Increase temperature for more diverse output
-                        repetition_penalty=1.2,  # Stronger repetition penalty
-                        top_p=0.9,  # Add nucleus sampling
-                        verbose=False  # Reduce MLX verbosity
-                    )
-                    
-                    # Handle MLX response format (might be tuple with text and metadata)
-                    if isinstance(response, tuple) and len(response) >= 2:
-                        # MLX returns (text, metadata_dict) - extract just the text
-                        text_response = response[0]
-                    elif isinstance(response, list) and len(response) > 0:
-                        # Extract just the text part if it's a list
-                        text_response = response[0] if isinstance(response[0], str) else str(response[0])
-                    else:
-                        text_response = str(response)
-                    
-                    # Clean up repetitive tokens and unwanted text
+                    # Clean up response
                     text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
-                    # Remove any trailing questions that might be part of the model's training data
                     if "1. What is meant by" in text_response:
                         text_response = text_response.split("1. What is meant by")[0].strip()
-                    text_response = ' '.join(text_response.split())  # Clean up whitespace
+                    text_response = ' '.join(text_response.split())
                     
                     return text_response
                     
                 except (ImportError, AttributeError, TypeError, Exception) as e:
-                    print(f"  ⚠️ MLX inference failed ({e}), loading transformers model...")
+                    print(f"  ⚠️ MLX-VLM inference failed ({e}), loading transformers model...")
                     
                     # Load transformers model for fallback (MLX model can't be used with transformers)
                     from transformers import AutoModelForCausalLM, AutoProcessor
@@ -750,7 +733,11 @@ class VQAFramework:
                         device_map="cpu",  # Force CPU to avoid memory issues
                         low_cpu_mem_usage=True  # Use less CPU memory
                     )
-                    fallback_processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
+                    fallback_processor = AutoProcessor.from_pretrained(
+                        "microsoft/Phi-3.5-vision-instruct", 
+                        trust_remote_code=True,
+                        num_crops=4  # For single-frame images
+                    )
                     
                     # Phi-3.5 Vision special format (model compatibility requirement)
                     messages = [
@@ -787,15 +774,13 @@ class VQAFramework:
                         torch.mps.empty_cache()
                     
                     return result
-                    
+                
             elif "llava_mlx" in model_name.lower():
                 # LLaVA-MLX inference (same as vlm_tester.py)
-                if "mlx" in model_name.lower():
-                    # MLX-LLaVA inference
                 try:
                     from mlx_vlm import generate
-                        print("  🚀 Using MLX-VLM for LLaVA...")
-                        
+                    print("  🚀 Using MLX-VLM for LLaVA...")
+                    
                     # Try different possible image paths
                     possible_image_paths = [
                         str(self.images_dir / f"COCO_val2014_{image_id:012d}.jpg"),
@@ -812,7 +797,7 @@ class VQAFramework:
                     if current_image_path is None:
                         return f"Image file not found for image_id {image_id}"
                     
-                        # Simple prompt for MLX-LLaVA (same as vlm_tester.py)
+                    # Simple prompt for MLX-LLaVA (same as vlm_tester.py)
                     response = generate(
                         model, 
                         processor, 
@@ -822,40 +807,19 @@ class VQAFramework:
                         verbose=False
                     )
                     
-                        # Handle MLX-VLM response format (tuple with text and metadata)
+                    # Handle MLX-VLM response format (tuple with text and metadata)
                     if isinstance(response, tuple) and len(response) >= 1:
-                            # Extract just the text part
+                        # Extract just the text part
                         text_response = response[0] if response[0] else ""
                     else:
                         text_response = str(response) if response else ""
                     
                     return text_response
                 except Exception as e:
-                        print(f"  ⚠️ MLX-VLM failed: {e}")
-                        # Fallback: Return descriptive error but don't crash
-                        return f"MLX-VLM inference failed: {str(e)}"
-                else:
-                    # Standard LLaVA Pipeline 方式
-                    messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "image", "image": image},  # 使用本地圖像格式（與 SmolVLM 一致）
-                                {"type": "text", "text": question}  # 使用統一提示詞
-                            ]
-                        },
-                    ]
-                    # 🚀 優化：添加生成參數控制
-                    response = model(
-                        text=messages, 
-                        **unified_generation_params,  # 使用統一參數
-                        return_full_text=False  # 只返回生成部分
-                    )
-                    if isinstance(response, list) and len(response) > 0:
-                        return response[0].get('generated_text', str(response))
-                    else:
-                        return str(response)
-                    
+                    print(f"  ⚠️ MLX-VLM failed: {e}")
+                    # Fallback: Return descriptive error but don't crash
+                    return f"MLX-VLM inference failed: {str(e)}"
+                
             elif "smolvlm" in model_name.lower():
                 # SmolVLM processing
                 messages = [
@@ -955,7 +919,7 @@ class VQAFramework:
             filename = f"vqa2_results_{suffix}.json"
         else:
             # Complete test - use timestamp to avoid overwriting
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"vqa2_results_{test_mode}_{timestamp}.json"
         
         results_file = self.results_dir / filename

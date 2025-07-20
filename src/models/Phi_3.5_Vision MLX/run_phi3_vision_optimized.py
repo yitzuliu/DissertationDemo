@@ -120,7 +120,7 @@ class OptimizedPhi3VisionServer:
             # Default optimized config
             default_config = {
                 "model_name": "Phi-3.5-Vision-Optimized",
-                "model_path": "lokinfey/Phi-3.5-vision-mlx-int4",
+                "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",
                 "device": "auto",
                 "max_tokens": 100,
                 "timeout": 60,
@@ -413,7 +413,7 @@ def main():
     print("=" * 50)
     print("🎯 Performance Improvements:")
     print("   • MLX optimization for Apple Silicon")
-    print("   • INT4 quantization (lokinfey/Phi-3.5-vision-mlx-int4)")
+    print("   • INT4 quantization (mlx-community/Phi-3.5-vision-instruct-4bit)")
     print("   • Image preprocessing cache")
     print("   • Fast inference pipeline")
     print("   • Fallback to transformers")

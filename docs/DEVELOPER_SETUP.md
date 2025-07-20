@@ -98,12 +98,12 @@ python src/models/llava_mlx/run_llava_mlx.py
 - **Inference Time**: 17.86s (slow due to reloading)
 - **Issue**: Model reloading for each image causing performance degradation
 
-**Alternative: Phi-3.5-Vision MLX (High Accuracy, Slow)**
+**Alternative: Phi-3.5-Vision MLX (High Accuracy, Moderate Speed)**
 ```bash
 python "src/models/Phi_3.5_Vision MLX/run_phi3_vision_optimized.py"
 ```
 - **VQA Accuracy**: 60.0%
-- **Inference Time**: 19.02s (slowest)
+- **Inference Time**: 13.61s (moderate)
 - **Memory Usage**: 1.53GB
 
 You should see output indicating the server has started, usually on `http://localhost:8080`.

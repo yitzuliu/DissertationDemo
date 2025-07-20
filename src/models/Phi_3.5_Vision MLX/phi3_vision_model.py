@@ -197,7 +197,7 @@ class Phi3VisionServer:
         return self.loaded and self.model is not None and self.processor is not None
     
     def generate_response(self, image: Image.Image, prompt: str, max_tokens: int = 100) -> Dict[str, Any]:
-        """Generate response from Phi-3.5-Vision model"""
+        """Generate response from Phi-3.5-Vision model using MLX-VLM"""
         if not self.is_running():
             return {"error": "Model not loaded"}
         
@@ -208,48 +208,120 @@ class Phi3VisionServer:
             
             start_time = time.time()
             
-            # Phi-3.5-Vision special format
-            messages = [
-                {"role": "user", "content": f"<|image_1|>\n{prompt}"}
-            ]
-            
-            # Apply chat template
-            prompt_text = self.processor.tokenizer.apply_chat_template(
-                messages, 
-                tokenize=False, 
-                add_generation_prompt=True
-            )
-            
-            # Process inputs
-            inputs = self.processor(prompt_text, [image], return_tensors="pt")
-            
-            # Move to device
-            device = next(self.model.parameters()).device
-            inputs = {k: v.to(device) for k, v in inputs.items()}
-            
-            # Generate response with error handling
-            with torch.no_grad():
-                outputs = self.model.generate(
-                    **inputs,
-                    max_new_tokens=max_tokens,
-                    do_sample=False,
-                    use_cache=False,  # Disable cache to avoid DynamicCache error
-                    pad_token_id=self.processor.tokenizer.eos_token_id
+            # Try MLX-VLM inference first (same as vlm_tester.py)
+            try:
+                from mlx_vlm import generate
+                from mlx_vlm.prompt_utils import apply_chat_template
+                from mlx_vlm.utils import load_config
+                logger.debug("🚀 Using MLX-VLM inference for Phi-3.5-Vision-Instruct...")
+                
+                # Load config for proper prompt formatting
+                config = load_config("mlx-community/Phi-3.5-vision-instruct-4bit")
+                
+                # Save image to temporary file for MLX-VLM
+                temp_image_path = "temp_mlx_image.jpg"
+                image.save(temp_image_path)
+                
+                try:
+                    # Use simple prompt format for MLX-VLM
+                    mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
+                    
+                    response = generate(
+                        self.model, 
+                        self.processor, 
+                        mlx_prompt,
+                        image=temp_image_path,
+                        max_tokens=max_tokens,
+                        temp=0.0,  # Use 0.0 for deterministic output
+                        verbose=False
+                    )
+                finally:
+                    # Clean up temporary file
+                    if os.path.exists(temp_image_path):
+                        os.remove(temp_image_path)
+                
+                # MLX-VLM returns string directly, not tuple
+                text_response = str(response)
+                
+                # Clean up response
+                text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
+                if "1. What is meant by" in text_response:
+                    text_response = text_response.split("1. What is meant by")[0].strip()
+                text_response = ' '.join(text_response.split())
+                
+                inference_time = time.time() - start_time
+                
+                return {
+                    "success": True,
+                    "response": text_response,
+                    "inference_time": inference_time,
+                    "method": "MLX-VLM"
+                }
+                
+            except (ImportError, AttributeError, TypeError, Exception) as e:
+                logger.warning(f"MLX-VLM inference failed ({e}), loading transformers model...")
+                
+                # Load transformers model for fallback (MLX model can't be used with transformers)
+                from transformers import AutoModelForCausalLM, AutoProcessor
+                logger.debug("📥 Loading transformers Phi-3.5-Vision for fallback...")
+                
+                fallback_model = AutoModelForCausalLM.from_pretrained(
+                    "microsoft/Phi-3.5-vision-instruct", 
+                    trust_remote_code=True,
+                    torch_dtype=torch.float16,
+                    _attn_implementation="eager",  # Disable FlashAttention2
+                    device_map="cpu",  # Force CPU to avoid memory issues
+                    low_cpu_mem_usage=True  # Use less CPU memory
                 )
-            
-            response = self.processor.decode(outputs[0], skip_special_tokens=True)
-            
-            inference_time = time.time() - start_time
-            
-            # Memory cleanup
-            del inputs, outputs
-            self.memory_manager.cleanup_memory()
-            
-            return {
-                "success": True,
-                "response": response,
-                "inference_time": inference_time
-            }
+                fallback_processor = AutoProcessor.from_pretrained(
+                    "microsoft/Phi-3.5-vision-instruct", 
+                    trust_remote_code=True,
+                    num_crops=4  # For single-frame images
+                )
+                
+                # Phi-3.5 Vision special format (model compatibility requirement)
+                messages = [
+                    {"role": "user", "content": f"<|image_1|>\\n{prompt}"}
+                ]
+                
+                prompt_text = fallback_processor.tokenizer.apply_chat_template(
+                    messages, 
+                    tokenize=False, 
+                    add_generation_prompt=True
+                )
+                
+                inputs = fallback_processor(prompt_text, [image], return_tensors="pt")
+                
+                # Move to correct device
+                device = next(fallback_model.parameters()).device
+                inputs = {k: v.to(device) for k, v in inputs.items()}
+                
+                # Technical fix: avoid DynamicCache error
+                with torch.no_grad():
+                    outputs = fallback_model.generate(
+                        **inputs, 
+                        max_new_tokens=max_tokens,
+                        do_sample=False,
+                        use_cache=False,  # Disable cache to avoid DynamicCache error
+                        pad_token_id=fallback_processor.tokenizer.eos_token_id
+                    )
+                
+                result = fallback_processor.decode(outputs[0], skip_special_tokens=True)
+                
+                # Clean up fallback model
+                del fallback_model, fallback_processor
+                gc.collect()
+                if torch.backends.mps.is_available():
+                    torch.mps.empty_cache()
+                
+                inference_time = time.time() - start_time
+                
+                return {
+                    "success": True,
+                    "response": result,
+                    "inference_time": inference_time,
+                    "method": "Transformers-Fallback"
+                }
             
         except Exception as e:
             logger.error(f"Error during Phi-3.5-Vision inference: {e}")
@@ -274,13 +346,13 @@ class Phi3VisionModel(BaseVisionModel):
         super().__init__(model_name, config)
         
         # Get model path from config
-        self.model_path = config.get("model_path", "microsoft/Phi-3.5-vision-instruct")
-        self.device = config.get("device", "cpu")  # Default to CPU for compatibility
-        self.timeout = config.get("timeout", 180)  # Longer timeout for CPU inference
+        self.model_path = config.get("model_path", "mlx-community/Phi-3.5-vision-instruct-4bit")
+        self.device = config.get("device", "auto")  # Default to auto for MLX optimization
+        self.timeout = config.get("timeout", 180)  # Longer timeout for MLX inference
         self.max_tokens = config.get("max_tokens", 100)
         
         logger.info(f"🔧 Model path: {self.model_path}")
-        logger.info(f"🔧 Device: {self.device} (standard version)")
+        logger.info(f"🔧 Device: {self.device} (MLX-optimized version)")
         
         # Create server
         self.server = Phi3VisionServer(self.model_path, self.device)

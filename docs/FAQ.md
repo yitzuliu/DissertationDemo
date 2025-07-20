@@ -32,7 +32,7 @@
 - **Moondream2** - Fastest inference (56.0% VQA accuracy, 4.06s)
 
 **Additional Models:**
-- **Phi-3.5-Vision (MLX)** - High-accuracy analysis (60.0% VQA accuracy, 19.02s)
+- **Phi-3.5-Vision (MLX)** - High-accuracy analysis (60.0% VQA accuracy, 13.61s)
 - **LLaVA-MLX** - Conversational (34.0% VQA accuracy, 17.86s) ⚠️ Underperforming
 - **YOLO8** - Real-time object detection
 
@@ -73,7 +73,7 @@ See our [Developer Setup Guide](./DEVELOPER_SETUP.md) for detailed instructions.
 - **Moondream2**: 56.0% VQA accuracy, 4.06s average (fastest)
 
 **Other Models:**
-- **Phi-3.5-Vision (MLX)**: 60.0% VQA accuracy, 19.02s average
+- **Phi-3.5-Vision (MLX)**: 60.0% VQA accuracy, 13.61s average
 - **LLaVA-MLX**: 34.0% VQA accuracy, 17.86s average ⚠️ Underperforming
 
 See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks and testing status.
@@ -171,21 +171,21 @@ See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks 
 - Moondream2: ~41 seconds
 - SmolVLM2: ~66 seconds
 - SmolVLM: ~60 seconds
-- Phi-3.5: ~190 seconds
+- Phi-3.5: ~136 seconds
 - LLaVA-MLX: ~179 seconds
 
 **15 Questions Test:**
 - Moondream2: ~55 seconds
 - SmolVLM2: ~98 seconds
 - SmolVLM: ~90 seconds
-- Phi-3.5: ~201 seconds
+- Phi-3.5: ~204 seconds
 - LLaVA-MLX: ~260 seconds
 
 **20 Questions Test:**
 - Moondream2: ~74 seconds
 - SmolVLM2: ~130 seconds
 - SmolVLM: ~120 seconds
-- Phi-3.5: ~268 seconds
+- Phi-3.5: ~272 seconds
 - LLaVA-MLX: ~346 seconds
 
 ## Development and Customization

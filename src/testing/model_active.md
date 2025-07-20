@@ -195,7 +195,7 @@ pip install mlx-vlm
 from mlx_vlm import load
 
 def load_phi3_vision(model_id="mlx-community/Phi-3.5-vision-instruct-4bit"):
-    model, processor = load(model_id)
+    model, processor = load(model_id, trust_remote_code=True)
     return model, processor
 ```
 
@@ -210,7 +210,7 @@ response = generate(
     prompt="Describe this image in detail",
     image="path/to/image.jpg",
     max_tokens=100,
-    temp=0.7,
+    temp=0.0,
     verbose=False
 )
 
@@ -220,14 +220,15 @@ response = generate(
     processor=processor,
     prompt="What is the capital of France?",
     max_tokens=100,
+    temp=0.0,
     verbose=False
 )
 ```
 
 #### **Performance**
-- **Load Time**: ~3.0s
-- **Vision Inference**: ~8.0s avg
-- **Text Generation**: ~3.0s avg
+- **Load Time**: 1.38s (optimized)
+- **Vision Inference**: 11.79-14.75s avg
+- **Text Generation**: 4.66-7.61s avg
 - **Best Use**: Vision-language tasks, educational applications
 
 ## 🛠️ **Technical Notes**
@@ -252,8 +253,8 @@ response = generate(
 ## 📊 **Performance Comparison**
 
 ### **Loading Speed**
-1. **LLaVA-MLX**: 3.04s
-2. **Phi-3.5-Vision**: 3.01s
+1. **Phi-3.5-Vision**: 1.38s (optimized)
+2. **LLaVA-MLX**: 3.04s
 3. **SmolVLM-500M**: 3.81s
 4. **SmolVLM2-Video**: 4.71s
 5. **Moondream2**: 5.56s
@@ -263,13 +264,13 @@ response = generate(
 2. **SmolVLM-500M**: 6.51s avg
 3. **SmolVLM2-Video**: 6.61s avg
 4. **LLaVA-MLX**: 8.57s avg
-5. **Phi-3.5-Vision**: 8.0s avg
+5. **Phi-3.5-Vision**: 13.61s avg
 
 ### **Pure Text Speed**
 1. **SmolVLM-500M**: 1.72s avg
-2. **SmolVLM2-Video**: 3.70s avg
-3. **LLaVA-MLX**: 4.08s avg
-4. **Phi-3.5-Vision**: 3.0s avg
+2. **Phi-3.5-Vision**: 6.49s avg
+3. **SmolVLM2-Video**: 3.70s avg
+4. **LLaVA-MLX**: 4.08s avg
 5. **Moondream2**: Not supported
 
 ## 🎯 **Recommendations**

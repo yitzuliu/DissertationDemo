@@ -19,7 +19,7 @@ Based on our latest VQA 2.0 testing (July 19, 2025), here are the performance ch
 | **SmolVLM2-500M-Video-Instruct** | 🏆 66.0% | 6.61s | 2.08GB | ✅ **Best Overall** |
 | **SmolVLM-500M-Instruct** | 64.0% | 5.98s | 1.58GB | ✅ Excellent |
 | **Moondream2** | 56.0% | 🏆 4.06s | 0.10GB | ✅ Fastest |
-| **Phi-3.5-Vision (MLX)** | 60.0% | 19.02s | 1.53GB | ✅ Good |
+| **Phi-3.5-Vision (MLX)** | 60.0% | 13.61s | 1.53GB | ✅ Good |
 | **LLaVA-v1.6 (MLX)** | ⚠️ 34.0% | 17.86s | 1.16GB | 🔧 Underperforming |
 
 ## Backend API (Port 8000)

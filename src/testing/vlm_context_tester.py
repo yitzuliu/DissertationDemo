@@ -121,18 +121,16 @@ class VLMModelLoader:
             raise RuntimeError("MLX-VLM package not installed (pip install mlx-vlm), cannot test this model.")
     
     @staticmethod
-    def load_phi3_vision(model_id="lokinfey/Phi-3.5-vision-mlx-int4"):
+    def load_phi3_vision(model_id="mlx-community/Phi-3.5-vision-instruct-4bit"):
         """Load Phi-3.5-Vision-Instruct using MLX (Apple Silicon optimized)"""
         print(f"Loading {model_id} with MLX framework...")
         try:
-            # Use MLX-VLM for Apple Silicon optimization
-            import mlx.core as mx
-            from mlx_vlm import load, generate
-            from mlx_vlm.utils import load_config
+            # Use MLX-VLM for Apple Silicon optimization (supports vision)
+            from mlx_vlm import load
             
-            print("Loading MLX-optimized Phi-3.5-Vision model...")
+            print("Loading MLX-VLM optimized Phi-3.5-Vision-Instruct model...")
             model, processor = load(model_id, trust_remote_code=True)
-            print("MLX model loaded successfully!")
+            print("MLX-VLM model loaded successfully!")
             
             return model, processor
             
@@ -196,7 +194,7 @@ class VLMContextTester:
             "SmolVLM-500M-Instruct": { "loader": VLMModelLoader.load_smolvlm_instruct, "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct" },
             "Moondream2": { "loader": VLMModelLoader.load_moondream2, "model_id": "vikhyatk/moondream2" },
             "LLaVA-v1.6-Mistral-7B-MLX": { "loader": VLMModelLoader.load_llava_mlx, "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit" },
-            "Phi-3.5-Vision-Instruct": { "loader": VLMModelLoader.load_phi3_vision, "model_id": "lokinfey/Phi-3.5-vision-mlx-int4" }
+            "Phi-3.5-Vision-Instruct": { "loader": VLMModelLoader.load_phi3_vision, "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit" }
         }
         
         # 📏 Unified test conditions
@@ -436,8 +434,8 @@ class VLMContextTester:
                         if image is None and hist_entry["role"] == "user" and isinstance(hist_entry["content"], list):
                             # For context-based questions, filter out image tokens but keep text
                             text_content = [item for item in hist_entry["content"] if item["type"] == "text"]
-                                if text_content:
-                                    conversation.append({"role": hist_entry["role"], "content": text_content})
+                            if text_content:
+                                conversation.append({"role": hist_entry["role"], "content": text_content})
                         else:
                             conversation.append(hist_entry)
                     
@@ -491,106 +489,113 @@ class VLMContextTester:
                 # Branch 3: MLX models (LLaVA, Phi-3.5) - IMPROVED for context
                 # --------------------------------------------------------------------------
                 elif "Phi-3.5" in model_name:
-                    # Check if this is an MLX model or transformers model
+                    # Use MLX-VLM for Phi-3.5-Vision-Instruct (same as vlm_tester.py)
                     try:
-                        # Check MLX dependency first
+                        # Use MLX-VLM inference for vision model (official way)
                         from mlx_vlm import generate
-                        print("  🚀 Using MLX inference for Phi-3.5-Vision...")
+                        print("  🚀 Using MLX-VLM inference for Phi-3.5-Vision-Instruct...")
                         
-                        # Build simplified prompt for Phi-3.5
-                        if image:
-                            # Use simple format for image description
-                            mlx_prompt = f"<|image_1|>\nDescribe this image in detail:\n"
-                            temp_image_path = "temp_mlx_image.png"
+                        if image is not None:
+                            # Save image to temporary file for MLX-VLM
+                            temp_image_path = "temp_mlx_image.jpg"
                             image.save(temp_image_path)
+                            
                             try:
-                            response = generate(
-                                model=model, 
-                                processor=processor, 
-                                image=temp_image_path, 
-                                prompt=mlx_prompt,
-                                max_tokens=self.unified_max_tokens,
-                                temp=0.1,  # Very low temperature for focused output
-                                repetition_penalty=1.5,  # Strong repetition penalty to avoid repeats
-                                top_p=0.9,  # Lower top_p for more focused generation
-                                verbose=False
-                            )
+                                # Use simple prompt format for MLX-VLM (same as vlm_tester.py)
+                                mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
+                                
+                                response = generate(
+                                    model, 
+                                    processor, 
+                                    mlx_prompt,
+                                    image=temp_image_path,
+                                    max_tokens=self.unified_max_tokens,
+                                    temp=0.0,  # Use 0.0 for deterministic output
+                                    verbose=False
+                                )
                             finally:
-                            if os.path.exists(temp_image_path):
-                                os.remove(temp_image_path)
+                                # Clean up temporary file
+                                if os.path.exists(temp_image_path):
+                                    os.remove(temp_image_path)
                         else:
-                            # Context-based question - use simple format
-                            mlx_prompt = f"Question: {prompt}\nAnswer:"
+                            # Context-based question without image - use simplified approach
                             response = generate(
-                                model=model, 
-                                processor=processor, 
-                                prompt=mlx_prompt,
+                                model=model,
+                                processor=processor,
+                                prompt=prompt,
                                 max_tokens=self.unified_max_tokens,
-                                temp=0.1,  # Very low temperature for focused output
-                                repetition_penalty=1.5,  # Strong repetition penalty to avoid repeats
-                                top_p=0.9,  # Lower top_p for more focused generation
+                                temp=0.0,
                                 verbose=False
                             )
                         
-                        # Handle MLX response format
-                        if isinstance(response, tuple) and len(response) >= 2:
-                            text_response = response[0]
-                        elif isinstance(response, list) and len(response) > 0:
-                            text_response = response[0] if isinstance(response[0], str) else str(response[0])
-                        else:
-                            text_response = str(response)
+                        # MLX-VLM returns string directly, not tuple
+                        text_response = str(response)
                         
-                        # Enhanced cleaning for Phi-3.5 specific issues
+                        # Clean up response
                         text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
-                        
-                        # Remove training data artifacts
                         if "1. What is meant by" in text_response:
                             text_response = text_response.split("1. What is meant by")[0].strip()
-                        
-                        # Remove markdown artifacts and problem statements
-                        if "# Problem" in text_response:
-                            text_response = text_response.split("# Problem")[0].strip()
-                        if "## Why is it important" in text_response:
-                            text_response = text_response.split("## Why is it important")[0].strip()
-                        
-                        # Remove the original prompt from the response if it appears
-                        if prompt in text_response:
-                            text_response = text_response.replace(prompt, "").strip()
-                        
-                        # Remove common MLX prompt patterns
-                        patterns_to_remove = [
-                            "<|image_1|>",
-                            "User:",
-                            "Assistant:",
-                            "\\nUser:",
-                            "\\nAssistant:",
-                            "Question:",
-                            "Answer:"
-                        ]
-                        for pattern in patterns_to_remove:
-                            text_response = text_response.replace(pattern, "").strip()
-                        
-                        # Remove repetitive sentences (fix for Phi-3.5 repetition issue)
-                        sentences = text_response.split('.')
-                        unique_sentences = []
-                        seen_sentences = set()
-                        for sentence in sentences:
-                            sentence = sentence.strip()
-                            if sentence and sentence not in seen_sentences:
-                                unique_sentences.append(sentence)
-                                seen_sentences.add(sentence)
-                        text_response = '. '.join(unique_sentences)
-                        
-                        # Clean up whitespace and ensure proper ending
                         text_response = ' '.join(text_response.split())
-                        if text_response and not text_response.endswith('.'):
-                            text_response += '.'
                         
                         response = text_response
                         
-                    except Exception as e:
-                        print(f"  ⚠️ MLX inference failed ({e}), using fallback...")
-                        response = f"Error: MLX inference failed - {str(e)}"
+                    except (ImportError, AttributeError, TypeError, Exception) as e:
+                        print(f"  ⚠️ MLX-VLM inference failed ({e}), loading transformers model...")
+                        
+                        # Load transformers model for fallback (MLX model can't be used with transformers)
+                        from transformers import AutoModelForCausalLM, AutoProcessor
+                        print("  📥 Loading transformers Phi-3.5-Vision for fallback...")
+                        
+                        fallback_model = AutoModelForCausalLM.from_pretrained(
+                            "microsoft/Phi-3.5-vision-instruct", 
+                            trust_remote_code=True,
+                            torch_dtype=torch.float16,
+                            _attn_implementation="eager",  # Disable FlashAttention2
+                            device_map="cpu",  # Force CPU to avoid memory issues
+                            low_cpu_mem_usage=True  # Use less CPU memory
+                        )
+                        fallback_processor = AutoProcessor.from_pretrained(
+                            "microsoft/Phi-3.5-vision-instruct", 
+                            trust_remote_code=True,
+                            num_crops=4  # For single-frame images
+                        )
+                        
+                        # Phi-3.5 Vision special format (model compatibility requirement)
+                        messages = [
+                            {"role": "user", "content": f"<|image_1|>\\n{prompt}"}
+                        ]
+                        
+                        prompt_text = fallback_processor.tokenizer.apply_chat_template(
+                            messages, 
+                            tokenize=False, 
+                            add_generation_prompt=True
+                        )
+                        
+                        inputs = fallback_processor(prompt_text, [image] if image else [], return_tensors="pt")
+                        
+                        # Move to correct device
+                        device = next(fallback_model.parameters()).device
+                        inputs = {k: v.to(device) for k, v in inputs.items()}
+                        
+                        # Technical fix: avoid DynamicCache error
+                        with torch.no_grad():
+                            outputs = fallback_model.generate(
+                                **inputs, 
+                                max_new_tokens=self.unified_max_tokens,
+                                do_sample=False,
+                                use_cache=False,  # Disable cache to avoid DynamicCache error
+                                pad_token_id=fallback_processor.tokenizer.eos_token_id
+                            )
+                        
+                        result = fallback_processor.decode(outputs[0], skip_special_tokens=True)
+                        
+                        # Clean up fallback model
+                        del fallback_model, fallback_processor
+                        gc.collect()
+                        if torch.backends.mps.is_available():
+                            torch.mps.empty_cache()
+                        
+                        response = result
 
                 elif "LLaVA" in model_name:
                     from mlx_vlm import generate

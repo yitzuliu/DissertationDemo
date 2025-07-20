@@ -9,13 +9,14 @@
 | 🥈 | **LLaVA-v1.6-Mistral-7B-MLX** | 3.04s | 8.57s | ✅ 100% | ✅ 100% | ⚠️ 20% | ⚠️ State Issues |
 | 🥉 | **SmolVLM2-500M-Video** | 4.71s | 6.61s | ✅ 100% | ✅ 100% | ❌ 10% | ✅ Reliable |
 | 4️⃣ | **Moondream2** | 5.56s | 6.61s | ✅ 100% | ❌ 0% | ❌ 0% | ✅ Vision-Only |
-| 5️⃣ | **Phi-3.5-Vision-Instruct** | 3.01s | 32.79s | ✅ 100% | ✅ 100% | ❌ 0% | ❌ Multiple Issues |
+| 5️⃣ | **Phi-3.5-Vision-Instruct** | 1.38s | 13.61s | ✅ 100% | ✅ 100% | ✅ 100% | ✅ Optimized |
 
 ### 🎯 **Key Findings**
 - **Vision Tasks**: All 5 models successful (100% success rate)
 - **Pure Text**: 4/5 models support (80% success rate)
 - **Context Understanding**: Limited capabilities as expected
 - **MLX Optimization**: Critical for Apple Silicon performance
+- **Phi-3.5-Vision**: Successfully optimized with trust_remote_code=True
 
 ## 🎯 **Testing Objectives**
 
@@ -52,7 +53,7 @@
 | **SmolVLM-500M-Instruct** | `HuggingFaceTB/SmolVLM-500M-Instruct` | Transformers | None |
 | **Moondream2** | `vikhyatk/moondream2` | Transformers | Special API |
 | **LLaVA-v1.6-Mistral-7B-MLX** | `mlx-community/llava-v1.6-mistral-7b-4bit` | MLX | `pip install mlx-vlm` |
-| **Phi-3.5-Vision-Instruct** | `lokinfey/Phi-3.5-vision-mlx-int4` | MLX | `pip install mlx-vlm` |
+| **Phi-3.5-Vision-Instruct** | `mlx-community/Phi-3.5-vision-instruct-4bit` | MLX | `pip install mlx-vlm` |
 
 ## 📊 **Test Configuration**
 
@@ -86,7 +87,7 @@ src/testing/
 
 ### **Known Issues & Solutions**
 - **LLaVA-MLX**: Synthetic image processing bug → Exclusion list implemented
-- **Phi-3.5-Vision**: MLX required for Apple Silicon → 98% speed improvement
+- **Phi-3.5-Vision**: MLX required for Apple Silicon → 98% speed improvement, trust_remote_code=True added
 - **Moondream2**: Special API required → Cannot unify parameters
 
 ## 📊 **Result Format**
@@ -147,7 +148,7 @@ python vlm_context_tester.py            # Context understanding test
 ## 🎯 **Key Discoveries**
 
 ### **Performance Highlights**
-- **Fastest Loading**: LLaVA-MLX (3.04s)
+- **Fastest Loading**: Phi-3.5-Vision (1.38s optimized)
 - **Fastest Inference**: Moondream2 (6.61s avg)
 - **Best Text Model**: SmolVLM-500M-Instruct (1.72s avg)
 - **Most Reliable**: SmolVLM series
@@ -157,11 +158,12 @@ python vlm_context_tester.py            # Context understanding test
 - **Pure Text Surprise**: 80% of VLM models support text-only tasks
 - **Context Reality**: Limited capabilities confirm architectural constraints
 - **Memory Efficiency**: MLX models use memory more efficiently
+- **Phi-3.5 Optimization**: trust_remote_code=True eliminates manual confirmation
 
 ### **Recommendations**
 - **General Use**: SmolVLM-500M-Instruct (balanced performance)
 - **Fast Q&A**: SmolVLM-500M-Instruct (ultra-fast text)
 - **Creative Writing**: LLaVA-MLX (poetic responses)
-- **Educational**: Phi-3.5-Vision (detailed explanations)
+- **Educational**: Phi-3.5-Vision (detailed explanations, optimized loading)
 - **Vision-Only**: Moondream2 (excellent image quality)
-- **Avoid**: LLaVA-MLX (state issues), Phi-3.5-Vision (technical problems)
+- **Avoid**: LLaVA-MLX (state issues)

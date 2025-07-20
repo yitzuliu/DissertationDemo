@@ -10,7 +10,7 @@ This document provides a comprehensive comparison of all Vision-Language Models 
 |-----------------------------|-----------------|---------------------|-------------------|--------------|--------|
 | **SmolVLM2-500M-Video-Instruct** | Balanced | 🏆 66.0% | 6.61s | 2.08GB | ✅ **Best Overall** |
 | **SmolVLM-500M-Instruct** | Balanced | 64.0% | 5.98s | 1.58GB | ✅ Excellent |
-| **Phi-3.5-Vision (MLX)** | High-Accuracy | 60.0% | 19.02s | 1.53GB | ✅ Good |
+| **Phi-3.5-Vision (MLX)** | High-Accuracy | 60.0% | 13.61s | 1.53GB | ✅ Good |
 | **Moondream2** | Lightweight | 56.0% | 🏆 4.06s | 0.10GB | ✅ Fastest |
 | **LLaVA-v1.6 (MLX)** | Conversational | ⚠️ 34.0% | 17.86s | 1.16GB | 🔧 Underperforming |
 
@@ -110,13 +110,13 @@ A high-accuracy model that excels in detailed analysis but is slower than altern
 - **MLX Performance**: Optimized for Apple Silicon
 
 **Limitations:**
-- **Slowest Inference**: 19.02s average (slowest among tested models)
-- **Time Variability**: Inconsistent performance (13.41s - 19.02s)
+- **Slow Inference**: 13.61s average (slower than alternatives)
+- **Time Variability**: Inconsistent performance (11.79s - 14.75s)
 
 **VQA 2.0 Performance:**
 - **Simple Accuracy**: 60.0% (6/10 correct)
 - **VQA Accuracy**: 60.0%
-- **Avg Inference Time**: 19.02s
+- **Avg Inference Time**: 13.61s
 - **Memory Usage**: 1.53GB
 
 **Ideal Use Cases:**
@@ -125,10 +125,10 @@ A high-accuracy model that excels in detailed analysis but is slower than altern
 - Offline processing scenarios
 
 **Technical Specifications (MLX Version):**
-- **Model ID**: `lokinfey/Phi-3.5-vision-mlx-int4`
+- **Model ID**: `mlx-community/Phi-3.5-vision-instruct-4bit`
 - **Quantization**: 4-bit (INT4)
 - **Load Time**: ~1.94s
-- **Avg. Inference Time**: 19.02s
+- **Avg. Inference Time**: 13.61s
 
 ### 5. LLaVA-v1.6 (MLX-Optimized) (⚠️ Underperforming)
 

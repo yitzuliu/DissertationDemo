@@ -1,6 +1,6 @@
 {
   "model_name": "Phi-3.5-Vision-Optimized",
-  "model_path": "lokinfey/Phi-3.5-vision-mlx-int4",
+  "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",
   "device": "auto",
   "timeout": 60,
   "max_tokens": 100,
@@ -27,7 +27,7 @@
   
   "mlx_config": {
     "use_mlx": true,
-    "model_id": "lokinfey/Phi-3.5-vision-mlx-int4",
+    "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
     "quantization_bits": 4,
     "fallback_to_transformers": true,
     "temp_image_cleanup": true

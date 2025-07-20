@@ -68,7 +68,7 @@ The system supports a variety of models, each with its own strengths. Models opt
 | **SmolVLM2-500M-Video-Instruct** | 🏆 66.0% | 6.61s | 2.08GB | **Best overall performance** |
 | **SmolVLM-500M-Instruct** | 64.0% | 5.98s | 1.58GB | Reliable, all-around use |
 | **Moondream2** | 56.0% | 🏆 4.06s | 0.10GB | **Fastest inference** |
-| **Phi-3.5-Vision (MLX)** | 60.0% | 19.02s | 1.53GB | Detailed single-image analysis |
+| **Phi-3.5-Vision (MLX)** | 60.0% | 13.61s | 1.53GB | Detailed single-image analysis |
 | **LLaVA-v1.6 (MLX)** | ⚠️ 34.0% | 17.86s | 1.16GB | ⚠️ **Underperforming** |
 
 ### Model Performance Analysis

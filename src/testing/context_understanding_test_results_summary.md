@@ -102,24 +102,23 @@ This comprehensive test evaluated the context understanding capabilities of 5 st
 
 ### 5. Phi-3.5-Vision-Instruct
 
-**Model ID:** `lokinfey/Phi-3.5-vision-mlx-int4`  
-**Load Time:** 2.72 seconds  
-**Memory Usage:** -2.35 GB (memory optimization)  
+**Model ID:** `mlx-community/Phi-3.5-vision-instruct-4bit`  
+**Load Time:** 1.38 seconds  
+**Memory Usage:** 2.69 GB  
 
 #### Performance Analysis
-- **Image Description:** ❌ **FAILED** - Incoherent and training data contaminated responses
-- **Context Understanding:** ❌ **FAILED** - No meaningful context awareness
+- **Image Description:** ✅ Good - Accurate and detailed descriptions
+- **Context Understanding:** ❌ **FAILED** - No context awareness demonstrated
 
 #### Key Findings
-- **IMG_0119.JPG:** Incoherent response with mathematical content
-- **IMG_2053.JPG:** Partially coherent but contains fabricated details ("Kim Jong-un")
-- **test_image.jpg:** Incoherent response with chemical formula references
+- **IMG_0119.JPG:** Described as "Shiba Inu dog in bathroom setting"
+- **IMG_2053.JPG:** Described as "person holding passport document"
+- **test_image.jpg:** Described as "red circle with PH-3 text on blue background"
 
 **Critical Issues:**
-1. Responses contaminated with training data fragments
-2. Incoherent and nonsensical outputs
-3. Complete lack of context understanding
-4. Extremely long inference times (up to 43.95 seconds)
+1. All context-based questions produced generic responses unrelated to original images
+2. No ability to reference previous image descriptions in follow-up questions
+3. Complete lack of conversation context retention
 
 ## Comparative Analysis
 
@@ -141,7 +140,7 @@ This comprehensive test evaluated the context understanding capabilities of 5 st
 | SmolVLM-500M-Instruct | 3.92s | 6.12s | Good | ❌ None |
 | Moondream2 | 5.01s | 6.83s | Excellent | ❌ Not Supported |
 | LLaVA-v1.6-Mistral-7B-MLX | 2.53s | 3.31s | Good | ❌ None |
-| Phi-3.5-Vision-Instruct | 2.72s | 18.75s | Excellent | ❌ None |
+| Phi-3.5-Vision-Instruct | 1.38s | 13.61s | Good | ❌ None |
 
 ## Key Findings and Implications
 
@@ -167,13 +166,13 @@ This comprehensive test evaluated the context understanding capabilities of 5 st
 **Issue:** Model reloaded for each image test, significantly increasing test time.  
 **Impact:** 3x longer testing time than necessary.
 
-### 2. Phi-3.5 Response Contamination
-**Issue:** Responses contain training data fragments and incoherent content.  
-**Impact:** Completely unusable for practical applications.
-
-### 3. LLaVA Empty Response Bug
+### 2. LLaVA Empty Response Bug
 **Issue:** Second context question consistently returns empty responses.  
 **Impact:** Incomplete test results for LLaVA model.
+
+### 3. Context Understanding Limitations
+**Issue:** All models lack fundamental context understanding capabilities.  
+**Impact:** Cannot maintain conversation context across multiple turns.
 
 ## Recommendations
 

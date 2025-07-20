@@ -208,10 +208,10 @@ async def startup_event():
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     
     config = {
-        "model_path": "microsoft/Phi-3.5-vision-instruct",  # Use transformers version
-        "device": "cpu",  # CPU for maximum compatibility
+        "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",  # Use MLX-VLM version
+        "device": "auto",  # Auto for MLX optimization
         "max_tokens": 100,
-        "timeout": 180,  # Longer timeout for CPU inference
+        "timeout": 180,  # Longer timeout for MLX inference
         "image_processing": {
             "max_size": 1024
         }

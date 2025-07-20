@@ -1,26 +1,35 @@
 {
   "model_name": "Phi-3.5-Vision",
-  "model_path": "microsoft/Phi-3.5-vision-instruct",
-  "device": "cpu",
+  "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",
+  "device": "auto",
   "timeout": 180,
   "max_tokens": 100,
   "version": "standard",
-  "description": "Standard Phi-3.5-Vision model using transformers for maximum compatibility",
+  "description": "Standard Phi-3.5-Vision model using MLX-VLM for Apple Silicon optimization",
   
   "capabilities": {
     "vision": true,
     "text_generation": true,
     "image_understanding": true,
     "conversation": true,
-    "multimodal": true
+    "multimodal": true,
+    "apple_silicon_optimized": true
   },
   
   "model_config": {
-    "torch_dtype": "float32",
-    "device_map": "cpu",
+    "torch_dtype": "float16",
+    "device_map": "auto",
     "trust_remote_code": true,
     "low_cpu_mem_usage": true,
     "_attn_implementation": "eager"
+  },
+  
+  "mlx_config": {
+    "use_mlx": true,
+    "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+    "quantization_bits": 4,
+    "fallback_to_transformers": true,
+    "temp_image_cleanup": true
   },
   
   "image_processing": {
@@ -52,8 +61,9 @@
   "performance": {
     "compile_model": false,
     "use_flash_attention": false,
-    "enable_optimizations": false,
-    "memory_optimization": "low"
+    "enable_optimizations": true,
+    "memory_optimization": "medium",
+    "apple_silicon_mps": true
   },
   
   "special_tokens": {
@@ -70,12 +80,22 @@
   
   "environment": {
     "required_packages": [
+      "mlx-vlm>=0.0.9",
       "transformers>=4.40.0",
       "torch>=2.0.0",
       "Pillow>=9.0.0",
       "fastapi>=0.100.0",
       "uvicorn>=0.22.0"
     ],
-    "python_version": ">=3.9"
+    "python_version": ">=3.9",
+    "platform": "darwin",
+    "recommended_hardware": "Apple Silicon (M1/M2/M3)"
+  },
+  
+  "fallback_config": {
+    "enabled": true,
+    "fallback_model_path": "microsoft/Phi-3.5-vision-instruct",
+    "fallback_device": "cpu",
+    "fallback_dtype": "float32"
   }
 } 

@@ -236,7 +236,7 @@ python src/models/smolvlm2/run_smolvlm2.py
 ### Phi-3.5-Vision Issues
 
 #### Symptoms:
-- Very slow responses (19+ seconds)
+- Slow responses (13+ seconds)
 - MLX-related errors
 
 #### Solutions:
@@ -371,14 +371,14 @@ watch -n 1 'ps aux | grep python | grep -v grep'
 - SmolVLM2: ~66s, 66.0% accuracy
 - SmolVLM: ~60s, 64.0% accuracy
 - Moondream2: ~41s, 56.0% accuracy
-- Phi-3.5: ~190s, 60.0% accuracy
+- Phi-3.5: ~136s, 60.0% accuracy
 - LLaVA-MLX: ~179s, 34.0% accuracy
 
 **15 Questions Test:**
 - SmolVLM2: ~98s, 58-66% accuracy
 - SmolVLM: ~90s, 49-64% accuracy
 - Moondream2: ~55s, 56-60% accuracy
-- Phi-3.5: ~201s, 56-60% accuracy
+- Phi-3.5: ~204s, 56-60% accuracy
 - LLaVA-MLX: ~260s, 24-34% accuracy
 
 ## Getting Help
