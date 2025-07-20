@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-18 12:25:54",
+  "test_timestamp": "2025-07-20 03:12:09",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -7,15 +7,15 @@
   },
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
-      "model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-      "load_time": 2.6481189727783203,
-      "memory_before": 0.341949462890625,
-      "memory_after": 0.41131591796875,
-      "memory_diff": 0.069366455078125,
+      "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+      "load_time": 0.47173476219177246,
+      "memory_before": 0.3462066650390625,
+      "memory_after": 1.3862762451171875,
+      "memory_diff": 1.040069580078125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 11.386424779891968,
-          "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a Shiba Inu dog, characterized by its tan and white fur, sitting on a tiled floor. The dog's face is prominently displayed, with its nose and mouth visible. The dog appears to be looking directly at the camera, giving a sense of curiosity or attentiveness. The background of the image includes a green shoe and a white wall, which are positioned relatively far from the camera.",
+          "inference_time": 5.372192144393921,
+          "response": "Assistant: The image features a Shiba Inu dog, characterized by its light brown fur, black nose, and black eyes, sitting on a tiled floor. The dog's mouth is slightly open, and it appears to be looking directly at the camera. The dog's ears are perked up, and it is positioned in front of a white wall with a green and white striped towel hanging on it. There is a green shoe placed on the floor to the left of the dog.",
           "image_info": {
             "original_size": [
               960,
@@ -37,8 +37,8 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 9.94307804107666,
-          "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image features a person wearing a white t-shirt with the text \"FKON\" and a logo on the left side, holding a passport. The passport is held in the person's right hand, displaying a photograph of a person with the name \"YU\" and the date \"2015-08-28\" on the left side. The passport also includes a photograph of a person with the name \"WANG\" and the date \"2015-",
+          "inference_time": 5.32433295249939,
+          "response": "Assistant: The image features a person with short, dark hair, wearing a white t-shirt with the text \"FKONs\" printed on it. The individual is holding a passport, which is prominently displayed in the image. The passport has a blue and white design, featuring a portrait of a person with a blue background. The passport number is visible on the front, and the text \"PASSPORT\" is printed on the back. The person's left hand is holding the passport, while their",
           "image_info": {
             "original_size": [
               3088,
@@ -60,8 +60,8 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 11.850725173950195,
-          "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image presents a geometric figure consisting of a red circle and a blue square. The circle is centrally located within the square, with the center of the circle marked by the letter \"P\" in blue. The blue square is positioned in the top right corner of the image, and it is bordered by a blue border. The background of the image is light blue, providing a neutral backdrop that allows the geometric shapes to stand out.\n\n### Description:\n- **Circle**: The red circle",
+          "inference_time": 5.9554760456085205,
+          "response": "Assistant: The image presents a geometric figure consisting of a square and a circle. The square is outlined in a light blue color, and the circle is filled with a red hue. The circle is positioned centrally within the square, with its center marked by the letter \"P\" in a dark red color. The square's corners are labeled with the letters \"P\" and \"H\" in a dark red color, indicating the corners of the square.",
           "image_info": {
             "original_size": [
               336,
@@ -83,10 +83,10 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 33.18022799491882,
+      "total_inference_time": 16.65200114250183,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 11.060075998306274,
+      "avg_inference_time": 5.55066704750061,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -95,35 +95,144 @@
         "results": {
           "prompt_1": {
             "prompt": "What is the capital of France?",
-            "response": "User: What is the capital of France?\nAssistant: The capital of France is Paris. It is a city located in the northern part of the country, on the River Seine, and is the largest city in France. Paris is known for its rich history, culture, fashion, and cuisine. The city is home to many famous landmarks, including the Eiffel Tower, the Louvre Museum, and Notre-Dame Cathedral.",
-            "inference_time": 2.600372076034546,
+            "response": "Assistant: The capital of France is Paris.",
+            "inference_time": 4.811807870864868,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
-            "response": "User: Explain the concept of machine learning in simple terms.\nAssistant: Machine learning is a way of teaching computers to learn from data and make decisions or predictions without being explicitly programmed. Here's a simple explanation:\n\n**What is machine learning?**\n\nMachine learning is a type of artificial intelligence (AI) that enables computers to learn from data and improve their performance over time. It's like teaching a computer to recognize patterns and make decisions based on that data.\n\n**How does machine learning work?**\n\nImagine you have a big box of toys,",
-            "inference_time": 3.371320962905884,
+            "response": "Assistant: Machine learning is a way for computers to learn from data and improve their performance over time. It's like teaching a computer to recognize patterns and make decisions based on that knowledge.",
+            "inference_time": 5.339721918106079,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
-            "response": "User: Write a short poem about technology.\nAssistant: In the digital realm, where wires and circuits run,\nA world of possibilities, a never-ending dream.\nFrom smartphones that hold the world's secrets,\nTo computers that bring us closer to the sky.\n\nWe use them to connect, to communicate, to share,\nBut at what cost? The lines between life and death.\nWe rely on them to navigate, to find,\nBut sometimes, we forget to live, to be alive.\n\nThe internet,",
-            "inference_time": 3.359945058822632,
+            "response": "Assistant: The world is a digital realm,",
+            "inference_time": 6.140928030014038,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 3.0995635986328125
+      "memory_after_cleanup": 1.1828460693359375
+    },
+    "SmolVLM2-500M-Video-Instruct-MLX": {
+      "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+      "load_time": 0.37853312492370605,
+      "memory_before": 1.182861328125,
+      "memory_after": 1.461700439453125,
+      "memory_diff": 0.278839111328125,
+      "images": {
+        "IMG_0119.JPG": {
+          "inference_time": 5.510254144668579,
+          "response": "Assistant: The image features a Shiba Inu dog, characterized by its light brown fur, black nose, and black eyes, sitting on a tiled floor. The dog's mouth is slightly open, and it appears to be looking directly at the camera. The dog's ears are perked up, and it is positioned in front of a white wall with a green and white striped towel hanging on it. There is a green shoe placed on the floor to the left of the dog.",
+          "image_info": {
+            "original_size": [
+              960,
+              1707
+            ],
+            "processed_size": [
+              575,
+              1024
+            ],
+            "mode": "RGB",
+            "file_size": 222091
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 60
+        },
+        "IMG_2053.JPG": {
+          "inference_time": 5.455950736999512,
+          "response": "Assistant: The image features a person with short, dark hair, wearing a white t-shirt with the text \"FKONs\" printed on it. The individual is holding a passport, which is prominently displayed in the image. The passport has a blue and white design, featuring a portrait of a person with a blue background. The passport number is visible on the front, and the text \"PASSPORT\" is printed on the back. The person's left hand is holding the passport, while their",
+          "image_info": {
+            "original_size": [
+              3088,
+              2316
+            ],
+            "processed_size": [
+              1024,
+              768
+            ],
+            "mode": "RGB",
+            "file_size": 1834456
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 60
+        },
+        "test_image.jpg": {
+          "inference_time": 6.161983966827393,
+          "response": "Assistant: The image presents a geometric figure consisting of a square and a circle. The square is outlined in a light blue color, and the circle is filled with a red hue. The circle is positioned centrally within the square, with its center marked by the letter \"P\" in a dark red color. The square's corners are labeled with the letters \"P\" and \"H\" in a dark red color, indicating the corners of the square.",
+          "image_info": {
+            "original_size": [
+              336,
+              336
+            ],
+            "processed_size": [
+              336,
+              336
+            ],
+            "mode": "RGB",
+            "file_size": 11823
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 60
+        }
+      },
+      "total_inference_time": 17.128188848495483,
+      "successful_inferences": 3,
+      "failed_inferences": 0,
+      "avg_inference_time": 5.709396282831828,
+      "text_only_capability": {
+        "text_only_supported": true,
+        "success_rate": 1.0,
+        "total_tests": 3,
+        "successful_tests": 3,
+        "results": {
+          "prompt_1": {
+            "prompt": "What is the capital of France?",
+            "response": "Assistant: The capital of France is Paris.",
+            "inference_time": 4.833138942718506,
+            "success": true
+          },
+          "prompt_2": {
+            "prompt": "Explain the concept of machine learning in simple terms.",
+            "response": "Assistant: Machine learning is a way for computers to learn from data and improve their performance over time. It's like teaching a computer to recognize patterns and make decisions based on that knowledge.",
+            "inference_time": 5.197004079818726,
+            "success": true
+          },
+          "prompt_3": {
+            "prompt": "Write a short poem about technology.",
+            "response": "Assistant: The world is a digital realm,",
+            "inference_time": 5.8180108070373535,
+            "success": true
+          }
+        }
+      },
+      "memory_after_cleanup": 1.1044158935546875
     },
     "SmolVLM-500M-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct",
-      "load_time": 3.5240540504455566,
-      "memory_before": 1.375640869140625,
-      "memory_after": 1.8097076416015625,
-      "memory_diff": 0.4340667724609375,
+      "load_time": 3.365601062774658,
+      "memory_before": 1.1049652099609375,
+      "memory_after": 2.9745025634765625,
+      "memory_diff": 1.869537353515625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 9.369868040084839,
+          "inference_time": 9.496949911117554,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A Shiba Inu dog with a black nose is sitting on a bathroom floor in front of a toilet and a hand sanitizer dispenser. The dog is looking directly at the camera. The dog has a light brown coat with a white patch of fur on its neck. The nose is black. The dog's left ear is black and its right ear is gray. The dog's mouth is closed. The floor is white with light gray tiles. There are two green slippers on the floor in front",
           "image_info": {
             "original_size": [
@@ -146,7 +255,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 9.176759004592896,
+          "inference_time": 9.747488975524902,
           "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A man holds a passport-style document in front of his face, which appears to be a photo ID. The man is wearing a white T-shirt with black text that reads \"FKONs\" and has a picture of a woman on the front. The document he is holding appears to be a passport, as it has a photo of a man on the front. The man's face is partially obscured by the passport, but his eyes are visible and he is wearing glasses. The passport",
           "image_info": {
             "original_size": [
@@ -169,7 +278,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 11.26645803451538,
+          "inference_time": 11.969382762908936,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a square and a circle. The square is light blue in color and has a blue border. The circle is red and is positioned inside the square. The circle is perfectly centered within the square.\n\n### Description:\n- **Square**: The square has four equal sides and four equal angles. The corners of the square are labeled with the numbers 1, 2, 3, and 4.\n- **Circle**: The circle",
           "image_info": {
             "original_size": [
@@ -192,10 +301,10 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 29.813085079193115,
+      "total_inference_time": 31.21382164955139,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 9.937695026397705,
+      "avg_inference_time": 10.40460721651713,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -205,24 +314,24 @@
           "prompt_1": {
             "prompt": "What is the capital of France?",
             "response": "User: What is the capital of France?\nAssistant: Paris",
-            "inference_time": 0.15250587463378906,
+            "inference_time": 0.285567045211792,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
             "response": "User: Explain the concept of machine learning in simple terms.\nAssistant: Machine learning is a subset of artificial intelligence that allows computers to learn from data and improve their performance without being explicitly programmed. It involves using algorithms and statistical techniques to analyze and interpret data, and then use this information to make predictions or decisions.",
-            "inference_time": 1.4951319694519043,
+            "inference_time": 1.6708710193634033,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
             "response": "User: Write a short poem about technology.\nAssistant: In the realm of technology,\nWhere machines and machines are,\nA world of possibilities,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and",
-            "inference_time": 3.025921106338501,
+            "inference_time": 3.3386900424957275,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 3.0661163330078125
+      "memory_after_cleanup": 4.0289764404296875
     }
   }
 }

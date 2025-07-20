@@ -1,317 +1,155 @@
 # VLM Model Loading Reference Guide
 
-## 📊 **Quick Summary** (2025-07-18)
+## 📊 **Quick Summary** (2025-07-20)
 
 ### **Capability Overview**
-| Model | Vision | Pure Text | Context | Framework | Status |
-|-------|--------|-----------|---------|-----------|--------|
-| **SmolVLM-500M-Instruct** | ✅ 100% | ✅ 100% | ⚠️ 33% | Transformers | ✅ Reliable |
-| **SmolVLM2-500M-Video** | ✅ 100% | ✅ 100% | ❌ 10% | Transformers | ✅ Reliable |
-| **Moondream2** | ✅ 100% | ❌ 0% | ❌ 0% | Transformers | ✅ Vision-Only |
-| **LLaVA-v1.6-Mistral-7B-MLX** | ✅ 100% | ✅ 100% | ⚠️ 20% | MLX | ⚠️ State Issues |
-| **Phi-3.5-Vision-Instruct** | ✅ 100% | ✅ 100% | ❌ 0% | MLX-VLM | ✅ Optimized |
+| Model | Vision | Pure Text | Context | VQA Accuracy | Simple Accuracy | Framework | Status |
+|-------|--------|-----------|---------|--------------|-----------------|-----------|--------|
+| **SmolVLM2-500M-Video-MLX** | ✅ 100% | ✅ 100% | ❌ 10% | 51.5% | **60.0%** | MLX | ✅ **Best Overall** |
+| **SmolVLM-500M-Instruct** | ✅ 100% | ✅ 100% | ⚠️ 33% | **52.5%** | 55.0% | Transformers | ✅ **Best VQA** |
+| **Moondream2** | ✅ 100% | ❌ 0% | ❌ 0% | 53.0% | **60.0%** | Transformers | ✅ **Vision-Only** |
+| **LLaVA-v1.6-Mistral-7B-MLX** | ✅ 100% | ✅ 100% | ⚠️ 20% | 27.0% | 25.0% | MLX | ⚠️ **State Issues** |
+| **Phi-3.5-Vision-Instruct-MLX** | ✅ 100% | ✅ 100% | ⚠️ 25% | 52.0% | 50.0% | MLX | ✅ **Balanced** |
 
-### **Key Notes**
-- **Local Images**: All models adapted for local image processing
-- **Unified Parameters**: `max_new_tokens=100, do_sample=false`
-- **MLX Required**: For Apple Silicon (M1/M2/M3) optimization
-- **Image Preprocessing**: Max 1024px, aspect ratio preserved
-
-## 🚀 **Model Implementation Guide**
-
-### **1. SmolVLM2-500M-Video-Instruct**
-**HuggingFace ID**: `mlx-community/SmolVLM2-500M-Video-Instruct-mlx`
-
-#### **Loading Method**
-```python
-from mlx_vlm import load
-
-def load_smolvlm2_video(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
-    try:
-        # 優先使用 MLX-VLM 框架
-        from mlx_vlm import load
-        model, processor = load(model_id)
-        model._is_mlx_model = True
-        return model, processor
-    except ImportError:
-        # 回退到原始版本
-        fallback_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
-        from transformers import AutoProcessor, AutoModelForImageTextToText
-        processor = AutoProcessor.from_pretrained(fallback_id)
-        model = AutoModelForImageTextToText.from_pretrained(fallback_id)
-        return model, processor
-```
-
-#### **Inference Method**
-```python
-# MLX 版本推理
-if hasattr(model, '_is_mlx_model'):
-    import subprocess
-    import tempfile
-    
-    # 創建臨時圖像文件
-    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
-        temp_image_path = tmp_file.name
-        image.save(temp_image_path)
-    
-    # 使用 MLX-VLM 命令行工具
-    cmd = [
-        sys.executable, '-m', 'mlx_vlm.generate',
-        '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
-        '--image', temp_image_path,
-        '--prompt', prompt,
-        '--max-tokens', '100',
-        '--temperature', '0.0'
-    ]
-    
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-    # 解析輸出...
-else:
-    # 標準 transformers 推理
-    messages = [
-        {
-            "role": "user", 
-            "content": [
-                {"type": "image", "image": image},
-                {"type": "text", "text": prompt}
-            ]
-        }
-    ]
-    input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    inputs = processor(text=input_text, images=image, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=100, do_sample=False)
-    response = processor.decode(outputs[0], skip_special_tokens=True)
-```
-
-#### **Performance**
-- **Load Time**: 0.53s (MLX optimized)
-- **Inference**: 5.75s avg (MLX optimized)
-- **Pure Text**: 5.37s avg (MLX optimized)
-- **Best Use**: Multi-media applications with Apple Silicon optimization
+### **Performance Rankings**
+| Rank | Model | Load Time | Inference | VQA Acc | Simple Acc | Context | Status |
+|------|-------|-----------|-----------|---------|------------|---------|--------|
+| 🥇 | **SmolVLM2-MLX** | 0.38s | 4.23s | 51.5% | **60.0%** | ❌ 10% | ✅ **Fastest** |
+| 🥈 | **Moondream2** | 4.96s | 3.89s | 53.0% | **60.0%** | ❌ 0% | ✅ **Best Vision** |
+| 🥉 | **SmolVLM** | 3.37s | 6.09s | **52.5%** | 55.0% | ⚠️ 33% | ✅ **Best VQA** |
+| 4️⃣ | **Phi-3.5-MLX** | 1.55s | 9.64s | 52.0% | 50.0% | ⚠️ 25% | ✅ **Balanced** |
+| 5️⃣ | **LLaVA-MLX** | 2.61s | 15.09s | 27.0% | 25.0% | ⚠️ 20% | ⚠️ **Slow** |
 
 ---
 
-### **2. SmolVLM-500M-Instruct**
-**HuggingFace ID**: `HuggingFaceTB/SmolVLM-500M-Instruct`
+## **🔧 Model Loading Methods**
 
-#### **Loading Method**
+### **1. SmolVLM2-500M-Video-Instruct-MLX** ⭐ **RECOMMENDED**
 ```python
-from transformers import AutoProcessor, AutoModelForVision2Seq
-
-def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
-    processor = AutoProcessor.from_pretrained(model_id)
-    model = AutoModelForVision2Seq.from_pretrained(model_id)
-    return model, processor
+# Best overall performance - Fast, accurate, MLX optimized
+model_id = "mlx-community/SmolVLM2-500M-Video-Instruct-mlx"
+# Load time: 0.38s | Inference: 4.23s | VQA: 51.5% | Simple: 60.0%
 ```
 
-#### **Inference Method**
+### **2. SmolVLM-500M-Instruct** 🏆 **BEST VQA**
 ```python
-# Identical to SmolVLM2-Video (same message format)
+# Best VQA accuracy - Transformers framework
+model_id = "HuggingFaceTB/SmolVLM-500M-Instruct"
+# Load time: 3.37s | Inference: 6.09s | VQA: 52.5% | Simple: 55.0%
 ```
 
-#### **Performance**
-- **Load Time**: 3.81s
-- **Inference**: 6.51s avg
-- **Pure Text**: 1.72s avg (fastest)
-- **Best Use**: Fast Q&A, real-time chat
+### **3. Moondream2** 👁️ **VISION-ONLY**
+```python
+# Vision-only model - No text capability
+model_id = "vikhyatk/moondream2"
+# Load time: 4.96s | Inference: 3.89s | VQA: 53.0% | Simple: 60.0%
+```
+
+### **4. LLaVA-v1.6-Mistral-7B-MLX** ⚠️ **STATE ISSUES**
+```python
+# Large model with state bugs - Requires reloading
+model_id = "mlx-community/llava-v1.6-mistral-7b-4bit"
+# Load time: 2.61s | Inference: 15.09s | VQA: 27.0% | Simple: 25.0%
+```
+
+### **5. Phi-3.5-Vision-Instruct-MLX** ⚖️ **BALANCED**
+```python
+# Balanced performance - Good all-around
+model_id = "mlx-community/Phi-3.5-vision-instruct-4bit"
+# Load time: 1.55s | Inference: 9.64s | VQA: 52.0% | Simple: 50.0%
+```
 
 ---
 
-### **3. Moondream2**
-**HuggingFace ID**: `vikhyatk/moondream2`
+## **📈 Detailed Performance Analysis**
 
-#### **Loading Method**
-```python
-from transformers import AutoModelForCausalLM, AutoTokenizer
+### **VQA 2.0 COCO Dataset Results (20 Questions)**
+| Model | Correct | Accuracy | VQA Accuracy | Avg Time | Grade |
+|-------|---------|----------|--------------|----------|-------|
+| **SmolVLM2-MLX** | 12/20 | **60.0%** | 51.5% | 4.23s | 🥇 **A** |
+| **Moondream2** | 12/20 | **60.0%** | 53.0% | 3.89s | 🥈 **A** |
+| **SmolVLM** | 11/20 | 55.0% | **52.5%** | 6.09s | 🥉 **B+** |
+| **Phi-3.5-MLX** | 10/20 | 50.0% | 52.0% | 9.64s | **B** |
+| **LLaVA-MLX** | 5/20 | 25.0% | 27.0% | 15.09s | **D** |
 
-def load_moondream2(model_id="vikhyatk/moondream2"):
-    model = AutoModelForCausalLM.from_pretrained(model_id, trust_remote_code=True)
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    
-    if torch.backends.mps.is_available():
-        model = model.to('mps')
-    
-    return model, tokenizer
-```
+### **Context Understanding Capability**
+| Model | Success Rate | Context Accuracy | Status |
+|-------|--------------|------------------|--------|
+| **SmolVLM2-MLX** | 100% | **10%** | ❌ **Poor Context** |
+| **SmolVLM** | 100% | **33%** | ⚠️ **Limited Context** |
+| **LLaVA-MLX** | 100% | **20%** | ⚠️ **Poor Context** |
+| **Phi-3.5-MLX** | 100% | **25%** | ⚠️ **Limited Context** |
 
-#### **Inference Method**
-```python
-# Special API (cannot use standard pipeline)
-device = next(model.parameters()).device
-enc_image = model.encode_image(image)
-if hasattr(enc_image, 'to'):
-    enc_image = enc_image.to(device)
-response = model.answer_question(enc_image, prompt, processor)
-```
-
-#### **Limitations**
-- **Pure Text**: Not supported (architecture requires `image_embeds`)
-- **Parameters**: Cannot fully unify generation parameters
-
-#### **Performance**
-- **Load Time**: 5.56s
-- **Inference**: 6.61s avg (fastest vision)
-- **Best Use**: Vision-only tasks
+### **Text-Only Capability**
+| Model | Success Rate | Status |
+|-------|--------------|--------|
+| **SmolVLM2-MLX** | **100%** | ✅ **Full Support** |
+| **SmolVLM** | **100%** | ✅ **Full Support** |
+| **LLaVA-MLX** | **100%** | ✅ **Full Support** |
+| **Phi-3.5-MLX** | **100%** | ✅ **Full Support** |
+| **Moondream2** | **0%** | ❌ **No Support** |
 
 ---
 
-### **4. LLaVA-v1.6-Mistral-7B-MLX**
-**HuggingFace ID**: `mlx-community/llava-v1.6-mistral-7b-4bit`
+## **🎯 Recommendations**
 
-#### **Requirements**
-```bash
-pip install mlx-vlm
-```
+### **For Production Use:**
+1. **SmolVLM2-MLX** - Best overall performance, fastest inference
+2. **SmolVLM** - Best VQA accuracy, reliable text support
+3. **Moondream2** - Best vision-only performance
 
-#### **Loading Method**
-```python
-from mlx_vlm import load
+### **For Development/Testing:**
+1. **Phi-3.5-MLX** - Balanced performance, good for experimentation
+2. **LLaVA-MLX** - Large model, but has state issues
 
-def load_llava_mlx(model_id="mlx-community/llava-v1.6-mistral-7b-4bit"):
-    model, processor = load(model_id)
-    return model, processor
-```
-
-#### **Inference Method**
-```python
-from mlx_vlm import generate
-
-# Vision + Text
-response = generate(
-    model, processor, prompt, 
-    image=str(image_path),
-    max_tokens=100,
-    verbose=False
-)
-
-# Pure Text
-response = generate(
-    model, processor, "Write a poem about technology",
-    max_tokens=100,
-    verbose=False
-)
-```
-
-#### **Known Issues**
-- **Synthetic Images**: Processing bug with geometric images
-- **State Memory**: Same response for different images
-- **Solution**: Exclusion list for problematic images
-
-#### **Performance**
-- **Load Time**: 3.04s (fastest)
-- **Inference**: 8.57s avg
-- **Pure Text**: 4.08s avg
-- **Best Use**: Creative writing, poetry
+### **For Specific Use Cases:**
+- **VQA Tasks**: SmolVLM (52.5% VQA accuracy)
+- **Speed Critical**: SmolVLM2-MLX (4.23s avg inference)
+- **Vision-Only**: Moondream2 (60.0% simple accuracy)
+- **Text + Vision**: SmolVLM2-MLX (100% text success rate)
 
 ---
 
-### **5. Phi-3.5-Vision-Instruct**
-**HuggingFace ID**: `mlx-community/Phi-3.5-vision-instruct-4bit`
+## **⚠️ Known Issues**
 
-#### **Requirements**
-```bash
-pip install mlx-vlm
-```
+### **LLaVA-MLX State Bugs**
+- Model state becomes corrupted after multiple inferences
+- Requires model reloading between evaluations
+- Fixed in VQA framework with reload strategy
 
-#### **Loading Method**
-```python
-from mlx_vlm import load
+### **Moondream2 Text Limitations**
+- Cannot process text-only prompts
+- Vision-only model by design
+- Not suitable for pure text tasks
 
-def load_phi3_vision(model_id="mlx-community/Phi-3.5-vision-instruct-4bit"):
-    model, processor = load(model_id, trust_remote_code=True)
-    return model, processor
-```
+### **Context Understanding**
+- All models show poor context retention
+- SmolVLM has best context accuracy (33%)
+- Significant limitation for conversation tasks
 
-#### **Inference Method**
-```python
-from mlx_vlm import generate
+---
 
-# Vision + Text (Simplified - No load_config required)
-response = generate(
-    model=model,
-    processor=processor,
-    prompt="Describe this image in detail",
-    image="path/to/image.jpg",
-    max_tokens=100,
-    temp=0.0,
-    verbose=False
-)
+## **🔄 Framework Compatibility**
 
-# Pure Text
-response = generate(
-    model=model,
-    processor=processor,
-    prompt="What is the capital of France?",
-    max_tokens=100,
-    temp=0.0,
-    verbose=False
-)
-```
+### **VQA Framework**
+- ✅ All models supported
+- ✅ Unified evaluation metrics
+- ✅ COCO dataset integration
+- ✅ MLX subprocess handling
 
-#### **Key Improvements (2025-07-18)**
-- **✅ Simplified Inference**: Removed unnecessary `load_config` calls
-- **✅ No Manual Confirmation**: Eliminated interactive prompts
-- **✅ Consistent Implementation**: All files use same inference method
-- **✅ Optimized Performance**: Faster loading and inference
+### **Performance Testing**
+- ✅ Load time measurement
+- ✅ Memory usage tracking
+- ✅ Text-only capability testing
+- ✅ Vision capability validation
 
-#### **Performance**
-- **Load Time**: 1.38s (optimized)
-- **Vision Inference**: 10.00s avg (improved)
-- **Text Generation**: 5.30s avg (improved)
-- **Best Use**: Vision-language tasks, educational applications
+### **Context Testing**
+- ✅ Conversation flow testing
+- ✅ Context retention evaluation
+- ✅ Forensic-level detail testing
 
-## 🛠️ **Technical Notes**
+---
 
-### **Apple Silicon Optimization**
-- **MLX Framework**: Required for LLaVA (mlx-vlm) and Phi-3.5-Vision (mlx-vlm)
-- **Installation**: `pip install mlx-vlm`
-- **Performance**: 98%+ speed improvement vs transformers
-- **Memory**: More efficient usage with INT4 quantization
-
-### **Local Image Adaptation**
-- **Standard Format**: `{"type": "image", "image": image_object}`
-- **Phi-3.5-Vision**: Uses `str(image_path)` instead
-- **Preprocessing**: Unified scaling to max 1024px
-- **Support**: JPG, JPEG, PNG, BMP
-
-### **Memory Management**
-- **Sequential Loading**: One model at a time
-- **Cleanup**: `del model, gc.collect(), torch.mps.empty_cache()`
-- **Timeout**: 60s (small), 180s (large models)
-
-## 📊 **Performance Comparison**
-
-### **Loading Speed**
-1. **Phi-3.5-Vision**: 1.38s (optimized)
-2. **LLaVA-MLX**: 3.04s
-3. **SmolVLM-500M**: 3.81s
-4. **SmolVLM2-Video**: 4.71s
-5. **Moondream2**: 5.56s
-
-### **Inference Speed**
-1. **Moondream2**: 6.61s avg
-2. **SmolVLM-500M**: 6.51s avg
-3. **SmolVLM2-Video**: 6.61s avg
-4. **LLaVA-MLX**: 8.57s avg
-5. **Phi-3.5-Vision**: 13.61s avg
-
-### **Pure Text Speed**
-1. **SmolVLM-500M**: 1.72s avg
-2. **Phi-3.5-Vision**: 6.49s avg
-3. **SmolVLM2-Video**: 3.70s avg
-4. **LLaVA-MLX**: 4.08s avg
-5. **Moondream2**: Not supported
-
-## 🎯 **Recommendations**
-
-### **Best Use Cases**
-- **General Purpose**: SmolVLM-500M-Instruct
-- **Fast Q&A**: SmolVLM-500M-Instruct
-- **Creative Writing**: LLaVA-MLX
-- **Educational**: Phi-3.5-Vision-Instruct
-- **Vision-Only**: Moondream2
-
-### **Avoid**
-- **LLaVA-MLX**: State memory issues
-- **Transformers Phi-3.5**: Complete failure on Apple Silicon
+**Last Updated:** 2025-07-20  
+**Test Environment:** MacBook Air M3 (16GB RAM)  
+**Framework Version:** vqa2_enhanced_v1.2

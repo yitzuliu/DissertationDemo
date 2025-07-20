@@ -8,6 +8,9 @@ Date: 2025-01-27
 """
 
 import os
+# Prevent tokenizer parallelism warnings
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 import sys
 import json
 import time
@@ -695,14 +698,14 @@ class VQAFramework:
                         mlx_prompt = f"<|image_1|>\nUser: {question}\nAssistant:"
                         
                         response = generate(
-                            model, 
-                            processor, 
-                            mlx_prompt,
-                            image=temp_image_path,
+                                model, 
+                                processor, 
+                                mlx_prompt,
+                                image=temp_image_path,
                             max_tokens=unified_generation_params["max_new_tokens"],
-                            temp=0.0,  # Use 0.0 for deterministic output
-                            verbose=False
-                        )
+                                temp=0.0,  # Use 0.0 for deterministic output
+                                verbose=False
+                            )
                     finally:
                         # Clean up temporary file
                         if os.path.exists(temp_image_path):
@@ -775,7 +778,7 @@ class VQAFramework:
                         torch.mps.empty_cache()
                     
                     return result
-                
+                    
             elif "llava_mlx" in model_name.lower():
                 # LLaVA-MLX inference (same as vlm_tester.py)
                 try:
@@ -820,12 +823,12 @@ class VQAFramework:
                     print(f"  ⚠️ MLX-VLM failed: {e}")
                     # Fallback: Return descriptive error but don't crash
                     return f"MLX-VLM inference failed: {str(e)}"
-                
+                    
             elif "smolvlm" in model_name.lower():
                 # SmolVLM processing
                 # 檢查是否為 MLX 模型
                 if hasattr(model, '_is_mlx_model'):
-                    # MLX 版本的 SmolVLM2 推理
+                    # MLX 版本的 SmolVLM2 推理 - 使用 subprocess 方式（與 vlm_tester.py 和 vlm_context_tester.py 一致）
                     try:
                         import subprocess
                         import tempfile
@@ -1008,7 +1011,7 @@ class VQAFramework:
             # Single model test or intermediate results - use fixed name (can be overwritten)
             filename = f"vqa2_results_{suffix}.json"
         else:
-            # Complete test - use timestamp to avoid overwriting
+                # Complete test - use timestamp to avoid overwriting
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"vqa2_results_{test_mode}_{timestamp}.json"
         

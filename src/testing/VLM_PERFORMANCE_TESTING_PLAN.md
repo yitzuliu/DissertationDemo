@@ -1,172 +1,296 @@
 # VLM Performance Testing Plan
 
-## 📊 **Quick Summary** (2025-07-18)
+## 📊 **Quick Summary** (2025-07-20)
 
 ### 🏆 **Performance Rankings**
-| Rank | Model | Load Time | Inference | Vision | Text | Context | Status |
-|------|-------|-----------|-----------|--------|------|---------|--------|
-| 🥇 | **SmolVLM2-500M-Video** | 0.53s | 5.75s | ✅ 100% | ✅ 100% | ❌ 10% | ✅ MLX Optimized |
-| 🥈 | **SmolVLM-500M-Instruct** | 3.81s | 6.51s | ✅ 100% | ✅ 100% | ⚠️ 33% | ✅ Reliable |
-| 🥉 | **LLaVA-v1.6-Mistral-7B-MLX** | 3.04s | 8.57s | ✅ 100% | ✅ 100% | ⚠️ 20% | ⚠️ State Issues |
-| 4️⃣ | **Moondream2** | 5.56s | 6.61s | ✅ 100% | ❌ 0% | ❌ 0% | ✅ Vision-Only |
-| 5️⃣ | **Phi-3.5-Vision-Instruct** | 1.38s | 13.61s | ✅ 100% | ✅ 100% | ✅ 100% | ✅ Optimized |
+| Rank | Model | Load Time | Inference | Vision | Text | Context | VQA Accuracy | Simple Accuracy | Status |
+|------|-------|-----------|-----------|--------|------|---------|--------------|-----------------|--------|
+| 🥇 | **SmolVLM2-500M-Video-MLX** | 0.38s | 4.23s | ✅ 100% | ✅ 100% | ❌ 10% | 51.5% | **60.0%** | ✅ **Best Overall** |
+| 🥈 | **SmolVLM-500M-Instruct** | 3.37s | 6.09s | ✅ 100% | ✅ 100% | ⚠️ 33% | **52.5%** | 55.0% | ✅ **Best VQA** |
+| 🥉 | **Moondream2** | 4.96s | 3.89s | ✅ 100% | ❌ 0% | ❌ 0% | 53.0% | **60.0%** | ✅ **Best Vision** |
+| 4️⃣ | **Phi-3.5-Vision-Instruct-MLX** | 1.55s | 9.64s | ✅ 100% | ✅ 100% | ⚠️ 25% | 52.0% | 50.0% | ✅ **Balanced** |
+| 5️⃣ | **LLaVA-v1.6-Mistral-7B-MLX** | 2.61s | 15.09s | ✅ 100% | ✅ 100% | ⚠️ 20% | 27.0% | 25.0% | ⚠️ **Slow** |
 
-### 🎯 **Key Findings**
-- **Vision Tasks**: All 5 models successful (100% success rate)
-- **Pure Text**: 4/5 models support (80% success rate)
-- **Context Understanding**: Limited capabilities as expected
-- **MLX Optimization**: Critical for Apple Silicon performance
-- **SmolVLM2 MLX**: 90%+ speed improvement with MLX optimization
-- **Phi-3.5-Vision**: Successfully optimized with trust_remote_code=True
+---
 
-## 🎯 **Testing Objectives**
+## **🎯 Testing Objectives**
 
-### **Core Capabilities Tested**
-1. **Vision-Language Tasks**: Image description and analysis
-2. **Pure Text Processing**: Knowledge Q&A, explanations, creative writing
-3. **Context Understanding**: Conversation memory across multiple turns
-4. **Technical Reliability**: Memory management, error handling
+### **Primary Goals**
+1. **Performance Benchmarking:** Measure load time, inference speed, and memory usage
+2. **Accuracy Evaluation:** Assess VQA and simple accuracy on COCO dataset
+3. **Capability Testing:** Validate vision, text, and context understanding
+4. **Framework Compatibility:** Test MLX vs Transformers performance
+5. **Real-world Validation:** Use actual images and questions
+
+### **Secondary Goals**
+1. **Memory Efficiency:** Monitor RAM usage and cleanup effectiveness
+2. **Error Handling:** Test timeout and error recovery mechanisms
+3. **Consistency:** Verify reproducible results across multiple runs
+4. **Scalability:** Assess performance with different image sizes and complexities
+
+---
+
+## **🧪 Testing Framework**
 
 ### **Test Environment**
-- **Hardware**: MacBook Air M3 (16GB RAM)
-- **Images**: 3 test images (photographic + synthetic)
-- **Parameters**: Unified `max_new_tokens=100, do_sample=false`
-
-## 🧠 **Context Understanding Test**
-
-### **Methodology**
-1. **Image Description**: Show image with detailed prompt
-2. **Context Questions** (without re-showing image):
-   - "What were the most prominent colors?"
-   - "Were there any people visible?"
-   - "Summarize the main scene in one sentence"
-
-### **Results Analysis**
-- **Expected Outcome**: Limited context understanding (confirmed)
-- **Best Performer**: SmolVLM-500M-Instruct (~33% success)
-- **Architectural Limitation**: Most local VLM models lack conversation memory
-
-## 🎯 **Test Models**
-
-| Model | HuggingFace ID | Framework | Special Requirements |
-|-------|----------------|-----------|---------------------|
-| **SmolVLM2-500M-Video** | `mlx-community/SmolVLM2-500M-Video-Instruct-mlx` | MLX | `pip install mlx-vlm` |
-| **SmolVLM-500M-Instruct** | `HuggingFaceTB/SmolVLM-500M-Instruct` | Transformers | None |
-| **Moondream2** | `vikhyatk/moondream2` | Transformers | Special API |
-| **LLaVA-v1.6-Mistral-7B-MLX** | `mlx-community/llava-v1.6-mistral-7b-4bit` | MLX | `pip install mlx-vlm` |
-| **Phi-3.5-Vision-Instruct** | `mlx-community/Phi-3.5-vision-instruct-4bit` | MLX | `pip install mlx-vlm` |
-
-## 📊 **Test Configuration**
-
-### **Unified Test Conditions**
-- **Image Preprocessing**: Max 1024px, aspect ratio preserved
-- **Prompt**: "Describe what you see in this image in detail."
-- **Generation**: `max_new_tokens=100, do_sample=false`
-- **Image Format**: Local images with unified preprocessing
+- **Hardware:** MacBook Air M3 (16GB RAM)
+- **OS:** macOS 14.5.0
+- **Python:** 3.13.3
+- **Frameworks:** PyTorch 2.7.1, MLX, Transformers
+- **Virtual Environment:** ai_vision_env
 
 ### **Test Images**
-- **Location**: `src/testing/testing_material/images/`
-- **Support**: JPG, JPEG, PNG, BMP
-- **Processing**: Automatic multi-image detection and testing
+1. **IMG_0119.JPG:** Shiba Inu dog on tiled floor (960x1707)
+2. **IMG_2053.JPG:** Person holding passport (3088x2316)
+3. **test_image.jpg:** Geometric diagram (336x336)
 
-## 🛠️ **Implementation**
+### **Test Prompts**
+- **Vision:** "Describe what you see in this image in detail."
+- **Text:** "What is the capital of France?", "Explain machine learning", "Write a poem about technology"
+- **VQA:** 20 COCO val2014 questions with ground truth answers
 
-### **File Structure**
-```
-src/testing/
-├── VLM_PERFORMANCE_TESTING_PLAN.md
-├── vlm_tester.py                    # Main testing program
-├── vlm_context_tester.py            # Context understanding tests
-├── testing_material/images/         # Test images
-└── results/                         # JSON result files
-```
+---
 
-### **Memory Management**
-- **Sequential Loading**: One model at a time
-- **Complete Cleanup**: `del model, gc.collect(), torch.mps.empty_cache()`
-- **Timeout Settings**: 60s (small), 180s (large models)
+## **📋 Test Categories**
 
-### **Known Issues & Solutions**
-- **LLaVA-MLX**: Synthetic image processing bug → Exclusion list implemented
-- **Phi-3.5-Vision**: MLX required for Apple Silicon → 98% speed improvement, trust_remote_code=True added
-- **Moondream2**: Special API required → Cannot unify parameters
+### **1. Performance Testing** (`vlm_tester.py`)
+- **Load Time Measurement:** Time to load model into memory
+- **Inference Speed:** Average time per image/text prompt
+- **Memory Usage:** RAM consumption before/after loading
+- **Text-Only Capability:** Pure text processing without images
 
-## 📊 **Result Format**
+### **2. VQA Testing** (`vqa_test.py`)
+- **COCO Dataset:** 20 questions from VQA 2.0 validation set
+- **Accuracy Metrics:** Simple accuracy and VQA accuracy
+- **Ground Truth:** Standard VQA 2.0 evaluation protocol
+- **Performance Tracking:** Inference time per question
 
-### **JSON Structure**
-```json
-{
-  "test_timestamp": "2025-07-18 17:05:26",
-  "system_info": {
-    "device": "MacBook Air M3",
-    "memory": "16GB"
-  },
-  "models": {
-    "model_name": {
-      "load_time": 3.81,
-      "memory_diff": 0.39,
-      "successful_inferences": 3,
-      "avg_inference_time": 6.51,
-      "images": {
-        "image_name.jpg": {
-          "inference_time": 6.51,
-          "response": "Image description...",
-          "error": null
-        }
-      }
-    }
-  }
-}
+### **3. Context Understanding** (`vlm_context_tester.py`)
+- **Conversation Flow:** Multi-turn dialogue testing
+- **Context Retention:** Ability to reference previous descriptions
+- **Forensic Testing:** Detailed image analysis with follow-up questions
+- **Memory Assessment:** Conversation context preservation
+
+---
+
+## **🔧 Model Configurations**
+
+### **SmolVLM2-500M-Video-Instruct-MLX**
+```python
+model_id = "mlx-community/SmolVLM2-500M-Video-Instruct-mlx"
+framework = "MLX"
+load_time = 0.38s
+avg_inference = 4.23s
+vqa_accuracy = 51.5%
+simple_accuracy = 60.0%
+context_accuracy = 10%
 ```
 
-## 🚀 **Usage Instructions**
+### **SmolVLM-500M-Instruct**
+```python
+model_id = "HuggingFaceTB/SmolVLM-500M-Instruct"
+framework = "Transformers"
+load_time = 3.37s
+avg_inference = 6.09s
+vqa_accuracy = 52.5%
+simple_accuracy = 55.0%
+context_accuracy = 33%
+```
 
-### **Quick Commands**
+### **Moondream2**
+```python
+model_id = "vikhyatk/moondream2"
+framework = "Transformers"
+load_time = 4.96s
+avg_inference = 3.89s
+vqa_accuracy = 53.0%
+simple_accuracy = 60.0%
+context_accuracy = 0% (not supported)
+```
+
+### **LLaVA-v1.6-Mistral-7B-MLX**
+```python
+model_id = "mlx-community/llava-v1.6-mistral-7b-4bit"
+framework = "MLX"
+load_time = 2.61s
+avg_inference = 15.09s
+vqa_accuracy = 27.0%
+simple_accuracy = 25.0%
+context_accuracy = 20%
+```
+
+### **Phi-3.5-Vision-Instruct-MLX**
+```python
+model_id = "mlx-community/Phi-3.5-vision-instruct-4bit"
+framework = "MLX"
+load_time = 1.55s
+avg_inference = 9.64s
+vqa_accuracy = 52.0%
+simple_accuracy = 50.0%
+context_accuracy = 25%
+```
+
+---
+
+## **📊 Detailed Results**
+
+### **Performance Metrics Summary**
+| Model | Load Time | Vision Inference | Text Inference | Memory Usage | Vision Success | Text Success |
+|-------|-----------|------------------|----------------|--------------|----------------|--------------|
+| **SmolVLM2-MLX** | 0.38s | 5.71s | 5.37s | 1.04GB | 3/3 | 3/3 |
+| **SmolVLM** | 3.37s | 10.40s | 1.72s | 1.87GB | 3/3 | 3/3 |
+| **Moondream2** | 4.96s | 6.47s | N/A | -1.74GB | 3/3 | 0/3 |
+| **LLaVA-MLX** | 2.61s | 12.56s | 4.08s | 0.17GB | 3/3 | 3/3 |
+| **Phi-3.5-MLX** | 1.55s | 12.44s | 5.30s | 0.29GB | 3/3 | 3/3 |
+
+### **VQA 2.0 COCO Results (20 Questions)**
+| Model | Correct Answers | Simple Accuracy | VQA Accuracy | Avg Time | Grade |
+|-------|----------------|-----------------|--------------|----------|-------|
+| **SmolVLM2-MLX** | 12/20 | **60.0%** | 51.5% | 4.23s | 🥇 **A** |
+| **Moondream2** | 12/20 | **60.0%** | 53.0% | 3.89s | 🥈 **A** |
+| **SmolVLM** | 11/20 | 55.0% | **52.5%** | 6.09s | 🥉 **B+** |
+| **Phi-3.5-MLX** | 10/20 | 50.0% | 52.0% | 9.64s | **B** |
+| **LLaVA-MLX** | 5/20 | 25.0% | 27.0% | 15.09s | **D** |
+
+### **Context Understanding Results**
+| Model | Success Rate | Context Accuracy | Avg Inference | Status |
+|-------|--------------|------------------|---------------|--------|
+| **SmolVLM** | 100% | **33%** | 6.09s | 🏆 **Best Context** |
+| **Phi-3.5-MLX** | 100% | **25%** | 9.64s | 🥈 **Good Context** |
+| **LLaVA-MLX** | 100% | **20%** | 15.09s | 🥉 **Limited Context** |
+| **SmolVLM2-MLX** | 100% | **10%** | 4.23s | ❌ **Poor Context** |
+
+---
+
+## **🎯 Key Findings**
+
+### **Performance Insights**
+1. **Fastest Overall:** SmolVLM2-MLX (0.38s load, 4.23s inference)
+2. **Best VQA:** SmolVLM (52.5% VQA accuracy)
+3. **Best Vision:** Moondream2 (60.0% simple accuracy)
+4. **Best Context:** SmolVLM (33% context accuracy)
+5. **Slowest:** LLaVA-MLX (15.09s inference)
+
+### **Framework Comparison**
+- **MLX Models:** Faster loading, optimized for Apple Silicon
+- **Transformers Models:** More reliable, better text support
+- **Memory Efficiency:** Moondream2 shows memory optimization
+- **State Issues:** LLaVA-MLX requires reloading between tests
+
+### **Capability Analysis**
+- **Vision Processing:** All models achieve 100% success rate
+- **Text Processing:** Moondream2 cannot process text-only prompts
+- **Context Understanding:** All models show significant limitations
+- **VQA Performance:** Wide range from 27% to 53%
+
+---
+
+## **⚠️ Known Issues**
+
+### **Technical Issues**
+1. **LLaVA State Bugs:** Model state corruption requires reloading
+2. **Moondream2 Text Limitation:** Cannot process text-only prompts
+3. **Context Understanding:** Universal poor performance across all models
+4. **Memory Management:** Some models show memory leaks
+
+### **Performance Issues**
+1. **LLaVA Slow Inference:** 15.09s average (3x slower than others)
+2. **VQA Accuracy Gap:** 26% difference between best and worst
+3. **Context Retention:** Maximum 33% accuracy (SmolVLM)
+
+---
+
+## **🔧 Testing Procedures**
+
+### **Performance Testing**
 ```bash
-# Activate environment
-source ../../ai_vision_env/bin/activate
+# Activate virtual environment
+source ai_vision_env/bin/activate
 
-# Install MLX (required for Apple Silicon)
-pip install mlx-vlm
+# Run performance tests
+python vlm_tester.py
 
-# Run tests
-python vlm_tester.py                    # Full performance test
-python vlm_tester.py "Model Name"       # Single model test
-python vlm_context_tester.py            # Context understanding test
+# Expected output: test_results_YYYYMMDD_HHMMSS.json
 ```
 
-### **Test Features**
-- **Automatic Multi-Image**: Detects all images in directory
-- **Pure Text Testing**: 3 standardized prompts per model
-- **Context Understanding**: Conversation flow testing
-- **Result Files**: Timestamped JSON with intermediate saves
+### **VQA Testing**
+```bash
+# Run VQA tests with COCO dataset
+python vqa_test.py --mode coco --num_questions 20
 
-### **Result Files**
-- **Performance**: `test_results_YYYYMMDD_HHMMSS.json`
-- **Context**: `context_understanding_test_results_YYYYMMDD_HHMMSS.json`
-- **Single Model**: `test_results_single_[Model].json`
+# Expected output: vqa2_results_coco_YYYYMMDD_HHMMSS.json
+```
 
-## 🎯 **Key Discoveries**
+### **Context Testing**
+```bash
+# Run context understanding tests
+python vlm_context_tester.py
 
-### **Performance Highlights**
-- **Fastest Loading**: SmolVLM2-Video (0.53s MLX optimized)
-- **Fastest Inference**: SmolVLM2-Video (5.75s avg MLX optimized)
-- **Best Text Model**: SmolVLM-500M-Instruct (1.72s avg)
-- **Most Reliable**: SmolVLM series
-- **MLX Champion**: SmolVLM2-Video (90%+ speed improvement)
+# Expected output: context_understanding_test_results_YYYYMMDD_HHMMSS.json
+```
 
-### **Technical Insights**
-- **MLX Breakthrough**: 98%+ speed improvement on Apple Silicon
-- **Pure Text Surprise**: 80% of VLM models support text-only tasks
-- **Context Reality**: Limited capabilities confirm architectural constraints
-- **Memory Efficiency**: MLX models use memory more efficiently
-- **Phi-3.5 Optimization**: trust_remote_code=True eliminates manual confirmation
+---
 
-### **Recommendations**
-- **General Use**: SmolVLM2-Video (MLX optimized, best performance)
-- **Fast Q&A**: SmolVLM-500M-Instruct (ultra-fast text)
-- **Creative Writing**: LLaVA-MLX (poetic responses)
-- **Educational**: Phi-3.5-Vision (detailed explanations, optimized loading)
-- **Vision-Only**: Moondream2 (excellent image quality)
-- **Apple Silicon**: SmolVLM2-Video (MLX optimized for M1/M2/M3)
-- **Avoid**: LLaVA-MLX (state issues)
+## **📈 Evaluation Metrics**
+
+### **Performance Metrics**
+- **Load Time:** Seconds to load model into memory
+- **Inference Time:** Average seconds per image/text prompt
+- **Memory Usage:** RAM consumption in GB
+- **Success Rate:** Percentage of successful inferences
+
+### **Accuracy Metrics**
+- **Simple Accuracy:** Exact match with ground truth
+- **VQA Accuracy:** Standard VQA 2.0 evaluation protocol
+- **Context Accuracy:** Ability to reference previous descriptions
+
+### **Quality Metrics**
+- **Response Quality:** Relevance and coherence of responses
+- **Error Rate:** Percentage of failed or timeout responses
+- **Consistency:** Reproducibility across multiple runs
+
+---
+
+## **🎯 Recommendations**
+
+### **For Production Use**
+1. **SmolVLM2-MLX:** Best overall performance, fastest inference
+2. **SmolVLM:** Best VQA accuracy, reliable text support
+3. **Moondream2:** Best vision-only performance
+
+### **For Development**
+1. **Phi-3.5-MLX:** Balanced performance, good for experimentation
+2. **LLaVA-MLX:** Large model, but has state issues
+
+### **For Specific Use Cases**
+- **VQA Tasks:** SmolVLM (52.5% VQA accuracy)
+- **Speed Critical:** SmolVLM2-MLX (4.23s avg inference)
+- **Vision-Only:** Moondream2 (60.0% simple accuracy)
+- **Text + Vision:** SmolVLM2-MLX (100% text success rate)
+
+---
+
+## **🔄 Framework Integration**
+
+### **VQA Framework**
+- ✅ Unified evaluation metrics
+- ✅ COCO dataset integration
+- ✅ MLX subprocess handling
+- ✅ Model reloading strategies
+
+### **Performance Framework**
+- ✅ Load time measurement
+- ✅ Memory usage tracking
+- ✅ Text-only capability testing
+- ✅ Vision capability validation
+
+### **Context Framework**
+- ✅ Conversation flow testing
+- ✅ Context retention evaluation
+- ✅ Forensic-level detail testing
+
+---
+
+**Last Updated:** 2025-07-20  
+**Test Environment:** MacBook Air M3 (16GB RAM)  
+**Framework Version:** vqa2_enhanced_v1.2
