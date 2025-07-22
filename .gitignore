@@ -72,6 +72,7 @@ src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/model.safetensors
 # ===== TESTING & RESULTS =====
 # Test results and outputs
 /src/testing/results/*
+/src/testing/results/*intermediate*.json
 !/src/testing/results/test_results_20*.json
 !/src/testing/results/context_understanding_test_results_20*.json
 !/src/testing/results/vqa2_results_coco_20*.json
@@ -244,4 +245,3 @@ deploy/
 deployment/
 *.tar.gz
 *.zip
-src/testing/materials/vqa2/v2_mscoco_val2014_annotations.json
