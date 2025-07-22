@@ -12,11 +12,13 @@
   },
   "image_processing": {
     "smart_crop": true,
-    "size": [384, 384],
+    "size": [1024, 1024],
     "min_size": 256,
     "preserve_aspect_ratio": true,
     "jpeg_quality": 85,
     "optimize": true,
+    "unified_preprocessing": true,
+    "resize_method": "LANCZOS",
     "noise_reduction": {
       "enabled": false,
       "method": "bilateral"
@@ -34,11 +36,14 @@
   "inference": {
     "batch_size": 1,
     "expected_response_time": 3.0,
-    "max_image_size": 384,
+    "max_image_size": 1024,
     "use_half_precision": true,
     "fast_mode": true,
     "use_cache": true,
-    "num_beams": 1
+    "num_beams": 1,
+    "max_new_tokens": 100,
+    "do_sample": false,
+    "temperature": 0.0
   },
   "memory": {
     "required_gb": 4.0,
@@ -56,15 +61,21 @@
   },
   "api": {
     "timeout": 30,
-    "max_tokens": 75,
-    "temperature": 0.1
+    "max_tokens": 100,
+    "temperature": 0.0
   },
   "ui": {
     "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
     "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
     "default_interval": 10000
   },
-  "version": "2.0.0-optimized",
-  "description": "Optimized SmolVLM2-500M configuration for 5x performance improvement. Uses half precision, image caching, and reduced overhead.",
-  "performance_notes": "Target: 2-3s response time (vs 12s original). Quality trade-offs: shorter responses, lower precision, smaller images."
+  "version": "2.1.0-testing-framework-aligned",
+  "description": "SmolVLM2-500M configuration aligned with testing framework. Uses MLX-VLM subprocess, unified preprocessing, and consistent generation parameters.",
+  "performance_notes": "Aligned with VQA testing framework: unified image preprocessing (1024px), consistent generation params (max_new_tokens=100, do_sample=False), MLX-VLM subprocess inference.",
+  "framework_alignment": {
+    "unified_image_preprocessing": true,
+    "unified_generation_params": true,
+    "mlx_vlm_subprocess": true,
+    "consistent_error_handling": true
+  }
 } 

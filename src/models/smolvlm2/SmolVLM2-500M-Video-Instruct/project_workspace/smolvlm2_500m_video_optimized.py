@@ -186,7 +186,7 @@ class OptimizedSmolVLM2Server:
             self.start()
     
     def generate_response_fast(self, messages: List[Dict], max_tokens: int = 100, temperature: float = 0.1) -> Dict[str, Any]:
-        """Optimized response generation"""
+        """Optimized response generation using subprocess for MLX SmolVLM2 (same as testing framework)"""
         try:
             self._initialize_if_needed()
             
@@ -207,98 +207,108 @@ class OptimizedSmolVLM2Server:
                     cached_response["processing_time"] = time.time() - start_time
                     return cached_response
             
-            # Apply chat template (cached if possible)
-            try:
-                inputs = self.processor.apply_chat_template(
-                    messages,
-                    add_generation_prompt=True,
-                    tokenize=True,
-                    return_dict=True,
-                    return_tensors="pt",
-                )
-            except Exception as e:
-                logger.error(f"Template application error: {e}")
-                return {"error": f"Template error: {str(e)}"}
+            # Extract image and prompt from messages
+            image = None
+            prompt = ""
             
-            # Move inputs to device
-            try:
-                inputs = {k: v.to(self.device, dtype=self.torch_dtype if v.dtype.is_floating_point else v.dtype) 
-                         for k, v in inputs.items()}
-            except Exception as e:
-                logger.error(f"Device transfer error: {e}")
-                return {"error": f"Device error: {str(e)}"}
-            
-            # Fast generation with optimizations
-            try:
-                with torch.no_grad():
-                    # Create generation kwargs conditionally
-                    generation_kwargs = {
-                        **inputs,
-                        "max_new_tokens": max_tokens,
-                        "pad_token_id": self.processor.tokenizer.eos_token_id,
-                        "use_cache": True,  # Use KV caching
-                        "num_beams": 1  # No beam search for speed
-                    }
-                    
-                    # Conditional generation parameters to avoid warnings
-                    if temperature > 0.0:
-                        generation_kwargs.update({
-                            "do_sample": True,
-                            "temperature": temperature,
-                            "top_p": 0.9  # Add top_p for better sampling
-                        })
+            for message in messages:
+                if message.get("role") == "user":
+                    content = message.get("content", "")
+                    if isinstance(content, list):
+                        for item in content:
+                            if item.get("type") == "image_url":
+                                # Handle base64 image
+                                image_url = item["image_url"]["url"]
+                                if image_url.startswith('data:image/'):
+                                    import base64
+                                    from io import BytesIO
+                                    base64_data = image_url.split(',')[1]
+                                    image_bytes = base64.b64decode(base64_data)
+                                    image = Image.open(BytesIO(image_bytes)).convert("RGB")
+                            elif item.get("type") == "text":
+                                prompt = item.get("text", "")
                     else:
-                        # Deterministic generation without temperature
-                        generation_kwargs.update({
-                            "do_sample": False
-                        })
-                        # Don't pass temperature at all when do_sample=False
-                    
-                    generated_ids = self.model.generate(**generation_kwargs)
-            except Exception as e:
-                logger.error(f"Generation error: {e}")
-                return {"error": f"Generation error: {str(e)}"}
+                        prompt = content
             
-            # Fast decode
+            if image is None:
+                return {"error": "No image found in messages"}
+            
+            # Use subprocess approach for MLX SmolVLM2 (same as testing framework)
             try:
-                generated_texts = self.processor.batch_decode(
-                    generated_ids, 
-                    skip_special_tokens=True,
-                    clean_up_tokenization_spaces=False  # Skip cleanup for speed
-                )
-            except Exception as e:
-                logger.error(f"Decoding error: {e}")
-                return {"error": f"Decoding error: {str(e)}"}
-            
-            inference_time = time.time() - start_time
-            
-            # Minimal cleanup
-            del inputs, generated_ids
-            self.memory_manager.smart_cleanup()
-            
-            # Extract response
-            response = generated_texts[0]
-            if "Assistant:" in response:
-                response = response.split("Assistant:")[-1].strip()
-            
-            result = {
-                "success": True,
-                "response": response,
-                "inference_time": inference_time,
-                "from_cache": False
-            }
-            
-            # Cache the response
-            with self.cache_lock:
-                self.response_cache[cache_key] = result.copy()
+                import subprocess
+                import tempfile
                 
-                # Limit cache size
-                if len(self.response_cache) > 100:
-                    # Remove oldest entries
-                    oldest_key = next(iter(self.response_cache))
-                    del self.response_cache[oldest_key]
-            
-            return result
+                logger.debug("Using MLX-VLM subprocess for SmolVLM2...")
+                
+                # Create temporary image file
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                    temp_image_path = tmp_file.name
+                    image.save(temp_image_path)
+                
+                try:
+                    # Use MLX-VLM command line tool (same as testing framework)
+                    cmd = [
+                        sys.executable, '-m', 'mlx_vlm.generate',
+                        '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                        '--image', temp_image_path,
+                        '--prompt', prompt,
+                        '--max-tokens', str(max_tokens),
+                        '--temp', str(temperature)
+                    ]
+                    
+                    # Execute subprocess
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=30  # 30 second timeout
+                    )
+                    
+                    if result.returncode == 0:
+                        response = result.stdout.strip()
+                        
+                        # Clean up response (same as testing framework)
+                        response = response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
+                        if "1. What is meant by" in response:
+                            response = response.split("1. What is meant by")[0].strip()
+                        response = ' '.join(response.split())
+                        
+                        inference_time = time.time() - start_time
+                        
+                        result_dict = {
+                            "success": True,
+                            "response": response,
+                            "inference_time": inference_time,
+                            "from_cache": False,
+                            "framework": "MLX-VLM (subprocess)"
+                        }
+                        
+                        # Cache the response
+                        with self.cache_lock:
+                            self.response_cache[cache_key] = result_dict.copy()
+                            
+                            # Limit cache size
+                            if len(self.response_cache) > 100:
+                                # Remove oldest entries
+                                oldest_key = next(iter(self.response_cache))
+                                del self.response_cache[oldest_key]
+                        
+                        return result_dict
+                    else:
+                        error_msg = f"Subprocess failed: {result.stderr}"
+                        logger.error(error_msg)
+                        return {"error": error_msg}
+                        
+                finally:
+                    # Clean up temporary file
+                    if os.path.exists(temp_image_path):
+                        os.remove(temp_image_path)
+                        
+            except subprocess.TimeoutExpired:
+                return {"error": "Subprocess timeout (30s)"}
+            except Exception as e:
+                logger.error(f"Subprocess error: {e}")
+                return {"error": f"Subprocess failed: {str(e)}"}
             
         except Exception as e:
             logger.error(f"Optimized inference error: {e}")

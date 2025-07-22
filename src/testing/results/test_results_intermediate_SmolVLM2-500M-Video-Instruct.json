@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-20 03:12:09",
+  "test_timestamp": "2025-07-22 11:02:31",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,13 +8,13 @@
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
       "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-      "load_time": 0.47173476219177246,
-      "memory_before": 0.3462066650390625,
-      "memory_after": 1.3862762451171875,
-      "memory_diff": 1.040069580078125,
+      "load_time": 0.9027280807495117,
+      "memory_before": 0.4364776611328125,
+      "memory_after": 0.7304534912109375,
+      "memory_diff": 0.293975830078125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 5.372192144393921,
+          "inference_time": 6.069468021392822,
           "response": "Assistant: The image features a Shiba Inu dog, characterized by its light brown fur, black nose, and black eyes, sitting on a tiled floor. The dog's mouth is slightly open, and it appears to be looking directly at the camera. The dog's ears are perked up, and it is positioned in front of a white wall with a green and white striped towel hanging on it. There is a green shoe placed on the floor to the left of the dog.",
           "image_info": {
             "original_size": [
@@ -37,7 +37,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 5.32433295249939,
+          "inference_time": 6.483386993408203,
           "response": "Assistant: The image features a person with short, dark hair, wearing a white t-shirt with the text \"FKONs\" printed on it. The individual is holding a passport, which is prominently displayed in the image. The passport has a blue and white design, featuring a portrait of a person with a blue background. The passport number is visible on the front, and the text \"PASSPORT\" is printed on the back. The person's left hand is holding the passport, while their",
           "image_info": {
             "original_size": [
@@ -60,7 +60,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 5.9554760456085205,
+          "inference_time": 6.786172866821289,
           "response": "Assistant: The image presents a geometric figure consisting of a square and a circle. The square is outlined in a light blue color, and the circle is filled with a red hue. The circle is positioned centrally within the square, with its center marked by the letter \"P\" in a dark red color. The square's corners are labeled with the letters \"P\" and \"H\" in a dark red color, indicating the corners of the square.",
           "image_info": {
             "original_size": [
@@ -83,10 +83,10 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 16.65200114250183,
+      "total_inference_time": 19.339027881622314,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 5.55066704750061,
+      "avg_inference_time": 6.4463426272074384,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -96,24 +96,24 @@
           "prompt_1": {
             "prompt": "What is the capital of France?",
             "response": "Assistant: The capital of France is Paris.",
-            "inference_time": 4.811807870864868,
+            "inference_time": 5.6178202629089355,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
             "response": "Assistant: Machine learning is a way for computers to learn from data and improve their performance over time. It's like teaching a computer to recognize patterns and make decisions based on that knowledge.",
-            "inference_time": 5.339721918106079,
+            "inference_time": 6.623680114746094,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
             "response": "Assistant: The world is a digital realm,",
-            "inference_time": 6.140928030014038,
+            "inference_time": 7.1261937618255615,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 1.1828460693359375
+      "memory_after_cleanup": 0.342010498046875
     }
   }
 }

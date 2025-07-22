@@ -3,9 +3,11 @@ import sys
 import os
 import tempfile
 import base64
+import gc
+import torch
 from io import BytesIO
 from PIL import Image
-from typing import Dict, Any, cast
+from typing import Dict, Any, cast, Optional
 from transformers.tokenization_utils import PreTrainedTokenizer
 
 # Add project root to path for module imports
@@ -20,9 +22,12 @@ class LlavaMlxModel(BaseVisionModel):
         self.model_id = self.config.get("model_id", "mlx-community/llava-v1.6-mistral-7b-4bit")
         self.model = None
         self.processor = None
+        self.loaded = False
+        self.stats = {"requests": 0, "total_time": 0.0}
         # The load_model call is deferred to the server runner
 
     def load_model(self):
+        """Load LLaVA MLX model using MLX-VLM framework (same as testing framework)"""
         print(f"Loading LLaVA MLX model: {self.model_id}...")
         try:
             from mlx_vlm import load
@@ -35,11 +40,20 @@ class LlavaMlxModel(BaseVisionModel):
         except Exception as e:
             raise RuntimeError(f"Failed to load LLaVA MLX model: {e}")
 
-    def generate_response(self, image: Image.Image, prompt: str):
+    def generate_response(self, image: Image.Image, prompt: str, max_tokens: int = 100) -> str:
+        """Generate response with LLaVA MLX using MLX-VLM framework (same as testing framework)"""
         if not self.loaded or self.model is None or self.processor is None:
             raise RuntimeError("Model is not loaded.")
         
         print("Generating response with LLaVA MLX...")
+        
+        # Unified image preprocessing (same as testing framework)
+        original_size = image.size
+        unified_image_size = 1024
+        if max(image.size) > unified_image_size:
+            ratio = unified_image_size / max(image.size)
+            new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
+            image = image.resize(new_size, Image.Resampling.LANCZOS)
         
         # mlx-vlm's generate function expects an image file path
         # We save the PIL image to a temporary file
@@ -49,20 +63,25 @@ class LlavaMlxModel(BaseVisionModel):
 
         try:
             from mlx_vlm import generate
-            inference_params = self.config.get("inference_params", {})
             
-            # The 'processor' from mlx-vlm can be a tuple, so we handle it gracefully.
-            # We pass it to `generate` which knows how to handle it internally.
+            # Use unified generation parameters (same as testing framework)
+            unified_generation_params = {
+                "max_new_tokens": max_tokens,
+                "do_sample": False
+            }
+            
+            # Generate response using MLX-VLM (same as testing framework)
             response = generate(
                 model=self.model,
                 processor=cast(PreTrainedTokenizer, self.processor),
                 prompt=prompt,
                 image=temp_path,
-                max_tokens=inference_params.get("max_tokens", 100),
-                temp=inference_params.get("temperature", 0.0),
+                max_tokens=unified_generation_params["max_new_tokens"],
+                temp=0.0,  # Use 0.0 for deterministic output
                 verbose=False
             )
 
+            # Handle MLX-VLM response format (tuple with text and metadata) - same as testing framework
             if isinstance(response, tuple) and len(response) >= 1:
                 text_response = response[0] if response[0] else ""
             else:
@@ -76,7 +95,7 @@ class LlavaMlxModel(BaseVisionModel):
         finally:
             # Clean up the temporary file
             os.remove(temp_path)
-            # Clear the model's KV cache to prevent errors on subsequent runs.
+            # Clear the model's KV cache to prevent errors on subsequent runs
             self.clear_cache()
 
     def clear_cache(self):
@@ -89,21 +108,26 @@ class LlavaMlxModel(BaseVisionModel):
             return
 
         try:
-            layers = self.model.language_model.model.layers
+            # Try to clear MLX cache if available
+            if hasattr(self.model, 'language_model') and hasattr(self.model.language_model, 'model'):
+                layers = self.model.language_model.model.layers
+                for layer in layers:
+                    if hasattr(layer, "self_attn"):
+                        # The cache is not a documented attribute, so we speculatively
+                        # try to delete common names for it.
+                        if hasattr(layer.self_attn, "cache"):
+                            del layer.self_attn.cache
+                        if hasattr(layer.self_attn, "kv_cache"):
+                            del layer.self_attn.kv_cache
         except AttributeError:
             # If the model structure is not as expected, do nothing.
-            return
-
-        for layer in layers:
-            if hasattr(layer, "self_attn"):
-                # The cache is not a documented attribute, so we speculatively
-                # try to delete common names for it.
-                if hasattr(layer.self_attn, "cache"):
-                    del layer.self_attn.cache
-                if hasattr(layer.self_attn, "kv_cache"):
-                    del layer.self_attn.kv_cache
+            pass
+        
+        # Force garbage collection
+        gc.collect()
 
     def process_messages(self, messages):
+        """Process messages in the format expected by the API"""
         prompt = "Describe the image."
         image_data_url = None
 
@@ -126,18 +150,55 @@ class LlavaMlxModel(BaseVisionModel):
         else:
             raise ValueError("Unsupported image URL format. Please use base64 data URI.")
 
-    # The abstract methods from BaseVisionModel need to be implemented
-    def predict(self, image: Any, prompt: str, options: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    def predict(self, image: Any, prompt: str, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Predict method for compatibility with BaseVisionModel"""
         pil_image = Image.fromarray(image) if not isinstance(image, Image.Image) else image
         response = self.generate_response(pil_image, prompt)
         return {"response": response}
     
     def preprocess_image(self, image: Any) -> Any:
-        # MLX-VLM handles preprocessing internally via file path, so we just pass the image through.
+        """Preprocess image for LLaVA MLX model (unified preprocessing)"""
+        # Unified image preprocessing (same as testing framework)
+        if isinstance(image, Image.Image):
+            original_size = image.size
+            unified_image_size = 1024
+            if max(image.size) > unified_image_size:
+                ratio = unified_image_size / max(image.size)
+                new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
+                image = image.resize(new_size, Image.Resampling.LANCZOS)
         return image
     
     def format_response(self, raw_response: Any) -> Dict[str, Any]:
-        return raw_response # The response is already a dictionary
+        """Format response for API compatibility"""
+        return raw_response if isinstance(raw_response, dict) else {"response": raw_response}
+
+    def unload_model(self) -> bool:
+        """Unload model and clean up memory"""
+        try:
+            if self.model is not None:
+                del self.model
+                self.model = None
+            if self.processor is not None:
+                del self.processor
+                self.processor = None
+            
+            self.loaded = False
+            gc.collect()
+            return True
+        except Exception as e:
+            print(f"Error unloading LLaVA MLX model: {e}")
+            return False
+
+    def get_model_info(self) -> Dict[str, Any]:
+        """Get model information"""
+        return {
+            "model_name": self.model_name,
+            "model_id": self.model_id,
+            "loaded": self.loaded,
+            "framework": "MLX-VLM",
+            "device": "Apple Silicon (M1/M2/M3)",
+            "stats": self.stats
+        }
 
 if __name__ == '__main__':
     print("This script is not meant to be run directly. Use a runner script.") 

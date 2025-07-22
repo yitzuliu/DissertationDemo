@@ -1,5 +1,5 @@
 {
-  "test_timestamp": "2025-07-20 03:12:09",
+  "test_timestamp": "2025-07-22 11:02:31",
   "system_info": {
     "device": "MacBook Air M3",
     "memory": "16GB",
@@ -8,13 +8,13 @@
   "models": {
     "SmolVLM2-500M-Video-Instruct": {
       "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-      "load_time": 0.47173476219177246,
-      "memory_before": 0.3462066650390625,
-      "memory_after": 1.3862762451171875,
-      "memory_diff": 1.040069580078125,
+      "load_time": 0.9027280807495117,
+      "memory_before": 0.4364776611328125,
+      "memory_after": 0.7304534912109375,
+      "memory_diff": 0.293975830078125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 5.372192144393921,
+          "inference_time": 6.069468021392822,
           "response": "Assistant: The image features a Shiba Inu dog, characterized by its light brown fur, black nose, and black eyes, sitting on a tiled floor. The dog's mouth is slightly open, and it appears to be looking directly at the camera. The dog's ears are perked up, and it is positioned in front of a white wall with a green and white striped towel hanging on it. There is a green shoe placed on the floor to the left of the dog.",
           "image_info": {
             "original_size": [
@@ -37,7 +37,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 5.32433295249939,
+          "inference_time": 6.483386993408203,
           "response": "Assistant: The image features a person with short, dark hair, wearing a white t-shirt with the text \"FKONs\" printed on it. The individual is holding a passport, which is prominently displayed in the image. The passport has a blue and white design, featuring a portrait of a person with a blue background. The passport number is visible on the front, and the text \"PASSPORT\" is printed on the back. The person's left hand is holding the passport, while their",
           "image_info": {
             "original_size": [
@@ -60,7 +60,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 5.9554760456085205,
+          "inference_time": 6.786172866821289,
           "response": "Assistant: The image presents a geometric figure consisting of a square and a circle. The square is outlined in a light blue color, and the circle is filled with a red hue. The circle is positioned centrally within the square, with its center marked by the letter \"P\" in a dark red color. The square's corners are labeled with the letters \"P\" and \"H\" in a dark red color, indicating the corners of the square.",
           "image_info": {
             "original_size": [
@@ -83,10 +83,10 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 16.65200114250183,
+      "total_inference_time": 19.339027881622314,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 5.55066704750061,
+      "avg_inference_time": 6.4463426272074384,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -96,34 +96,34 @@
           "prompt_1": {
             "prompt": "What is the capital of France?",
             "response": "Assistant: The capital of France is Paris.",
-            "inference_time": 4.811807870864868,
+            "inference_time": 5.6178202629089355,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
             "response": "Assistant: Machine learning is a way for computers to learn from data and improve their performance over time. It's like teaching a computer to recognize patterns and make decisions based on that knowledge.",
-            "inference_time": 5.339721918106079,
+            "inference_time": 6.623680114746094,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
             "response": "Assistant: The world is a digital realm,",
-            "inference_time": 6.140928030014038,
+            "inference_time": 7.1261937618255615,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 1.1828460693359375
+      "memory_after_cleanup": 0.342010498046875
     },
     "SmolVLM2-500M-Video-Instruct-MLX": {
       "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-      "load_time": 0.37853312492370605,
-      "memory_before": 1.182861328125,
-      "memory_after": 1.461700439453125,
-      "memory_diff": 0.278839111328125,
+      "load_time": 0.457791805267334,
+      "memory_before": 0.3439788818359375,
+      "memory_after": 1.363922119140625,
+      "memory_diff": 1.0199432373046875,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 5.510254144668579,
+          "inference_time": 6.476570129394531,
           "response": "Assistant: The image features a Shiba Inu dog, characterized by its light brown fur, black nose, and black eyes, sitting on a tiled floor. The dog's mouth is slightly open, and it appears to be looking directly at the camera. The dog's ears are perked up, and it is positioned in front of a white wall with a green and white striped towel hanging on it. There is a green shoe placed on the floor to the left of the dog.",
           "image_info": {
             "original_size": [
@@ -146,7 +146,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 5.455950736999512,
+          "inference_time": 6.268532991409302,
           "response": "Assistant: The image features a person with short, dark hair, wearing a white t-shirt with the text \"FKONs\" printed on it. The individual is holding a passport, which is prominently displayed in the image. The passport has a blue and white design, featuring a portrait of a person with a blue background. The passport number is visible on the front, and the text \"PASSPORT\" is printed on the back. The person's left hand is holding the passport, while their",
           "image_info": {
             "original_size": [
@@ -169,7 +169,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 6.161983966827393,
+          "inference_time": 7.187319755554199,
           "response": "Assistant: The image presents a geometric figure consisting of a square and a circle. The square is outlined in a light blue color, and the circle is filled with a red hue. The circle is positioned centrally within the square, with its center marked by the letter \"P\" in a dark red color. The square's corners are labeled with the letters \"P\" and \"H\" in a dark red color, indicating the corners of the square.",
           "image_info": {
             "original_size": [
@@ -192,10 +192,10 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 17.128188848495483,
+      "total_inference_time": 19.932422876358032,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 5.709396282831828,
+      "avg_inference_time": 6.644140958786011,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -205,34 +205,34 @@
           "prompt_1": {
             "prompt": "What is the capital of France?",
             "response": "Assistant: The capital of France is Paris.",
-            "inference_time": 4.833138942718506,
+            "inference_time": 5.96087384223938,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
             "response": "Assistant: Machine learning is a way for computers to learn from data and improve their performance over time. It's like teaching a computer to recognize patterns and make decisions based on that knowledge.",
-            "inference_time": 5.197004079818726,
+            "inference_time": 5.795163869857788,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
             "response": "Assistant: The world is a digital realm,",
-            "inference_time": 5.8180108070373535,
+            "inference_time": 6.634468078613281,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 1.1044158935546875
+      "memory_after_cleanup": 0.3529052734375
     },
     "SmolVLM-500M-Instruct": {
       "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct",
-      "load_time": 3.365601062774658,
-      "memory_before": 1.1049652099609375,
-      "memory_after": 2.9745025634765625,
-      "memory_diff": 1.869537353515625,
+      "load_time": 3.2215349674224854,
+      "memory_before": 0.35498046875,
+      "memory_after": 2.2965087890625,
+      "memory_diff": 1.9415283203125,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 9.496949911117554,
+          "inference_time": 9.472677946090698,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A Shiba Inu dog with a black nose is sitting on a bathroom floor in front of a toilet and a hand sanitizer dispenser. The dog is looking directly at the camera. The dog has a light brown coat with a white patch of fur on its neck. The nose is black. The dog's left ear is black and its right ear is gray. The dog's mouth is closed. The floor is white with light gray tiles. There are two green slippers on the floor in front",
           "image_info": {
             "original_size": [
@@ -255,7 +255,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 9.747488975524902,
+          "inference_time": 9.30961298942566,
           "response": "User:\n\n\n\nDescribe what you see in this image in detail.\nAssistant: A man holds a passport-style document in front of his face, which appears to be a photo ID. The man is wearing a white T-shirt with black text that reads \"FKONs\" and has a picture of a woman on the front. The document he is holding appears to be a passport, as it has a photo of a man on the front. The man's face is partially obscured by the passport, but his eyes are visible and he is wearing glasses. The passport",
           "image_info": {
             "original_size": [
@@ -278,7 +278,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 11.969382762908936,
+          "inference_time": 14.451842069625854,
           "response": "User:\n\n\n\n\nDescribe what you see in this image in detail.\nAssistant: The image depicts a geometric figure consisting of a square and a circle. The square is light blue in color and has a blue border. The circle is red and is positioned inside the square. The circle is perfectly centered within the square.\n\n### Description:\n- **Square**: The square has four equal sides and four equal angles. The corners of the square are labeled with the numbers 1, 2, 3, and 4.\n- **Circle**: The circle",
           "image_info": {
             "original_size": [
@@ -301,10 +301,10 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 31.21382164955139,
+      "total_inference_time": 33.23413300514221,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 10.40460721651713,
+      "avg_inference_time": 11.078044335047403,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -314,34 +314,34 @@
           "prompt_1": {
             "prompt": "What is the capital of France?",
             "response": "User: What is the capital of France?\nAssistant: Paris",
-            "inference_time": 0.285567045211792,
+            "inference_time": 0.30734801292419434,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
             "response": "User: Explain the concept of machine learning in simple terms.\nAssistant: Machine learning is a subset of artificial intelligence that allows computers to learn from data and improve their performance without being explicitly programmed. It involves using algorithms and statistical techniques to analyze and interpret data, and then use this information to make predictions or decisions.",
-            "inference_time": 1.6708710193634033,
+            "inference_time": 5.593276023864746,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
             "response": "User: Write a short poem about technology.\nAssistant: In the realm of technology,\nWhere machines and machines are,\nA world of possibilities,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and dreams are,\nWhere dreams and",
-            "inference_time": 3.3386900424957275,
+            "inference_time": 7.250809192657471,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 4.0289764404296875
+      "memory_after_cleanup": 1.7097930908203125
     },
     "Moondream2": {
       "model_id": "vikhyatk/moondream2",
-      "load_time": 4.96038818359375,
-      "memory_before": 1.9391632080078125,
-      "memory_after": 0.196075439453125,
-      "memory_diff": -1.7430877685546875,
+      "load_time": 6.4644551277160645,
+      "memory_before": 0.8377685546875,
+      "memory_after": 0.0132904052734375,
+      "memory_diff": -0.8244781494140625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 8.27679181098938,
+          "inference_time": 8.828881025314331,
           "response": "In the center of the image, a light brown Shiba Inu dog is sitting comfortably on a tiled floor. The dog's attention is directed upwards, meeting the camera head-on. Its nose is black, and its eyes are wide open, giving the impression that it is curious or possibly surprised. \n\nTo the left of the dog, there is a green shoe placed on the floor. A small white electric fan is situated behind the dog, slightly to the left. The background features a wooden wall, adding a warm and homely touch to the scene.",
           "image_info": {
             "original_size": [
@@ -364,7 +364,7 @@
           "timeout_used": 60
         },
         "IMG_2053.JPG": {
-          "inference_time": 7.452002763748169,
+          "inference_time": 6.9564433097839355,
           "response": "A young man is standing in the center of the image, holding a passport in his right hand. The passport is open, displaying a photo on the left side and a passport number on the right. The man is wearing a white t-shirt with the word \"FKONS\" printed on it. He is wearing black framed glasses. The man has short black hair and a mustache.",
           "image_info": {
             "original_size": [
@@ -387,7 +387,7 @@
           "timeout_used": 60
         },
         "test_image.jpg": {
-          "inference_time": 3.6961231231689453,
+          "inference_time": 3.3865280151367188,
           "response": "The image displays a simple diagram consisting of a blue square containing a red circle. The red circle is labeled \"PHI-3\" and is positioned in the center of the square. The entire diagram is set against a white background, creating a clear and easily readable visual representation.",
           "image_info": {
             "original_size": [
@@ -410,10 +410,10 @@
           "timeout_used": 60
         }
       },
-      "total_inference_time": 19.424917697906494,
+      "total_inference_time": 19.171852350234985,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 6.474972565968831,
+      "avg_inference_time": 6.390617450078328,
       "text_only_capability": {
         "text_only_supported": false,
         "success_rate": 0.0,
@@ -423,35 +423,35 @@
           "prompt_1": {
             "prompt": "What is the capital of France?",
             "response": "Moondream2 純文字推理失敗: HfMoondream.generate() missing 3 required positional arguments: 'image_embeds', 'prompt', and 'tokenizer' | 備用方法: HfMoondream.generate() missing 2 required positional arguments: 'prompt' and 'tokenizer'",
-            "inference_time": 0.0024073123931884766,
+            "inference_time": 0.003576993942260742,
             "success": false
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
             "response": "Moondream2 純文字推理失敗: HfMoondream.generate() missing 3 required positional arguments: 'image_embeds', 'prompt', and 'tokenizer' | 備用方法: HfMoondream.generate() missing 2 required positional arguments: 'prompt' and 'tokenizer'",
-            "inference_time": 0.0008180141448974609,
+            "inference_time": 0.0009889602661132812,
             "success": false
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
             "response": "Moondream2 純文字推理失敗: HfMoondream.generate() missing 3 required positional arguments: 'image_embeds', 'prompt', and 'tokenizer' | 備用方法: HfMoondream.generate() missing 2 required positional arguments: 'prompt' and 'tokenizer'",
-            "inference_time": 0.0007557868957519531,
+            "inference_time": 0.0008707046508789062,
             "success": false
           }
         }
       },
-      "memory_after_cleanup": 0.6196136474609375
+      "memory_after_cleanup": 0.591278076171875
     },
     "LLaVA-v1.6-Mistral-7B-MLX": {
       "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
-      "load_time": 2.607754945755005,
-      "memory_before": 0.6201629638671875,
-      "memory_after": 0.7908477783203125,
-      "memory_diff": 0.170684814453125,
+      "load_time": 2.920423746109009,
+      "memory_before": 0.5974578857421875,
+      "memory_after": 0.1760101318359375,
+      "memory_diff": -0.42144775390625,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 7.3674211502075195,
-          "response": "('\\n\\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the', {'input_tokens': 11, 'output_tokens': 100, 'total_tokens': 111, 'prompt_tps': 42.23194541513678, 'generation_tps': 18.377585690725155, 'peak_memory': 8.584573372})",
+          "inference_time": 11.271542072296143,
+          "response": "('\\n\\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the', {'input_tokens': 11, 'output_tokens': 100, 'total_tokens': 111, 'prompt_tps': 40.80968265677607, 'generation_tps': 18.148391046459725, 'peak_memory': 8.584573372})",
           "image_info": {
             "original_size": [
               960,
@@ -473,8 +473,8 @@
           "timeout_used": 180
         },
         "IMG_2053.JPG": {
-          "inference_time": 12.71343183517456,
-          "response": "('\\n\\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the', {'input_tokens': 11, 'output_tokens': 100, 'total_tokens': 111, 'prompt_tps': 39.81662633737868, 'generation_tps': 18.0710368413931, 'peak_memory': 12.775381016})",
+          "inference_time": 31.62750792503357,
+          "response": "('\\n\\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the', {'input_tokens': 11, 'output_tokens': 100, 'total_tokens': 111, 'prompt_tps': 30.803444909949036, 'generation_tps': 15.82385726200724, 'peak_memory': 12.775381016})",
           "image_info": {
             "original_size": [
               3088,
@@ -496,8 +496,8 @@
           "timeout_used": 180
         },
         "test_image.jpg": {
-          "inference_time": 17.608196020126343,
-          "response": "('\\n\\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the', {'input_tokens': 11, 'output_tokens': 100, 'total_tokens': 111, 'prompt_tps': 39.587907873522184, 'generation_tps': 19.0437463657741, 'peak_memory': 12.775381016})",
+          "inference_time": 24.281885862350464,
+          "response": "('\\n\\nThe image is a photograph of a person standing outdoors. The individual appears to be wearing a dark-colored top and light-colored pants. They are facing away from the camera, looking towards the right side of the frame. The person has short hair and is wearing glasses. The background is blurred but suggests a natural outdoor setting with greenery. There are no visible texts or distinguishing marks that provide additional context or information about the person or the location. The style of the', {'input_tokens': 11, 'output_tokens': 100, 'total_tokens': 111, 'prompt_tps': 22.634643348542237, 'generation_tps': 16.45855204780087, 'peak_memory': 12.775381016})",
           "image_info": {
             "original_size": [
               336,
@@ -519,10 +519,10 @@
           "timeout_used": 180
         }
       },
-      "total_inference_time": 37.68904900550842,
+      "total_inference_time": 67.18093585968018,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 12.563016335169474,
+      "avg_inference_time": 22.39364528656006,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -531,36 +531,36 @@
         "results": {
           "prompt_1": {
             "prompt": "What is the capital of France?",
-            "response": "('\\n\\nThe capital of France is Paris. ', {'input_tokens': 8, 'output_tokens': 11, 'total_tokens': 19, 'prompt_tps': 21.644148090535317, 'generation_tps': 21.091603978666782, 'peak_memory': 12.775381016})",
-            "inference_time": 0.9278171062469482,
+            "response": "('\\n\\nThe capital of France is Paris. ', {'input_tokens': 8, 'output_tokens': 11, 'total_tokens': 19, 'prompt_tps': 18.80045647390811, 'generation_tps': 20.845322038228662, 'peak_memory': 12.775381016})",
+            "inference_time": 1.014333963394165,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
-            "response": "('\\n\\nMachine learning is a type of artificial intelligence that allows computer systems to learn and improve from experience without being explicitly programmed. It involves the use of algorithms and statistical models to analyze data, identify patterns, and make predictions or decisions based on that data.\\n\\nIn simple terms, machine learning is like a child learning to recognize objects by looking at many examples of those objects. The more examples the child sees, the better they become at recognizing those objects. Similarly, machine learning algorithms can', {'input_tokens': 12, 'output_tokens': 100, 'total_tokens': 112, 'prompt_tps': 44.59801854713995, 'generation_tps': 19.18051167946761, 'peak_memory': 12.775381016})",
-            "inference_time": 5.516832113265991,
+            "response": "('\\n\\nMachine learning is a type of artificial intelligence that allows computer systems to learn and improve from experience without being explicitly programmed. It involves the use of algorithms and statistical models to analyze data, identify patterns, and make predictions or decisions based on that data.\\n\\nIn simple terms, machine learning is like a child learning to recognize objects by looking at many examples of those objects. The more examples the child sees, the better they become at recognizing those objects. Similarly, machine learning algorithms can', {'input_tokens': 12, 'output_tokens': 100, 'total_tokens': 112, 'prompt_tps': 43.7696821059832, 'generation_tps': 16.7815284225321, 'peak_memory': 12.775381016})",
+            "inference_time": 6.2707390785217285,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
-            "response": "(\"\\n\\nIn a world where technology reigns,\\nWe're connected, yet sometimes pained.\\n\\nThrough screens and wires, we communicate,\\nBut sometimes, we neglect.\\n\\nTo look up, to see the sky,\\nTo feel the warmth, to touch the high.\\n\\nFor in this digital age,\\nWe've lost some of our own sage.\\n\\nSo let us use technology with care,\\nAnd not let it take us somewhere.\", {'input_tokens': 8, 'output_tokens': 100, 'total_tokens': 108, 'prompt_tps': 22.447914741821666, 'generation_tps': 19.023900168467968, 'peak_memory': 12.775381016})",
-            "inference_time": 5.648071050643921,
+            "response": "(\"\\n\\nIn a world where technology reigns,\\nWe're connected, yet sometimes pained.\\n\\nThrough screens and wires, we communicate,\\nBut sometimes, we neglect.\\n\\nTo look up, to see the sky,\\nTo feel the warmth, to touch the high.\\n\\nFor in this digital age,\\nWe've lost some of our own sage.\\n\\nSo let us use technology with care,\\nAnd not let it take us somewhere.\", {'input_tokens': 8, 'output_tokens': 100, 'total_tokens': 108, 'prompt_tps': 22.8823461262991, 'generation_tps': 17.636534610538966, 'peak_memory': 12.775381016})",
+            "inference_time": 6.07846212387085,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 0.20062255859375
+      "memory_after_cleanup": 0.2454681396484375
     },
     "Phi-3.5-Vision-Instruct": {
       "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
-      "load_time": 1.5517208576202393,
-      "memory_before": 0.2062835693359375,
-      "memory_after": 0.4940948486328125,
-      "memory_diff": 0.287811279296875,
+      "load_time": 3.204050064086914,
+      "memory_before": 0.2600555419921875,
+      "memory_after": 0.2401885986328125,
+      "memory_diff": -0.019866943359375,
       "images": {
         "IMG_0119.JPG": {
-          "inference_time": 11.814409971237183,
-          "response": "('The image shows a Shiba Inu dog sitting on a tiled floor. The dog has a light brown coat, darker brown ears, and a black nose. Its eyes are dark and round, and it has a relaxed expression on its face. The dog is looking directly at the camera, and its mouth is slightly open. In the background, there is a white fan and a green object that appears to be a toy or a piece of equipment. The walls are light-color', {'input_tokens': 778, 'output_tokens': 100, 'total_tokens': 878, 'prompt_tps': 168.30307879982087, 'generation_tps': 15.391127114768421, 'peak_memory': 12.775381016})",
+          "inference_time": 16.831248998641968,
+          "response": "('The image shows a Shiba Inu dog sitting on a tiled floor. The dog has a light brown coat, darker brown ears, and a black nose. Its eyes are dark and round, and it has a relaxed expression on its face. The dog is looking directly at the camera, and its mouth is slightly open. In the background, there is a white fan and a green object that appears to be a toy or a piece of equipment. The walls are light-color', {'input_tokens': 778, 'output_tokens': 100, 'total_tokens': 878, 'prompt_tps': 187.16870513716913, 'generation_tps': 16.814338595355768, 'peak_memory': 12.775381016})",
           "image_info": {
             "original_size": [
               960,
@@ -582,8 +582,8 @@
           "timeout_used": 180
         },
         "IMG_2053.JPG": {
-          "inference_time": 12.552371263504028,
-          "response": "('The image shows a person holding a document with text and images on it. The document appears to be a form or certificate of some sort. The person is wearing a white t-shirt with the text \"F K ONS\" printed on it. The person also has glasses with blue lenses. The background is plain and light-colored, possibly a wall or a piece of paper. The document in the person\\'s hand has text and images on it, but the specific', {'input_tokens': 778, 'output_tokens': 100, 'total_tokens': 878, 'prompt_tps': 140.78535319970385, 'generation_tps': 14.304357803024725, 'peak_memory': 12.775381016})",
+          "inference_time": 37.01598405838013,
+          "response": "('The image shows a person holding a document with text and images on it. The document appears to be a form or certificate of some sort. The person is wearing a white t-shirt with the text \"F K ONS\" printed on it. The person also has glasses with blue lenses. The background is plain and light-colored, possibly a wall or a piece of paper. The document in the person\\'s hand has text and images on it, but the specific', {'input_tokens': 778, 'output_tokens': 100, 'total_tokens': 878, 'prompt_tps': 115.57588437727355, 'generation_tps': 3.360211412406104, 'peak_memory': 12.775381016})",
           "image_info": {
             "original_size": [
               3088,
@@ -605,8 +605,8 @@
           "timeout_used": 180
         },
         "test_image.jpg": {
-          "inference_time": 12.940121173858643,
-          "response": "('The image shows a simple graphic representation of a sphere labeled \"PH3\". The sphere is centered within a larger square that has a blue border and a light blue background. The text \"PH3\" is written on the sphere, indicating the chemical formula for phosphine, a compound of phosphorus and hydrogen.', {'input_tokens': 778, 'output_tokens': 69, 'total_tokens': 847, 'prompt_tps': 109.5622868010913, 'generation_tps': 11.889968252816177, 'peak_memory': 12.775381016})",
+          "inference_time": 59.41070532798767,
+          "response": "('The image shows a simple graphic representation of a sphere labeled \"PH3\". The sphere is centered within a larger square that has a blue border and a light blue background. The text \"PH3\" is written on the sphere, indicating the chemical formula for phosphine, a compound of phosphorus and hydrogen.', {'input_tokens': 778, 'output_tokens': 69, 'total_tokens': 847, 'prompt_tps': 64.8766278967576, 'generation_tps': 6.261738964853806, 'peak_memory': 12.775381016})",
           "image_info": {
             "original_size": [
               336,
@@ -628,10 +628,10 @@
           "timeout_used": 180
         }
       },
-      "total_inference_time": 37.30690240859985,
+      "total_inference_time": 113.25793838500977,
       "successful_inferences": 3,
       "failed_inferences": 0,
-      "avg_inference_time": 12.435634136199951,
+      "avg_inference_time": 37.752646128336586,
       "text_only_capability": {
         "text_only_supported": true,
         "success_rate": 1.0,
@@ -640,25 +640,25 @@
         "results": {
           "prompt_1": {
             "prompt": "What is the capital of France?",
-            "response": "('\\n\\nParis is the capital of France. It is not only the largest city in France but also one of the most populous cities in Europe. Paris is known for its history, culture, and landmarks such as the Eiffel Tower, Notre-Dame Cathedral, and the Louvre Museum.', {'input_tokens': 8, 'output_tokens': 65, 'total_tokens': 73, 'prompt_tps': 14.430709623687616, 'generation_tps': 12.227858716405724, 'peak_memory': 12.775381016})",
-            "inference_time": 5.8933329582214355,
+            "response": "('\\n\\nParis is the capital of France. It is not only the largest city in France but also one of the most populous cities in Europe. Paris is known for its history, culture, and landmarks such as the Eiffel Tower, Notre-Dame Cathedral, and the Louvre Museum.', {'input_tokens': 8, 'output_tokens': 65, 'total_tokens': 73, 'prompt_tps': 15.633329358518083, 'generation_tps': 6.569365436956485, 'peak_memory': 12.775381016})",
+            "inference_time": 10.60310697555542,
             "success": true
           },
           "prompt_2": {
             "prompt": "Explain the concept of machine learning in simple terms.",
-            "response": "(\"\\n\\nMachine learning is a subset of artificial intelligence (AI) that involves training computers to make decisions and predictions based on data. It's like teaching a computer to learn from experience, much like how humans learn from their experiences. Machine learning algorithms can analyze large amounts of data to identify patterns, make predictions, and improve their performance over time without being explicitly programmed to do so.\\n\\n\\nMachine learning is used in various applications, such as image recognition, speech recognition, medical diagn\", {'input_tokens': 12, 'output_tokens': 100, 'total_tokens': 112, 'prompt_tps': 25.252113417776144, 'generation_tps': 12.423101904544685, 'peak_memory': 12.775381016})",
-            "inference_time": 8.544946908950806,
+            "response": "(\"\\n\\nMachine learning is a subset of artificial intelligence (AI) that involves training computers to make decisions and predictions based on data. It's like teaching a computer to learn from experience, much like how humans learn from their experiences. Machine learning algorithms can analyze large amounts of data to identify patterns, make predictions, and improve their performance over time without being explicitly programmed to do so.\\n\\n\\nMachine learning is used in various applications, such as image recognition, speech recognition, medical diagn\", {'input_tokens': 12, 'output_tokens': 100, 'total_tokens': 112, 'prompt_tps': 38.18174811622116, 'generation_tps': 6.278511407006748, 'peak_memory': 12.775381016})",
+            "inference_time": 16.595707893371582,
             "success": true
           },
           "prompt_3": {
             "prompt": "Write a short poem about technology.",
-            "response": "('\\n\\n**Solution 1:**\\n\\nIn circuits and bytes, our world is woven,\\n\\nA tapestry of data, silently spoken.\\n\\nFrom the hum of servers to the glow of screens,\\n\\nOur lives are intertwined with digital dreams.\\n\\n\\nThe internet, a vast and boundless sea,\\n\\nConnects us all, from the young to the elderly.\\n\\nWith every tap and swipe', {'input_tokens': 8, 'output_tokens': 100, 'total_tokens': 108, 'prompt_tps': 15.047258963833746, 'generation_tps': 12.07099592368946, 'peak_memory': 12.775381016})",
-            "inference_time": 8.836467027664185,
+            "response": "('\\n\\n**Solution 1:**\\n\\nIn circuits and bytes, our world is woven,\\n\\nA tapestry of data, silently spoken.\\n\\nFrom the hum of servers to the glow of screens,\\n\\nOur lives are intertwined with digital dreams.\\n\\n\\nThe internet, a vast and boundless sea,\\n\\nConnects us all, from the young to the elderly.\\n\\nWith every tap and swipe', {'input_tokens': 8, 'output_tokens': 100, 'total_tokens': 108, 'prompt_tps': 24.349031237427642, 'generation_tps': 10.361649232082673, 'peak_memory': 12.775381016})",
+            "inference_time": 10.360840320587158,
             "success": true
           }
         }
       },
-      "memory_after_cleanup": 0.6217041015625
+      "memory_after_cleanup": 0.37738037109375
     }
   }
 }
