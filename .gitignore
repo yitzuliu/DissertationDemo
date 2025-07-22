@@ -176,6 +176,7 @@ src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/vocab.json
 /src/testing/testing_material/vqa2/
 /testing_material/vqa2/
 *.zip
+src/testing/materials/vqa2/v2_mscoco_val2014_annotations.json
 
 # Large image datasets
 /datasets/
