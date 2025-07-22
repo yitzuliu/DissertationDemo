@@ -1,15 +1,15 @@
 # VQA 2.0 Test Results Analysis
 
-## 📊 **Executive Summary** (2025-07-22)
+## 📊 **Executive Summary** (2025-07-22 13:20:55)
 
 ### 🏆 **Performance Rankings**
-| Model | Correct | Simple Accuracy | VQA Accuracy | Avg Time (s) |
-|-------|---------|-----------------|--------------|--------------|
-| smolvlm_v2_instruct | 12/20 | 60.0% | 51.5% | 5.67 |
-| moondream2 | 13/20 | 65.0% | 57.5% | 5.42 |
-| smolvlm_instruct | 11/20 | 55.0% | 52.5% | 6.12 |
-| phi35_vision | 10/20 | 50.0% | 52.0% | 13.23 |
-| llava_mlx | 5/20 | 25.0% | 27.0% | 23.19 |
+| Model                | Correct | Simple Accuracy | VQA Accuracy | Avg Time (s) |
+|----------------------|---------|-----------------|--------------|--------------|
+| smolvlm_v2_instruct  | 12/20   | 60.0%           | 51.5%        | 5.55         |
+| moondream2           | 13/20   | 65.0%           | 57.5%        | 5.15         |
+| smolvlm_instruct     | 11/20   | 55.0%           | 52.5%        | 6.02         |
+| phi35_vision         | 10/20   | 50.0%           | 52.0%        | 10.29        |
+| llava_mlx            | 5/20    | 25.0%           | 27.0%        | 17.60        |
 
 ### **Key Insights**
 - **Best Overall:** moondream2 (highest simple and VQA accuracy)
@@ -21,7 +21,7 @@
 
 ## **🧪 Test Configuration**
 - **Dataset:** VQA 2.0 COCO val2014 (20 questions)
-- **Test Date:** July 22, 2025 10:46:54
+- **Test Date:** July 22, 2025 13:20:55
 - **Framework:** vqa2_enhanced_v1.2
 - **Hardware:** MacBook Air M3 (16GB RAM)
 
@@ -30,13 +30,13 @@
 ## **Detailed Results**
 
 ### **Per-Model Performance**
-| Model | Correct | Simple Accuracy | VQA Accuracy | Avg Inference (s) |
-|-------|---------|-----------------|--------------|-------------------|
-| smolvlm_v2_instruct | 12/20 | 60.0% | 51.5% | 5.67 |
-| moondream2 | 13/20 | 65.0% | 57.5% | 5.42 |
-| smolvlm_instruct | 11/20 | 55.0% | 52.5% | 6.12 |
-| phi35_vision | 10/20 | 50.0% | 52.0% | 13.23 |
-| llava_mlx | 5/20 | 25.0% | 27.0% | 23.19 |
+| Model                | Correct | Simple Accuracy | VQA Accuracy | Avg Inference (s) |
+|----------------------|---------|-----------------|--------------|-------------------|
+| smolvlm_v2_instruct  | 12/20   | 60.0%           | 51.5%        | 5.55              |
+| moondream2           | 13/20   | 65.0%           | 57.5%        | 5.15              |
+| smolvlm_instruct     | 11/20   | 55.0%           | 52.5%        | 6.02              |
+| phi35_vision         | 10/20   | 50.0%           | 52.0%        | 10.29             |
+| llava_mlx            | 5/20    | 25.0%           | 27.0%        | 17.60             |
 
 ### **Per-Question-Type Breakdown**
 - (See JSON for detailed per-question results. For brevity, only summary is shown here.)
@@ -61,7 +61,7 @@
 
 ---
 
-**Test Date:** 2025-07-22 10:46:54  
+**Test Date:** 2025-07-22 13:20:55  
 **Framework Version:** vqa2_enhanced_v1.2  
 **Dataset:** VQA 2.0 COCO val2014 (20 questions)  
 **Environment:** MacBook Air M3 (16GB RAM)

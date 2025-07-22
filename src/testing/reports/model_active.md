@@ -5,11 +5,11 @@
 ### **Capability Overview**
 | Model | Vision | Pure Text | Avg Inference (s) | Load Time (s) | Memory Diff (GB) | Status |
 |-------|--------|-----------|-------------------|---------------|------------------|--------|
-| SmolVLM2-500M-Video-Instruct | ✅ | ✅ | 6.45 | 0.90 | 0.29 | Best Overall |
-| SmolVLM-500M-Instruct | ✅ | ✅ | 11.08 | 3.22 | 1.94 | Best VQA |
-| Moondream2 | ✅ | ❌ | 6.39 | 6.46 | -0.82 | Vision-Only |
-| LLaVA-v1.6-Mistral-7B-MLX | ✅ | ✅ | 22.39 | 2.92 | -0.42 | State Issues |
-| Phi-3.5-Vision-Instruct | ✅ | ✅ | 37.75 | 3.20 | -0.02 | Balanced |
+| SmolVLM2-500M-Video-Instruct | ✅ | ✅ | 6.20 | 1.02 | 0.06 | Best Overall |
+| SmolVLM-500M-Instruct | ✅ | ✅ | 3.40 | 4.07 | 1.95 | Best Context |
+| Moondream2 | ✅ | ❌ | 5.89 | 5.34 | -1.15 | Vision-Only |
+| LLaVA-v1.6-Mistral-7B-MLX | ✅ | ✅ | 6.70 | 3.05 | -0.40 | State Issues |
+| Phi-3.5-Vision-Instruct | ✅ | ✅ | 10.10 | 1.52 | 0.28 | Balanced |
 
 ---
 
@@ -18,41 +18,41 @@
 ### SmolVLM2-500M-Video-Instruct
 ```python
 model_id = "mlx-community/SmolVLM2-500M-Video-Instruct-mlx"
-# Load time: 0.90s | Avg Inference: 6.45s | Memory Diff: 0.29GB
+# Load time: 1.02s | Avg Inference: 6.20s | Memory Diff: 0.06GB
 ```
 
 ### SmolVLM-500M-Instruct
 ```python
 model_id = "HuggingFaceTB/SmolVLM-500M-Instruct"
-# Load time: 3.22s | Avg Inference: 11.08s | Memory Diff: 1.94GB
+# Load time: 4.07s | Avg Inference: 3.40s | Memory Diff: 1.95GB
 ```
 
 ### Moondream2
 ```python
 model_id = "vikhyatk/moondream2"
-# Load time: 6.46s | Avg Inference: 6.39s | Memory Diff: -0.82GB
+# Load time: 5.34s | Avg Inference: 5.89s | Memory Diff: -1.15GB
 ```
 
 ### LLaVA-v1.6-Mistral-7B-MLX
 ```python
 model_id = "mlx-community/llava-v1.6-mistral-7b-4bit"
-# Load time: 2.92s | Avg Inference: 22.39s | Memory Diff: -0.42GB
+# Load time: 3.05s | Avg Inference: 6.70s | Memory Diff: -0.40GB
 ```
 
 ### Phi-3.5-Vision-Instruct
 ```python
 model_id = "mlx-community/Phi-3.5-vision-instruct-4bit"
-# Load time: 3.20s | Avg Inference: 37.75s | Memory Diff: -0.02GB
+# Load time: 1.52s | Avg Inference: 10.10s | Memory Diff: 0.28GB
 ```
 
 ---
 
 ## **Recommendations**
 - **Best Overall:** SmolVLM2-500M-Video-Instruct (fast, accurate, MLX optimized)
-- **Best VQA:** SmolVLM-500M-Instruct (highest VQA accuracy)
+- **Best Context:** SmolVLM-500M-Instruct (best context retention)
 - **Best Vision-Only:** Moondream2 (vision tasks, no text-only)
-- **Balanced:** Phi-3.5-Vision-Instruct (good all-around, slower)
-- **Avoid for Production:** LLaVA-v1.6-Mistral-7B-MLX (slow, state issues)
+- **Balanced:** Phi-3.5-Vision-Instruct (good all-around, moderate speed)
+- **Avoid for Production:** LLaVA-v1.6-Mistral-7B-MLX (state issues, incomplete context)
 
 ---
 
@@ -63,5 +63,5 @@ model_id = "mlx-community/Phi-3.5-vision-instruct-4bit"
 
 ---
 
-**Last Updated:** 2025-07-22  
+**Last Updated:** 2025-07-22 13:01:28  
 **Test Environment:** MacBook Air M3 (16GB RAM)

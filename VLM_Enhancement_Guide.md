@@ -10,17 +10,36 @@
 ├── index.html                # Camera capture and user interface
 /src/backend/                  # Main application server
 ├── main.py                   # API gateway, image preprocessing, and model routing
+├── utils/                    # Backend utilities
+│   ├── config_manager.py     # Configuration management
+│   └── image_processing.py   # Image preprocessing pipeline
 /src/config/                   # Configuration management
 ├── app_config.json           # Main app settings (selects active model)
 └── model_configs/            # Model-specific configurations
+    ├── smolvlm2_500m_video_optimized.json
+    ├── smolvlm.json
+    ├── moondream2_optimized.json
+    ├── phi3_vision_optimized.json
     ├── llava_mlx.json
-    ├── moondream2.json
-    ├── phi3_vision.json
     └── ... (and others)
 /src/models/                   # All model implementations
-├── llava_mlx/                # LLaVA MLX model server
+├── smolvlm2/                 # SmolVLM2 model server (recommended)
+├── smolvlm/                  # SmolVLM model server
 ├── moondream2/               # Moondream2 model server
-└── ... (and others)
+├── llava_mlx/                # LLaVA MLX model server
+├── Phi_3.5_Vision MLX/       # Phi-3.5 Vision MLX model server
+└── base_model.py             # Base model interface
+/src/testing/                  # Comprehensive testing framework
+├── vqa/                      # VQA 2.0 testing framework
+├── results/                  # Test results and analysis
+└── materials/                # Test datasets and images
+/docs/                        # Complete documentation
+├── ARCHITECTURE.md           # System architecture overview
+├── DEVELOPER_SETUP.md        # Setup and installation guide
+├── MODEL_COMPARISON.md       # Model performance comparison
+├── API.md                    # API documentation
+├── TROUBLESHOOTING.md        # Common issues and solutions
+└── FAQ.md                    # Frequently asked questions
 /ai_vision_env/               # Python virtual environment
 ```
 

@@ -1,262 +1,195 @@
-# AI Manual Assistant - Frequently Asked Questions (FAQ)
+# AI Manual Assistant - Frequently Asked Questions
 
 ## General Questions
 
 ### Q: What is the AI Manual Assistant?
-**A:** The AI Manual Assistant is a real-time vision-guided system that uses advanced AI to provide step-by-step assistance for hands-on tasks. It sees what you see through your camera and provides contextual guidance for cooking, repairs, assembly, and more.
-
-**🧪 Current Development:** The system is testing two approaches - enhanced image analysis and continuous video understanding - to determine the optimal solution for real-time guidance.
+A: The AI Manual Assistant is a real-time visual guidance system that uses Vision-Language Models (VLMs) to provide contextual assistance for hands-on tasks. It acts like an intelligent mentor that watches your work through your camera and provides step-by-step guidance.
 
 ### Q: What makes this different from other AI assistants?
-**A:** Unlike text-based AI assistants, our system actually sees your workspace through your camera. It understands the context of what you're doing and provides visual confirmation of your progress, preventing mistakes in real-time. We're currently testing both image-based and video-based approaches to find the most reliable solution.
+A: Unlike traditional AI assistants that rely on text descriptions, our system continuously watches your workspace through your camera, understands ongoing activities, and provides real-time guidance based on what it actually sees happening.
 
-### Q: Does it work offline?
-**A:** Yes! The system is designed for local processing with edge-optimized models. Once set up, it works without internet connectivity for basic functionality.
+### Q: What types of tasks can it help with?
+A: The system is designed to help with various hands-on activities including:
+- 🍳 Cooking (recipes, techniques, timing)
+- 🔧 Repairs (electronics, appliances, vehicles)
+- 🪑 Assembly (furniture, electronics, DIY projects)
+- 📚 Learning (new skills, hobbies, techniques)
+- 🏠 Home improvement (installation, maintenance)
+- 🎨 Creative projects (art, crafts, building)
 
 ## Technical Questions
 
 ### Q: What are the system requirements?
-**A:** 
-- macOS (M1/M2/M3 recommended) or Linux
-- Python 3.8+ (3.10 recommended)
+A: **Minimum Requirements:**
+- macOS (Apple Silicon M1/M2/M3 recommended) or Linux
+- Python 3.9+
 - 16GB RAM minimum (32GB recommended)
 - 50GB free disk space
-- Camera (built-in or external)
+- Webcam or camera access
 
-### Q: Which AI models are supported?
-**A:** We support multiple vision-language models for testing different approaches:
+### Q: Which model should I use?
+A: **For most users, we recommend:**
+1. **SmolVLM2-500M-Video-Instruct** - Best overall performance (66.0% VQA accuracy)
+2. **SmolVLM-500M-Instruct** - Excellent alternative (64.0% VQA accuracy)
+3. **Moondream2** - Fastest inference (4.06s, good for speed-critical applications)
 
-**🏆 Best Performance Models (VQA 2.0 Tested):**
-- **SmolVLM2-500M-Video-Instruct** - Best overall (66.0% VQA accuracy, 6.61s)
-- **SmolVLM-500M-Instruct** - Excellent alternative (64.0% VQA accuracy, 5.98s)
-- **Moondream2** - Fastest inference (56.0% VQA accuracy, 4.06s)
+See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed analysis.
 
-**Additional Models:**
-- **Phi-3.5-Vision (MLX)** - High-accuracy analysis (60.0% VQA accuracy, 13.61s)
-- **LLaVA-MLX** - Conversational (34.0% VQA accuracy, 17.86s) ⚠️ Underperforming
-- **YOLO8** - Real-time object detection
+### Q: Can I run multiple models at the same time?
+A: No, due to memory constraints on typical development machines, only one model server should be run at a time. To switch models, stop the current server and start a different one.
 
-### Q: Can I switch between models?
-**A:** Yes! The system supports dynamic model switching. You can change models through the configuration or by restarting with a different model server.
+### Q: Do I need an internet connection?
+A: No! The system works completely offline once set up. All AI processing happens locally on your machine, ensuring privacy and eliminating dependency on cloud services.
 
-### Q: What ports does the system use?
-**A:** The system uses a three-layer architecture:
-- Frontend: Port 5500
-- Backend: Port 8000
-- Model Server: Port 8080
+### Q: Is my data private?
+A: Yes, absolutely. All processing happens locally on your device. No images or data are sent to external servers or cloud services.
 
 ## Setup and Installation
 
 ### Q: How do I install the system?
-**A:** Follow these steps:
+A: Follow these steps:
 1. Clone the repository
-2. Create a virtual environment
-3. Install dependencies
-4. Start the services
+2. Create a Python virtual environment
+3. Install dependencies from `requirements.txt`
+4. For Apple Silicon: Install `mlx-vlm` for optimized models
+5. Start the three-layer system (Model Server, Backend, Frontend)
 
 See our [Developer Setup Guide](./DEVELOPER_SETUP.md) for detailed instructions.
 
-### Q: The installation is taking a long time. Is this normal?
-**A:** Yes, the first installation downloads large AI models (~8GB). This is normal and only happens once.
+### Q: I'm getting "ModuleNotFoundError" errors. What should I do?
+A: This usually means:
+1. Your virtual environment is not activated - run `source ai_vision_env/bin/activate`
+2. You're running scripts from the wrong directory - ensure you're in the project root
+3. Dependencies aren't installed - run `pip install -r requirements.txt`
 
-### Q: I'm getting permission errors on macOS. What should I do?
-**A:** Grant camera permissions when prompted. You may also need to allow the application in System Preferences > Security & Privacy.
+### Q: The camera isn't working. How do I fix it?
+A: **Common solutions:**
+1. **Browser permissions**: Check camera permissions in your browser
+2. **System permissions**: On macOS, check System Preferences > Security & Privacy > Camera
+3. **Camera in use**: Close other applications using the camera
+4. **Try different browsers**: Chrome, Firefox, Safari may behave differently
 
-## Usage Questions
+See our [Troubleshooting Guide](./TROUBLESHOOTING.md) for more camera issues.
 
-### Q: How accurate is the object recognition?
-**A:** Accuracy varies by model and approach, based on our latest VQA 2.0 testing:
+### Q: Which ports does the system use?
+A: The system uses three ports:
+- **Port 5500**: Frontend (web interface)
+- **Port 8000**: Backend (API gateway)
+- **Port 8080**: Model Server (AI inference)
 
-**🏆 Best Performing Models:**
-- **SmolVLM2-500M-Video-Instruct**: 66.0% VQA accuracy, 6.61s average
-- **SmolVLM-500M-Instruct**: 64.0% VQA accuracy, 5.98s average
-- **Moondream2**: 56.0% VQA accuracy, 4.06s average (fastest)
-
-**Other Models:**
-- **Phi-3.5-Vision (MLX)**: 60.0% VQA accuracy, 13.61s average
-- **LLaVA-MLX**: 34.0% VQA accuracy, 17.86s average ⚠️ Underperforming
-
-See our [Model Comparison Guide](./MODEL_COMPARISON.md) for detailed benchmarks and testing status.
-
-### Q: Can it help with any type of task?
-**A:** The system is designed for hands-on tasks including:
-- Cooking and food preparation
-- Electronics and appliance repair
-- Furniture assembly
-- Home improvement projects
-- Learning new skills
-- Creative projects
-
-### Q: How do I get better results?
-**A:** For optimal performance:
-- Ensure good lighting
-- Keep objects clearly visible
-- Speak clearly when asking questions
-- Provide context about what you're trying to accomplish
-- Use the recommended models (SmolVLM2 or SmolVLM for best results)
-
-### Q: Why does the LLaVA model have performance issues?
-**A:** The LLaVA-MLX model has shown significant performance degradation in recent tests:
-- **Previous Performance**: 56% VQA accuracy
-- **Current Performance**: 34% VQA accuracy
-- **Root Cause**: Model reloading for each image causes overhead and state management issues
-- **Recommendation**: Use SmolVLM2 or SmolVLM instead for better performance
-
-### Q: Which model should I use for my specific needs?
-**A:** Based on our VQA 2.0 testing:
-
-**For Production Use:**
-- **Best Overall**: SmolVLM2-500M-Video-Instruct (66.0% accuracy, good speed)
-- **Fastest**: Moondream2 (4.06s average, 56.0% accuracy)
-- **Most Reliable**: SmolVLM-500M-Instruct (64.0% accuracy, stable performance)
-
-**For Different Scenarios:**
-- **Quick Testing (10 questions)**: Moondream2 (~41 seconds)
-- **Standard Testing (15 questions)**: SmolVLM2 (~98 seconds)
-- **Comprehensive Testing (20 questions)**: SmolVLM2 (~130 seconds)
-
-## Troubleshooting
-
-### Q: The camera feed is not working. What should I check?
-**A:** 
-1. Check camera permissions
-2. Ensure no other apps are using the camera
-3. Restart the frontend service
-4. Check browser console for errors
-
-### Q: The AI responses are slow or inaccurate. How can I fix this?
-**A:**
-1. Check system resources (CPU/Memory usage)
-2. Try switching to a faster model (Moondream2 for speed, SmolVLM2 for balance)
-3. Improve lighting conditions
-4. Restart the model server
-5. Avoid using LLaVA-MLX due to performance issues
-
-### Q: I'm getting "Model server not responding" errors. What should I do?
-**A:**
-1. Check if the model server is running (port 8080)
-2. Restart the model server
-3. Check log files for error messages
-4. Ensure sufficient system memory
-5. Try a different model if one is failing
-
-### Q: The system is using too much memory. How can I reduce usage?
-**A:**
-1. Switch to Moondream2 (uses only 0.10GB memory)
-2. Use SmolVLM-500M-Instruct (uses 1.58GB)
-3. Close other applications
-4. Restart the system to clear memory
-5. Consider quantized models for lower memory usage
+If you get port conflicts, you may need to stop other applications or modify the port settings.
 
 ## Performance and Optimization
 
-### Q: How can I improve response time?
-**A:**
-- Use Moondream2 for fastest responses (4.06s average)
-- Use SmolVLM2 for best balance (6.61s average)
-- Ensure good hardware (Apple Silicon recommended)
-- Close unnecessary applications
-- Use lower image quality settings if needed
+### Q: The system is running slowly. How can I improve performance?
+A: **Performance optimization tips:**
+1. **Use faster models**: Moondream2 is the fastest (4.06s inference)
+2. **Apple Silicon users**: Use MLX-optimized models for better performance
+3. **Reduce image quality**: Lower the capture quality in frontend settings
+4. **Close other applications**: Free up system memory
+5. **Check system resources**: Ensure you have enough RAM available
 
-### Q: Can I run multiple models simultaneously?
-**A:** No, the system is designed to run only one model at a time due to memory considerations. This ensures optimal performance and prevents memory issues. To use a different model, stop the current one and start the desired model.
+### Q: How accurate are the AI responses?
+A: **Based on VQA 2.0 testing:**
+- SmolVLM2-500M-Video-Instruct: 66.0% accuracy (best)
+- SmolVLM-500M-Instruct: 64.0% accuracy
+- Moondream2: 56.0% accuracy
+- Phi-3.5-Vision (MLX): 60.0% accuracy
 
-### Q: How do I optimize for my specific hardware?
-**A:** See our [VLM Enhancement Guide](../VLM_Enhancement_Guide.md) for hardware-specific optimization tips and guidance on testing both image and video approaches on your hardware.
+See [Test Results Summary](../TEST_RESULTS_SUMMARY.md) for detailed performance data.
 
-### Q: What are the time estimates for different test scenarios?
-**A:** Based on our VQA 2.0 testing:
-
-**10 Questions Test:**
-- Moondream2: ~41 seconds
-- SmolVLM2: ~66 seconds
-- SmolVLM: ~60 seconds
-- Phi-3.5: ~136 seconds
-- LLaVA-MLX: ~179 seconds
-
-**15 Questions Test:**
-- Moondream2: ~55 seconds
-- SmolVLM2: ~98 seconds
-- SmolVLM: ~90 seconds
-- Phi-3.5: ~204 seconds
-- LLaVA-MLX: ~260 seconds
-
-**20 Questions Test:**
-- Moondream2: ~74 seconds
-- SmolVLM2: ~130 seconds
-- SmolVLM: ~120 seconds
-- Phi-3.5: ~272 seconds
-- LLaVA-MLX: ~346 seconds
+### Q: Can I improve the AI's accuracy?
+A: **Yes, several ways:**
+1. **Better lighting**: Ensure good lighting in your workspace
+2. **Clear camera view**: Keep the camera clean and unobstructed
+3. **Stable positioning**: Minimize camera shake and movement
+4. **Specific prompts**: Ask clear, specific questions
+5. **Model selection**: Use higher-accuracy models for important tasks
 
 ## Development and Customization
 
-### Q: Can I add support for new models?
-**A:** Yes! The system is designed to be extensible. See our [Developer Setup Guide](./DEVELOPER_SETUP.md) for information on adding new models.
+### Q: Can I add new models to the system?
+A: Yes! The system is designed to be model-agnostic. To add a new model:
+1. Create a new model directory in `src/models/`
+2. Implement the model following the existing patterns
+3. Add a configuration file in `src/config/model_configs/`
+4. Create a run script for the model server
 
-### Q: How do I customize the prompts?
-**A:** You can modify prompts in the model configuration files located in `src/config/model_configs/`. Each model has its own configuration file.
+### Q: How do I modify the system for my specific use case?
+A: **Customization options:**
+1. **Prompts**: Modify default prompts in model configurations
+2. **Image processing**: Adjust preprocessing parameters in the backend
+3. **UI**: Customize the frontend interface
+4. **Models**: Train or fine-tune models for specific domains
 
-### Q: Can I contribute to the project?
-**A:** Absolutely! We welcome contributions. Please see our [Developer Setup Guide](./DEVELOPER_SETUP.md) for contribution guidelines.
+### Q: Is there an API I can use?
+A: Yes! The system exposes OpenAI-compatible APIs:
+- **Backend API**: `http://localhost:8000/v1/chat/completions`
+- **Model Server API**: `http://localhost:8080/v1/chat/completions`
 
-## Advanced Features
+See our [API Documentation](./API.md) for complete reference.
 
-### Q: Does the system support video analysis?
-**A:** Yes, we're currently testing SmolVLM2-Video for continuous video understanding. This approach is being evaluated against our current image analysis approach to determine which provides better real-time guidance. The video model can process 5-10 second segments for temporal understanding and activity recognition.
-
-### Q: Can I use the system programmatically?
-**A:** Yes! We provide a complete REST API. See our [API Documentation](./API.md) for endpoint details and examples.
-
-### Q: Is there a mobile app?
-**A:** Currently, the system runs as a web application that works on mobile browsers. Native mobile apps are planned for future releases.
-
-## Testing and Evaluation
-
-### Q: How do you evaluate model performance?
-**A:** We use the VQA 2.0 (Visual Question Answering) benchmark with real COCO dataset questions and images. Our testing framework evaluates:
-- **Simple Accuracy**: Binary correct/incorrect answers
-- **VQA Accuracy**: Standard VQA 2.0 evaluation with partial credit
-- **Inference Time**: Average response time per question
-- **Memory Usage**: Resource consumption tracking
-
-### Q: Where can I find detailed test results?
-**A:** See `src/testing/vqa_test_result.md` for comprehensive test results, time analysis, and performance comparisons.
-
-### Q: How often do you update model performance data?
-**A:** We regularly test and update model performance data. The latest results are from July 19, 2025, using VQA 2.0 testing framework.
-
-## Support and Community
-
-### Q: Where can I get help?
-**A:** 
-- Check this FAQ first
-- Read our documentation in the [docs](../) directory
-- Create an issue on GitHub
-- Contact the development team
-
-### Q: How do I report bugs?
-**A:** Please create a detailed issue on our GitHub repository including:
-- System information
-- Steps to reproduce
-- Error messages
-- Log files if available
-
-### Q: Is there a community forum?
-**A:** We primarily use GitHub Issues for community support and discussions.
+### Q: Can I integrate this with other applications?
+A: Absolutely! The system provides standard REST APIs that can be integrated with other applications. The OpenAI-compatible format makes it easy to integrate with existing tools and workflows.
 
 ## Future Development
 
-### Q: What features are planned for future releases?
-**A:** See our [TODO List](../TODO_LIST.md) for current development priorities and planned features.
+### Q: What new features are planned?
+A: **Upcoming enhancements:**
+1. **RAG & State Tracker Integration**: Advanced context management and memory
+2. **Mobile Support**: Smartphone and tablet compatibility
+3. **Offline Mode Improvements**: Better offline capabilities
+4. **Performance Optimizations**: Faster inference and lower resource usage
 
-### Q: When will the next version be released?
-**A:** We follow an iterative development approach. Check our GitHub repository for the latest releases and roadmap updates.
+See [RAG & State Tracker Integration Approaches](../RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md) for detailed planning.
 
-### Q: Will there be commercial licensing options?
-**A:** Currently, the project is open source under the MIT License. Commercial licensing options may be considered in the future.
+### Q: How can I contribute to the project?
+A: We welcome contributions! You can:
+1. **Report issues**: Submit bug reports and feature requests
+2. **Improve documentation**: Help improve guides and documentation
+3. **Add models**: Integrate new Vision-Language Models
+4. **Optimize performance**: Contribute performance improvements
+5. **Test and feedback**: Test the system and provide feedback
+
+See our [Developer Setup Guide](./DEVELOPER_SETUP.md) for contribution guidelines.
+
+### Q: Is there a roadmap for the project?
+A: Yes! The project follows a structured development approach:
+1. **Current Phase**: Model optimization and testing framework
+2. **Next Phase**: RAG and State Tracker integration
+3. **Future Phases**: Mobile support, advanced features, and scaling
+
+## Troubleshooting
+
+### Q: The model server won't start. What should I check?
+A: **Common issues:**
+1. **Memory**: Ensure you have enough RAM (16GB minimum)
+2. **Dependencies**: Check all required packages are installed
+3. **Python version**: Ensure Python 3.9+ is being used
+4. **Virtual environment**: Make sure it's activated
+5. **Port conflicts**: Check if port 8080 is already in use
+
+### Q: I'm getting connection errors between components. How do I fix this?
+A: **Connection troubleshooting:**
+1. **Check all services are running**: Frontend, Backend, Model Server
+2. **Verify ports**: Ensure 5500, 8000, 8080 are available
+3. **Check firewall**: Ensure local connections are allowed
+4. **Restart services**: Try restarting all components in order
+
+### Q: The AI responses don't make sense. What's wrong?
+A: **Response quality issues:**
+1. **Model selection**: Try a different model (SmolVLM2 recommended)
+2. **Image quality**: Ensure good lighting and clear camera view
+3. **Prompt clarity**: Ask more specific, clear questions
+4. **Model state**: Restart the model server to clear any state issues
+
+For more detailed troubleshooting, see our [Troubleshooting Guide](./TROUBLESHOOTING.md).
 
 ---
 
-**Last Updated**: July 19, 2025  
-**Test Framework**: VQA 2.0 Standard Evaluation  
-**Hardware**: MacBook Air M3, 16GB RAM 
+**Need more help?** 
+- Check our [Documentation Index](../DOCUMENTATION.md)
+- Review the [Troubleshooting Guide](./TROUBLESHOOTING.md)
+- See the [Developer Setup Guide](./DEVELOPER_SETUP.md)
+
+**Last Updated**: January 2025

@@ -236,21 +236,30 @@ Production Deployment
    └── Model Server (Docker Container)
 ```
 
-## Future Considerations
+## Future Enhancements
 
-### 1. Scalability
+### 1. RAG & State Tracker Integration (Planned)
+The system is designed to support advanced context management through RAG (Retrieval-Augmented Generation) and State Tracker integration. Three approaches are being evaluated:
+
+- **Approach 1**: Pre-defined classification and step-by-step guidance
+- **Approach 2**: Full edge VLM processing with dynamic learning
+- **Approach 3**: Hybrid system balancing AI flexibility with system reliability
+
+For detailed analysis, see [RAG & State Tracker Integration Approaches](../RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md).
+
+### 2. Scalability Improvements
 - Optimized model switching
 - Faster model loading/unloading
 - Distributed caching
 - Multi-region deployment
 
-### 2. Feature Expansion
+### 3. Feature Expansion
 - Advanced model switching automation
 - Enhanced context management
 - Offline mode support
 - Mobile optimization
 
-### 3. Performance Improvements
+### 4. Performance Improvements
 - Model state persistence
 - Reduced reloading overhead
 - Memory optimization

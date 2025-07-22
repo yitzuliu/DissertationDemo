@@ -119,9 +119,13 @@ For more detailed instructions, see the [Developer Setup Guide](./docs/DEVELOPER
 - **[API Documentation](./docs/API.md)** - Complete API reference and examples
 
 ### **Project Guides**
-- **[Integration Plan](./integration_plan.md)** - Project roadmap and implementation strategy
+- **[RAG & State Tracker Integration](./RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)** - Three approaches for integrating RAG and State Tracker
 - **[VLM Enhancement Guide](./VLM_Enhancement_Guide.md)** - Optimization guide for vision models
-- **[TODO List](./TODO_LIST.md)** - Current development tasks and priorities
+- **[Test Results Summary](./TEST_RESULTS_SUMMARY.md)** - Latest VQA 2.0 performance results
+
+### **Additional Resources**
+- **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[FAQ](./docs/FAQ.md)** - Frequently asked questions
 
 ## ✨ **Key Features**
 

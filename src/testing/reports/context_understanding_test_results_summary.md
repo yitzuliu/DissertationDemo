@@ -1,13 +1,13 @@
 # VLM Context Understanding Capability Test Results Summary
 
-**Test Date:** July 22, 2025 11:16:13  
-**Test Duration:** 256.33 seconds (4.27 minutes)  
+**Test Date:** July 22, 2025 13:01:28  
+**Test Duration:** 260.31 seconds (4.34 minutes)  
 **Test Environment:** MacBook Air M3 (16GB RAM)  
 **Test Framework:** Custom VLM Context Understanding Tester  
 
 ## Executive Summary
 
-This comprehensive test evaluated the context understanding capabilities of 5 state-of-the-art Vision-Language Models (VLMs) using a forensic-level testing methodology. The results reveal significant limitations in current VLM models' ability to maintain and utilize conversation context, consistent with previous findings.
+This comprehensive test evaluated the context understanding capabilities of 5 state-of-the-art Vision-Language Models (VLMs) using a forensic-level testing methodology. The results confirm that while some models can answer context questions, most answers are generic or hallucinated, and true context retention remains a challenge.
 
 ## Test Methodology
 
@@ -30,13 +30,13 @@ This comprehensive test evaluated the context understanding capabilities of 5 st
 
 ### **Overall Performance Rankings**
 
-| **Model** | **Success Rate** | **Context Accuracy** | **Avg Inference (s)** | **Notes** |
-|-----------|------------------|---------------------|-----------------------|-----------|
-| SmolVLM-500M-Instruct | 100% | 100% (answers present, but context accuracy must be manually checked) | ~5.5 | Best context retention, but some answers are generic |
-| SmolVLM2-500M-Video-Instruct | 100% | 100% (answers present, but context accuracy must be manually checked) | ~6.2 | Fast, but context answers are often generic |
-| Moondream2 | 100% | 0% (model cannot answer context questions without image) | ~6.3 | Vision-only, no context retention |
-| LLaVA-v1.6-Mistral-7B-MLX | 100% | ~66% (answers present, but some missing) | ~11.5 | Some context answers missing |
-| Phi-3.5-Vision-Instruct | 100% | ~66% (answers present, but some missing) | ~13.5 | Some context answers missing |
+| **Model** | **Context Q Success Rate** | **Context Accuracy** | **Avg Inference (s)** | **Notes** |
+|-----------|---------------------------|---------------------|-----------------------|-----------|
+| SmolVLM-500M-Instruct | 100% | Answers present, but often generic or hallucinated | ~3.4 | Best context retention, but not always accurate |
+| SmolVLM2-500M-Video-Instruct | 100% | Answers present, but often generic or hallucinated | ~6.2 | Consistent, but context answers are generic |
+| Moondream2 | 0% | Model cannot answer context questions without image | ~5.9 | Vision-only, no context retention |
+| LLaVA-v1.6-Mistral-7B-MLX | ~66% | Some answers missing or empty | ~6.7 | Incomplete context answers |
+| Phi-3.5-Vision-Instruct | ~66% | Some answers missing or empty | ~10.1 | Incomplete context answers |
 
 *Note: For exact context accuracy, manual review of answers is required. Moondream2 always replies it cannot answer without the image.*
 
@@ -58,4 +58,4 @@ This comprehensive test evaluated the context understanding capabilities of 5 st
 **Test Framework:** Custom VLM Context Understanding Tester  
 **Evaluation Method:** Forensic-level detail testing with follow-up questions  
 **Data Source:** Real-world images with complex visual elements  
-**Last Updated:** 2025-07-22 
+**Last Updated:** 2025-07-22 13:01:28 
