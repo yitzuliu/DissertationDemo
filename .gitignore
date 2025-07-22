@@ -252,3 +252,4 @@ deploy/
 deployment/
 *.tar.gz
 *.zip
+src/testing/materials/vqa2/v2_mscoco_val2014_annotations.json
