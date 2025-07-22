@@ -1,8 +1,20 @@
-# AI Manual Assistant - Documentation Index
+# AI Manual Assistant - Getting Started Guide
 
-The comprehensive documentation for the AI Manual Assistant project is organized across multiple directories and files.
+This guide helps new users quickly get up and running with the AI Manual Assistant project.
 
-## 📚 Core Documentation
+## 🚀 Quick Start for New Users
+
+### 1. First Steps
+1. **Setup Development Environment**: Follow the [Developer Setup Guide](./docs/DEVELOPER_SETUP.md)
+2. **Understand the System**: Read the [System Architecture](./docs/ARCHITECTURE.md)
+3. **Choose Your Model**: Check the [Model Comparison Guide](./docs/MODEL_COMPARISON.md)
+4. **Review Latest Results**: See [Test Results Summary](./TEST_RESULTS_SUMMARY.md)
+
+### 2. Advanced Configuration
+- **Integration Planning**: Review [RAG & State Tracker Integration](./docs/RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)
+- **Model Optimization**: Follow the [VLM Enhancement Guide](./docs/VLM_ENHANCEMENT_GUIDE.md)
+
+## 📚 Complete Documentation
 
 ### System Documentation (`/docs`)
 - **[System Architecture](./docs/ARCHITECTURE.md)** - Complete system design and component overview
@@ -11,18 +23,11 @@ The comprehensive documentation for the AI Manual Assistant project is organized
 - **[API Documentation](./docs/API.md)** - Complete API reference and examples
 - **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
 - **[FAQ](./docs/FAQ.md)** - Frequently asked questions
+- **[RAG & State Tracker Integration](./docs/RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)** - Three approaches for integrating RAG and State Tracker
+- **[VLM Enhancement Guide](./docs/VLM_ENHANCEMENT_GUIDE.md)** - Optimization guide for vision models
 
-### Project Guides (Root Directory)
-- **[RAG & State Tracker Integration](./RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)** - Three approaches for integrating RAG and State Tracker
-- **[VLM Enhancement Guide](./VLM_Enhancement_Guide.md)** - Optimization guide for vision models
+### Project Status
 - **[Test Results Summary](./TEST_RESULTS_SUMMARY.md)** - Latest VQA 2.0 performance results
-
-## 🚀 Quick Start
-
-1. **New Users**: Start with the [Developer Setup Guide](./docs/DEVELOPER_SETUP.md)
-2. **System Overview**: Read the [System Architecture](./docs/ARCHITECTURE.md)
-3. **Model Selection**: Check the [Model Comparison Guide](./docs/MODEL_COMPARISON.md)
-4. **Integration Planning**: Review [RAG & State Tracker Integration](./RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)
 
 ## 🔧 Development Resources
 

@@ -245,7 +245,7 @@ The system is designed to support advanced context management through RAG (Retri
 - **Approach 2**: Full edge VLM processing with dynamic learning
 - **Approach 3**: Hybrid system balancing AI flexibility with system reliability
 
-For detailed analysis, see [RAG & State Tracker Integration Approaches](../RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md).
+For detailed analysis, see [RAG & State Tracker Integration Approaches](./RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md).
 
 ### 2. Scalability Improvements
 - Optimized model switching

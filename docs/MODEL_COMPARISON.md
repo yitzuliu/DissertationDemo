@@ -213,6 +213,8 @@ For detailed test results and time analysis, see `src/testing/vqa_test_result.md
 
 ---
 
-**Last Updated**: July 19, 2025  
+**Last Updated**: January 2025  
 **Test Framework**: VQA 2.0 Standard Evaluation  
 **Hardware**: MacBook Air M3, 16GB RAM
+
+For the latest detailed test results and comprehensive performance analysis, see [Test Results Summary](../TEST_RESULTS_SUMMARY.md).

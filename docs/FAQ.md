@@ -141,7 +141,7 @@ A: **Upcoming enhancements:**
 3. **Offline Mode Improvements**: Better offline capabilities
 4. **Performance Optimizations**: Faster inference and lower resource usage
 
-See [RAG & State Tracker Integration Approaches](../RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md) for detailed planning.
+See [RAG & State Tracker Integration Approaches](./RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md) for detailed planning.
 
 ### Q: How can I contribute to the project?
 A: We welcome contributions! You can:
@@ -188,7 +188,7 @@ For more detailed troubleshooting, see our [Troubleshooting Guide](./TROUBLESHOO
 ---
 
 **Need more help?** 
-- Check our [Documentation Index](../DOCUMENTATION.md)
+- Check our [Getting Started Guide](../GETTING_STARTED.md)
 - Review the [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - See the [Developer Setup Guide](./DEVELOPER_SETUP.md)
 
