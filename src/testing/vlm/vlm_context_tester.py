@@ -85,35 +85,26 @@ class VLMModelLoader:
     
     @staticmethod
     def load_smolvlm2_video(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
-        """載入 SmolVLM2-500M-Video-Instruct (優先使用 MLX 版本)"""
-        print(f"載入 SmolVLM2-500M-Video-Instruct (優先使用 MLX 版本)...")
-        
+        """Load SmolVLM2-500M-Video-Instruct (prefer MLX version)"""
+        print(f"Loading SmolVLM2-500M-Video-Instruct (prefer MLX version)...")
         try:
-            # 首先嘗試使用 MLX-VLM 框架（與 vlm_tester.py 相同的方法）
             from mlx_vlm import load
-            print("正在載入 MLX-VLM 優化的 SmolVLM2 模型...")
+            print("Loading MLX-VLM optimized SmolVLM2 model...")
             model, processor = load(model_id)
-            print("MLX-VLM SmolVLM2 載入成功!")
-            
-            # 標記為 MLX 模型，使用特殊的推理方式
+            print("MLX-VLM SmolVLM2 loaded successfully!")
             model._is_mlx_model = True
-            
             return model, processor
-            
         except ImportError as e:
-            print("MLX-VLM 未安裝，使用原始 SmolVLM2 模型...")
-            print("請運行: pip install mlx-vlm")
-            # 回退到原始 SmolVLM2 模型
+            print("MLX-VLM not installed, using original SmolVLM2 model...")
+            print("Please run: pip install mlx-vlm")
             fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
             from transformers import AutoProcessor, AutoModelForImageTextToText
             processor = AutoProcessor.from_pretrained(fallback_model_id)
             model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
             return model, processor
-            
         except Exception as e:
-            print(f"MLX-VLM 載入失敗: {str(e)}")
-            print("使用原始 SmolVLM2 模型作為回退...")
-            # 回退到原始 SmolVLM2 模型
+            print(f"MLX-VLM loading failed: {str(e)}")
+            print("Using original SmolVLM2 model as fallback...")
             fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
             from transformers import AutoProcessor, AutoModelForImageTextToText
             processor = AutoProcessor.from_pretrained(fallback_model_id)
@@ -154,48 +145,39 @@ class VLMModelLoader:
         """Load Phi-3.5-Vision-Instruct using MLX (Apple Silicon optimized)"""
         print(f"Loading {model_id} with MLX framework...")
         try:
-            # Use MLX-VLM for Apple Silicon optimization (supports vision)
             from mlx_vlm import load
-            
             print("Loading MLX-VLM optimized Phi-3.5-Vision-Instruct model...")
             model, processor = load(model_id, trust_remote_code=True)
             print("MLX-VLM model loaded successfully!")
-            
             return model, processor
-            
         except ImportError as e:
             print("MLX-VLM not installed. Installing MLX-VLM...")
             print("Please run: pip install mlx-vlm")
             print("Falling back to original transformers approach...")
-            
-            # Fallback to original approach if MLX not available
             from transformers import AutoModelForCausalLM, AutoProcessor
             print("Using memory-optimized loading for Apple Silicon...")
             model = AutoModelForCausalLM.from_pretrained(
                 "microsoft/Phi-3.5-vision-instruct", 
                 trust_remote_code=True,
                 torch_dtype=torch.float16,
-                _attn_implementation="eager",  # Disable FlashAttention2
-                device_map="cpu",  # Force CPU to avoid memory issues
-                low_cpu_mem_usage=True  # Use less CPU memory
+                _attn_implementation="eager",
+                device_map="cpu",
+                low_cpu_mem_usage=True
             )
             processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
             return model, processor
-            
         except Exception as e:
             print(f"MLX loading failed: {str(e)}")
             print("Falling back to original transformers approach...")
-            
-            # Fallback to original approach
             from transformers import AutoModelForCausalLM, AutoProcessor
             print("Using memory-optimized loading for Apple Silicon...")
             model = AutoModelForCausalLM.from_pretrained(
                 "microsoft/Phi-3.5-vision-instruct", 
                 trust_remote_code=True,
                 torch_dtype=torch.float16,
-                _attn_implementation="eager",  # Disable FlashAttention2
-                device_map="cpu",  # Force CPU to avoid memory issues
-                low_cpu_mem_usage=True  # Use less CPU memory
+                _attn_implementation="eager",
+                device_map="cpu",
+                low_cpu_mem_usage=True
             )
             processor = AutoProcessor.from_pretrained("microsoft/Phi-3.5-vision-instruct", trust_remote_code=True)
             return model, processor
@@ -217,7 +199,7 @@ class VLMContextTester:
             "models": {}
         }
         
-        # Test model configuration (same as vlm_tester.py)
+        # Model configuration for context understanding tests (same as vlm_tester.py)
         self.models_config = {
             "SmolVLM2-500M-Video-Instruct": { 
                 "loader": VLMModelLoader.load_smolvlm2_video, 
@@ -230,23 +212,25 @@ class VLMContextTester:
             "Phi-3.5-Vision-Instruct": { "loader": VLMModelLoader.load_phi3_vision, "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit" }
         }
         
-        # 📏 Unified test conditions
-        self.unified_max_tokens = 100  # Match vlm_tester.py setting
-        self.unified_image_size = 1024
+        # Unified test parameters
+        self.unified_max_tokens = 100  # Maximum tokens for generation
+        self.unified_image_size = 1024 # Maximum image size for all models
         
-        # 🧠 Context understanding test prompts (keeping original prompts unchanged)
-        self.seeding_prompt = "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation."
+        # Prompts for context understanding tests
+        self.seeding_prompt = (
+            "You are a forensic expert. Describe this image in extreme detail, "
+            "listing every object, person, color, and spatial relationship you can identify. "
+            "This is for a critical investigation."
+        )
         self.recall_questions = [
             "What were the most prominent colors in the image?",
             "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
             "Summarize the main subject or scene of the image in one sentence."
         ]
-        
-        # 💡 Context understanding testing strategy
-        # Maintain conversation history to test models' ability to understand context
+        # The test strategy is to maintain conversation history to evaluate context retention.
 
     def get_test_images(self):
-        """Get test image list (updated for new materials path)"""
+        """Get a list of test images from the materials/images directory."""
         from pathlib import Path
         base_dir = Path(__file__).parent.parent  # src/testing/
         possible_paths = [
@@ -264,14 +248,14 @@ class VLMContextTester:
         return sorted(image_files)
 
     def run_all_tests(self):
-        """Execute context understanding tests for all models"""
+        """Run context understanding tests for all configured models."""
         print("="*60)
         print("🤖 Starting VLM Model Context Understanding Testing 🤖")
         print("="*60)
         
         test_images = self.get_test_images()
         if not test_images:
-            print("❌ Error: No test images found. Please ensure images are located in src/testing/testing_material/images/")
+            print("❌ Error: No test images found. Please ensure images are located in src/testing/materials/images/")
             return
 
         print(f"🖼️ Found {len(test_images)} test images.")
@@ -460,9 +444,9 @@ class VLMContextTester:
                 # Branch 1: Standard Transformers models (e.g., SmolVLM) - IMPROVED
                 # --------------------------------------------------------------------------
                 if "SmolVLM" in model_name:
-                    # 檢查是否為 MLX 模型
+                    # Check if it is an MLX model
                     if hasattr(model, '_is_mlx_model'):
-                        # MLX 版本的 SmolVLM2 推理
+                        # MLX version of SmolVLM2 inference
                         try:
                             import subprocess
                             import tempfile
@@ -470,13 +454,13 @@ class VLMContextTester:
                             print("  🚀 Using MLX-VLM command line for SmolVLM2...")
                             
                             if image is not None:
-                                # 創建臨時圖像文件
+                                # Create a temporary image file
                                 with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
                                     temp_image_path = tmp_file.name
                                     image.save(temp_image_path)
                                 
                                 try:
-                                    # 使用 MLX-VLM 命令行工具
+                                    # Use MLX-VLM command line tool
                                     cmd = [
                                         sys.executable, '-m', 'mlx_vlm.generate',
                                         '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
@@ -494,25 +478,25 @@ class VLMContextTester:
                                     )
                                     
                                     if result.returncode == 0:
-                                        # 解析輸出，提取生成的文本
+                                        # Parse output and extract generated text
                                         output_lines = result.stdout.split('\n')
                                         generated_text = ""
                                         
-                                        # 保留完整的 Assistant 回覆
+                                        # Keep the complete Assistant reply
                                         for i, line in enumerate(output_lines):
                                             line = line.strip()
                                             if line.startswith('Assistant:'):
-                                                # 找到 Assistant 行
+                                                # Found Assistant line
                                                 generated_text = line
-                                                # 檢查下一行是否有內容
+                                                # Check if next line has content
                                                 if i + 1 < len(output_lines):
                                                     next_line = output_lines[i + 1].strip()
                                                     if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
-                                                        # 下一行有內容，組合兩行
+                                                        # Next line has content, combine both lines
                                                         generated_text = f"{line} {next_line}"
                                                 break
                                             elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
-                                                # 找到其他非系統信息的內容行
+                                                # Found other non-system info content line
                                                 if not generated_text:
                                                     generated_text = line
                                         
@@ -522,11 +506,11 @@ class VLMContextTester:
                                         raise Exception(f"MLX-VLM command failed: {result.stderr}")
                                         
                                 finally:
-                                    # 清理臨時文件
+                                    # Clean up temporary file
                                     if os.path.exists(temp_image_path):
                                         os.remove(temp_image_path)
                             else:
-                                # 純文字推理 - 創建簡單的測試圖像
+                                # Text-only inference - create a simple test image
                                 from PIL import Image
                                 test_image = Image.new('RGB', (224, 224), color='white')
                                 
@@ -535,7 +519,7 @@ class VLMContextTester:
                                     test_image.save(temp_image_path)
                                 
                                 try:
-                                    # 使用 MLX-VLM 命令行工具進行純文字測試
+                                    # Use MLX-VLM command line tool for text-only test
                                     cmd = [
                                         sys.executable, '-m', 'mlx_vlm.generate',
                                         '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
@@ -553,7 +537,7 @@ class VLMContextTester:
                                     )
                                     
                                     if result.returncode == 0:
-                                        # 解析輸出
+                                        # Parse output
                                         output_lines = result.stdout.split('\n')
                                         generated_text = ""
                                         
@@ -575,15 +559,15 @@ class VLMContextTester:
                                         response = f"MLX-VLM text-only command failed: {result.stderr}"
                                         
                                 finally:
-                                    # 清理臨時文件
+                                    # Clean up temporary file
                                     if os.path.exists(temp_image_path):
                                         os.remove(temp_image_path)
-                            
+                        
                         except Exception as e:
                             print(f"  ⚠️ MLX-VLM SmolVLM2 inference failed: {e}")
                             response = f"Error: MLX-VLM SmolVLM2 inference failed - {str(e)}"
                     else:
-                        # 標準 SmolVLM 推理方式
+                        # Standard SmolVLM inference method
                         # Build conversation with history
                         conversation = []
                         
