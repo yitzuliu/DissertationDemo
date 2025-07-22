@@ -1,0 +1,264 @@
+/* AI Manual Assistant - Responsive Styles */
+
+/* Large screens and desktops */
+@media (max-width: 1200px) {
+    .container {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .sidebar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+    }
+    
+    .parameter-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+    .parameter-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .sidebar {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+    :root {
+        --header-height: auto;
+        --content-height: calc(100vh - 120px);
+    }
+    
+    .header {
+        flex-direction: column;
+        height: auto;
+        padding: 1rem;
+    }
+    
+    .header-status {
+        margin-top: 1rem;
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    
+    .container {
+        padding: 0 1rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        grid-template-columns: 1fr !important;
+        height: auto;
+        min-height: var(--content-height);
+    }
+    
+    .main-content {
+        margin-bottom: 1rem;
+    }
+    
+    .sidebar {
+        display: block !important;
+        min-width: auto !important;
+        max-width: none !important;
+    }
+    
+    .parameter-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .card {
+        padding: 1.25rem;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    /* Mobile-specific video adjustments */
+    .video-preview {
+        aspect-ratio: 4/3; /* Better for mobile */
+    }
+    
+    .image-preview {
+        width: 80px;
+        height: 60px;
+    }
+    
+    .capture-label {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    /* Mobile form adjustments */
+    textarea, input, select {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .form-group label {
+        font-size: 0.8rem;
+    }
+    
+    /* Mobile sidebar adjustments */
+    .sidebar .card {
+        margin-bottom: 1rem;
+    }
+    
+    /* Mobile tab adjustments */
+    .tab-btn {
+        font-size: 0.75rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    .tab-content {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .advice-list {
+        padding: 1rem;
+    }
+    
+    .advice-list li {
+        font-size: 0.8rem;
+        padding: 0.4rem 0;
+        padding-left: 1.2rem;
+    }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 0.5rem;
+        gap: 16px;
+    }
+    
+    .card {
+        padding: 1rem;
+    }
+    
+    .logo {
+        font-size: 1rem;
+    }
+    
+    .status-item {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .parameter-grid {
+        gap: 0.5rem;
+    }
+    
+    .btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Very small screen video adjustments */
+    .video-container {
+        margin-bottom: 0.5rem;
+    }
+    
+    .thumbnail-container {
+        gap: 8px;
+        margin-top: 0.5rem;
+    }
+    
+    .image-preview {
+        width: 60px;
+        height: 45px;
+    }
+    
+    .capture-label {
+        font-size: 0.65rem;
+        padding: 0.3rem 0.6rem;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    :root {
+        --content-height: calc(100vh - 80px);
+    }
+    
+    .header {
+        padding: 0.5rem 1rem;
+    }
+    
+    .header-status {
+        margin-top: 0.5rem;
+    }
+    
+    .container {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .video-preview {
+        aspect-ratio: 16/9; /* Restore widescreen for landscape */
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .logo i {
+        font-size: 1.1rem; /* Slightly smaller icons on high DPI */
+    }
+    
+    .card-title i {
+        font-size: 1.1rem;
+    }
+    
+    .status-dot {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+    /* Dark mode styles can be added here */
+    /* Currently using light theme only */
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .animate-pulse,
+    .animate-fade-in,
+    .shimmer {
+        animation: none !important;
+    }
+}
+
+/* Print styles */
+@media print {
+    .header,
+    .sidebar,
+    .btn,
+    .video-container {
+        display: none !important;
+    }
+    
+    .container {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}

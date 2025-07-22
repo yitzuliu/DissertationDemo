@@ -1,0 +1,189 @@
+/* AI Manual Assistant - Main Styles */
+
+:root {
+    --primary: #2563eb; /* Royal blue */
+    --primary-light: #dbeafe;
+    --primary-dark: #1d4ed8;
+    --secondary: #06b6d4; /* Cyan */
+    --secondary-light: #cffafe;
+    --accent: #8b5cf6; /* Purple */
+    --accent-light: #ede9fe;
+    --success: #10b981;
+    --success-light: #d1fae5;
+    --error: #ef4444;
+    --error-light: #fee2e2;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-secondary: #f1f5f9;
+    --border-light: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 6px rgba(0,0,0,0.07);
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --header-height: 50px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    --gradient-light: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-light) 100%);
+    --padding-sm: 0.5rem;
+    --padding-md: 0.75rem;
+    --padding-lg: 1rem;
+    --content-height: calc(100vh - var(--header-height) - 2rem);
+}
+
+/* Reset and Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-main);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(var(--secondary), 0.03) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(var(--accent), 0.03) 0px, transparent 50%);
+    color: var(--text);
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-size: 0.82rem;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+}
+
+/* Header */
+.header {
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    height: var(--header-height);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--padding-lg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.logo {
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo i {
+    font-size: 1.2rem;
+    color: var(--secondary);
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-light);
+    padding: 0.3rem 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 1rem;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    position: relative;
+}
+
+.status-dot.online { 
+    background-color: var(--success);
+    box-shadow: 0 0 0 4px var(--success-light);
+}
+
+.status-dot.offline { 
+    background-color: var(--error);
+    box-shadow: 0 0 0 4px var(--error-light);
+}
+
+.status-dot.online::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    background-color: var(--success);
+    opacity: 0.4;
+    animation: pulse 2s infinite;
+}
+
+/* Main Container */
+.container {
+    height: var(--content-height);
+    margin: 1rem auto;
+    padding: 0 var(--padding-lg);
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 16px;
+    overflow: hidden;
+}
+
+/* Animation */
+@keyframes pulse {
+    0% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 0; transform: scale(1.8); }
+    100% { opacity: 0.6; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -468px 0; }
+    100% { background-position: 468px 0; }
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.shimmer {
+    background: linear-gradient(to right, var(--bg-secondary) 8%, var(--bg-main) 18%, var(--bg-secondary) 33%);
+    background-size: 800px 104px;
+    animation: shimmer 1.5s infinite linear;
+}
