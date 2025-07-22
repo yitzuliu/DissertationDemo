@@ -71,18 +71,9 @@ src/models/smolvlm2/SmolVLM2-500M-Video-Instruct/model.safetensors
 
 # ===== TESTING & RESULTS =====
 # Test results and outputs
-/src/testing/results/
-/results/
-# Only track final result files, ignore intermediate and per-model results
-/src/testing/results/*_intermediate_*.json
-/src/testing/results/test_results_single_*.json
-/src/testing/results/test_results_*.json
+/src/testing/results/*
 !/src/testing/results/test_results_20*.json
-/src/testing/results/context_understanding_test_results_intermediate_*.json
-/src/testing/results/context_understanding_test_results_*.json
 !/src/testing/results/context_understanding_test_results_20*.json
-/src/testing/results/vqa2_results_coco_intermediate_*.json
-/src/testing/results/vqa2_results_*.json
 !/src/testing/results/vqa2_results_coco_20*.json
 
 # Debug and temporary test files
