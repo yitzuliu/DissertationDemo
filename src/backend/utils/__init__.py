@@ -1,1 +1,3 @@
-"""Utility modules for AI Manual Assistant backend."""
+"""
+Backend utilities package
+"""

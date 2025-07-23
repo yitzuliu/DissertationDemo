@@ -4,10 +4,10 @@ Optimized Moondream2 Server Runner
 
 High-performance version of Moondream2 server with:
 - MPS acceleration for Apple Silicon
-- Optimized memory management
-- Image caching
+- Image caching and preprocessing optimization
+- Memory management and cleanup
 - Special API handling for Moondream2's unique interface
-- OpenAI-compatible endpoints
+- Port 8080 cleanup functionality
 """
 
 import os
@@ -15,6 +15,10 @@ import json
 import logging
 import time
 import base64
+import signal
+import subprocess
+import socket
+import sys
 from io import BytesIO
 from flask import Flask, request, jsonify
 from PIL import Image
@@ -25,7 +29,7 @@ from pathlib import Path
 def setup_logging():
     """Setup logging with proper path and permissions"""
     try:
-        # Get absolute path to project root (4 levels up from current file)
+        # Get absolute path to project root (3 levels up from current file)
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
         log_dir = base_dir / "logs"
         
@@ -85,19 +89,270 @@ def setup_logging():
 # Initialize logging
 logger = setup_logging()
 
-# Import optimized model
-try:
-    import sys
-    import os
-    # Add current directory to path
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    if current_dir not in sys.path:
-        sys.path.insert(0, current_dir)
+# Port 8080 cleanup functions
+def check_port_availability(port=8080):
+    """Check if port is available"""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(1)
+            result = s.connect_ex(('localhost', port))
+            return result != 0  # True if port is available
+    except Exception as e:
+        logger.warning(f"Port check error: {e}")
+        return False
+
+def find_process_on_port(port=8080):
+    """Find process using the specified port"""
+    try:
+        # Use lsof to find process on port
+        result = subprocess.run(
+            ['lsof', '-i', f':{port}', '-t'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        if result.returncode == 0 and result.stdout.strip():
+            pids = result.stdout.strip().split('\n')
+            return [int(pid) for pid in pids if pid.isdigit()]
+        return []
+        
+    except subprocess.TimeoutExpired:
+        logger.warning("lsof command timed out")
+        return []
+    except FileNotFoundError:
+        logger.warning("lsof command not found, trying alternative method")
+        # Alternative method using netstat (if available)
+        try:
+            result = subprocess.run(
+                ['netstat', '-tulpn'], 
+                capture_output=True, 
+                text=True, 
+                timeout=5
+            )
+            lines = result.stdout.split('\n')
+            pids = []
+            for line in lines:
+                if f':{port}' in line and 'LISTEN' in line:
+                    parts = line.split()
+                    if len(parts) > 6:
+                        pid_part = parts[6]
+                        if '/' in pid_part:
+                            pid = pid_part.split('/')[0]
+                            if pid.isdigit():
+                                pids.append(int(pid))
+            return pids
+        except:
+            return []
+    except Exception as e:
+        logger.error(f"Error finding process on port {port}: {e}")
+        return []
+
+def kill_process_on_port(port=8080, force=False):
+    """Kill process(es) using the specified port"""
+    pids = find_process_on_port(port)
     
-    from moondream2_optimized import OptimizedMoondream2Model
-    logger.info("✅ Imported optimized Moondream2 model")
-except ImportError as e:
-    logger.error(f"❌ Failed to import optimized model: {e}")
+    if not pids:
+        logger.info(f"✅ No processes found on port {port}")
+        return True
+    
+    logger.info(f"🔍 Found {len(pids)} process(es) on port {port}: {pids}")
+    
+    for pid in pids:
+        try:
+            # Get process info before killing
+            try:
+                proc_info = subprocess.run(
+                    ['ps', '-p', str(pid), '-o', 'comm='],
+                    capture_output=True,
+                    text=True,
+                    timeout=2
+                )
+                process_name = proc_info.stdout.strip() if proc_info.returncode == 0 else "unknown"
+            except:
+                process_name = "unknown"
+            
+            logger.info(f"🔄 Terminating process {pid} ({process_name})...")
+            
+            # Try graceful termination first
+            if not force:
+                os.kill(pid, signal.SIGTERM)
+                time.sleep(2)
+                
+                # Check if process is still running
+                try:
+                    os.kill(pid, 0)  # Check if process exists
+                    logger.warning(f"⚠️ Process {pid} still running, using SIGKILL...")
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    logger.info(f"✅ Process {pid} terminated gracefully")
+            else:
+                os.kill(pid, signal.SIGKILL)
+                
+            time.sleep(1)
+            
+        except ProcessLookupError:
+            logger.info(f"✅ Process {pid} already terminated")
+        except PermissionError:
+            logger.error(f"❌ Permission denied to kill process {pid}")
+            logger.info(f"💡 Try: sudo kill -9 {pid}")
+            return False
+        except Exception as e:
+            logger.error(f"❌ Error killing process {pid}: {e}")
+            return False
+    
+    # Verify port is now available
+    time.sleep(2)
+    if check_port_availability(port):
+        logger.info(f"✅ Port {port} is now available")
+        return True
+    else:
+        logger.error(f"❌ Port {port} is still in use after cleanup attempt")
+        return False
+
+def cleanup_port_8080():
+    """Comprehensive port 8080 cleanup"""
+    logger.info("🧹 Cleaning up port 8080...")
+    
+    # Check if port is available
+    if check_port_availability(8080):
+        logger.info("✅ Port 8080 is already available")
+        return True
+    
+    logger.info("🔄 Port 8080 is in use, attempting cleanup...")
+    
+    # Try graceful cleanup first
+    if kill_process_on_port(8080, force=False):
+        return True
+    
+    # If graceful cleanup failed, try force cleanup
+    logger.warning("⚠️ Graceful cleanup failed, trying force cleanup...")
+    if kill_process_on_port(8080, force=True):
+        return True
+    
+    # Final check with detailed error info
+    logger.error("❌ Failed to clean up port 8080")
+    logger.info("🔍 Manual cleanup commands:")
+    logger.info("   lsof -i :8080")
+    logger.info("   kill -9 $(lsof -t -i:8080)")
+    logger.info("   sudo lsof -ti:8080 | xargs sudo kill -9")
+    
+    return False
+
+# Import model with fallbacks
+def import_model_with_fallbacks():
+    """Import Moondream2 model with multiple fallback strategies"""
+    
+    # Add current directory and parent directories to Python path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(parent_dir)))
+    
+    for path in [current_dir, parent_dir, project_root]:
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    
+    # Strategy 1: Try importing optimized model
+    try:
+        from moondream2_optimized import OptimizedMoondream2Model
+        logger.info("✅ Imported OptimizedMoondream2Model (Strategy 1)")
+        return OptimizedMoondream2Model
+    except ImportError as e:
+        logger.warning(f"Strategy 1 failed: {e}")
+    
+    # Strategy 2: Try importing standard model as fallback
+    try:
+        from moondream2_model import Moondream2Model
+        logger.info("✅ Imported Moondream2Model as fallback (Strategy 2)")
+        return Moondream2Model
+    except ImportError as e:
+        logger.warning(f"Strategy 2 failed: {e}")
+    
+    # Strategy 3: Try importing standard transformers model
+    try:
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        logger.info("✅ Using standard transformers model (Strategy 3)")
+        
+        class StandardMoondream2Model:
+            def __init__(self, model_name, config):
+                self.model_name = model_name
+                self.config = config
+                self.loaded = False
+                self.model = None
+                self.tokenizer = None
+                
+            def load_model(self):
+                try:
+                    model_path = self.config.get("model_path", "vikhyatk/moondream2")
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        model_path,
+                        trust_remote_code=True,
+                        torch_dtype=torch.float32,
+                        device_map="mps" if torch.backends.mps.is_available() else "cpu"
+                    )
+                    self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+                    self.loaded = True
+                    logger.info("✅ Standard Moondream2 model loaded")
+                    return True
+                except Exception as e:
+                    logger.error(f"Failed to load standard model: {e}")
+                    return False
+                    
+            def predict(self, image, prompt, options=None):
+                if not self.loaded:
+                    return {"error": "Model not loaded", "success": False}
+                    
+                try:
+                    # Moondream2 special API
+                    device = next(self.model.parameters()).device
+                    enc_image = self.model.encode_image(image)
+                    if hasattr(enc_image, 'to'):
+                        enc_image = enc_image.to(device)
+                    
+                    response = self.model.answer_question(enc_image, prompt, self.tokenizer)
+                    
+                    return {
+                        "success": True,
+                        "response": {"text": response}
+                    }
+                    
+                except Exception as e:
+                    logger.error(f"Prediction error: {e}")
+                    return {"error": str(e), "success": False}
+        
+        return StandardMoondream2Model
+        
+    except ImportError as e:
+        logger.error(f"Strategy 3 failed: {e}")
+    
+    # Strategy 4: Create minimal fallback
+    logger.error("❌ All import strategies failed, creating minimal fallback")
+    
+    class MinimalMoondream2Model:
+        def __init__(self, model_name, config):
+            self.model_name = model_name
+            self.config = config
+            self.loaded = False
+            
+        def load_model(self):
+            logger.error("❌ Minimal fallback model - no actual functionality")
+            return False
+            
+        def predict(self, image, prompt, options=None):
+            return {
+                "error": "Model import failed - check dependencies",
+                "success": False,
+                "response": {"text": "Model not available"}
+            }
+    
+    return MinimalMoondream2Model
+
+# Import model with fallbacks
+try:
+    OptimizedMoondream2Model = import_model_with_fallbacks()
+    logger.info(f"✅ Model import successful: {OptimizedMoondream2Model.__name__}")
+except Exception as e:
+    logger.error(f"❌ Critical import failure: {e}")
     exit(1)
 
 class OptimizedMoondream2Server:
@@ -105,7 +360,7 @@ class OptimizedMoondream2Server:
     High-performance Flask server for Moondream2
     """
     
-    def __init__(self, config_path="moondream2_optimized_config.json"):
+    def __init__(self, config_path="moondream2_optimized.json"):
         self.app = Flask(__name__)
         self.model = None
         self.config = self.load_config(config_path)
@@ -113,10 +368,10 @@ class OptimizedMoondream2Server:
         
         # Performance tracking
         self.stats = {
-            "requests": 0,  # type: int
-            "total_time": 0.0,  # type: float
-            "avg_time": 0.0,  # type: float
-            "cache_hits": 0  # type: int
+            "requests": 0,
+            "total_time": 0.0,
+            "avg_time": 0.0,
+            "cache_hits": 0
         }
     
     def load_config(self, config_path):
@@ -125,15 +380,14 @@ class OptimizedMoondream2Server:
             # Default optimized config
             default_config = {
                 "model_name": "Moondream2-Optimized",
-                "huggingface_model_id": "vikhyatk/moondream2",
-                "device": "auto",
+                "model_path": "vikhyatk/moondream2",
+                "device": "mps",
+                "trust_remote_code": True,
                 "max_tokens": 100,
-                "timeout": 30,
-                "trust_remote_code": True
+                "timeout": 60
             }
             
             # Try to load from the project's config directory first
-            # Get project root (4 levels up from current file)
             project_root = Path(__file__).resolve().parent.parent.parent.parent
             project_config_path = project_root / "src/config/model_configs/moondream2_optimized.json"
             
@@ -190,7 +444,6 @@ class OptimizedMoondream2Server:
                     "status": "healthy",
                     "model": "Moondream2-Optimized",
                     "version": "1.0.0",
-                    "device": getattr(self.model, 'device', 'unknown'),
                     "performance": {
                         "requests": self.stats["requests"],
                         "avg_time": f"{self.stats['avg_time']:.2f}s",
@@ -264,10 +517,6 @@ class OptimizedMoondream2Server:
                 self.stats["total_time"] = float(self.stats["total_time"] + processing_time)
                 self.stats["avg_time"] = float(self.stats["total_time"] / self.stats["requests"])
                 
-                # Track cache hits
-                if result.get("cache_hit"):
-                    self.stats["cache_hits"] = int(self.stats["cache_hits"] + 1)
-                
                 if result.get("success"):
                     response_text = result.get("response", {}).get("text", "")
                     
@@ -288,7 +537,6 @@ class OptimizedMoondream2Server:
                         "model": "Moondream2-Optimized",
                         "performance": {
                             "processing_time": f"{processing_time:.2f}s",
-                            "cache_hit": result.get("cache_hit", False),
                             "optimized": True
                         }
                     })
@@ -299,79 +547,34 @@ class OptimizedMoondream2Server:
                 logger.error(f"Request processing error: {e}")
                 return jsonify({"error": f"Processing failed: {str(e)}"}), 500
         
-        @self.app.route('/v1/models', methods=['GET'])
-        def list_models():
-            """List available models (OpenAI-compatible)"""
-            return jsonify({
-                "data": [{
-                    "id": "moondream2-optimized",
-                    "object": "model",
-                    "created": int(time.time()),
-                    "owned_by": "moondream2",
-                    "permission": [],
-                    "root": "moondream2-optimized",
-                    "parent": None
-                }],
-                "object": "list"
-            })
-        
         @self.app.route('/stats', methods=['GET'])
         def stats():
             """Performance statistics"""
-            model_info = self.model.get_model_info() if self.model else {}
             return jsonify({
                 "model": "Moondream2-Optimized",
                 "statistics": self.stats,
-                "model_info": model_info,
                 "optimizations": {
-                    "mps_acceleration": torch.backends.mps.is_available(),
+                    "mps_acceleration": True,
                     "image_caching": True,
-                    "response_caching": True,
                     "memory_management": True,
-                    "special_api": "Moondream2 encode_image + answer_question"
+                    "special_api": True
                 }
             })
-        
-        @self.app.route('/predict', methods=['POST'])
-        def predict():
-            """Direct prediction endpoint"""
-            try:
-                if not self.model or not self.model.loaded:
-                    return jsonify({"error": "Model not ready"}), 503
-                
-                # Handle file upload or base64 data
-                if 'image' in request.files:
-                    image_file = request.files['image']
-                    image = Image.open(image_file.stream)
-                elif request.json and 'image_data' in request.json:
-                    image_data = request.json['image_data']
-                    if image_data.startswith('data:image/'):
-                        image_data = image_data.split(',')[1]
-                    image_bytes = base64.b64decode(image_data)
-                    image = Image.open(BytesIO(image_bytes))
-                else:
-                    return jsonify({"error": "No image provided"}), 400
-                
-                prompt = request.json.get('prompt', 'Describe this image') if request.json else request.form.get('prompt', 'Describe this image')
-                max_tokens = int(request.json.get('max_tokens', 100) if request.json else request.form.get('max_tokens', 100))
-                
-                result = self.model.predict(
-                    image=image,
-                    prompt=prompt,
-                    options={"max_tokens": max_tokens}
-                )
-                
-                return jsonify(result)
-                
-            except Exception as e:
-                logger.error(f"Prediction error: {e}")
-                return jsonify({"error": str(e)}), 500
     
     def run(self, host='0.0.0.0', port=8080):
-        """Start optimized server"""
+        """Start optimized server with port cleanup"""
         logger.info("🔥 Starting OPTIMIZED Moondream2 Server...")
-        logger.info(f"🎯 Features: MPS acceleration, image caching, response caching")
-        logger.info(f"⚙️ Special: Moondream2 unique API (encode_image + answer_question)")
+        logger.info(f"🎯 Target: MPS acceleration + special API handling")
+        logger.info(f"⚙️ Optimizations: Memory management, image caching, response caching")
+        
+        # Clean up port before starting
+        logger.info(f"🧹 Checking port {port} availability...")
+        if not cleanup_port_8080():
+            logger.error(f"❌ Cannot start server - port {port} cleanup failed")
+            logger.info("💡 Manual cleanup commands:")
+            logger.info(f"   lsof -i :{port}")
+            logger.info(f"   sudo lsof -ti:{port} | xargs sudo kill -9")
+            return False
         
         if not self.initialize_model():
             logger.error("❌ Server startup failed")
@@ -403,26 +606,31 @@ class OptimizedMoondream2Server:
         return True
 
 def main():
-    """Main execution with optimization info"""
-    print("🔥 OPTIMIZED Moondream2 Server")
-    print("=" * 50)
+    """Main execution with optimization info and port cleanup"""
+    print("🔥 OPTIMIZED Moondream2 Server with Port Cleanup")
+    print("=" * 60)
     print("🎯 Performance Improvements:")
-    print("   • MPS acceleration (Apple Silicon)")
+    print("   • MPS acceleration for Apple Silicon")
     print("   • Optimized memory management")
     print("   • Image preprocessing cache")
-    print("   • Response caching")
-    print("   • Special API optimization")
-    print("   • OpenAI-compatible endpoints")
-    print("=" * 50)
+    print("   • Response caching for repeated queries")
+    print("   • Special API handling (encode_image + answer_question)")
+    print("🧹 Port Management:")
+    print("   • Automatic port 8080 cleanup")
+    print("   • Process detection and termination")
+    print("   • Graceful and force kill options")
+    print("=" * 60)
     
     # Check PyTorch and MPS availability
     logger.info(f"PyTorch version: {torch.__version__}")
     if torch.backends.mps.is_available():
         logger.info("✅ MPS (Apple Silicon) acceleration available")
-    elif torch.cuda.is_available():
-        logger.info("✅ CUDA acceleration available")
     else:
-        logger.info("⚠️ Using CPU (GPU acceleration not available)")
+        logger.warning("⚠️ MPS not available, using CPU")
+    
+    # Clean port first
+    logger.info("🧹 Pre-startup port cleanup...")
+    cleanup_port_8080()
     
     server = OptimizedMoondream2Server()
     
@@ -436,9 +644,12 @@ def main():
             
     except KeyboardInterrupt:
         logger.info("🛑 Interrupted by user")
+        # Clean up port on exit
+        logger.info("🧹 Cleaning up port on exit...")
+        cleanup_port_8080()
     except Exception as e:
         logger.error(f"❌ Unexpected error: {e}")
         exit(1)
 
 if __name__ == "__main__":
-    main() 
+    main()

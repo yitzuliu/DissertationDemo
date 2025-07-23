@@ -231,44 +231,6 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: Optional[int] = None
     messages: List[Dict[str, Any]]
 
-def format_message_for_model(message, image_count, model_name):
-    """Unified message formatting handler"""
-    if isinstance(message.get('content'), list):
-        # Extract text and images
-        text_content = ""
-        images = []
-        
-        for content_item in message['content']:
-            if content_item.get('type') == 'text':
-                text_content = content_item.get('text', '')
-            elif content_item.get('type') == 'image_url':
-                images.append(content_item)
-        
-        # Format text based on model type
-        if model_name == "smolvlm":
-            # SmolVLM doesn't need special image tags, keep original text
-            formatted_text = text_content
-        elif model_name == "phi3_vision":
-            # Phi-3 Vision uses <|image_1|> format for image references
-            if image_count > 0:
-                formatted_text = f"<|image_1|>\n{text_content}"
-            else:
-                formatted_text = text_content
-        elif model_name in ["smolvlm2", "smolvlm2-500", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
-            # SmolVLM2 doesn't need special image tags, keep original text
-            formatted_text = text_content
-        else:
-            formatted_text = text_content
-        
-        # Reconstruct content
-        new_content = [{"type": "text", "text": formatted_text}]
-        new_content.extend(images)
-        message['content'] = new_content
-        
-        logger.info(f"Formatted message for {model_name}: images={image_count}, text='{formatted_text[:50]}...'")
-    
-    return message
-
 @app.post("/v1/chat/completions")
 async def proxy_chat_completions(request: ChatCompletionRequest):
     """Enhanced chat completion endpoint with improved image processing"""
@@ -278,7 +240,8 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
     try:
         logger.info(f"[{request_id}] Processing request with model: {ACTIVE_MODEL}")
         
-        if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
+        # 更新支援的模型清單，添加 llava_mlx 模型
+        if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "phi3_vision_optimized", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized", "moondream2", "moondream2_optimized", "llava_mlx"]:
             image_count = 0
             image_processing_start = time.time()
             
@@ -402,40 +365,6 @@ async def health_check():
         "version": "1.0.0"
     }
 
-@app.get("/config")
-async def get_config():
-    """Return frontend configuration with current model's default prompt"""
-    # Load model-specific configuration
-    model_config = config_manager.load_model_config(ACTIVE_MODEL)
-    
-    # Start with main configuration
-    frontend_config = config_manager.get_config("frontend", {}).copy()
-    
-    # Add model-specific default prompt
-    if "ui" in model_config and "default_instruction" in model_config["ui"]:
-        frontend_config["default_instruction"] = model_config["ui"]["default_instruction"]
-    
-    # Add model-specific capture intervals
-    if "ui" in model_config and "capture_intervals" in model_config["ui"]:
-        frontend_config["capture_intervals"] = model_config["ui"]["capture_intervals"]
-        if "default_interval" in model_config["ui"]:
-            frontend_config["capture_interval"] = model_config["ui"]["default_interval"]
-    
-    # Add model-specific help message
-    if ACTIVE_MODEL == "smolvlm":
-        frontend_config["model_help"] = "SmolVLM is active. System automatically handles image tags, just input your instructions."
-    elif ACTIVE_MODEL == "phi3_vision":
-        frontend_config["model_help"] = "Phi-3 Vision is active. Images are automatically resized to 336x336 for optimal processing."
-    elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
-        frontend_config["model_help"] = "SmolVLM2-500M-Video is active. Enhanced image analysis with video understanding capabilities. Optimized for Apple Silicon."
-    else:
-        frontend_config["model_help"] = ""
-    
-    # Add other required configurations
-    frontend_config["active_model"] = ACTIVE_MODEL
-    
-    return frontend_config
-
 @app.get("/api/v1/config")
 async def get_full_config():
     """Return the complete merged configuration including app config and active model config"""
@@ -487,7 +416,8 @@ async def get_status():
         return {
             "active_model": display_name,
             "model_id": model_id,
-            "available_models": ["smolvlm", "phi3_vision", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"],
+            # 更新可用模型清單，添加 llava_mlx
+            "available_models": ["smolvlm", "phi3_vision", "phi3_vision_optimized", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized", "moondream2", "moondream2_optimized", "llava_mlx"],
             "config": config_manager.get_config(),
             "model_status": {
                 "name": display_name,
@@ -499,11 +429,127 @@ async def get_status():
         logger.error(f"Error getting status: {e}")
         raise HTTPException(status_code=500, detail="Error getting system status")
 
+@app.get("/config")
+async def get_config():
+    """Return frontend configuration with current model's default prompt"""
+    try:
+        # 強制重新載入配置
+        config_manager.load_app_config()
+        
+        # Load model-specific configuration
+        model_config = config_manager.load_model_config(ACTIVE_MODEL)
+        
+        logger.info(f"🔧 Loading frontend config for model: {ACTIVE_MODEL}")
+        logger.info(f"🔧 Model config loaded: {bool(model_config)}")
+        logger.info(f"🔧 Model config keys: {list(model_config.keys()) if model_config else 'None'}")
+        
+        # Start with main configuration
+        frontend_config = config_manager.get_config("frontend", {}).copy()
+        
+        # Add model-specific default prompt
+        if "ui" in model_config and "default_instruction" in model_config["ui"]:
+            frontend_config["default_instruction"] = model_config["ui"]["default_instruction"]
+            logger.info(f"✅ Added default instruction from model config")
+        else:
+            logger.warning(f"⚠️ No default instruction found in model config")
+        
+        # Add model-specific capture intervals
+        if "ui" in model_config and "capture_intervals" in model_config["ui"]:
+            frontend_config["capture_intervals"] = model_config["ui"]["capture_intervals"]
+            if "default_interval" in model_config["ui"]:
+                frontend_config["capture_interval"] = model_config["ui"]["default_interval"]
+            logger.info(f"✅ Added capture intervals from model config")
+        else:
+            # 提供默認值
+            frontend_config["capture_intervals"] = [1000, 2000, 5000, 10000]
+            frontend_config["capture_interval"] = 5000
+            logger.info(f"⚠️ Using default capture intervals")
+        
+        # Add model-specific help message
+        if ACTIVE_MODEL == "llava_mlx":
+            frontend_config["model_help"] = "LLaVA MLX is active. MLX-optimized multimodal model for Apple Silicon with INT4 quantization. Best for photographic images."
+        elif ACTIVE_MODEL == "smolvlm":
+            frontend_config["model_help"] = "SmolVLM is active. System automatically handles image tags, just input your instructions."
+        elif ACTIVE_MODEL in ["phi3_vision", "phi3_vision_optimized"]:
+            frontend_config["model_help"] = "Phi-3 Vision is active. MLX-optimized for Apple Silicon with <|image_1|> format. Images are automatically processed for optimal results."
+        elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
+            frontend_config["model_help"] = "SmolVLM2-500M-Video is active. Enhanced image analysis with video understanding capabilities. Optimized for Apple Silicon."
+        elif ACTIVE_MODEL in ["moondream2", "moondream2_optimized"]:
+            frontend_config["model_help"] = "Moondream2 is active. Compact vision language model with strong VQA performance. Uses special encode_image + answer_question API."
+        else:
+            frontend_config["model_help"] = ""
+        
+        # Add other required configurations
+        frontend_config["active_model"] = ACTIVE_MODEL
+        
+        logger.info(f"🔧 Final frontend config: {json.dumps(frontend_config, indent=2)}")
+        
+        return frontend_config
+        
+    except Exception as e:
+        logger.error(f"Error loading frontend config: {e}")
+        # 返回最小配置以避免前端錯誤
+        return {
+            "active_model": ACTIVE_MODEL,
+            "model_help": f"{ACTIVE_MODEL} is active",
+            "capture_intervals": [1000, 2000, 5000, 10000],
+            "capture_interval": 5000,
+            "default_instruction": "Describe what you see in this image."
+        }
+
+def format_message_for_model(message, image_count, model_name):
+    """Unified message formatting handler"""
+    if isinstance(message.get('content'), list):
+        # Extract text and images
+        text_content = ""
+        images = []
+        
+        for content_item in message['content']:
+            if content_item.get('type') == 'text':
+                text_content = content_item.get('text', '')
+            elif content_item.get('type') == 'image_url':
+                images.append(content_item)
+        
+        # Format text based on model type
+        if model_name == "smolvlm":
+            # SmolVLM doesn't need special image tags, keep original text
+            formatted_text = text_content
+        elif model_name in ["phi3_vision", "phi3_vision_optimized"]:
+            # Phi-3 Vision uses <|image_1|> format for image references
+            if image_count > 0:
+                formatted_text = f"<|image_1|>\n{text_content}"
+            else:
+                formatted_text = text_content
+        elif model_name in ["smolvlm2", "smolvlm2-500", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
+            # SmolVLM2 doesn't need special image tags, keep original text
+            formatted_text = text_content
+        elif model_name in ["moondream2", "moondream2_optimized"]:
+            # Moondream2 doesn't need special image tags, keep original text
+            formatted_text = text_content
+        elif model_name == "llava_mlx":
+            # LLaVA MLX doesn't need special image tags, keep original text
+            formatted_text = text_content
+        else:
+            formatted_text = text_content
+        
+        # Reconstruct content
+        new_content = [{"type": "text", "text": formatted_text}]
+        new_content.extend(images)
+        message['content'] = new_content
+        
+        logger.info(f"Formatted message for {model_name}: images={image_count}, text='{formatted_text[:50]}...'")
+    
+    return message
+
+# ...existing code...
+
 # Start frontend separately: cd ../frontend && python -m http.server 5500
 
 if __name__ == "__main__":
     uvicorn.run(
         app,
-        host=config_manager.get_config("server.host"),
-        port=config_manager.get_config("server.port")
+
+
     )
+    host=config_manager.get_config("server.host"),
+    port=config_manager.get_config("server.port")

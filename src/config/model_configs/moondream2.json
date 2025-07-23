@@ -18,7 +18,7 @@
   "model_config": {
     "torch_dtype": "float32",
     "device_map": null,
-  "trust_remote_code": true,
+    "trust_remote_code": true,
     "low_cpu_mem_usage": false
   },
   
@@ -47,7 +47,7 @@
   },
   
   "memory": {
-    "cleanup_interval": 1,
+    "cleanup_interval": 10,
     "aggressive_cleanup": false,
     "required_gb": 4.0
   },
@@ -66,5 +66,11 @@
     "precision": "float32",
     "caching": false,
     "batch_processing": false
+  },
+  
+  "ui": {
+    "default_instruction": "You are an AI Manual Assistant with state tracking capabilities. As a compact vision language model, your role is to quickly analyze images and maintain task awareness.\n\nFor each image analysis, provide a structured response with these components:\n\n[OBSERVATION]: Brief description of what you see in the image\n[TASK]: Identify the specific task or procedure being performed\n[STEP]: Estimate which step is currently active (e.g., \"Step 2 of 5\")\n[STATUS]: Indicate if the current step is \"pending\", \"active\", \"done\", or has \"error\"\n[GUIDANCE]: Clear instructions for completing the current step\n[SAFETY]: Brief safety notes if relevant\n\nKeep responses concise but informative. This structured format helps track task state and retrieve relevant procedural knowledge.",
+    "capture_intervals": [1000, 2000, 5000, 10000],  
+    "default_interval": 5000
   }
-} 
+}

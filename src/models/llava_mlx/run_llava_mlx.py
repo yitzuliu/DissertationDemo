@@ -1,306 +1,758 @@
 #!/usr/bin/env python3
 """
-LLaVA MLX Server Launcher
-Launch LLaVA MLX model server with FastAPI
+LLaVA MLX Server Runner
+
+High-performance LLaVA server with:
+- MLX framework optimization for Apple Silicon
+- Flask server for OpenAI-compatible API
+- INT4 quantization for memory efficiency
+- Robust error handling and fallbacks
+- Port 8080 cleanup functionality
 """
 
-import sys
-import time
-import signal
-import asyncio
-import uvicorn
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
-import json
-import base64
-import io
-from PIL import Image
-import logging
-from pathlib import Path
-import tempfile
 import os
+import json
+import logging
+import time
+import base64
+import signal
+import subprocess
+import socket
+import sys
+from io import BytesIO
+from flask import Flask, request, jsonify
+from PIL import Image
+import torch
+from pathlib import Path
 
-# Add project root to path for module imports
-project_root = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.append(str(project_root))
-
-# Import configuration manager
-from src.backend.utils.config_manager import config_manager
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# Global model instance
-model_instance = None
-processor = None
-
-class ChatMessage(BaseModel):
-    role: str
-    content: List[Dict[str, Any]]
-
-class ChatCompletionRequest(BaseModel):
-    model: str = "LLaVA-MLX"
-    messages: List[ChatMessage]
-    max_tokens: Optional[int] = 100
-    temperature: Optional[float] = 0.7
-
-app = FastAPI(title="LLaVA MLX Server", version="1.0.0")
-
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-def decode_base64_image(image_url: str) -> Image.Image:
-    """Decode base64 image from URL"""
+# Setup logging
+def setup_logging():
+    """Setup logging with proper path and permissions"""
     try:
-        if image_url.startswith('data:image/'):
-            # Extract base64 data
-            base64_data = image_url.split(',')[1]
-        else:
-            base64_data = image_url
-            
-        image_data = base64.b64decode(base64_data)
-        image = Image.open(io.BytesIO(image_data))
+        # Get absolute path to project root
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent
+        log_dir = base_dir / "logs"
         
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-            
-        return image
+        # Create logs directory with parents if needed
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Ensure proper directory permissions
+        os.chmod(log_dir, 0o755)
+        
+        # Setup log file path with timestamp
+        timestamp = time.strftime("%Y%m%d")
+        log_file = log_dir / f"llava_mlx_{timestamp}.log"
+        
+        # Configure file handler with UTF-8 encoding
+        file_handler = logging.FileHandler(
+            filename=log_file,
+            mode='a',
+            encoding='utf-8'
+        )
+        
+        # Ensure proper file permissions
+        os.chmod(log_file, 0o644)
+        
+        # Configure console handler
+        console_handler = logging.StreamHandler()
+        
+        # Create formatter
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
+        
+        # Get the root logger
+        root_logger = logging.getLogger()
+        
+        # Remove any existing handlers
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
+        
+        # Set logging level
+        root_logger.setLevel(logging.INFO)
+        
+        # Add handlers
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(console_handler)
+        
+        # Log initialization success
+        root_logger.info(f"LLaVA MLX logging initialized. Log file: {log_file}")
+        
+        return root_logger
+        
     except Exception as e:
-        logger.error(f"Error decoding image: {e}")
-        raise HTTPException(status_code=400, detail=f"Invalid image data: {str(e)}")
-
-@app.get("/")
-async def root():
-    """Root endpoint"""
-    return {
-        "message": "LLaVA MLX Server",
-        "version": "1.0.0",
-        "status": "running" if model_instance else "not loaded"
-    }
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    if model_instance:
-        return {"status": "healthy", "model": "LLaVA-MLX"}
-    else:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-
-@app.post("/v1/chat/completions")
-async def chat_completions(request: ChatCompletionRequest):
-    """OpenAI-compatible chat completions endpoint"""
-    global model_instance, processor
-    
-    if not model_instance:
-        raise HTTPException(status_code=503, detail="Model not initialized")
-    
-    try:
-        # Extract the user message
-        if not request.messages:
-            raise HTTPException(status_code=400, detail="No messages provided")
-        
-        user_message = None
-        for message in request.messages:
-            if message.role == "user":
-                user_message = message
-                break
-        
-        if not user_message:
-            raise HTTPException(status_code=400, detail="No user message found")
-        
-        # Extract text and image from content
-        text_content = ""
-        image = None
-        
-        for content_item in user_message.content:
-            if content_item.get("type") == "text":
-                text_content = content_item.get("text", "")
-            elif content_item.get("type") == "image_url":
-                image_url = content_item.get("image_url", {}).get("url", "")
-                if image_url:
-                    image = decode_base64_image(image_url)
-        
-        if not image:
-            raise HTTPException(status_code=400, detail="No image provided")
-        
-        if not text_content:
-            text_content = "Describe what you see in this image."
-        
-        # Generate prediction using LLaVA MLX (same as testing)
-        try:
-            from mlx_vlm import generate
-            
-            # Save the PIL Image to a temporary file for MLX-VLM
-            temp_image_path = "temp_mlx_image.png"
-            image.save(temp_image_path)
-            
-            try:
-                response_text = generate(
-                    model_instance, processor, text_content, image=temp_image_path,
-                    max_tokens=request.max_tokens or 100, verbose=False
-                )
-            finally:
-                # Clean up temp file
-                if os.path.exists(temp_image_path):
-                    os.remove(temp_image_path)
-            
-            # Process MLX response
-            if isinstance(response_text, tuple) and len(response_text) >= 2:
-                response_text = response_text[0]
-            elif isinstance(response_text, list) and len(response_text) > 0:
-                response_text = response_text[0] if isinstance(response_text[0], str) else str(response_text[0])
-            else:
-                response_text = str(response_text)
-
-            # Clean up stop tokens
-            stop_tokens = ["<|end|>", "<|endoftext|>", "ASSISTANT:", "USER:", "<|im_end|>"]
-            for token in stop_tokens:
-                response_text = response_text.replace(token, "")
-            
-            response_text = response_text.replace("<|end|><|endoftext|>", " ")
-            
-            if "1. What is meant by" in response_text:
-                response_text = response_text.split("1. What is meant by")[0].strip()
-            
-            response_text = ' '.join(response_text.split()).strip()
-            
-            # Ensure we have a valid response
-            if not response_text:
-                response_text = "No response generated"
-                
-        except Exception as e:
-            logger.error(f"Model inference error: {e}")
-            raise HTTPException(status_code=500, detail=f"Model inference failed: {str(e)}")
-        
-        return {
-            "choices": [
-                {
-                    "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": response_text
-                    },
-                    "finish_reason": "stop"
-                }
-            ],
-            "usage": {
-                "prompt_tokens": 50,  # Estimated
-                "completion_tokens": len(response_text.split()),
-                "total_tokens": 50 + len(response_text.split())
-            },
-            "model": "LLaVA-MLX"
-        }
-        
-    except HTTPException:
+        print(f"Failed to setup logging: {e}")
         raise
-    except Exception as e:
-        logger.error(f"Error in chat completion: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize model on startup"""
-    global model_instance, processor
-    
-    logger.info("🚀 Starting LLaVA MLX server...")
-    
+# Initialize logging
+logger = setup_logging()
+
+# Port 8080 cleanup functions
+def check_port_availability(port=8080):
+    """Check if port is available"""
     try:
-        # Load model configuration from config system
-        config = config_manager.load_model_config("llava_mlx")
-        model_path = config.get("model_path", "mlx-community/llava-v1.6-mistral-7b-4bit")
-        
-        logger.info(f"Loading LLaVA MLX model: {model_path}")
-        
-        # Load model using MLX-VLM (same as testing)
-        from mlx_vlm import load
-        logger.info("Loading MLX optimized LLaVA model...")
-        model_instance, processor = load(model_path)
-        logger.info("✅ MLX-LLaVA loaded successfully!")
-            
-    except ImportError as e:
-        logger.error("MLX-VLM not installed. Please run: pip install mlx-vlm")
-        model_instance = None
-        processor = None
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(1)
+            result = s.connect_ex(('localhost', port))
+            return result != 0  # True if port is available
     except Exception as e:
-        logger.error(f"❌ Failed to initialize model: {e}")
-        model_instance = None
-        processor = None
+        logger.warning(f"Port check error: {e}")
+        return False
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    global model_instance, processor
+def find_process_on_port(port=8080):
+    """Find process using the specified port"""
+    try:
+        # Use lsof to find process on port
+        result = subprocess.run(
+            ['lsof', '-i', f':{port}', '-t'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        if result.returncode == 0 and result.stdout.strip():
+            pids = result.stdout.strip().split('\n')
+            return [int(pid) for pid in pids if pid.isdigit()]
+        return []
+        
+    except subprocess.TimeoutExpired:
+        logger.warning("lsof command timed out")
+        return []
+    except FileNotFoundError:
+        logger.warning("lsof command not found")
+        return []
+    except Exception as e:
+        logger.error(f"Error finding process on port {port}: {e}")
+        return []
+
+def kill_process_on_port(port=8080, force=False):
+    """Kill process(es) using the specified port"""
+    pids = find_process_on_port(port)
     
-    logger.info("🛑 Shutting down LLaVA MLX server...")
+    if not pids:
+        logger.info(f"✅ No processes found on port {port}")
+        return True
     
-    if model_instance:
+    logger.info(f"🔍 Found {len(pids)} process(es) on port {port}: {pids}")
+    
+    for pid in pids:
         try:
-            del model_instance, processor
-            logger.info("✅ Model unloaded successfully")
+            # Try graceful termination first
+            if not force:
+                os.kill(pid, signal.SIGTERM)
+                time.sleep(2)
+                
+                # Check if process is still running
+                try:
+                    os.kill(pid, 0)  # Check if process exists
+                    logger.warning(f"⚠️ Process {pid} still running, using SIGKILL...")
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    logger.info(f"✅ Process {pid} terminated gracefully")
+            else:
+                os.kill(pid, signal.SIGKILL)
+                
+            time.sleep(1)
+            
+        except ProcessLookupError:
+            logger.info(f"✅ Process {pid} already terminated")
+        except PermissionError:
+            logger.error(f"❌ Permission denied to kill process {pid}")
+            return False
         except Exception as e:
-            logger.error(f"❌ Error unloading model: {e}")
+            logger.error(f"❌ Error killing process {pid}: {e}")
+            return False
+    
+    return True
 
-def signal_handler(signum, frame):
-    """Handle system signals"""
-    logger.info("\n🛑 Received stop signal, shutting down server...")
-    sys.exit(0)
+def cleanup_port_8080():
+    """Comprehensive port 8080 cleanup"""
+    logger.info("🧹 Cleaning up port 8080...")
+    
+    # Check if port is available
+    if check_port_availability(8080):
+        logger.info("✅ Port 8080 is already available")
+        return True
+    
+    logger.info("🔄 Port 8080 is in use, attempting cleanup...")
+    
+    # Try graceful cleanup first
+    if kill_process_on_port(8080, force=False):
+        time.sleep(2)
+        if check_port_availability(8080):
+            logger.info(f"✅ Port 8080 is now available")
+            return True
+    
+    # If graceful cleanup failed, try force cleanup
+    logger.warning("⚠️ Graceful cleanup failed, trying force cleanup...")
+    if kill_process_on_port(8080, force=True):
+        time.sleep(2)
+        if check_port_availability(8080):
+            logger.info(f"✅ Port 8080 is now available")
+            return True
+    
+    logger.error("❌ Failed to clean up port 8080")
+    return False
+
+# Import model with fallbacks
+def import_model_with_fallbacks():
+    """Import LLaVA MLX model with multiple fallback strategies"""
+    
+    # Add current directory and parent directories to Python path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(parent_dir)))
+    
+    for path in [current_dir, parent_dir, project_root]:
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    
+    # Strategy 1: Try importing LLaVA MLX model
+    try:
+        from llava_mlx_model import LlavaMlxModel
+        logger.info("✅ Imported LlavaMlxModel (Strategy 1)")
+        return LlavaMlxModel
+    except ImportError as e:
+        logger.warning(f"Strategy 1 failed: {e}")
+    
+    # Strategy 2: Try creating MLX-VLM wrapper
+    try:
+        from mlx_vlm import load, generate
+        logger.info("✅ Using MLX-VLM directly (Strategy 2)")
+        
+        class MLXVLMWrapper:
+            def __init__(self, model_name, config):
+                self.model_name = model_name
+                self.config = config
+                self.loaded = False
+                self.model = None
+                self.processor = None
+                
+            def load_model(self):
+                try:
+                    model_path = self.config.get("model_path", "mlx-community/llava-v1.6-mistral-7b-4bit")
+                    logger.info(f"Loading MLX-VLM model: {model_path}")
+                    
+                    self.model, self.processor = load(model_path)
+                    self.loaded = True
+                    logger.info("✅ MLX-VLM LLaVA model loaded successfully")
+                    return True
+                except Exception as e:
+                    logger.error(f"Failed to load MLX-VLM model: {e}")
+                    return False
+                    
+            def predict(self, image, prompt, options=None):
+                if not self.loaded:
+                    return {"error": "Model not loaded", "success": False}
+                    
+                try:
+                    # Save image to temp file for MLX-VLM
+                    import tempfile
+                    temp_file = tempfile.NamedTemporaryFile(suffix='.jpg', delete=False)
+                    temp_path = temp_file.name
+                    temp_file.close()
+                    
+                    if image.mode != 'RGB':
+                        image = image.convert('RGB')
+                    image.save(temp_path, 'JPEG', quality=95)
+                    
+                    try:
+                        # Get generation parameters
+                        max_tokens = options.get("max_tokens", 150) if options else 150
+                        temperature = self.config.get("inference_params", {}).get("temperature", 0.7)
+                        
+                        # Generate response with MLX-VLM
+                        response = generate(
+                            model=self.model,
+                            processor=self.processor,
+                            image=temp_path,
+                            prompt=prompt,
+                            max_tokens=max_tokens,
+                            temp=temperature,
+                            verbose=False
+                        )
+                        
+                        # Handle MLX-VLM response format
+                        if isinstance(response, tuple) and len(response) >= 1:
+                            text_response = response[0] if response[0] else ""
+                        else:
+                            text_response = str(response) if response else ""
+                        
+                        return {
+                            "success": True,
+                            "response": {"text": text_response.strip()}
+                        }
+                        
+                    finally:
+                        # Cleanup temp file
+                        try:
+                            os.remove(temp_path)
+                        except:
+                            pass
+                        
+                except Exception as e:
+                    logger.error(f"Prediction error: {e}")
+                    return {"error": str(e), "success": False}
+        
+        return MLXVLMWrapper
+        
+    except ImportError as e:
+        logger.error(f"Strategy 2 failed: {e}")
+    
+    # Strategy 3: Create minimal fallback
+    logger.error("❌ All import strategies failed, creating minimal fallback")
+    
+    class MinimalLLaVAModel:
+        def __init__(self, model_name, config):
+            self.model_name = model_name
+            self.config = config
+            self.loaded = False
+            
+        def load_model(self):
+            logger.error("❌ Minimal fallback model - no actual functionality")
+            logger.error("❌ Please install mlx-vlm: pip install mlx-vlm")
+            return False
+            
+        def predict(self, image, prompt, options=None):
+            return {
+                "error": "MLX-VLM not available. Please install: pip install mlx-vlm",
+                "success": False,
+                "response": {"text": "Model not available"}
+            }
+    
+    return MinimalLLaVAModel
+
+# Import model with fallbacks
+try:
+    LLaVAModel = import_model_with_fallbacks()
+    logger.info(f"✅ Model import successful: {LLaVAModel.__name__}")
+except Exception as e:
+    logger.error(f"❌ Critical import failure: {e}")
+    exit(1)
 
 class LLaVAMLXServer:
-    """LLaVA MLX Server wrapper"""
+    """
+    High-performance Flask server for LLaVA MLX
+    """
     
-    def __init__(self, port=8080, host="0.0.0.0"):
-        self.port = port
-        self.host = host
+    def __init__(self, config_path="llava_mlx.json"):
+        self.app = Flask(__name__)
+        self.model = None
+        self.config = self.load_config(config_path)
+        self.setup_routes()
         
-    def start_server(self):
-        """Start LLaVA MLX server"""
-        print("🦙 LLaVA MLX Server")
-        print("=" * 50)
-        print(f"🚀 Starting server...")
-        print(f"📦 Model: LLaVA-MLX")
-        print(f"🌐 Host: {self.host}")
-        print(f"🌐 Port: {self.port}")
-        print(f"🍎 Device: MLX (Apple Silicon)")
-        print("-" * 50)
+        # Performance tracking
+        self.stats = {
+            "requests": 0,
+            "total_time": 0.0,
+            "avg_time": 0.0,
+            "cache_hits": 0
+        }
+    
+    def load_config(self, config_path):
+        """Load LLaVA MLX configuration with better debugging"""
+        try:
+            # Default configuration
+            default_config = {
+                "model_name": "LLaVA-MLX",
+                "model_path": "mlx-community/llava-v1.6-mistral-7b-4bit",
+                "device": "auto",
+                "timeout": 180,
+                "inference_params": {
+                    "max_tokens": 150,
+                    "temperature": 0.7,
+                    "top_p": 0.9,
+                    "repetition_penalty": 1.2
+                }
+            }
+            
+            # Try to load from the project's config directory first
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            project_config_path = project_root / "src/config/model_configs/llava_mlx.json"
+            
+            logger.info(f"🔍 Looking for config at: {project_config_path}")
+            logger.info(f"🔍 Config file exists: {project_config_path.exists()}")
+            
+            if project_config_path.exists():
+                with open(project_config_path, 'r') as f:
+                    file_config = json.load(f)
+                
+                logger.info(f"📁 Loaded config keys: {list(file_config.keys())}")
+                logger.info(f"📁 Model path in config: {file_config.get('model_path', 'NOT FOUND')}")
+                
+                # 確保正確合併配置
+                default_config.update(file_config)
+                logger.info(f"📁 Final model_path after merge: {default_config.get('model_path')}")
+                
+            elif os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    file_config = json.load(f)
+                default_config.update(file_config)
+                logger.info(f"📁 Loaded config from {config_path}")
+            else:
+                logger.info("⚙️ Using default LLaVA MLX config")
+            
+            # 驗證並修復 model_path
+            if "model_path" not in default_config or not default_config["model_path"]:
+                default_config["model_path"] = "mlx-community/llava-v1.6-mistral-7b-4bit"
+                logger.info("🔧 Set default model_path: mlx-community/llava-v1.6-mistral-7b-4bit")
+            
+            # 避免使用 model_id 作為路徑
+            if default_config.get("model_path") == "llava_mlx":
+                default_config["model_path"] = "mlx-community/llava-v1.6-mistral-7b-4bit"
+                logger.warning("🔧 Fixed incorrect model_path, was set to model_id")
+            
+            logger.info(f"🔧 Final config model_path: {default_config['model_path']}")
+            logger.info(f"🔧 Complete config: {json.dumps(default_config, indent=2)}")
+            
+            return default_config
+            
+        except Exception as e:
+            logger.error(f"Config loading error: {e}")
+            return {
+                "model_name": "LLaVA-MLX",
+                "model_path": "mlx-community/llava-v1.6-mistral-7b-4bit",
+                "device": "auto",
+                "timeout": 180,
+                "inference_params": {
+                    "max_tokens": 150,
+                    "temperature": 0.7
+                }
+            }
+    
+    def initialize_model(self):
+        """Initialize LLaVA MLX model with error handling"""
+        try:
+            logger.info("🚀 Initializing LLaVA MLX...")
+            start_time = time.time()
+            
+            # 確保傳遞正確的配置
+            model_config = self.config.copy()
+            logger.info(f"🔧 Initializing with model_path: {model_config.get('model_path')}")
+            
+            self.model = LLaVAModel(
+                model_name=model_config.get("model_name", "LLaVA-MLX"),
+                config=model_config
+            )
+            
+            if self.model.load_model():
+                init_time = time.time() - start_time
+                logger.info(f"✅ LLaVA MLX ready in {init_time:.2f}s")
+                return True
+            else:
+                logger.error("❌ Failed to load LLaVA MLX model")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Model initialization error: {e}")
+            return False
+    
+    def setup_routes(self):
+        """Setup Flask routes for LLaVA MLX"""
+        
+        @self.app.route('/health', methods=['GET'])
+        def health():
+            """Health check endpoint"""
+            if self.model and self.model.loaded:
+                return jsonify({
+                    "status": "healthy",
+                    "model": "LLaVA-MLX",
+                    "version": "1.0.0",
+                    "framework": "MLX-VLM",
+                    "performance": {
+                        "requests": self.stats["requests"],
+                        "avg_time": f"{self.stats['avg_time']:.2f}s",
+                        "cache_hits": self.stats["cache_hits"]
+                    }
+                })
+            else:
+                return jsonify({"status": "loading", "model": "LLaVA-MLX"}), 503
+        
+        @self.app.route('/v1/chat/completions', methods=['POST'])
+        def chat_completions():
+            """OpenAI-compatible chat completions endpoint"""
+            try:
+                start_time = time.time()
+                
+                if not self.model or not self.model.loaded:
+                    return jsonify({"error": "Model not ready"}), 503
+                
+                data = request.get_json()
+                messages = data.get('messages', [])
+                max_tokens = min(data.get('max_tokens', 150), 300)  # Cap for performance
+                
+                if not messages:
+                    return jsonify({"error": "No messages provided"}), 400
+                
+                # Extract user message (latest)
+                user_message = None
+                for message in reversed(messages):
+                    if message.get('role') == 'user':
+                        user_message = message
+                        break
+                
+                if not user_message:
+                    return jsonify({"error": "No user message found"}), 400
+                
+                # Process content
+                content = user_message.get('content', [])
+                text_content = ""
+                image_data = None
+                
+                for item in content:
+                    if item.get('type') == 'text':
+                        text_content = item.get('text', '')
+                    elif item.get('type') == 'image_url':
+                        image_url = item.get('image_url', {}).get('url', '')
+                        if image_url.startswith('data:image/'):
+                            # Extract base64 data
+                            image_data = image_url.split(',')[1]
+                
+                if not image_data:
+                    return jsonify({
+                        "choices": [{
+                            "message": {
+                                "role": "assistant",
+                                "content": "Error: No image provided"
+                            },
+                            "finish_reason": "error"
+                        }],
+                        "error": "No image provided"
+                    }), 400
+                
+                # 參考測試框架的圖像處理方式
+                try:
+                    image_bytes = base64.b64decode(image_data)
+                    image = Image.open(BytesIO(image_bytes))
+                    
+                    # 確保圖像是 RGB 格式（參考測試框架）
+                    if image.mode != 'RGB':
+                        image = image.convert('RGB')
+                        logger.info("🔧 Converted image to RGB format")
+                    
+                    # 參考測試框架的統一圖像預處理（1024px）
+                    unified_image_size = 1024
+                    original_size = image.size
+                    if max(image.size) > unified_image_size:
+                        ratio = unified_image_size / max(image.size)
+                        new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
+                        image = image.resize(new_size, Image.Resampling.LANCZOS)
+                        logger.info(f"🔧 Resized image: {original_size} → {new_size} (test framework method)")
+                    
+                    # 檢查圖像尺寸是否合理
+                    if image.size[0] < 32 or image.size[1] < 32:
+                        logger.warning(f"⚠️ Image too small: {image.size}, using minimum size")
+                        image = image.resize((224, 224), Image.Resampling.LANCZOS)
+                    
+                    # 檢查圖像尺寸是否過大
+                    if image.size[0] > 2048 or image.size[1] > 2048:
+                        logger.warning(f"⚠️ Image too large: {image.size}, reducing size")
+                        max_dim = max(image.size)
+                        ratio = 1024 / max_dim
+                        new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
+                        image = image.resize(new_size, Image.Resampling.LANCZOS)
+                    
+                    logger.info(f"🔧 Final image size: {image.size}")
+                    
+                except Exception as e:
+                    logger.error(f"❌ Image processing failed: {e}")
+                    return jsonify({
+                        "choices": [{
+                            "message": {
+                                "role": "assistant",
+                                "content": f"Image processing failed: {str(e)}"
+                            },
+                            "finish_reason": "error"
+                        }],
+                        "error": f"Image processing failed: {str(e)}"
+                    }), 400
+                
+                # Generate response with LLaVA MLX
+                try:
+                    result = self.model.predict(
+                        image=image,
+                        prompt=text_content,
+                        options={"max_tokens": max_tokens}
+                    )
+                    
+                    processing_time = time.time() - start_time
+                    
+                    # Update stats
+                    self.stats["requests"] = int(self.stats["requests"] + 1)
+                    self.stats["total_time"] = float(self.stats["total_time"] + processing_time)
+                    self.stats["avg_time"] = float(self.stats["total_time"] / self.stats["requests"])
+                    
+                    # 確保結果格式正確（參考之前的修復）
+                    if result.get("success"):
+                        response_text = result.get("response", {}).get("text", "No response")
+                        
+                        # OpenAI-compatible response
+                        return jsonify({
+                            "choices": [{
+                                "message": {
+                                    "role": "assistant",
+                                    "content": response_text
+                                },
+                                "finish_reason": "stop"
+                            }],
+                            "usage": {
+                                "prompt_tokens": len(text_content.split()),
+                                "completion_tokens": len(response_text.split()),
+                                "total_tokens": len(text_content.split()) + len(response_text.split())
+                            },
+                            "model": "LLaVA-MLX",
+                            "performance": {
+                                "processing_time": f"{processing_time:.2f}s",
+                                "framework": "MLX-VLM",
+                                "image_size": f"{image.size[0]}x{image.size[1]}"
+                            }
+                        })
+                    else:
+                        # 錯誤時也要返回正確的格式
+                        error_msg = result.get("error", "Unknown error")
+                        return jsonify({
+                            "choices": [{
+                                "message": {
+                                    "role": "assistant",
+                                    "content": f"Error: {error_msg}"
+                                },
+                                "finish_reason": "error"
+                            }],
+                            "error": error_msg
+                        }), 500
+                        
+                except Exception as e:
+                    logger.error(f"Model prediction error: {e}")
+                    # 即使發生異常也要返回正確的格式
+                    return jsonify({
+                        "choices": [{
+                            "message": {
+                                "role": "assistant",
+                                "content": f"Model error: {str(e)}"
+                            },
+                            "finish_reason": "error"
+                        }],
+                        "error": str(e)
+                    }), 500
+                    
+            except Exception as e:
+                logger.error(f"Request processing error: {e}")
+                # 最終異常處理也要返回正確的格式
+                return jsonify({
+                    "choices": [{
+                        "message": {
+                            "role": "assistant",
+                            "content": f"Server error: {str(e)}"
+                        },
+                        "finish_reason": "error"
+                    }],
+                    "error": str(e)
+                }), 500
+
+        @self.app.route('/stats', methods=['GET'])
+        def stats():
+            """Performance statistics"""
+            return jsonify({
+                "model": "LLaVA-MLX",
+                "statistics": self.stats,
+                "framework": "MLX-VLM",
+                "optimizations": {
+                    "mlx_acceleration": True,
+                    "apple_silicon": True,
+                    "int4_quantization": True,
+                    "unified_preprocessing": True
+                }
+            })
+    
+    def run(self, host='0.0.0.0', port=8080):
+        """Start LLaVA MLX server with port cleanup"""
+        logger.info("🚀 Starting LLaVA MLX Server...")
+        logger.info(f"🎯 Target: MLX acceleration for Apple Silicon")
+        logger.info(f"🔧 Model: mlx-community/llava-v1.6-mistral-7b-4bit")
+        
+        # Clean up port before starting
+        logger.info(f"🧹 Checking port {port} availability...")
+        if not cleanup_port_8080():
+            logger.error(f"❌ Cannot start server - port {port} cleanup failed")
+            return False
+        
+        if not self.initialize_model():
+            logger.error("❌ Server startup failed")
+            return False
+        
+        logger.info(f"🌐 Server starting on http://{host}:{port}")
+        logger.info("🚀 LLaVA MLX Server ready!")
         
         try:
-            uvicorn.run(
-                app,
-                host=self.host,
-                port=self.port,
-                log_level="info"
+            # Optimize Flask settings
+            self.app.config['THREADED'] = True
+            
+            self.app.run(
+                host=host,
+                port=port,
+                debug=False,
+                threaded=True,
+                processes=1,
+                use_reloader=False
             )
         except KeyboardInterrupt:
-            logger.info("\n🛑 Received stop signal...")
-            return True
+            logger.info("🛑 Server stopped by user")
         except Exception as e:
-            logger.error(f"❌ Server startup failed: {e}")
+            logger.error(f"❌ Server error: {e}")
             return False
+        
+        return True
 
 def main():
-    """Main function"""
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    """Main execution with MLX info and port cleanup"""
+    print("🚀 LLaVA MLX Server with Apple Silicon Optimization")
+    print("=" * 60)
+    print("🎯 Features:")
+    print("   • MLX framework for Apple Silicon (M1/M2/M3)")
+    print("   • INT4 quantization for memory efficiency")
+    print("   • Unified image preprocessing (1024px)")
+    print("   • OpenAI-compatible API endpoints")
+    print("   • Automatic port 8080 cleanup")
+    print("=" * 60)
+    print("⚠️  Requirements:")
+    print("   • Apple Silicon Mac (M1/M2/M3)")
+    print("   • mlx-vlm package: pip install mlx-vlm")
+    print("   • Known issues with synthetic/square images")
+    print("=" * 60)
+    
+    # Check MLX availability
+    try:
+        import mlx.core as mx
+        logger.info("✅ MLX framework available")
+    except ImportError:
+        logger.error("❌ MLX not available - Apple Silicon required")
+        print("❌ MLX framework not found!")
+        print("💡 Install with: pip install mlx-vlm")
+        return
+    
+    # Clean port first
+    logger.info("🧹 Pre-startup port cleanup...")
+    cleanup_port_8080()
     
     server = LLaVAMLXServer()
     
     try:
-        server.start_server()
+        success = server.run(host='0.0.0.0', port=8080)
+        if success:
+            logger.info("✅ Server shutdown completed")
+        else:
+            logger.error("❌ Server encountered errors")
+            exit(1)
+            
     except KeyboardInterrupt:
-        logger.info("🛑 Server stopped")
-    finally:
-        logger.info("👋 Goodbye!")
+        logger.info("🛑 Interrupted by user")
+        logger.info("🧹 Cleaning up port on exit...")
+        cleanup_port_8080()
+    except Exception as e:
+        logger.error(f"❌ Unexpected error: {e}")
+        exit(1)
 
 if __name__ == "__main__":
     main()
-
- 

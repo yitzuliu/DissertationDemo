@@ -1,285 +1,417 @@
 #!/usr/bin/env python3
 """
-Moondream2 Server Launcher
-Launch Moondream2 model server with FastAPI (Standard Version)
+Standard Moondream2 Server Runner
+
+Standard version of Moondream2 server with:
+- FastAPI server for maximum compatibility
+- Standard precision processing
+- Robust error handling
+- Cross-platform support
 """
 
-import sys
+import os
+import json
+import logging
 import time
-import signal
-import asyncio
-import uvicorn
+import base64
+import sys
+from io import BytesIO
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
-import json
-import base64
-import io
 from PIL import Image
-import logging
-from pathlib import Path
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from pathlib import Path
+from typing import List, Dict, Any, Optional
+import uvicorn
+from contextlib import asynccontextmanager
 
-# Add the project root to the path for base imports
-project_root = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.append(str(project_root))
+# Setup logging
+def setup_logging():
+    """Setup logging with proper path and permissions"""
+    try:
+        # Get absolute path to project root
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent
+        log_dir = base_dir / "logs"
+        
+        # Create logs directory with parents if needed
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Setup log file path with timestamp
+        timestamp = time.strftime("%Y%m%d")
+        log_file = log_dir / f"moondream2_standard_{timestamp}.log"
+        
+        # Configure logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(log_file),
+                logging.StreamHandler()
+            ]
+        )
+        
+        logger = logging.getLogger(__name__)
+        logger.info(f"Moondream2 standard logging initialized. Log file: {log_file}")
+        
+        return logger
+        
+    except Exception as e:
+        print(f"Failed to setup logging: {e}")
+        raise
 
-# Import configuration manager
-from src.backend.utils.config_manager import config_manager
+# Initialize logging
+logger = setup_logging()
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import model with fallbacks
+def import_model_with_fallbacks():
+    """Import Moondream2 model with multiple fallback strategies"""
+    
+    # Add current directory and parent directories to Python path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(parent_dir)))
+    
+    for path in [current_dir, parent_dir, project_root]:
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    
+    # Strategy 1: Try importing standard model
+    try:
+        from moondream2_model import Moondream2Model
+        logger.info("✅ Imported Moondream2Model (Strategy 1)")
+        return Moondream2Model
+    except ImportError as e:
+        logger.warning(f"Strategy 1 failed: {e}")
+    
+    # Strategy 2: Try importing optimized model as fallback
+    try:
+        from moondream2_optimized import OptimizedMoondream2Model
+        logger.info("✅ Imported OptimizedMoondream2Model as fallback (Strategy 2)")
+        return OptimizedMoondream2Model
+    except ImportError as e:
+        logger.warning(f"Strategy 2 failed: {e}")
+    
+    # Strategy 3: Create minimal fallback
+    logger.error("❌ All import strategies failed, creating minimal fallback")
+    
+    class MinimalMoondream2Model:
+        def __init__(self, model_name, config):
+            self.model_name = model_name
+            self.config = config
+            self.loaded = False
+            
+        def load_model(self):
+            logger.error("❌ Minimal fallback model - no actual functionality")
+            return False
+            
+        def predict(self, image, prompt, options=None):
+            return {
+                "error": "Model import failed - check dependencies",
+                "success": False,
+                "response": {"text": "Model not available"}
+            }
+    
+    return MinimalMoondream2Model
 
-# Global model instance
-model_instance = None
-processor = None
+# Import model with fallbacks
+try:
+    Moondream2Model = import_model_with_fallbacks()
+    logger.info(f"✅ Model import successful: {Moondream2Model.__name__}")
+except Exception as e:
+    logger.error(f"❌ Critical import failure: {e}")
+    exit(1)
 
-class ChatMessage(BaseModel):
-    role: str
-    content: List[Dict[str, Any]]
+class StandardMoondream2Server:
+    """Standard Moondream2 server implementation"""
+    
+    def __init__(self, config_path="moondream2.json"):
+        self.model = None
+        self.config = self.load_config(config_path)
+        self.stats = {
+            "requests": 0,
+            "total_time": 0.0,
+            "avg_time": 0.0
+        }
+    
+    def load_config(self, config_path):
+        """Load standard configuration"""
+        try:
+            # Default standard config
+            default_config = {
+                "model_name": "Moondream2",
+                "model_path": "vikhyatk/moondream2",
+                "device": "mps",
+                "trust_remote_code": True,
+                "max_tokens": 100,
+                "timeout": 60
+            }
+            
+            # Try to load from the project's config directory first
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            project_config_path = project_root / "src/config/model_configs/moondream2.json"
+            
+            if project_config_path.exists():
+                with open(project_config_path, 'r') as f:
+                    file_config = json.load(f)
+                # 使用正確的鍵名取得模型路徑
+                if "model_path" in file_config:
+                    default_config.update(file_config)
+                elif "model_id" in file_config:
+                    # 如果配置文件使用 model_id，將其轉換為 model_path
+                    file_config["model_path"] = file_config.get("model_id", "vikhyatk/moondream2")
+                    default_config.update(file_config)
+                logger.info(f"📁 Loaded config from {project_config_path}")
+            elif os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    file_config = json.load(f)
+                default_config.update(file_config)
+                logger.info(f"📁 Loaded config from {config_path}")
+            else:
+                logger.info("⚙️ Using default standard config")
+            
+            # 確保 model_path 正確設定
+            if "model_path" not in default_config or not default_config["model_path"]:
+                default_config["model_path"] = "vikhyatk/moondream2"
+                logger.info("🔧 Set default model_path: vikhyatk/moondream2")
+            
+            logger.info(f"🔧 Using model_path: {default_config['model_path']}")
+            
+            return default_config
+            
+        except Exception as e:
+            logger.error(f"Config loading error: {e}")
+            return {
+                "model_name": "Moondream2",
+                "model_path": "vikhyatk/moondream2",
+                "device": "mps",
+                "trust_remote_code": True,
+                "max_tokens": 100,
+                "timeout": 60
+            }
+    
+    def initialize_model(self):
+        """Initialize standard model"""
+        try:
+            logger.info("🚀 Initializing STANDARD Moondream2...")
+            start_time = time.time()
+            
+            self.model = Moondream2Model(
+                model_name=self.config.get("model_name", "Moondream2"),
+                config=self.config
+            )
+            
+            if self.model.load_model():
+                init_time = time.time() - start_time
+                logger.info(f"✅ STANDARD Moondream2 ready in {init_time:.2f}s")
+                return True
+            else:
+                logger.error("❌ Failed to load standard model")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Model initialization error: {e}")
+            return False
 
-class ChatCompletionRequest(BaseModel):
-    model: str = "Moondream2"
-    messages: List[ChatMessage]
-    max_tokens: Optional[int] = 100
-    temperature: Optional[float] = 0.7
+# Global server instance
+server = None
 
-class ChatCompletionResponse(BaseModel):
-    choices: List[Dict[str, Any]]
-    usage: Dict[str, int]
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Modern FastAPI lifespan handler"""
+    # Startup
+    global server
+    logger.info("🔥 Starting STANDARD Moondream2 Server...")
+    server = StandardMoondream2Server()
+    if not server.initialize_model():
+        logger.error("❌ Server startup failed")
+        raise RuntimeError("Failed to initialize model")
+    logger.info("🚀 STANDARD Moondream2 Server ready!")
+    
+    yield
+    
+    # Shutdown
+    logger.info("🛑 Shutting down STANDARD Moondream2 Server...")
 
-app = FastAPI(title="Moondream2 Server", version="1.0.0")
+# Create FastAPI app with lifespan
+app = FastAPI(title="Moondream2 Standard Server", lifespan=lifespan)
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-def decode_base64_image(image_url: str) -> Image.Image:
-    """Decode base64 image from URL"""
-    try:
-        if image_url.startswith('data:image/'):
-            # Extract base64 data
-            base64_data = image_url.split(',')[1]
-        else:
-            base64_data = image_url
-            
-        image_data = base64.b64decode(base64_data)
-        image = Image.open(io.BytesIO(image_data))
-        
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-            
-        return image
-    except Exception as e:
-        logger.error(f"Error decoding image: {e}")
-        raise HTTPException(status_code=400, detail=f"Invalid image data: {str(e)}")
-
-@app.get("/")
-async def root():
-    """Root endpoint"""
-    return {
-        "message": "Moondream2 Server (Standard Version)",
-        "version": "1.0.0",
-        "status": "running" if model_instance else "not loaded"
-    }
+class ChatCompletionRequest(BaseModel):
+    messages: List[Dict[str, Any]]
+    max_tokens: Optional[int] = 100
 
 @app.get("/health")
-async def health_check():
+def health():
     """Health check endpoint"""
-    if model_instance:
-        return {"status": "healthy", "model": "Moondream2-Standard"}
+    global server
+    if server and server.model and server.model.loaded:
+        return {
+            "status": "healthy",
+            "model": "Moondream2-Standard",
+            "version": "1.0.0",
+            "performance": {
+                "requests": server.stats["requests"],
+                "avg_time": f"{server.stats['avg_time']:.2f}s"
+            }
+        }
     else:
-        raise HTTPException(status_code=503, detail="Model not loaded")
+        return {"status": "loading", "model": "Moondream2-Standard"}, 503
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest):
     """OpenAI-compatible chat completions endpoint"""
-    global model_instance
-    
-    if not model_instance:
-        raise HTTPException(status_code=503, detail="Model not initialized")
-    
-    # Model is loaded during startup, no need to check .loaded attribute
-            raise HTTPException(status_code=503, detail="Failed to load model")
-    
+    global server
     try:
-        # Extract the user message
-        if not request.messages:
+        start_time = time.time()
+        
+        if not server or not server.model or not server.model.loaded:
+            raise HTTPException(status_code=503, detail="Model not ready")
+        
+        messages = request.messages
+        max_tokens = min(request.max_tokens or 100, 150)
+        
+        if not messages:
             raise HTTPException(status_code=400, detail="No messages provided")
         
+        # Extract user message (latest)
         user_message = None
-        for message in request.messages:
-            if message.role == "user":
+        for message in reversed(messages):
+            if message.get('role') == 'user':
                 user_message = message
                 break
         
         if not user_message:
             raise HTTPException(status_code=400, detail="No user message found")
         
-        # Extract text and image from content
+        # Process content
+        content = user_message.get('content', [])
         text_content = ""
-        image = None
+        image_data = None
         
-        for content_item in user_message.content:
-            if content_item.get("type") == "text":
-                text_content = content_item.get("text", "")
-            elif content_item.get("type") == "image_url":
-                image_url = content_item.get("image_url", {}).get("url", "")
-                if image_url:
-                    image = decode_base64_image(image_url)
+        for item in content:
+            if item.get('type') == 'text':
+                text_content = item.get('text', '')
+            elif item.get('type') == 'image_url':
+                image_url = item.get('image_url', {}).get('url', '')
+                if image_url.startswith('data:image/'):
+                    # Extract base64 data
+                    image_data = image_url.split(',')[1]
         
-        if not image:
+        if not image_data:
             raise HTTPException(status_code=400, detail="No image provided")
         
-        if not text_content:
-            text_content = "Describe what you see in this image."
-        
-        # Generate prediction using Moondream2 API (same as testing)
+        # Process image
         try:
-            device = next(model_instance.parameters()).device
-            enc_image = model_instance.encode_image(image)
-            if hasattr(enc_image, 'to'):
-                enc_image = enc_image.to(device)
-            
-            response_text = model_instance.answer_question(enc_image, text_content, processor)
-            
-            # Clean up response
-            if not response_text:
-                response_text = "No response generated"
-                
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(BytesIO(image_bytes))
         except Exception as e:
-            logger.error(f"Model inference error: {e}")
-            raise HTTPException(status_code=500, detail=f"Model inference failed: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Image processing failed: {e}")
         
-        return {
-            "choices": [
-                {
-                    "index": 0,
+        # Generate response
+        result = server.model.predict(
+            image=image,
+            prompt=text_content,
+            options={"max_tokens": max_tokens}
+        )
+        
+        processing_time = time.time() - start_time
+        
+        # Update stats
+        server.stats["requests"] += 1
+        server.stats["total_time"] += processing_time
+        server.stats["avg_time"] = server.stats["total_time"] / server.stats["requests"]
+        
+        if result.get("success"):
+            response_text = result.get("response", "")
+            if isinstance(response_text, dict):
+                response_text = response_text.get("text", str(response_text))
+            
+            # OpenAI-compatible response
+            return {
+                "choices": [{
                     "message": {
                         "role": "assistant",
                         "content": response_text
                     },
                     "finish_reason": "stop"
+                }],
+                "usage": {
+                    "prompt_tokens": len(text_content.split()),
+                    "completion_tokens": len(str(response_text).split()),
+                    "total_tokens": len(text_content.split()) + len(str(response_text).split())
+                },
+                "model": "Moondream2-Standard",
+                "performance": {
+                    "processing_time": f"{processing_time:.2f}s",
+                    "optimized": False
                 }
-            ],
-            "usage": {
-                "prompt_tokens": 50,  # Estimated
-                "completion_tokens": len(response_text.split()),
-                "total_tokens": 50 + len(response_text.split())
-            },
-            "model": "Moondream2-Standard"
-        }
-        
+            }
+        else:
+            error_msg = result.get("error", "Unknown error")
+            raise HTTPException(status_code=500, detail=error_msg)
+            
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in chat completion: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        logger.error(f"Request processing error: {e}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize model on startup"""
-    global model_instance, processor
-    
-    logger.info("🚀 Starting Moondream2 server (Standard Version)...")
-    
-    try:
-        # Load model configuration from config system
-        config = config_manager.load_model_config("moondream2")
-        model_path = config.get("model_path", "vikhyatk/moondream2")
-        
-        logger.info(f"Loading Moondream2 model: {model_path}")
-        
-        # Load model using the same pattern as testing
-        model_instance = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
-        processor = AutoTokenizer.from_pretrained(model_path)
-        
-        # Move model to appropriate device
-        if torch.backends.mps.is_available():
-            model_instance = model_instance.to('mps')
-            logger.info("✅ Model moved to MPS device")
-        
-        logger.info("✅ Moondream2 model loaded successfully")
-            
-    except Exception as e:
-        logger.error(f"❌ Failed to initialize model: {e}")
-        model_instance = None
-        processor = None
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    global model_instance, processor
-    
-    logger.info("🛑 Shutting down Moondream2 server...")
-    
-    if model_instance:
-        try:
-            del model_instance, processor
-            if torch.backends.mps.is_available():
-                torch.mps.empty_cache()
-            logger.info("✅ Model unloaded successfully")
-        except Exception as e:
-            logger.error(f"❌ Error unloading model: {e}")
-
-def signal_handler(signum, frame):
-    """Handle system signals"""
-    logger.info("\n🛑 Received stop signal, shutting down server...")
-    sys.exit(0)
-
-class Moondream2Server:
-    """Moondream2 Server wrapper"""
-    
-    def __init__(self, port=8080, host="0.0.0.0"):
-        self.port = port
-        self.host = host
-        
-    def start_server(self):
-        """Start Moondream2 server"""
-        print("🌙 Moondream2 Server (Standard Version)")
-        print("=" * 50)
-        print(f"🚀 Starting server...")
-        print(f"📦 Model: Moondream2-Standard")
-        print(f"🌐 Host: {self.host}")
-        print(f"🌐 Port: {self.port}")
-        print(f"🍎 Device: MPS (Apple Silicon)")
-        print("-" * 50)
-        
-        try:
-            uvicorn.run(
-                app,
-                host=self.host,
-                port=self.port,
-                log_level="info"
-            )
-        except KeyboardInterrupt:
-            logger.info("\n🛑 Received stop signal...")
-            return True
-        except Exception as e:
-            logger.error(f"❌ Server startup failed: {e}")
-            return False
+@app.get("/stats")
+def stats():
+    """Performance statistics"""
+    global server
+    return {
+        "model": "Moondream2-Standard",
+        "statistics": server.stats if server else {"requests": 0, "total_time": 0.0, "avg_time": 0.0},
+        "features": {
+            "fastapi_server": True,
+            "standard_precision": True,
+            "cross_platform": True,
+            "maximum_compatibility": True
+        }
+    }
 
 def main():
-    """Main function"""
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    """Main execution"""
+    print("🔥 STANDARD Moondream2 Server")
+    print("=" * 50)
+    print("🎯 Features:")
+    print("   • FastAPI server for maximum compatibility")
+    print("   • Standard precision (float32)")
+    print("   • Cross-platform support")
+    print("   • Robust error handling")
+    print("=" * 50)
     
-    server = Moondream2Server()
+    # Check PyTorch availability
+    logger.info(f"PyTorch version: {torch.__version__}")
+    if torch.backends.mps.is_available():
+        logger.info("✅ MPS (Apple Silicon) acceleration available")
+    elif torch.cuda.is_available():
+        logger.info("✅ CUDA acceleration available")
+    else:
+        logger.info("⚠️ Using CPU inference")
     
     try:
-        server.start_server()
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=8080,
+            log_level="info"
+        )
     except KeyboardInterrupt:
-        logger.info("🛑 Server stopped")
-    finally:
-        logger.info("👋 Goodbye!")
+        logger.info("🛑 Server stopped by user")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error: {e}")
+        exit(1)
 
 if __name__ == "__main__":
-    main() 
+    main()

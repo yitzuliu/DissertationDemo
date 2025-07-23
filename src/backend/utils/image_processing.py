@@ -5,11 +5,12 @@ This module provides a centralized set of image preprocessing functions
 that can be used by different models and the backend server.
 """
 
+import io
 import cv2
 import numpy as np
+import logging
 from PIL import Image, ImageEnhance, ImageFilter, ImageChops, ImageOps
 from typing import Union, Dict, Any, Tuple, Optional
-import logging
 from skimage import color
 
 logger = logging.getLogger(__name__)
@@ -119,6 +120,81 @@ def enhance_image_clahe(image: Union[np.ndarray, Image.Image, bytes]) -> Image.I
         return convert_to_pil_image(image)
 
 
+def enhance_color_balance(
+    image: Union[np.ndarray, Image.Image, bytes],
+    method: str = 'lab',
+    config: Optional[Dict] = None
+) -> Image.Image:
+    """
+    Enhance image color balance.
+    
+    Args:
+        image: Input image
+        method: Color processing method ('lab', 'rgb', 'auto_wb')
+        config: Color enhancement parameters
+        
+    Returns:
+        Processed image
+    """
+    if config is None:
+        config = {}
+        
+    try:
+        pil_image = convert_to_pil_image(image)
+        
+        if method == 'lab':
+            # LAB color space processing
+            img_array = np.array(pil_image)
+            lab_image = color.rgb2lab(img_array)
+            
+            # Enhance L channel (lightness)
+            l_boost = float(config.get("l_channel_boost", 1.2))
+            l_channel = lab_image[:,:,0]
+            l_channel = np.clip(l_channel * l_boost, 0, 100)
+            lab_image[:,:,0] = l_channel
+            
+            # Enhance a,b channels (color)
+            ab_boost = float(config.get("ab_channel_boost", 1.2))
+            lab_image[:,:,1:] *= ab_boost
+            
+            # Convert back to RGB
+            enhanced_array = color.lab2rgb(lab_image)
+            return Image.fromarray((enhanced_array * 255).astype(np.uint8))
+            
+        elif method == 'rgb':
+            # RGB channel independent enhancement
+            r_factor = float(config.get("r_factor", 1.0))
+            g_factor = float(config.get("g_factor", 1.0))
+            b_factor = float(config.get("b_factor", 1.0))
+            
+            r, g, b = pil_image.split()
+            r = ImageEnhance.Brightness(r).enhance(r_factor)
+            g = ImageEnhance.Brightness(g).enhance(g_factor)
+            b = ImageEnhance.Brightness(b).enhance(b_factor)
+            
+            return Image.merge('RGB', (r, g, b))
+            
+        elif method == 'auto_wb':
+            # Automatic white balance
+            img_array = np.array(pil_image)
+            result = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
+            # Calculate average values with correct data type
+            avg_a = float(np.mean(result[:, :, 1].astype(np.float64)))
+            avg_b = float(np.mean(result[:, :, 2].astype(np.float64)))
+            result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)
+            result[:, :, 2] = result[:, :, 2] - ((avg_b - 128) * (result[:, :, 0] / 255.0) * 1.1)
+            result = cv2.cvtColor(result, cv2.COLOR_LAB2RGB)
+            return Image.fromarray(result)
+            
+        else:
+            logger.warning(f"Unknown color balance method: {method}")
+            return pil_image
+            
+    except Exception as e:
+        logger.error(f"Color balance enhancement failed: {e}")
+        return convert_to_pil_image(image)
+
+
 def resize_image(
     image: Union[np.ndarray, Image.Image, bytes],
     target_size: Union[Tuple[int, int], int],
@@ -177,10 +253,10 @@ def resize_image(
             resized = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_LANCZOS4)
             
             # Create a new image with padding
-            if len(img.shape) == 3:  # Color image
-                result = np.ones((target_size[1], target_size[0], img.shape[2]), dtype=img.dtype) * padding_value
-            else:  # Grayscale
-                result = np.ones((target_size[1], target_size[0]), dtype=img.dtype) * padding_value
+            if len(img.shape) == 3:
+                result = np.full((target_size[1], target_size[0], img.shape[2]), padding_value, dtype=img.dtype)
+            else:
+                result = np.full((target_size[1], target_size[0]), padding_value, dtype=img.dtype)
             
             # Paste the resized image in the center
             paste_x = (target_size[0] - new_width) // 2
@@ -297,80 +373,74 @@ def reduce_noise(
         return convert_to_pil_image(image)
 
 
-def enhance_color_balance(
+def preprocess_for_llava_mlx(
     image: Union[np.ndarray, Image.Image, bytes],
-    method: str = 'lab',
-    config: Optional[Dict] = None
+    max_size: int = 1024,
+    min_size: int = 224,
+    quality: int = 95
 ) -> Image.Image:
     """
-    Enhance image color balance.
+    Special preprocessing for LLaVA MLX to avoid axis remapping errors
     
     Args:
         image: Input image
-        method: Color processing method ('lab', 'rgb', 'auto_wb')
-        config: Color enhancement parameters
+        max_size: Maximum dimension size
+        min_size: Minimum dimension size
+        quality: JPEG quality for saving
         
     Returns:
-        Processed image
+        Preprocessed PIL image optimized for LLaVA MLX
     """
-    if config is None:
-        config = {}
-        
     try:
+        # Convert to PIL image
         pil_image = convert_to_pil_image(image)
         
-        if method == 'lab':
-            # LAB color space processing
-            img_array = np.array(pil_image)
-            lab_image = color.rgb2lab(img_array)
-            
-            # Enhance L channel (lightness)
-            l_boost = float(config.get("l_channel_boost", 1.2))
-            l_channel = lab_image[:,:,0]
-            l_channel = np.clip(l_channel * l_boost, 0, 100)
-            lab_image[:,:,0] = l_channel
-            
-            # Enhance a,b channels (color)
-            ab_boost = float(config.get("ab_channel_boost", 1.2))
-            lab_image[:,:,1:] *= ab_boost
-            
-            # Convert back to RGB
-            enhanced_array = color.lab2rgb(lab_image)
-            return Image.fromarray((enhanced_array * 255).astype(np.uint8))
-            
-        elif method == 'rgb':
-            # RGB channel independent enhancement
-            r_factor = float(config.get("r_factor", 1.0))
-            g_factor = float(config.get("g_factor", 1.0))
-            b_factor = float(config.get("b_factor", 1.0))
-            
-            r, g, b = pil_image.split()
-            r = ImageEnhance.Brightness(r).enhance(r_factor)
-            g = ImageEnhance.Brightness(g).enhance(g_factor)
-            b = ImageEnhance.Brightness(b).enhance(b_factor)
-            
-            return Image.merge('RGB', (r, g, b))
-            
-        elif method == 'auto_wb':
-            # Automatic white balance
-            img_array = np.array(pil_image)
-            result = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
-            # Calculate average values with correct data type
-            avg_a = float(np.mean(result[:, :, 1].astype(np.float64)))
-            avg_b = float(np.mean(result[:, :, 2].astype(np.float64)))
-            result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)
-            result[:, :, 2] = result[:, :, 2] - ((avg_b - 128) * (result[:, :, 0] / 255.0) * 1.1)
-            result = cv2.cvtColor(result, cv2.COLOR_LAB2RGB)
-            return Image.fromarray(result)
-            
-        else:
-            logger.warning(f"Unknown color balance method: {method}")
-            return pil_image
-            
-    except Exception as e:
-        logger.error(f"Color balance enhancement failed: {e}")
+        # Ensure RGB format
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
+        
+        # Get original size
+        original_size = pil_image.size
+        
+        # Check and adjust size constraints
+        width, height = pil_image.size
+        
+        # Ensure minimum size
+        if width < min_size or height < min_size:
+            logger.warning(f"Image too small: {pil_image.size}, resizing to minimum")
+            if width < height:
+                new_width = min_size
+                new_height = int(height * (min_size / width))
+            else:
+                new_height = min_size
+                new_width = int(width * (min_size / height))
+            pil_image = pil_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Ensure maximum size
+        if max(pil_image.size) > max_size:
+            ratio = max_size / max(pil_image.size)
+            new_size = (int(pil_image.size[0] * ratio), int(pil_image.size[1] * ratio))
+            pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
+        
+        # Ensure dimensions are even numbers (some models prefer this)
+        width, height = pil_image.size
+        if width % 2 != 0:
+            width -= 1
+        if height % 2 != 0:
+            height -= 1
+        
+        if (width, height) != pil_image.size:
+            pil_image = pil_image.resize((width, height), Image.Resampling.LANCZOS)
+        
+        logger.info(f"LLaVA MLX preprocessing: {original_size} → {pil_image.size}")
+        
         return pil_image
-
+        
+    except Exception as e:
+        logger.error(f"LLaVA MLX preprocessing failed: {e}")
+        # Return a safe fallback image
+        fallback_image = Image.new('RGB', (224, 224), color='white')
+        return fallback_image
 
 def preprocess_for_model(
     image: Union[np.ndarray, Image.Image, bytes],
@@ -383,7 +453,7 @@ def preprocess_for_model(
     
     Args:
         image: Input image in various formats
-        model_type: Type of model ('phi3', 'yolo', 'llava', 'smolvlm')
+        model_type: Type of model ('phi3', 'yolo', 'llava', 'llava_mlx', 'smolvlm')
         config: Optional configuration parameters
         return_format: Output format ('pil', 'cv2', 'bytes', or 'auto')
         
@@ -393,45 +463,54 @@ def preprocess_for_model(
     if config is None:
         config = {}
     
-    # Default preprocessing: convert to appropriate format and enhance if requested
-    if config.get('enhance_image', True):
-        img = enhance_image_clahe(image)
-    else:
-        img = convert_to_pil_image(image)
-    
     # Model-specific preprocessing
     model_type = model_type.lower()
     
-    if 'phi3' in model_type:
+    if 'llava_mlx' in model_type:
+        # Special preprocessing for LLaVA MLX
+        result = preprocess_for_llava_mlx(
+            image,
+            max_size=config.get('max_size', 1024),
+            min_size=config.get('min_size', 224),
+            quality=config.get('quality', 95)
+        )
+        output_format = 'pil' if return_format == 'auto' else return_format
+        
+    elif 'llava' in model_type:
+        # Standard LLaVA preprocessing
+        if config.get('enhance_image', True):
+            img = enhance_image_clahe(image)
+        else:
+            img = convert_to_pil_image(image)
+        
+        # LLaVA via Ollama typically uses image bytes
+        if return_format == 'auto' or return_format == 'bytes':
+            buf = io.BytesIO()
+            img.save(buf, format='JPEG', quality=95)
+            result = buf.getvalue()
+            output_format = 'bytes'
+        else:
+            result = img
+            output_format = return_format
+            
+    elif 'phi3' in model_type:
         # Phi3 typically uses PIL images directly
-        result = img
+        result = convert_to_pil_image(image)
         output_format = 'pil' if return_format == 'auto' else return_format
         
     elif 'yolo' in model_type:
         # YOLO8 typically uses OpenCV format (BGR)
-        result = convert_to_cv2_image(img)
+        result = convert_to_cv2_image(image)
         output_format = 'cv2' if return_format == 'auto' else return_format
         
-    elif 'llava' in model_type:
-        # LLaVA via Ollama typically uses image bytes
-        if return_format == 'auto' or return_format == 'bytes':
-            import io
-            buf = io.BytesIO()
-            img.save(buf, format='JPEG')
-            result = buf.getvalue()
-            output_format = 'bytes'
-        else:
-            result = img if return_format == 'pil' else convert_to_cv2_image(img)
-            output_format = return_format
-            
     elif 'smolvlm' in model_type:
-        # SmolVLM API typically uses base64, but we'll handle that conversion separately
-        result = img
+        # SmolVLM API typically uses PIL images
+        result = convert_to_pil_image(image)
         output_format = 'pil' if return_format == 'auto' else return_format
         
     else:
         # Generic case: return PIL image
-        result = img
+        result = convert_to_pil_image(image)
         output_format = 'pil' if return_format == 'auto' else return_format
     
     # Ensure output is in the requested format
@@ -440,13 +519,11 @@ def preprocess_for_model(
     elif output_format == 'cv2' and not isinstance(result, np.ndarray):
         result = convert_to_cv2_image(result)
     elif output_format == 'bytes' and not isinstance(result, bytes):
-        import io
         buf = io.BytesIO()
         if isinstance(result, Image.Image):
-            result.save(buf, format='JPEG')
-        else:  # numpy array
-            pil_img = convert_to_pil_image(result)
-            pil_img.save(buf, format='JPEG')
+            result.save(buf, format='JPEG', quality=95)
+        else:
+            Image.fromarray(result).save(buf, format='JPEG', quality=95)
         result = buf.getvalue()
     
     return result

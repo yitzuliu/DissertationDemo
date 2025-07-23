@@ -237,7 +237,8 @@ class Moondream2Model(BaseVisionModel):
     
     def __init__(self, model_name: str, config: Dict[str, Any]):
         super().__init__(model_name=model_name, config=config)
-        self.model_id = self.config.get("model_id", "vikhyatk/moondream2")
+        # 使用正確的配置鍵名，優先使用 model_path，fallback 到 model_id
+        self.model_id = self.config.get("model_path", self.config.get("model_id", "vikhyatk/moondream2"))
         self.device = self.config.get("device", "mps")
         self.server = None
         self.loaded = False
@@ -248,6 +249,8 @@ class Moondream2Model(BaseVisionModel):
         self.last_cleanup = time.time()
         self.cleanup_interval = self.config.get("memory", {}).get("cleanup_interval", 10)
         
+        logger.info(f"🔧 Moondream2Model initialized with model_id: {self.model_id}")
+
     def load_model(self) -> bool:
         """Load Moondream2 model"""
         if self.loaded:
@@ -391,4 +394,4 @@ class Moondream2Model(BaseVisionModel):
         }
 
 if __name__ == '__main__':
-    print("This script is not meant to be run directly. Use a runner script.") 
+    print("This script is not meant to be run directly. Use a runner script.")
