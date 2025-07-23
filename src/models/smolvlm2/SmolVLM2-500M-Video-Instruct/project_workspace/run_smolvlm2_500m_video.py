@@ -2,6 +2,7 @@
 """
 SmolVLM2 Server Launcher
 Launch SmolVLM2-500M-Video-Instruct model server with FastAPI
+Enhanced with port 8080 cleanup functionality
 """
 
 import sys
@@ -9,6 +10,9 @@ import time
 import signal
 import asyncio
 import uvicorn
+import subprocess
+import socket
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -20,7 +24,44 @@ from PIL import Image
 import logging
 from pathlib import Path
 
-# Import the model
+# Port cleanup functions (simple version)
+def cleanup_port_8080():
+    """Simple port 8080 cleanup"""
+    try:
+        # Check if port is in use
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(1)
+            result = s.connect_ex(('localhost', 8080))
+            if result != 0:
+                print("✅ Port 8080 is available")
+                return True
+        
+        print("🔄 Port 8080 is in use, attempting cleanup...")
+        
+        # Kill processes on port 8080
+        try:
+            result = subprocess.run(['lsof', '-ti:8080'], capture_output=True, text=True)
+            if result.returncode == 0 and result.stdout.strip():
+                pids = result.stdout.strip().split('\n')
+                for pid in pids:
+                    if pid.isdigit():
+                        print(f"🔄 Killing process {pid}")
+                        subprocess.run(['kill', '-9', pid])
+                time.sleep(2)
+                print("✅ Port 8080 cleanup completed")
+                return True
+        except FileNotFoundError:
+            print("⚠️ lsof not available, manual cleanup may be needed")
+        except Exception as e:
+            print(f"⚠️ Cleanup error: {e}")
+            
+        return False
+        
+    except Exception as e:
+        print(f"❌ Port cleanup failed: {e}")
+        return False
+
+# Import the model (keeping it simple like the working version)
 import sys
 import os
 # Add the project root to the path for base imports (go up 6 levels)
@@ -200,10 +241,14 @@ async def chat_completions(request: ChatCompletionRequest):
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize model on startup"""
+    """Initialize model on startup with port cleanup"""
     global model_instance
     
     logger.info("🚀 Starting SmolVLM2 server...")
+    
+    # Clean up port first
+    print("🧹 Checking port 8080...")
+    cleanup_port_8080()
     
     # Load model configuration
     # Get project root (6 levels up from current file to get to destination_code)
@@ -264,12 +309,16 @@ class SmolVLM2Server:
         """Start SmolVLM2 server"""
         print("🎬 SmolVLM2-500M-Video-Instruct Server")
         print("=" * 50)
+        print("🧹 Port cleanup: Automatic port 8080 management")
         print(f"🚀 Starting server...")
         print(f"📦 Model: SmolVLM2-500M-Video-Instruct")
         print(f"🌐 Host: {self.host}")
         print(f"🌐 Port: {self.port}")
         print(f"🍎 Device: MPS (Apple Silicon)")
         print("-" * 50)
+        
+        # Clean port before starting
+        cleanup_port_8080()
         
         try:
             uvicorn.run(
@@ -287,6 +336,10 @@ class SmolVLM2Server:
 
 def main():
     """Main function"""
+    # Clean port at startup
+    print("🧹 Pre-startup port cleanup...")
+    cleanup_port_8080()
+    
     # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -297,8 +350,10 @@ def main():
         server.start_server()
     except KeyboardInterrupt:
         logger.info("🛑 Server stopped")
+        # Clean port on exit
+        cleanup_port_8080()
     finally:
         logger.info("👋 Goodbye!")
 
 if __name__ == "__main__":
-    main() 
+    main()

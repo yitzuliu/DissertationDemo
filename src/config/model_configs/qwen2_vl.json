@@ -1,0 +1,77 @@
+{
+  "model_name": "Qwen2-VL",
+  "model_id": "qwen2_vl",
+  "model_path": "Qwen/Qwen2-VL-7B-Instruct",
+  "device": "auto",
+  "timeout": 120,
+  "max_tokens": 150,
+  "version": "standard",
+  "description": "Qwen2-VL vision language model for multimodal understanding",
+  
+  "capabilities": {
+    "vision": true,
+    "text_generation": true,
+    "image_understanding": true,
+    "conversation": true,
+    "multimodal": true
+  },
+  
+  "model_config": {
+    "torch_dtype": "float16",
+    "device_map": "auto",
+    "trust_remote_code": true,
+    "low_cpu_mem_usage": true
+  },
+  
+  "image_processing": {
+    "size": [448, 448],
+    "max_size": 1024,
+    "format": "RGB",
+    "quality": 95,
+    "preserve_aspect_ratio": true
+  },
+  
+  "generation_config": {
+    "max_new_tokens": 150,
+    "do_sample": false,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "repetition_penalty": 1.1
+  },
+  
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "framework": "fastapi",
+    "cors_enabled": true,
+    "log_level": "info"
+  },
+  
+  "memory": {
+    "required_gb": 8.0,
+    "cleanup_interval": 5,
+    "aggressive_cleanup": false
+  },
+  
+  "api": {
+    "openai_compatible": true,
+    "endpoints": [
+      "/",
+      "/health", 
+      "/v1/chat/completions"
+    ]
+  },
+  
+  "performance": {
+    "optimization_level": "medium",
+    "precision": "float16",
+    "caching": true,
+    "batch_processing": false
+  },
+  
+  "ui": {
+    "default_instruction": "Describe what you see in this image in detail.",
+    "capture_intervals": [2000, 5000, 10000, 15000],
+    "default_interval": 5000
+  }
+}

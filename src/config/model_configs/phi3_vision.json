@@ -1,5 +1,6 @@
 {
   "model_name": "Phi-3.5-Vision",
+  "model_id": "phi3_vision",
   "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",
   "device": "auto",
   "timeout": 180,

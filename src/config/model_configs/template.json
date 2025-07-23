@@ -1,6 +1,8 @@
 {
   "model_name": "MODEL_NAME_HERE",
+  "model_id": "template",
   "model_path": "MODEL_PATH_HERE",
+  "device": "auto",
   "version": "1.0.0",
   "description": "Model description",
   "features": [

@@ -65,7 +65,7 @@
     "temperature": 0.0
   },
   "ui": {
-    "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
+    "default_instruction": "You are an AI Manual Assistant. Analyze this image and provide step-by-step guidance for the task at hand. Focus on what you can see and give practical, actionable instructions.",
     "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
     "default_interval": 10000
   },

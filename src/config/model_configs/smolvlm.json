@@ -2,14 +2,25 @@
   "model_name": "SmolVLM",
   "model_id": "smolvlm",
   "model_path": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+  "device": "auto",
   "server": {
     "command": "llama-server",
-    "args": ["-hf", "ggml-org/SmolVLM-500M-Instruct-GGUF", "-ngl", "99", "--port", "8080"],
+    "args": [
+      "-hf",
+      "ggml-org/SmolVLM-500M-Instruct-GGUF",
+      "-ngl",
+      "99",
+      "--port",
+      "8080"
+    ],
     "port": 8080,
     "health_endpoint": "/health"
   },
   "image_processing": {
-    "size": [1024, 1024],
+    "size": [
+      1024,
+      1024
+    ],
     "min_size": 512,
     "preserve_aspect_ratio": true,
     "advanced_color": {
@@ -42,8 +53,13 @@
     "max_tokens": 512
   },
   "ui": {
-    "default_instruction": "Describe what object you see briefly, please provide me a JSON format response.",
-    "capture_intervals": [500, 1000, 2000, 5000],
+    "default_instruction": "You are an AI Manual Assistant. Analyze this image and provide step-by-step guidance for the task at hand. Focus on what you can see and give practical, actionable instructions.",
+    "capture_intervals": [
+      500,
+      1000,
+      2000,
+      5000
+    ],
     "default_interval": 2000
   },
   "memory": {

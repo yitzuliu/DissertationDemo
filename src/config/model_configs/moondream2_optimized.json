@@ -1,11 +1,11 @@
 {
   "model_name": "Moondream2-Optimized",
+  "model_id": "moondream2_optimized",
   "model_path": "vikhyatk/moondream2",
   "device": "auto",
   "timeout": 60,
   "max_tokens": 100,
-  "version": "optimized",
-  "description": "Optimized Moondream2 vision language model with MPS acceleration and caching",
+
   "trust_remote_code": true,
   "server": {
     "host": "0.0.0.0",
@@ -67,7 +67,7 @@
     "note": "max_tokens cannot be controlled in Moondream2 API due to model limitations"
   },
   "ui": {
-    "default_instruction": "Describe what you see in this image.",
+    "default_instruction": "You are an AI Manual Assistant. Analyze this image and provide step-by-step guidance for the task at hand. Focus on what you can see and give practical, actionable instructions.",
     "capture_intervals": [1000, 2000, 5000, 10000, 20000],
     "default_interval": 5000
   },

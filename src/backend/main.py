@@ -11,7 +11,6 @@ from PIL import Image, ImageEnhance, ImageFilter, ImageDraw
 import logging
 import json
 import os
-import numpy as np
 from pathlib import Path
 from utils.config_manager import config_manager
 from utils.image_processing import (
@@ -112,7 +111,15 @@ app.add_middleware(
 
 # Determine which model to use based on configuration
 ACTIVE_MODEL = config_manager.get_active_model()
-MODEL_SERVER_URL = "http://localhost:8080"  # Unified model server URL
+# Get model server URL from configuration
+def get_model_server_url():
+    """Get the model server URL from configuration"""
+    active_model_config = config_manager.get_active_model_config()
+    server_config = active_model_config.get("server", {})
+    port = server_config.get("port", 8080)
+    return f"http://localhost:{port}"
+
+MODEL_SERVER_URL = get_model_server_url()
 
 def preprocess_image(image_url):
     """Enhanced image preprocessing with quality improvements"""
@@ -247,7 +254,7 @@ def format_message_for_model(message, image_count, model_name):
                 formatted_text = f"<|image_1|>\n{text_content}"
             else:
                 formatted_text = text_content
-        elif model_name in ["smolvlm2", "smolvlm2-500"]:
+        elif model_name in ["smolvlm2", "smolvlm2-500", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
             # SmolVLM2 doesn't need special image tags, keep original text
             formatted_text = text_content
         else:
@@ -419,7 +426,7 @@ async def get_config():
         frontend_config["model_help"] = "SmolVLM is active. System automatically handles image tags, just input your instructions."
     elif ACTIVE_MODEL == "phi3_vision":
         frontend_config["model_help"] = "Phi-3 Vision is active. Images are automatically resized to 336x336 for optimal processing."
-    elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500"]:
+    elif ACTIVE_MODEL in ["smolvlm2", "smolvlm2-500", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
         frontend_config["model_help"] = "SmolVLM2-500M-Video is active. Enhanced image analysis with video understanding capabilities. Optimized for Apple Silicon."
     else:
         frontend_config["model_help"] = ""
@@ -496,6 +503,7 @@ async def get_status():
 
 if __name__ == "__main__":
     uvicorn.run(
-        app,        host=config_manager.get_config("server.host"),
+        app,
+        host=config_manager.get_config("server.host"),
         port=config_manager.get_config("server.port")
     )

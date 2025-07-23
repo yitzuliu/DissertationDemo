@@ -1,12 +1,12 @@
 {
   "model_name": "Phi-3.5-Vision-Optimized",
+  "model_id": "phi3_vision_optimized",
   "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",
   "device": "auto",
   "timeout": 60,
   "max_tokens": 100,
   "version": "optimized_mlx",
   "description": "Optimized Phi-3.5-Vision model with MLX framework and INT4 quantization for Apple Silicon",
-  
   "capabilities": {
     "vision": true,
     "text_generation": true,
@@ -15,7 +15,6 @@
     "multimodal": true,
     "apple_silicon_optimized": true
   },
-  
   "model_config": {
     "torch_dtype": "float16",
     "device_map": "auto",
@@ -24,7 +23,6 @@
     "_attn_implementation": "eager",
     "quantization": "int4"
   },
-  
   "mlx_config": {
     "use_mlx": true,
     "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
@@ -32,9 +30,11 @@
     "fallback_to_transformers": true,
     "temp_image_cleanup": true
   },
-  
   "image_processing": {
-    "size": [384, 384],
+    "size": [
+      384,
+      384
+    ],
     "max_size": 1024,
     "format": "RGB",
     "quality": 95,
@@ -42,7 +42,6 @@
     "cache_enabled": true,
     "cache_size": 15
   },
-  
   "generation_config": {
     "max_new_tokens": 100,
     "do_sample": false,
@@ -52,7 +51,6 @@
     "use_cache": false,
     "pad_token_id": "eos_token_id"
   },
-  
   "server": {
     "host": "0.0.0.0",
     "port": 8080,
@@ -62,7 +60,6 @@
     "threaded": true,
     "processes": 1
   },
-  
   "performance": {
     "compile_model": false,
     "use_flash_attention": false,
@@ -73,7 +70,6 @@
     "image_caching": true,
     "smart_memory_cleanup": true
   },
-  
   "optimization_flags": {
     "use_mps": true,
     "half_precision": true,
@@ -82,7 +78,6 @@
     "transformers_fallback": true,
     "memory_efficient": true
   },
-  
   "special_tokens": {
     "image_token": "<|image_1|>",
     "user_prefix": "User:",
@@ -90,21 +85,18 @@
     "end_token": "<|end|>",
     "endoftext_token": "<|endoftext|>"
   },
-  
   "limits": {
     "max_sequence_length": 2048,
     "max_image_size": 1024,
     "timeout_seconds": 60,
     "max_tokens_cap": 150
   },
-  
   "cache_settings": {
     "image_cache_size": 15,
     "response_cache_size": 50,
     "temp_file_cleanup": true,
     "cleanup_interval": 5
   },
-  
   "environment": {
     "required_packages": [
       "mlx-vlm>=0.0.9",
@@ -122,11 +114,10 @@
     "platform": "darwin",
     "recommended_hardware": "Apple Silicon (M1/M2/M3)"
   },
-  
   "fallback_config": {
     "enabled": true,
     "fallback_model_path": "microsoft/Phi-3.5-vision-instruct",
     "fallback_device": "cpu",
     "fallback_dtype": "float32"
   }
-} 
+}

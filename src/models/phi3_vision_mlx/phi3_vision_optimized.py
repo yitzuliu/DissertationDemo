@@ -385,8 +385,8 @@ class OptimizedPhi3VisionServer:
             
             # Move to device
             try:
-            device = next(self.model.parameters()).device
-            inputs = {k: v.to(device) for k, v in inputs.items()}
+                device = next(self.model.parameters()).device
+                inputs = {k: v.to(device) for k, v in inputs.items()}
             except Exception as e:
                 logger.warning(f"Device handling failed: {e}, using CPU")
                 inputs = {k: v.cpu() for k, v in inputs.items()}

@@ -1,6 +1,8 @@
 {
   "model_name": "YOLO8",
+  "model_id": "yolo8",
   "model_path": "models/yolo8/yolov8n.pt",
+  "device": "auto",
   "server": {
     "command": "python",
     "args": ["models/yolo8/run_yolo.py"],
