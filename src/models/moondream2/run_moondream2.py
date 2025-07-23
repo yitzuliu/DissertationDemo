@@ -19,15 +19,15 @@ import io
 from PIL import Image
 import logging
 from pathlib import Path
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-# Import the model
-import sys
-import os
-# Add the project root to the path for base imports (go up 3 levels)
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-sys.path.append(project_root)
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from moondream2_model import Moondream2Model
+# Add the project root to the path for base imports
+project_root = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.append(str(project_root))
+
+# Import configuration manager
+from src.backend.utils.config_manager import config_manager
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 # Global model instance
 model_instance = None
+processor = None
 
 class ChatMessage(BaseModel):
     role: str
@@ -86,13 +87,13 @@ async def root():
     return {
         "message": "Moondream2 Server (Standard Version)",
         "version": "1.0.0",
-        "status": "running" if model_instance and model_instance.loaded else "not loaded"
+        "status": "running" if model_instance else "not loaded"
     }
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    if model_instance and model_instance.loaded:
+    if model_instance:
         return {"status": "healthy", "model": "Moondream2-Standard"}
     else:
         raise HTTPException(status_code=503, detail="Model not loaded")
@@ -105,9 +106,7 @@ async def chat_completions(request: ChatCompletionRequest):
     if not model_instance:
         raise HTTPException(status_code=503, detail="Model not initialized")
     
-    if not model_instance.loaded:
-        logger.info("Model not loaded, attempting to load...")
-        if not model_instance.load_model():
+    # Model is loaded during startup, no need to check .loaded attribute
             raise HTTPException(status_code=503, detail="Failed to load model")
     
     try:
@@ -142,33 +141,22 @@ async def chat_completions(request: ChatCompletionRequest):
         if not text_content:
             text_content = "Describe what you see in this image."
         
-        # Generate prediction
-        options = {
-            "max_tokens": request.max_tokens
-        }
-        
-        result = model_instance.predict(image, text_content, options)
-        
-        # Debug logging
-        logger.info(f"Model prediction result: {result}")
-        
-        if "error" in result:
-            raise HTTPException(status_code=500, detail=result["error"])
-        
-        # Format response in OpenAI format with proper error handling
-        response_data = result.get("response", {})
-        
-        # Handle different response formats
-        if isinstance(response_data, dict):
-            response_text = response_data.get("text", "")
-        elif isinstance(response_data, str):
-            response_text = response_data
-        else:
-            response_text = str(response_data)
-        
-        # Ensure we have a valid response
-        if not response_text:
-            response_text = "No response generated"
+        # Generate prediction using Moondream2 API (same as testing)
+        try:
+            device = next(model_instance.parameters()).device
+            enc_image = model_instance.encode_image(image)
+            if hasattr(enc_image, 'to'):
+                enc_image = enc_image.to(device)
+            
+            response_text = model_instance.answer_question(enc_image, text_content, processor)
+            
+            # Clean up response
+            if not response_text:
+                response_text = "No response generated"
+                
+        except Exception as e:
+            logger.error(f"Model inference error: {e}")
+            raise HTTPException(status_code=500, detail=f"Model inference failed: {str(e)}")
         
         return {
             "choices": [
@@ -186,9 +174,7 @@ async def chat_completions(request: ChatCompletionRequest):
                 "completion_tokens": len(response_text.split()),
                 "total_tokens": 50 + len(response_text.split())
             },
-            "model": "Moondream2-Standard",
-            "processing_time": result.get("processing_time", 0),
-            "inference_time": result.get("inference_time", 0)
+            "model": "Moondream2-Standard"
         }
         
     except HTTPException:
@@ -200,47 +186,45 @@ async def chat_completions(request: ChatCompletionRequest):
 @app.on_event("startup")
 async def startup_event():
     """Initialize model on startup"""
-    global model_instance
+    global model_instance, processor
     
     logger.info("🚀 Starting Moondream2 server (Standard Version)...")
     
-    # Load model configuration
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    
-    config = {
-        "model_path": "vikhyatk/moondream2",  # Use Hugging Face model ID
-        "device": "mps",
-        "max_tokens": 100,
-        "timeout": 60,
-        "image_processing": {
-            "size": [384, 384]
-        }
-    }
-    
     try:
-        model_instance = Moondream2Model("Moondream2-Standard", config)
-        logger.info("✅ Moondream2 model initialized")
+        # Load model configuration from config system
+        config = config_manager.load_model_config("moondream2")
+        model_path = config.get("model_path", "vikhyatk/moondream2")
         
-        # Pre-load the model
-        if model_instance.load_model():
-            logger.info("✅ Moondream2 model loaded successfully")
-        else:
-            logger.warning("⚠️ Failed to pre-load model, will load on first request")
+        logger.info(f"Loading Moondream2 model: {model_path}")
+        
+        # Load model using the same pattern as testing
+        model_instance = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
+        processor = AutoTokenizer.from_pretrained(model_path)
+        
+        # Move model to appropriate device
+        if torch.backends.mps.is_available():
+            model_instance = model_instance.to('mps')
+            logger.info("✅ Model moved to MPS device")
+        
+        logger.info("✅ Moondream2 model loaded successfully")
             
     except Exception as e:
         logger.error(f"❌ Failed to initialize model: {e}")
         model_instance = None
+        processor = None
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
-    global model_instance
+    global model_instance, processor
     
     logger.info("🛑 Shutting down Moondream2 server...")
     
     if model_instance:
         try:
-            model_instance.unload_model()
+            del model_instance, processor
+            if torch.backends.mps.is_available():
+                torch.mps.empty_cache()
             logger.info("✅ Model unloaded successfully")
         except Exception as e:
             logger.error(f"❌ Error unloading model: {e}")

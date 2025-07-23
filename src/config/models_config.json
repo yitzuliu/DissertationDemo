@@ -1,0 +1,194 @@
+{
+  "models": {
+    "moondream2": {
+      "display_name": "Moondream2 (Standard)",
+      "model_id": "vikhyatk/moondream2",
+      "framework": "Transformers (Custom API)",
+      "capabilities": ["vision", "text"],
+      "requirements": ["transformers"],
+      "memory_usage": "~3GB",
+      "platform": "Universal",
+      "description": "Compact vision-language model with custom API",
+      "run_script": "src/models/moondream2/run_moondream2.py"
+    },
+    "moondream2_optimized": {
+      "display_name": "Moondream2 (Optimized)",
+      "model_id": "vikhyatk/moondream2",
+      "framework": "Transformers (Custom API)",
+      "capabilities": ["vision", "text"],
+      "requirements": ["transformers"],
+      "memory_usage": "~3GB",
+      "platform": "Universal",
+      "description": "Optimized version of Moondream2 with better performance",
+      "run_script": "src/models/moondream2/run_moondream2_optimized.py"
+    },
+    "phi3_vision": {
+      "display_name": "Phi-3.5-Vision (Standard)",
+      "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+      "framework": "MLX-VLM",
+      "fallback_model_id": "microsoft/Phi-3.5-vision-instruct",
+      "fallback_framework": "Transformers",
+      "capabilities": ["vision", "text"],
+      "requirements": ["mlx-vlm"],
+      "memory_usage": "~6GB",
+      "platform": "Apple Silicon (M1/M2/M3)",
+      "description": "Microsoft's Phi-3.5 Vision model optimized for Apple Silicon",
+      "run_script": "src/models/phi3_vision_mlx/run_phi3_vision.py"
+    },
+    "phi3_vision_optimized": {
+      "display_name": "Phi-3.5-Vision (Optimized)",
+      "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+      "framework": "MLX-VLM",
+      "fallback_model_id": "microsoft/Phi-3.5-vision-instruct",
+      "fallback_framework": "Transformers",
+      "capabilities": ["vision", "text"],
+      "requirements": ["mlx-vlm"],
+      "memory_usage": "~6GB",
+      "platform": "Apple Silicon (M1/M2/M3)",
+      "description": "Optimized Phi-3.5 Vision with faster inference",
+      "run_script": "src/models/phi3_vision_mlx/run_phi3_vision_optimized.py"
+    },
+    "llava_mlx": {
+      "display_name": "LLaVA-v1.6-Mistral-7B (MLX 4-bit)",
+      "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+      "framework": "MLX-VLM",
+      "capabilities": ["vision", "text"],
+      "requirements": ["mlx-vlm"],
+      "memory_usage": "~4GB",
+      "platform": "Apple Silicon (M1/M2/M3)",
+      "description": "MLX-optimized LLaVA with 4-bit quantization for Apple Silicon",
+      "run_script": "src/models/llava_mlx/run_llava_mlx.py"
+    },
+    "smolvlm": {
+      "display_name": "SmolVLM-500M-Instruct",
+      "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct",
+      "framework": "Transformers",
+      "capabilities": ["vision", "text"],
+      "requirements": ["transformers"],
+      "memory_usage": "~1.5GB",
+      "platform": "Universal",
+      "description": "Standard SmolVLM model for vision-text tasks",
+      "run_script": "src/models/smolvlm/run_smolvlm.py"
+    },
+    "smolvlm2_500m_video": {
+      "display_name": "SmolVLM2-500M-Video (Standard)",
+      "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+      "framework": "MLX-VLM",
+      "fallback_model_id": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+      "fallback_framework": "Transformers",
+      "capabilities": ["vision", "video", "text"],
+      "requirements": ["mlx-vlm"],
+      "memory_usage": "~2GB",
+      "platform": "Apple Silicon (M1/M2/M3)",
+      "description": "MLX-optimized for Apple Silicon, falls back to original SmolVLM2 if MLX not available",
+      "run_script": "src/models/smolvlm2/run_smolvlm2_500m_video.py"
+    },
+    "smolvlm2_500m_video_optimized": {
+      "display_name": "SmolVLM2-500M-Video (Optimized)",
+      "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+      "framework": "MLX-VLM",
+      "capabilities": ["vision", "video", "text"],
+      "requirements": ["mlx-vlm"],
+      "memory_usage": "~2GB",
+      "platform": "Apple Silicon (M1/M2/M3)",
+      "description": "Optimized SmolVLM2 with faster inference and lower memory usage",
+      "run_script": "src/models/smolvlm2/run_smolvlm2_500m_video_optimized.py"
+    },
+    "qwen2_vl": {
+      "display_name": "Qwen2-VL",
+      "model_id": "Qwen/Qwen2-VL-2B-Instruct",
+      "framework": "Transformers",
+      "capabilities": ["vision", "text"],
+      "requirements": ["transformers"],
+      "memory_usage": "~4GB",
+      "platform": "Universal",
+      "description": "Qwen2 Vision-Language model",
+      "run_script": "src/models/qwen2_vl/run_qwen2_vl.py"
+    },
+    "yolo8": {
+      "display_name": "YOLO8 Object Detection",
+      "model_id": "yolov8n.pt",
+      "framework": "Ultralytics",
+      "capabilities": ["object_detection", "vision"],
+      "requirements": ["ultralytics"],
+      "memory_usage": "~1GB",
+      "platform": "Universal",
+      "description": "YOLO8 for object detection tasks",
+      "run_script": "src/models/yolo8/run_yolo.py"
+    }
+  },
+  "categories": {
+    "lightweight": ["smolvlm", "smolvlm2_500m_video_optimized", "moondream2"],
+    "mlx_optimized": ["smolvlm2_500m_video", "smolvlm2_500m_video_optimized", "llava_mlx", "phi3_vision", "phi3_vision_optimized"],
+    "video_capable": ["smolvlm2_500m_video", "smolvlm2_500m_video_optimized"],
+    "large_models": ["llava_mlx", "phi3_vision", "phi3_vision_optimized"],
+    "object_detection": ["yolo8"]
+  },
+  "switching_guide": {
+    "current_active_model": "moondream2_optimized",
+    "how_to_switch": "Replace the 'active_model' value in src/config/app_config.json with any key from the 'models' section above",
+    "valid_keys": [
+      "moondream2",
+      "moondream2_optimized",
+      "phi3_vision", 
+      "phi3_vision_optimized",
+      "llava_mlx",
+      "smolvlm",
+      "smolvlm2_500m_video",
+      "smolvlm2_500m_video_optimized",
+      "qwen2_vl",
+      "yolo8"
+    ],
+    "examples": {
+      "switch_to_moondream2": "Set active_model to: \"moondream2\"",
+      "switch_to_moondream2_optimized": "Set active_model to: \"moondream2_optimized\"",
+      "switch_to_llava": "Set active_model to: \"llava_mlx\"",
+      "switch_to_phi35": "Set active_model to: \"phi3_vision\"",
+      "switch_to_phi35_optimized": "Set active_model to: \"phi3_vision_optimized\"",
+      "switch_to_smolvlm2": "Set active_model to: \"smolvlm2_500m_video\"",
+      "switch_to_smolvlm2_optimized": "Set active_model to: \"smolvlm2_500m_video_optimized\""
+    }
+  },
+  "requirements": {
+    "mlx-vlm": {
+      "install_command": "pip install mlx-vlm",
+      "description": "MLX framework for Apple Silicon optimization",
+      "required_for": ["smolvlm2_500m_video", "smolvlm2_500m_video_optimized", "llava_mlx", "phi3_vision", "phi3_vision_optimized"]
+    },
+    "transformers": {
+      "install_command": "pip install transformers torch",
+      "description": "HuggingFace Transformers library",
+      "required_for": ["smolvlm", "moondream2", "moondream2_optimized", "qwen2_vl"]
+    },
+    "ultralytics": {
+      "install_command": "pip install ultralytics",
+      "description": "YOLO framework for object detection",
+      "required_for": ["yolo8"]
+    }
+  },
+  "recommendations": {
+    "for_apple_silicon": "Use MLX-optimized models (smolvlm2_500m_video_optimized, llava_mlx, phi3_vision_optimized)",
+    "for_low_memory": "Use lightweight models (smolvlm, moondream2)",
+    "for_video_tasks": "Use video-capable models (smolvlm2_500m_video, smolvlm2_500m_video_optimized)",
+    "for_best_quality": "Use larger models (llava_mlx, phi3_vision_optimized)",
+    "for_object_detection": "Use YOLO8 (yolo8)",
+    "for_fastest_inference": "Use optimized versions (moondream2_optimized, phi3_vision_optimized, smolvlm2_500m_video_optimized)"
+  },
+  "validation": {
+    "required_files_check": {
+      "description": "Verify all run_script paths exist before allowing model switch",
+      "validation_required": true
+    },
+    "framework_compatibility": {
+      "mlx_requirement": "Apple Silicon (M1/M2/M3) required for MLX models",
+      "fallback_behavior": "Models with fallback_framework should gracefully switch if primary framework unavailable"
+    },
+    "startup_flow": {
+      "step1": "Modify active_model in app_config.json",
+      "step2": "Navigate to corresponding model directory",
+      "step3": "Execute run_{model_name}.py script",
+      "step4": "Start backend/main.py",
+      "step5": "Start frontend server on port 5500"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Phi-3.5-Vision Server Launcher
-Launch Phi-3.5-Vision model server with FastAPI (Standard Version)
+SmolVLM2-500M-Video Optimized Server Launcher
+Launch SmolVLM2-500M-Video-Instruct optimized model server with FastAPI
 """
 
 import sys
@@ -22,6 +22,7 @@ from pathlib import Path
 import torch
 import tempfile
 import os
+import subprocess
 
 # Add the project root to the path for base imports
 project_root = Path(__file__).resolve().parent.parent.parent.parent
@@ -43,16 +44,12 @@ class ChatMessage(BaseModel):
     content: List[Dict[str, Any]]
 
 class ChatCompletionRequest(BaseModel):
-    model: str = "Phi-3.5-Vision"
+    model: str = "SmolVLM2-500M-Video-Optimized"
     messages: List[ChatMessage]
-    max_tokens: Optional[int] = 100
+    max_tokens: Optional[int] = 150
     temperature: Optional[float] = 0.7
 
-class ChatCompletionResponse(BaseModel):
-    choices: List[Dict[str, Any]]
-    usage: Dict[str, int]
-
-app = FastAPI(title="Phi-3.5-Vision Server", version="1.0.0")
+app = FastAPI(title="SmolVLM2-500M-Video Optimized Server", version="1.0.0")
 
 # Configure CORS
 app.add_middleware(
@@ -86,28 +83,26 @@ def decode_base64_image(image_url: str) -> Image.Image:
 async def root():
     """Root endpoint"""
     return {
-        "message": "Phi-3.5-Vision Server (Standard Version)",
+        "message": "SmolVLM2-500M-Video Optimized Server",
         "version": "1.0.0",
-        "status": "running" if model_instance and model_instance.loaded else "not loaded"
+        "status": "running" if model_instance else "not loaded"
     }
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     if model_instance:
-        return {"status": "healthy", "model": "Phi-3.5-Vision-Standard"}
+        return {"status": "healthy", "model": "SmolVLM2-500M-Video-Optimized"}
     else:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest):
     """OpenAI-compatible chat completions endpoint"""
-    global model_instance
+    global model_instance, processor
     
     if not model_instance:
         raise HTTPException(status_code=503, detail="Model not initialized")
-    
-    # Model is loaded during startup, no need to check .loaded attribute
     
     try:
         # Extract the user message
@@ -141,73 +136,70 @@ async def chat_completions(request: ChatCompletionRequest):
         if not text_content:
             text_content = "Describe what you see in this image."
         
-        # Generate prediction using Phi-3.5-Vision (same as testing)
+        # Generate prediction using optimized SmolVLM2 (MLX-VLM preferred)
         try:
-            # Check if this is MLX-VLM model
+            # MLX version SmolVLM2 inference (optimized)
             try:
-                from mlx_vlm import generate
-                logger.info("Using MLX-VLM inference for Phi-3.5-Vision-Instruct...")
+                logger.info("Using MLX-VLM command line for optimized SmolVLM2...")
                 
-                # Save image to temporary file for MLX-VLM
-                temp_image_path = "temp_mlx_image.jpg"
-                image.save(temp_image_path)
+                # Create temporary image file
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                    temp_image_path = tmp_file.name
+                    image.save(temp_image_path)
                 
                 try:
-                    # Use simple prompt format for MLX-VLM
-                    mlx_prompt = f"<|image_1|>\nUser: {text_content}\nAssistant:"
+                    # Use MLX-VLM command line tool with optimized settings
+                    cmd = [
+                        sys.executable, '-m', 'mlx_vlm.generate',
+                        '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                        '--image', temp_image_path,
+                        '--prompt', text_content,
+                        '--max-tokens', str(request.max_tokens or 100),  # Optimized: lower default
+                        '--temperature', '0.1'  # Optimized: lower temperature for consistency
+                    ]
                     
-                    response_text = generate(
-                        model_instance, 
-                        processor, 
-                        mlx_prompt,
-                        image=temp_image_path,
-                        max_tokens=request.max_tokens or 100,
-                        temp=0.0,
-                        verbose=False
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=45  # Optimized: shorter timeout
                     )
+                    
+                    if result.returncode == 0:
+                        # Parse output, extract generated text
+                        output_lines = result.stdout.split('\n')
+                        response_text = ""
+                        
+                        # Keep full Assistant response
+                        for i, line in enumerate(output_lines):
+                            line = line.strip()
+                            if line.startswith('Assistant:'):
+                                # Find Assistant line
+                                response_text = line
+                                # Check if next line has content
+                                if i + 1 < len(output_lines):
+                                    next_line = output_lines[i + 1].strip()
+                                    if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                        # Next line has content, combine two lines
+                                        response_text = f"{line} {next_line}"
+                                break
+                            elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not line.startswith('Peak memory:'):
+                                # Find other non-system content lines
+                                if not response_text:
+                                    response_text = line
+                    else:
+                        logger.error(f"MLX-VLM command failed: {result.stderr}")
+                        raise Exception(f"MLX-VLM command failed: {result.stderr}")
+                        
                 finally:
                     # Clean up temporary file
                     if os.path.exists(temp_image_path):
                         os.remove(temp_image_path)
-                
-                # Clean up response
-                response_text = str(response_text)
-                response_text = response_text.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
-                if "1. What is meant by" in response_text:
-                    response_text = response_text.split("1. What is meant by")[0].strip()
-                response_text = ' '.join(response_text.split())
-                
-            except (ImportError, AttributeError, TypeError) as e:
-                logger.warning(f"MLX-VLM inference failed, using transformers fallback...")
-                
-                # Transformers fallback
-                messages = [
-                    {"role": "user", "content": f"<|image_1|>\\n{text_content}"}
-                ]
-                
-                prompt_text = processor.tokenizer.apply_chat_template(
-                    messages, 
-                    tokenize=False, 
-                    add_generation_prompt=True
-                )
-                
-                inputs = processor(prompt_text, [image], return_tensors="pt")
-                
-                # Move to correct device
-                device = next(model_instance.parameters()).device
-                inputs = {k: v.to(device) for k, v in inputs.items()}
-                
-                with torch.no_grad():
-                    outputs = model_instance.generate(
-                        **inputs, 
-                        max_new_tokens=request.max_tokens or 100,
-                        do_sample=False,
-                        use_cache=False,
-                        pad_token_id=processor.tokenizer.eos_token_id
-                    )
-                
-                response_text = processor.decode(outputs[0], skip_special_tokens=True)
-                
+            
+            except Exception as e:
+                logger.error(f"MLX-VLM SmolVLM2 optimized inference failed: {e}")
+                raise HTTPException(status_code=500, detail=f"Optimized MLX-VLM inference failed: {str(e)}")
+            
             # Ensure we have a valid response
             if not response_text:
                 response_text = "No response generated"
@@ -228,11 +220,11 @@ async def chat_completions(request: ChatCompletionRequest):
                 }
             ],
             "usage": {
-                "prompt_tokens": 50,  # Estimated
+                "prompt_tokens": 50,  # Optimized: lower estimate
                 "completion_tokens": len(response_text.split()),
                 "total_tokens": 50 + len(response_text.split())
             },
-            "model": "Phi-3.5-Vision-Standard"
+            "model": "SmolVLM2-500M-Video-Optimized"
         }
         
     except HTTPException:
@@ -246,63 +238,38 @@ async def startup_event():
     """Initialize model on startup"""
     global model_instance, processor
     
-    logger.info("🚀 Starting Phi-3.5-Vision server (Standard Version)...")
+    logger.info("🚀 Starting SmolVLM2-500M-Video Optimized server...")
     
     try:
         # Load model configuration from config system
-        config = config_manager.load_model_config("phi3_vision")
-        model_path = config.get("model_path", "mlx-community/Phi-3.5-vision-instruct-4bit")
+        config = config_manager.load_model_config("smolvlm2_500m_video_optimized")
+        model_path = config.get("model_path", "mlx-community/SmolVLM2-500M-Video-Instruct-mlx")
         
-        logger.info(f"Loading Phi-3.5-Vision model: {model_path}")
+        logger.info(f"Loading SmolVLM2-500M-Video Optimized model: {model_path}")
         
-        # Try MLX-VLM first (same as testing)
+        # Use MLX-VLM for optimized performance (required for optimized version)
         try:
             from mlx_vlm import load
-            logger.info("Loading MLX-VLM optimized Phi-3.5-Vision-Instruct model...")
-            model_instance, processor = load(model_path, trust_remote_code=True)
-            logger.info("✅ MLX-VLM model loaded successfully!")
+            logger.info("Loading MLX-VLM optimized SmolVLM2 model...")
+            model_instance, processor = load(model_path)
+            logger.info("✅ MLX-VLM SmolVLM2 Optimized loaded successfully!")
+            
+            # Mark as MLX model for special inference
+            model_instance._is_mlx_model = True
             
         except ImportError as e:
-            logger.warning("MLX-VLM not installed. Falling back to transformers...")
-            from transformers import AutoModelForCausalLM, AutoProcessor
-            
-            model_instance = AutoModelForCausalLM.from_pretrained(
-                "microsoft/Phi-3.5-vision-instruct", 
-                trust_remote_code=True,
-                torch_dtype=torch.float16,
-                _attn_implementation="eager",
-                device_map="cpu",
-                low_cpu_mem_usage=True
-            )
-            processor = AutoProcessor.from_pretrained(
-                "microsoft/Phi-3.5-vision-instruct", 
-                trust_remote_code=True,
-                num_crops=4
-            )
-            logger.info("✅ Transformers fallback model loaded successfully")
+            logger.error("MLX-VLM not installed. Optimized version requires MLX-VLM.")
+            logger.error("Please run: pip install mlx-vlm")
+            model_instance = None
+            processor = None
             
         except Exception as e:
-            logger.error(f"MLX-VLM loading failed: {str(e)}")
-            logger.info("Falling back to transformers...")
-            from transformers import AutoModelForCausalLM, AutoProcessor
-            
-            model_instance = AutoModelForCausalLM.from_pretrained(
-                "microsoft/Phi-3.5-vision-instruct", 
-                trust_remote_code=True,
-                torch_dtype=torch.float16,
-                _attn_implementation="eager",
-                device_map="cpu",
-                low_cpu_mem_usage=True
-            )
-            processor = AutoProcessor.from_pretrained(
-                "microsoft/Phi-3.5-vision-instruct", 
-                trust_remote_code=True,
-                num_crops=4
-            )
-            logger.info("✅ Transformers fallback model loaded successfully")
+            logger.error(f"❌ Failed to load optimized model: {str(e)}")
+            model_instance = None
+            processor = None
             
     except Exception as e:
-        logger.error(f"❌ Failed to initialize model: {e}")
+        logger.error(f"❌ Failed to initialize optimized model: {e}")
         model_instance = None
         processor = None
 
@@ -311,39 +278,39 @@ async def shutdown_event():
     """Cleanup on shutdown"""
     global model_instance, processor
     
-    logger.info("🛑 Shutting down Phi-3.5-Vision server...")
+    logger.info("🛑 Shutting down SmolVLM2-500M-Video Optimized server...")
     
     if model_instance:
         try:
             del model_instance, processor
             if torch.backends.mps.is_available():
                 torch.mps.empty_cache()
-            logger.info("✅ Model unloaded successfully")
+            logger.info("✅ Optimized model unloaded successfully")
         except Exception as e:
-            logger.error(f"❌ Error unloading model: {e}")
+            logger.error(f"❌ Error unloading optimized model: {e}")
 
 def signal_handler(signum, frame):
     """Handle system signals"""
     logger.info("\n🛑 Received stop signal, shutting down server...")
     sys.exit(0)
 
-class Phi3VisionServer:
-    """Phi-3.5-Vision Server wrapper"""
+class SmolVLM2OptimizedServer:
+    """SmolVLM2-500M-Video Optimized Server wrapper"""
     
     def __init__(self, port=8080, host="0.0.0.0"):
         self.port = port
         self.host = host
         
     def start_server(self):
-        """Start Phi-3.5-Vision server"""
-        print("🧠 Phi-3.5-Vision Server (Standard Version)")
+        """Start SmolVLM2-500M-Video Optimized server"""
+        print("🎬⚡ SmolVLM2-500M-Video Optimized Server")
         print("=" * 50)
-        print(f"🚀 Starting server...")
-        print(f"📦 Model: Phi-3.5-Vision-Standard")
+        print(f"🚀 Starting optimized server...")
+        print(f"📦 Model: SmolVLM2-500M-Video-Optimized")
         print(f"🌐 Host: {self.host}")
         print(f"🌐 Port: {self.port}")
-        print(f"💻 Device: CPU (maximum compatibility)")
-        print(f"⚠️  Performance: Slower but stable")
+        print(f"🍎⚡ Device: MLX (Apple Silicon Optimized)")
+        print(f"⚡ Features: Faster inference, lower memory usage")
         print("-" * 50)
         
         try:
@@ -357,7 +324,7 @@ class Phi3VisionServer:
             logger.info("\n🛑 Received stop signal...")
             return True
         except Exception as e:
-            logger.error(f"❌ Server startup failed: {e}")
+            logger.error(f"❌ Optimized server startup failed: {e}")
             return False
 
 def main():
@@ -366,14 +333,14 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
-    server = Phi3VisionServer()
+    server = SmolVLM2OptimizedServer()
     
     try:
         server.start_server()
     except KeyboardInterrupt:
-        logger.info("🛑 Server stopped")
+        logger.info("🛑 Optimized server stopped")
     finally:
         logger.info("👋 Goodbye!")
 
 if __name__ == "__main__":
-    main() 
+    main()

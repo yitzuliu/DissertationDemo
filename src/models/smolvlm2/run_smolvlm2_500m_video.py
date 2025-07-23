@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-SmolVLM2 Server Launcher
+SmolVLM2-500M-Video Server Launcher
 Launch SmolVLM2-500M-Video-Instruct model server with FastAPI
-Enhanced with port 8080 cleanup functionality
 """
 
 import sys
@@ -10,9 +9,6 @@ import time
 import signal
 import asyncio
 import uvicorn
-import subprocess
-import socket
-import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -23,46 +19,13 @@ import io
 from PIL import Image
 import logging
 from pathlib import Path
-
-# Port cleanup functions (simple version)
-def cleanup_port_8080():
-    """Simple port 8080 cleanup"""
-    try:
-        # Check if port is in use
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(1)
-            result = s.connect_ex(('localhost', 8080))
-            if result != 0:
-                print("✅ Port 8080 is available")
-                return True
-        
-        print("🔄 Port 8080 is in use, attempting cleanup...")
-        
-        # Kill processes on port 8080
-        try:
-            result = subprocess.run(['lsof', '-ti:8080'], capture_output=True, text=True)
-            if result.returncode == 0 and result.stdout.strip():
-                pids = result.stdout.strip().split('\n')
-                for pid in pids:
-                    if pid.isdigit():
-                        print(f"🔄 Killing process {pid}")
-                        subprocess.run(['kill', '-9', pid])
-                time.sleep(2)
-                print("✅ Port 8080 cleanup completed")
-                return True
-        except FileNotFoundError:
-            print("⚠️ lsof not available, manual cleanup may be needed")
-        except Exception as e:
-            print(f"⚠️ Cleanup error: {e}")
-            
-        return False
-        
-    except Exception as e:
-        print(f"❌ Port cleanup failed: {e}")
-        return False
+import torch
+import tempfile
+import os
+import subprocess
 
 # Add the project root to the path for base imports
-project_root = Path(__file__).resolve().parent.parent.parent.parent.parent.parent
+project_root = Path(__file__).resolve().parent.parent.parent.parent
 sys.path.append(str(project_root))
 
 # Import configuration manager
@@ -81,16 +44,12 @@ class ChatMessage(BaseModel):
     content: List[Dict[str, Any]]
 
 class ChatCompletionRequest(BaseModel):
-    model: str = "SmolVLM2"
+    model: str = "SmolVLM2-500M-Video"
     messages: List[ChatMessage]
     max_tokens: Optional[int] = 150
     temperature: Optional[float] = 0.7
 
-class ChatCompletionResponse(BaseModel):
-    choices: List[Dict[str, Any]]
-    usage: Dict[str, int]
-
-app = FastAPI(title="SmolVLM2 Server", version="1.0.0")
+app = FastAPI(title="SmolVLM2-500M-Video Server", version="1.0.0")
 
 # Configure CORS
 app.add_middleware(
@@ -124,31 +83,26 @@ def decode_base64_image(image_url: str) -> Image.Image:
 async def root():
     """Root endpoint"""
     return {
-        "message": "SmolVLM2-500M-Video-Instruct Server",
+        "message": "SmolVLM2-500M-Video Server",
         "version": "1.0.0",
-        "status": "running" if model_instance and model_instance.loaded else "not loaded"
+        "status": "running" if model_instance else "not loaded"
     }
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    if model_instance and model_instance.loaded:
-        return {"status": "healthy", "model": "SmolVLM2-500M-Video-Instruct"}
+    if model_instance:
+        return {"status": "healthy", "model": "SmolVLM2-500M-Video"}
     else:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: ChatCompletionRequest):
     """OpenAI-compatible chat completions endpoint"""
-    global model_instance
+    global model_instance, processor
     
     if not model_instance:
         raise HTTPException(status_code=503, detail="Model not initialized")
-    
-    if not model_instance.loaded:
-        logger.info("Model not loaded, attempting to load...")
-        if not model_instance.load_model():
-            raise HTTPException(status_code=503, detail="Failed to load model")
     
     try:
         # Extract the user message
@@ -188,9 +142,6 @@ async def chat_completions(request: ChatCompletionRequest):
             if hasattr(model_instance, '_is_mlx_model'):
                 # MLX version SmolVLM2 inference
                 try:
-                    import subprocess
-                    import tempfile
-                    
                     logger.info("Using MLX-VLM command line for SmolVLM2...")
                     
                     # Create temporary image file
@@ -252,6 +203,8 @@ async def chat_completions(request: ChatCompletionRequest):
                     raise HTTPException(status_code=500, detail=f"MLX-VLM inference failed: {str(e)}")
             else:
                 # Standard SmolVLM2 inference method
+                from transformers import AutoProcessor, AutoModelForImageTextToText
+                
                 messages = [
                     {
                         "role": "user",
@@ -264,7 +217,6 @@ async def chat_completions(request: ChatCompletionRequest):
                 input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
                 inputs = processor(text=input_text, images=image, return_tensors="pt")
                 
-                import torch
                 with torch.no_grad():
                     outputs = model_instance.generate(**inputs, max_new_tokens=request.max_tokens or 150, do_sample=False)
                 
@@ -298,7 +250,7 @@ async def chat_completions(request: ChatCompletionRequest):
                 "completion_tokens": len(response_text.split()),
                 "total_tokens": 100 + len(response_text.split())
             },
-            "model": "SmolVLM2-500M-Video-Instruct"
+            "model": "SmolVLM2-500M-Video"
         }
         
     except HTTPException:
@@ -309,21 +261,17 @@ async def chat_completions(request: ChatCompletionRequest):
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize model on startup with port cleanup"""
+    """Initialize model on startup"""
     global model_instance, processor
     
-    logger.info("🚀 Starting SmolVLM2 server...")
-    
-    # Clean up port first
-    print("🧹 Checking port 8080...")
-    cleanup_port_8080()
+    logger.info("🚀 Starting SmolVLM2-500M-Video server...")
     
     try:
         # Load model configuration from config system
         config = config_manager.load_model_config("smolvlm2_500m_video")
         model_path = config.get("model_path", "mlx-community/SmolVLM2-500M-Video-Instruct-mlx")
         
-        logger.info(f"Loading SmolVLM2 model: {model_path}")
+        logger.info(f"Loading SmolVLM2-500M-Video model: {model_path}")
         
         # Try MLX-VLM first (same as testing)
         try:
@@ -365,12 +313,11 @@ async def shutdown_event():
     """Cleanup on shutdown"""
     global model_instance, processor
     
-    logger.info("🛑 Shutting down SmolVLM2 server...")
+    logger.info("🛑 Shutting down SmolVLM2-500M-Video server...")
     
     if model_instance:
         try:
             del model_instance, processor
-            import torch
             if torch.backends.mps.is_available():
                 torch.mps.empty_cache()
             logger.info("✅ Model unloaded successfully")
@@ -383,26 +330,22 @@ def signal_handler(signum, frame):
     sys.exit(0)
 
 class SmolVLM2Server:
-    """SmolVLM2 Server wrapper"""
+    """SmolVLM2-500M-Video Server wrapper"""
     
     def __init__(self, port=8080, host="0.0.0.0"):
         self.port = port
         self.host = host
         
     def start_server(self):
-        """Start SmolVLM2 server"""
-        print("🎬 SmolVLM2-500M-Video-Instruct Server")
+        """Start SmolVLM2-500M-Video server"""
+        print("🎬 SmolVLM2-500M-Video Server")
         print("=" * 50)
-        print("🧹 Port cleanup: Automatic port 8080 management")
         print(f"🚀 Starting server...")
-        print(f"📦 Model: SmolVLM2-500M-Video-Instruct")
+        print(f"📦 Model: SmolVLM2-500M-Video")
         print(f"🌐 Host: {self.host}")
         print(f"🌐 Port: {self.port}")
-        print(f"🍎 Device: MPS (Apple Silicon)")
+        print(f"🍎 Device: MLX/MPS (Apple Silicon)")
         print("-" * 50)
-        
-        # Clean port before starting
-        cleanup_port_8080()
         
         try:
             uvicorn.run(
@@ -420,10 +363,6 @@ class SmolVLM2Server:
 
 def main():
     """Main function"""
-    # Clean port at startup
-    print("🧹 Pre-startup port cleanup...")
-    cleanup_port_8080()
-    
     # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -434,8 +373,6 @@ def main():
         server.start_server()
     except KeyboardInterrupt:
         logger.info("🛑 Server stopped")
-        # Clean port on exit
-        cleanup_port_8080()
     finally:
         logger.info("👋 Goodbye!")
 

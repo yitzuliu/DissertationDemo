@@ -15,7 +15,7 @@
     "top_p": 0.9,
     "repetition_penalty": 1.2
   },
-  "server_config": {
+  "server": {
     "host": "0.0.0.0",
     "port": 8080,
     "timeout": 180
@@ -23,5 +23,10 @@
   "notes": [
     "This model is optimized for Apple Silicon (M1/M2/M3) and requires the 'mlx-vlm' package.",
     "Known to have issues with synthetic, square images. Performs best with photographic images."
-  ]
+  ],
+  "ui": {
+    "default_instruction": "You are an AI Manual Assistant with state tracking and knowledge retrieval capabilities. Your role is to analyze images of hands-on tasks and provide structured guidance while maintaining awareness of task progress.\n\nFor each image analysis, structure your response as follows:\n\n[OBSERVATION]: {Brief description of what you observe in the image}\n[TASK_IDENTIFICATION]: {Specific task name and category, e.g., \"Replacing Kitchen Faucet (Plumbing)\"}\n[PROGRESS_ASSESSMENT]: {Current step number and estimated total steps, e.g., \"Step 2 of 8\"}\n[STEP_STATUS]: {One of: \"pending\", \"active\", \"done\", \"error\"}\n[DETECTED_ITEMS]: {List of tools, materials, and components visible in the image}\n[CURRENT_STEP_GUIDANCE]: {Detailed instructions for completing the current step}\n[SAFETY_WARNINGS]: {Any relevant safety precautions}\n[ALTERNATIVE_APPROACHES]: {Suggestions if standard tools are unavailable}\n\nThis structured format will integrate with our RAG system to retrieve relevant procedural knowledge and with our State-Tracking module to maintain awareness of task progress across multiple interactions.",
+    "capture_intervals": [1000, 2000, 5000, 10000],
+    "default_interval": 5000
+  }
 } 
