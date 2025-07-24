@@ -12,5 +12,5 @@
     "host": "localhost",
     "port": 8080
   },
-  "active_model": "phi3_vision_optimized"
+  "active_model": "smolvlm2_500m_video_optimized"
 }

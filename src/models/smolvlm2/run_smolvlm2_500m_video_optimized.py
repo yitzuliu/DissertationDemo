@@ -315,9 +315,9 @@ class OptimizedSmolVLM2VideoServer:
                 image.save(temp_image_path, 'JPEG', quality=95)
             
             try:
-                # FIXED: SmolVLM2 doesn't use <|image_1|> format like Phi3
-                # Use the prompt directly as SmolVLM2 handles image-text pairing automatically
-                mlx_prompt = prompt
+                # FIXED: SmolVLM2 requires specific format with image token
+                # SmolVLM2 expects the image token to be present in the text
+                mlx_prompt = f"<image>\n{prompt}"
                 
                 logger.info(f"🔍 SmolVLM2 MLX prompt: {mlx_prompt[:100]}...")
                 
@@ -331,13 +331,24 @@ class OptimizedSmolVLM2VideoServer:
                     verbose=False
                 )
                 
+                # CRITICAL FIX: MLX generate returns a tuple (text, metadata)
+                # Extract just the text part
+                if isinstance(response, tuple):
+                    logger.info(f"MLX returned tuple with {len(response)} elements: {[type(x) for x in response]}")
+                    logger.info(f"Tuple contents: {response}")
+                    text_response = response[0]  # First element is the text
+                    logger.info(f"MLX returned tuple, extracted text: '{text_response}'")
+                else:
+                    text_response = str(response)
+                    logger.info(f"MLX returned string: '{text_response}'")
+                
                 # Process response (same as vlm_tester)
-                text_response = str(response)
                 text_response = text_response.replace("<|end|>", "").replace("<|endoftext|>", "").strip()
                 if "1. What is meant by" in text_response:
                     text_response = text_response.split("1. What is meant by")[0].strip()
                 text_response = ' '.join(text_response.split())
                 
+                logger.info(f"Final processed response: {text_response}")
                 return text_response
                 
             finally:
@@ -352,9 +363,9 @@ class OptimizedSmolVLM2VideoServer:
             return f"MLX inference failed: {str(e)}"
     
     def _generate_transformers_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
-        """Generate response using transformers (same as vlm_tester.py)"""
+        """Generate response using transformers (fixed for SmolVLM2 format)"""
         try:
-            # SmolVLM2 format
+            # SmolVLM2 format - use proper message structure
             messages = [
                 {
                     "role": "user",
@@ -365,13 +376,19 @@ class OptimizedSmolVLM2VideoServer:
                 }
             ]
             
+            # Apply chat template
             input_text = self.processor.apply_chat_template(
                 messages, 
                 tokenize=False, 
                 add_generation_prompt=True
             )
             
-            inputs = self.processor(text=input_text, images=image, return_tensors="pt")
+            # Process inputs - SmolVLM2 expects images as a list
+            inputs = self.processor(
+                text=input_text, 
+                images=[image],  # FIXED: Pass as list for SmolVLM2
+                return_tensors="pt"
+            )
             
             # Move to correct device
             device = next(self.model.parameters()).device
@@ -465,52 +482,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-@app.route('/cache/stats', methods=['GET'])
-def cache_stats():
-    """Cache statistics endpoint"""
-    return jsonify({
-        "image_cache_size": len(model_handler.image_cache.cache),
-        "cache_max_size": model_handler.image_cache.max_size,
-        "cache_utilization": f"{len(model_handler.image_cache.cache) / model_handler.image_cache.max_size * 100:.1f}%"
-    })
 
-@app.route('/cache/clear', methods=['POST'])
-def clear_cache():
-    """Clear cache endpoint"""
-    model_handler.image_cache.clear()
-    model_handler.cleanup_memory()
-    return jsonify({"status": "Cache cleared successfully"})
-
-def main():
-    """Main function to start the optimized server"""
-    try:
-        # Load model
-        model_handler.load_model()
-        
-        # Get server config
-        server_config = model_handler.config.get("server", {})
-        host = server_config.get("host", "0.0.0.0")
-        port = server_config.get("port", 8080)
-        
-        logger.info(f"Starting {MODEL_NAME} server on {host}:{port}")
-        logger.info("Optimizations enabled: MPS acceleration, Image caching, Memory management")
-        
-        # Start Flask server with threading optimization
-        app.run(
-            host=host,
-            port=port,
-            debug=False,
-            threaded=server_config.get("threaded", True),
-            processes=server_config.get("processes", 1)
-        )
-        
-    except KeyboardInterrupt:
-        logger.info("Server stopped by user")
-        # Cleanup on exit
-        model_handler.cleanup_memory()
-    except Exception as e:
-        logger.error(f"Server error: {e}")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    main()
