@@ -4,23 +4,25 @@
   "model_path": "Qwen/Qwen2-VL-7B-Instruct",
   "device": "auto",
   "timeout": 120,
-  "max_tokens": 150,
-  "version": "standard",
-  "description": "Qwen2-VL vision language model for multimodal understanding",
+  "max_tokens": 200,
+  "version": "1.0.0",
+  "description": "Qwen2-VL large vision language model with strong reasoning capabilities",
   
   "capabilities": {
     "vision": true,
     "text_generation": true,
     "image_understanding": true,
     "conversation": true,
-    "multimodal": true
+    "multimodal": true,
+    "reasoning": true
   },
   
   "model_config": {
     "torch_dtype": "float16",
     "device_map": "auto",
     "trust_remote_code": true,
-    "low_cpu_mem_usage": true
+    "low_cpu_mem_usage": true,
+    "attn_implementation": "flash_attention_2"
   },
   
   "image_processing": {
@@ -32,46 +34,22 @@
   },
   
   "generation_config": {
-    "max_new_tokens": 150,
-    "do_sample": false,
+    "max_new_tokens": 200,
     "temperature": 0.7,
-    "top_p": 0.9,
-    "repetition_penalty": 1.1
+    "top_p": 0.8,
+    "do_sample": false,
+    "repetition_penalty": 1.05
   },
   
   "server": {
     "host": "0.0.0.0",
     "port": 8080,
-    "framework": "fastapi",
-    "cors_enabled": true,
-    "log_level": "info"
-  },
-  
-  "memory": {
-    "required_gb": 8.0,
-    "cleanup_interval": 5,
-    "aggressive_cleanup": false
-  },
-  
-  "api": {
-    "openai_compatible": true,
-    "endpoints": [
-      "/",
-      "/health", 
-      "/v1/chat/completions"
-    ]
-  },
-  
-  "performance": {
-    "optimization_level": "medium",
-    "precision": "float16",
-    "caching": true,
-    "batch_processing": false
+    "framework": "fastapi"
   },
   
   "ui": {
-    "default_instruction": "Describe what you see in this image in detail.",
-    "capture_intervals": [2000, 5000, 10000, 15000],
-    "default_interval": 5000
+    "default_instruction": "You are an advanced AI Manual Assistant with strong reasoning capabilities. Analyze this image comprehensively and provide detailed guidance.\n\n[DETAILED_OBSERVATION]: Comprehensive analysis of all visible elements\n[TASK_REASONING]: Logical deduction of the task and its context\n[STEP_ANALYSIS]: Detailed breakdown of current step and overall progress\n[STATUS_ASSESSMENT]: Thorough evaluation of current status\n[COMPREHENSIVE_GUIDANCE]: Detailed, step-by-step instructions with reasoning\n[TOOL_ANALYSIS]: Analysis of tools, materials, and techniques\n[SAFETY_ANALYSIS]: Comprehensive safety assessment and recommendations\n[ALTERNATIVE_METHODS]: Suggest alternative approaches if applicable\n\nProvide thorough, reasoned responses with detailed explanations.",
+    "capture_intervals": [3000, 5000, 10000, 15000, 30000],
+    "default_interval": 10000
   }
 }

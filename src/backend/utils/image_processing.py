@@ -11,62 +11,36 @@ import numpy as np
 import logging
 from PIL import Image, ImageEnhance, ImageFilter, ImageChops, ImageOps
 from typing import Union, Dict, Any, Tuple, Optional
-from skimage import color
 
 logger = logging.getLogger(__name__)
 
 def convert_to_pil_image(image: Union[np.ndarray, Image.Image, bytes]) -> Image.Image:
-    """
-    Convert various image formats to PIL Image for consistent handling.
-    
-    Args:
-        image: Input image in various formats (numpy array, PIL Image, bytes)
-        
-    Returns:
-        PIL Image object
-    """
+    """Convert various image formats to PIL Image for consistent handling."""
     if isinstance(image, Image.Image):
         return image
     
     if isinstance(image, bytes):
-        # Convert bytes to numpy array
         try:
-            nparr = np.frombuffer(image, np.uint8)
-            # Decode image
-            img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-            # Convert BGR to RGB (OpenCV uses BGR, PIL uses RGB)
-            return Image.fromarray(cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB))
-        except Exception as e:
-            # If decoding fails, try direct PIL open
-            import io
             return Image.open(io.BytesIO(image))
+        except Exception as e:
+            logger.error(f"Error converting bytes to PIL image: {e}")
+            raise TypeError(f"Invalid image bytes: {e}")
     
     if isinstance(image, np.ndarray):
         # Check if the array is in BGR format (common for OpenCV)
         if len(image.shape) == 3 and image.shape[2] == 3:
             # Convert BGR to RGB
-            return Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-        else:
-            # Grayscale or already RGB
-            return Image.fromarray(image)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        return Image.fromarray(image)
     
     raise TypeError(f"Unsupported image type: {type(image)}")
 
-
 def convert_to_cv2_image(image: Union[np.ndarray, Image.Image, bytes]) -> np.ndarray:
-    """
-    Convert various image formats to OpenCV (numpy array) format for consistent handling.
-    
-    Args:
-        image: Input image in various formats (numpy array, PIL Image, bytes)
-        
-    Returns:
-        numpy array in BGR format for OpenCV
-    """
+    """Convert various image formats to OpenCV (numpy array) format for consistent handling."""
     if isinstance(image, np.ndarray):
         # If already numpy array, ensure it's in BGR format for OpenCV if 3 channels
         if len(image.shape) == 3 and image.shape[2] == 3:
-            # Assume it might be in RGB format
+            # Assume input is RGB, convert to BGR
             return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         return image
     
@@ -85,18 +59,8 @@ def convert_to_cv2_image(image: Union[np.ndarray, Image.Image, bytes]) -> np.nda
     
     raise TypeError(f"Unsupported image type: {type(image)}")
 
-
 def enhance_image_clahe(image: Union[np.ndarray, Image.Image, bytes]) -> Image.Image:
-    """
-    Enhance image using CLAHE (Contrast Limited Adaptive Histogram Equalization).
-    
-    Args:
-        image: Input image in various formats
-        
-    Returns:
-        Enhanced image as PIL Image
-    """
-    # Convert to OpenCV format
+    """Enhance image using CLAHE (Contrast Limited Adaptive Histogram Equalization)."""
     cv_image = convert_to_cv2_image(image)
     
     try:
@@ -116,26 +80,14 @@ def enhance_image_clahe(image: Union[np.ndarray, Image.Image, bytes]) -> Image.I
         return Image.fromarray(cv2.cvtColor(enhanced_frame, cv2.COLOR_BGR2RGB))
     except Exception as e:
         logger.error(f"Error enhancing image with CLAHE: {str(e)}")
-        # Return original image as PIL Image if enhancement fails
         return convert_to_pil_image(image)
-
 
 def enhance_color_balance(
     image: Union[np.ndarray, Image.Image, bytes],
     method: str = 'lab',
     config: Optional[Dict] = None
 ) -> Image.Image:
-    """
-    Enhance image color balance.
-    
-    Args:
-        image: Input image
-        method: Color processing method ('lab', 'rgb', 'auto_wb')
-        config: Color enhancement parameters
-        
-    Returns:
-        Processed image
-    """
+    """Enhance image color balance."""
     if config is None:
         config = {}
         
@@ -143,134 +95,27 @@ def enhance_color_balance(
         pil_image = convert_to_pil_image(image)
         
         if method == 'lab':
-            # LAB color space processing
-            img_array = np.array(pil_image)
-            lab_image = color.rgb2lab(img_array)
-            
-            # Enhance L channel (lightness)
-            l_boost = float(config.get("l_channel_boost", 1.2))
-            l_channel = lab_image[:,:,0]
-            l_channel = np.clip(l_channel * l_boost, 0, 100)
-            lab_image[:,:,0] = l_channel
-            
-            # Enhance a,b channels (color)
-            ab_boost = float(config.get("ab_channel_boost", 1.2))
-            lab_image[:,:,1:] *= ab_boost
-            
-            # Convert back to RGB
-            enhanced_array = color.lab2rgb(lab_image)
-            return Image.fromarray((enhanced_array * 255).astype(np.uint8))
+            # LAB color space enhancement
+            enhancer = ImageEnhance.Color(pil_image)
+            pil_image = enhancer.enhance(config.get('color_factor', 1.1))
             
         elif method == 'rgb':
-            # RGB channel independent enhancement
-            r_factor = float(config.get("r_factor", 1.0))
-            g_factor = float(config.get("g_factor", 1.0))
-            b_factor = float(config.get("b_factor", 1.0))
-            
-            r, g, b = pil_image.split()
-            r = ImageEnhance.Brightness(r).enhance(r_factor)
-            g = ImageEnhance.Brightness(g).enhance(g_factor)
-            b = ImageEnhance.Brightness(b).enhance(b_factor)
-            
-            return Image.merge('RGB', (r, g, b))
+            # RGB channel enhancement
+            enhancer = ImageEnhance.Brightness(pil_image)
+            pil_image = enhancer.enhance(config.get('brightness_factor', 1.0))
             
         elif method == 'auto_wb':
-            # Automatic white balance
-            img_array = np.array(pil_image)
-            result = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
-            # Calculate average values with correct data type
-            avg_a = float(np.mean(result[:, :, 1].astype(np.float64)))
-            avg_b = float(np.mean(result[:, :, 2].astype(np.float64)))
-            result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)
-            result[:, :, 2] = result[:, :, 2] - ((avg_b - 128) * (result[:, :, 0] / 255.0) * 1.1)
-            result = cv2.cvtColor(result, cv2.COLOR_LAB2RGB)
-            return Image.fromarray(result)
+            # Auto white balance
+            cv_image = convert_to_cv2_image(pil_image)
+            result = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+            result = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
+            pil_image = Image.fromarray(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
             
-        else:
-            logger.warning(f"Unknown color balance method: {method}")
-            return pil_image
-            
+        return pil_image
+        
     except Exception as e:
         logger.error(f"Color balance enhancement failed: {e}")
         return convert_to_pil_image(image)
-
-
-def resize_image(
-    image: Union[np.ndarray, Image.Image, bytes],
-    target_size: Union[Tuple[int, int], int],
-    keep_aspect_ratio: bool = True,
-    padding_value: Union[int, Tuple[int, int, int]] = 0,
-    return_format: str = 'pil'
-) -> Union[np.ndarray, Image.Image]:
-    """
-    Resize an image to a target size, with optional aspect ratio preservation.
-    
-    Args:
-        image: Input image in various formats
-        target_size: Target size as (width, height) or single integer for square
-        keep_aspect_ratio: Whether to preserve aspect ratio
-        padding_value: Value to use for padding (if aspect ratio preserved)
-        return_format: Output format, 'pil' or 'cv2'
-        
-    Returns:
-        Resized image in specified format
-    """
-    # Convert to appropriate format based on return type
-    if return_format.lower() == 'pil':
-        img = convert_to_pil_image(image)
-    else:  # cv2/numpy format
-        img = convert_to_cv2_image(image)
-    
-    # Handle single integer for square target
-    if isinstance(target_size, int):
-        target_size = (target_size, target_size)
-    
-    # Get current dimensions
-    if isinstance(img, Image.Image):
-        width, height = img.size
-    else:  # numpy array
-        height, width = img.shape[:2]
-    
-    if keep_aspect_ratio:
-        # Calculate target dimensions preserving aspect ratio
-        scale = min(target_size[0] / width, target_size[1] / height)
-        new_width = int(width * scale)
-        new_height = int(height * scale)
-        
-        # Resize the image
-        if isinstance(img, Image.Image):
-            resized = img.resize((new_width, new_height), Image.LANCZOS)
-            
-            # Create a new image with padding
-            result = Image.new(img.mode, target_size, padding_value)
-            # Paste the resized image in the center
-            paste_x = (target_size[0] - new_width) // 2
-            paste_y = (target_size[1] - new_height) // 2
-            result.paste(resized, (paste_x, paste_y))
-            
-            return result
-        else:  # numpy array
-            resized = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_LANCZOS4)
-            
-            # Create a new image with padding
-            if len(img.shape) == 3:
-                result = np.full((target_size[1], target_size[0], img.shape[2]), padding_value, dtype=img.dtype)
-            else:
-                result = np.full((target_size[1], target_size[0]), padding_value, dtype=img.dtype)
-            
-            # Paste the resized image in the center
-            paste_x = (target_size[0] - new_width) // 2
-            paste_y = (target_size[1] - new_height) // 2
-            result[paste_y:paste_y+new_height, paste_x:paste_x+new_width] = resized
-            
-            return result
-    else:
-        # Simple resize without preserving aspect ratio
-        if isinstance(img, Image.Image):
-            return img.resize(target_size, Image.LANCZOS)
-        else:  # numpy array
-            return cv2.resize(img, target_size, interpolation=cv2.INTER_LANCZOS4)
-
 
 def smart_crop_and_resize(
     image: Union[np.ndarray, Image.Image, bytes],
@@ -278,39 +123,24 @@ def smart_crop_and_resize(
     min_size: int = 512,
     preserve_aspect_ratio: bool = True
 ) -> Image.Image:
-    """
-    Smart crop and resize image while maintaining important content.
-    
-    Args:
-        image: Input image
-        target_size: Target dimensions (width, height)
-        min_size: Minimum size limit
-        preserve_aspect_ratio: Whether to maintain aspect ratio
-        
-    Returns:
-        Processed image
-    """
+    """Smart crop and resize image while maintaining important content."""
     try:
         pil_image = convert_to_pil_image(image)
         
         if preserve_aspect_ratio:
-            # Calculate target dimensions
-            width, height = pil_image.size
-            scale = min(target_size[0]/width, target_size[1]/height)
-            
-            # Ensure not smaller than minimum size
-            new_width = max(int(width * scale), min_size)
-            new_height = max(int(height * scale), min_size)
-            
-            # Use LANCZOS resampling method
-            return pil_image.resize((new_width, new_height), resample=3)  # 3 = LANCZOS
+            # Calculate aspect ratio preserving resize
+            ratio = min(target_size[0] / pil_image.width, target_size[1] / pil_image.height)
+            new_size = (int(pil_image.width * ratio), int(pil_image.height * ratio))
+            pil_image = pil_image.resize(new_size, Image.Resampling.LANCZOS)
         else:
-            return pil_image.resize(target_size, resample=3)  # 3 = LANCZOS
+            # Direct resize
+            pil_image = pil_image.resize(target_size, Image.Resampling.LANCZOS)
             
+        return pil_image
+        
     except Exception as e:
         logger.error(f"Smart crop and resize failed: {e}")
-        return pil_image
-
+        return convert_to_pil_image(image)
 
 def reduce_noise(
     image: Union[np.ndarray, Image.Image, bytes],
@@ -371,7 +201,6 @@ def reduce_noise(
     except Exception as e:
         logger.error(f"Noise reduction failed: {e}")
         return convert_to_pil_image(image)
-
 
 def preprocess_for_llava_mlx(
     image: Union[np.ndarray, Image.Image, bytes],
@@ -453,7 +282,7 @@ def preprocess_for_model(
     
     Args:
         image: Input image in various formats
-        model_type: Type of model ('phi3', 'yolo', 'llava', 'llava_mlx', 'smolvlm')
+        model_type: Type of model ('phi3_vision', 'moondream2', 'llava_mlx', 'smolvlm', 'yolo8', etc.)
         config: Optional configuration parameters
         return_format: Output format ('pil', 'cv2', 'bytes', or 'auto')
         
@@ -476,26 +305,50 @@ def preprocess_for_model(
         )
         output_format = 'pil' if return_format == 'auto' else return_format
         
-    elif 'llava' in model_type:
-        # Standard LLaVA preprocessing
-        if config.get('enhance_image', True):
-            img = enhance_image_clahe(image)
-        else:
-            img = convert_to_pil_image(image)
+    elif 'moondream2' in model_type:
+        # Moondream2 preprocessing
+        target_size = config.get('size', (384, 384))
+        if isinstance(target_size, list) and len(target_size) >= 2:
+            target_size = (target_size[0], target_size[1])
+        elif isinstance(target_size, int):
+            target_size = (target_size, target_size)
         
-        # LLaVA via Ollama typically uses image bytes
-        if return_format == 'auto' or return_format == 'bytes':
-            buf = io.BytesIO()
-            img.save(buf, format='JPEG', quality=95)
-            result = buf.getvalue()
-            output_format = 'bytes'
-        else:
-            result = img
-            output_format = return_format
-            
+        result = preprocess_for_moondream2(
+            image,
+            target_size=target_size,
+            quality=config.get('jpeg_quality', config.get('quality', 85))
+        )
+        output_format = 'pil' if return_format == 'auto' else return_format
+        
     elif 'phi3' in model_type:
-        # Phi3 typically uses PIL images directly
-        result = convert_to_pil_image(image)
+        # Phi-3 Vision preprocessing
+        target_size = config.get('size', (384, 384))
+        if isinstance(target_size, list) and len(target_size) >= 2:
+            target_size = (target_size[0], target_size[1])
+        elif isinstance(target_size, int):
+            target_size = (target_size, target_size)
+        
+        result = preprocess_for_phi3_vision(
+            image,
+            target_size=target_size,
+            quality=config.get('quality', 95)
+        )
+        output_format = 'pil' if return_format == 'auto' else return_format
+        
+    elif 'smolvlm' in model_type:
+        # SmolVLM preprocessing with advanced features
+        target_size = config.get('size', (1024, 1024))
+        if isinstance(target_size, list) and len(target_size) >= 2:
+            target_size = (target_size[0], target_size[1])
+        elif isinstance(target_size, int):
+            target_size = (target_size, target_size)
+        
+        result = preprocess_for_smolvlm(
+            image,
+            target_size=target_size,
+            quality=config.get('jpeg_quality', config.get('quality', 95)),
+            enable_advanced_processing=config.get('advanced_color', {}).get('enabled', True)
+        )
         output_format = 'pil' if return_format == 'auto' else return_format
         
     elif 'yolo' in model_type:
@@ -503,8 +356,8 @@ def preprocess_for_model(
         result = convert_to_cv2_image(image)
         output_format = 'cv2' if return_format == 'auto' else return_format
         
-    elif 'smolvlm' in model_type:
-        # SmolVLM API typically uses PIL images
+    elif 'qwen2_vl' in model_type:
+        # Qwen2-VL preprocessing (similar to generic VLM)
         result = convert_to_pil_image(image)
         output_format = 'pil' if return_format == 'auto' else return_format
         
@@ -523,7 +376,214 @@ def preprocess_for_model(
         if isinstance(result, Image.Image):
             result.save(buf, format='JPEG', quality=95)
         else:
-            Image.fromarray(result).save(buf, format='JPEG', quality=95)
+            pil_img = convert_to_pil_image(result)
+            pil_img.save(buf, format='JPEG', quality=95)
         result = buf.getvalue()
     
     return result
+
+def resize_image(
+    image: Union[np.ndarray, Image.Image, bytes],
+    target_size: Union[Tuple[int, int], int],
+    keep_aspect_ratio: bool = True,
+    padding_value: Union[int, Tuple[int, int, int]] = 0,
+    return_format: str = 'pil'
+) -> Union[np.ndarray, Image.Image]:
+    """
+    Resize an image to a target size, with optional aspect ratio preservation.
+    
+    Args:
+        image: Input image in various formats
+        target_size: Target size as (width, height) or single integer for square
+        keep_aspect_ratio: Whether to preserve aspect ratio
+        padding_value: Value to use for padding (if aspect ratio preserved)
+        return_format: Output format, 'pil' or 'cv2'
+        
+    Returns:
+        Resized image in specified format
+    """
+    # Convert to appropriate format based on return type
+    if return_format.lower() == 'pil':
+        img = convert_to_pil_image(image)
+    else:  # cv2/numpy format
+        img = convert_to_cv2_image(image)
+    
+    # Handle single integer for square target
+    if isinstance(target_size, int):
+        target_size = (target_size, target_size)
+    
+    # Get current dimensions
+    if isinstance(img, Image.Image):
+        width, height = img.size
+    else:  # numpy array
+        height, width = img.shape[:2]
+    
+    if keep_aspect_ratio:
+        # Calculate target dimensions preserving aspect ratio
+        scale = min(target_size[0] / width, target_size[1] / height)
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+        
+        # Resize the image
+        if isinstance(img, Image.Image):
+            resized = img.resize((new_width, new_height), Image.LANCZOS)
+            
+            # Create a new image with padding
+            result = Image.new(img.mode, target_size, padding_value)
+            # Paste the resized image in the center
+            paste_x = (target_size[0] - new_width) // 2
+            paste_y = (target_size[1] - new_height) // 2
+            result.paste(resized, (paste_x, paste_y))
+            
+            return result
+        else:  # numpy array
+            resized = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_LANCZOS4)
+            
+            # Create a new image with padding
+            if len(img.shape) == 3:
+                result = np.full((target_size[1], target_size[0], img.shape[2]), padding_value, dtype=img.dtype)
+            else:
+                result = np.full((target_size[1], target_size[0]), padding_value, dtype=img.dtype)
+            
+            # Paste the resized image in the center
+            paste_x = (target_size[0] - new_width) // 2
+            paste_y = (target_size[1] - new_height) // 2
+            result[paste_y:paste_y+new_height, paste_x:paste_x+new_width] = resized
+            
+            return result
+    else:
+        # Simple resize without preserving aspect ratio
+        if isinstance(img, Image.Image):
+            return img.resize(target_size, Image.LANCZOS)
+        else:  # numpy array
+            return cv2.resize(img, target_size, interpolation=cv2.INTER_LANCZOS4)
+
+def preprocess_for_moondream2(
+    image: Union[np.ndarray, Image.Image, bytes],
+    target_size: Tuple[int, int] = (384, 384),
+    quality: int = 85
+) -> Image.Image:
+    """
+    Special preprocessing for Moondream2 model
+    
+    Args:
+        image: Input image
+        target_size: Target size for the image
+        quality: JPEG quality for saving
+        
+    Returns:
+        Preprocessed PIL image optimized for Moondream2
+    """
+    try:
+        # Convert to PIL image
+        pil_image = convert_to_pil_image(image)
+        
+        # Ensure RGB format
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
+        
+        # Smart crop and resize
+        pil_image = smart_crop_and_resize(
+            pil_image,
+            target_size=target_size,
+            preserve_aspect_ratio=True
+        )
+        
+        logger.info(f"Moondream2 preprocessing: → {pil_image.size}")
+        return pil_image
+        
+    except Exception as e:
+        logger.error(f"Moondream2 preprocessing failed: {e}")
+        # Return a safe fallback image
+        fallback_image = Image.new('RGB', target_size, color='white')
+        return fallback_image
+
+def preprocess_for_phi3_vision(
+    image: Union[np.ndarray, Image.Image, bytes],
+    target_size: Tuple[int, int] = (384, 384),
+    quality: int = 95
+) -> Image.Image:
+    """
+    Special preprocessing for Phi-3 Vision model
+    
+    Args:
+        image: Input image
+        target_size: Target size for the image
+        quality: JPEG quality for saving
+        
+    Returns:
+        Preprocessed PIL image optimized for Phi-3 Vision
+    """
+    try:
+        # Convert to PIL image
+        pil_image = convert_to_pil_image(image)
+        
+        # Ensure RGB format
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
+        
+        # Smart crop and resize with aspect ratio preservation
+        pil_image = smart_crop_and_resize(
+            pil_image,
+            target_size=target_size,
+            preserve_aspect_ratio=True
+        )
+        
+        logger.info(f"Phi-3 Vision preprocessing: → {pil_image.size}")
+        return pil_image
+        
+    except Exception as e:
+        logger.error(f"Phi-3 Vision preprocessing failed: {e}")
+        # Return a safe fallback image
+        fallback_image = Image.new('RGB', target_size, color='white')
+        return fallback_image
+
+def preprocess_for_smolvlm(
+    image: Union[np.ndarray, Image.Image, bytes],
+    target_size: Tuple[int, int] = (1024, 1024),
+    quality: int = 95,
+    enable_advanced_processing: bool = True
+) -> Image.Image:
+    """
+    Special preprocessing for SmolVLM model with advanced enhancements
+    
+    Args:
+        image: Input image
+        target_size: Target size for the image
+        quality: JPEG quality for saving
+        enable_advanced_processing: Enable advanced color and HDR processing
+        
+    Returns:
+        Preprocessed PIL image optimized for SmolVLM
+    """
+    try:
+        # Convert to PIL image
+        pil_image = convert_to_pil_image(image)
+        
+        # Ensure RGB format
+        if pil_image.mode != 'RGB':
+            pil_image = pil_image.convert('RGB')
+        
+        if enable_advanced_processing:
+            # Apply advanced color enhancement for SmolVLM
+            pil_image = enhance_color_balance(
+                pil_image,
+                method='lab',
+                config={'color_factor': 1.2}
+            )
+        
+        # Smart crop and resize
+        pil_image = smart_crop_and_resize(
+            pil_image,
+            target_size=target_size,
+            preserve_aspect_ratio=True
+        )
+        
+        logger.info(f"SmolVLM preprocessing: → {pil_image.size}")
+        return pil_image
+        
+    except Exception as e:
+        logger.error(f"SmolVLM preprocessing failed: {e}")
+        # Return a safe fallback image
+        fallback_image = Image.new('RGB', target_size, color='white')
+        return fallback_image

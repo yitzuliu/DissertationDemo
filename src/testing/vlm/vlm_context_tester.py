@@ -28,6 +28,8 @@ from datetime import datetime
 from pathlib import Path
 from PIL import Image
 import threading
+import logging
+from typing import Dict, List, Any
 
 # Import model loaders and helper functions from vlm_tester.py
 # For code independence, we directly copy necessary components
@@ -184,8 +186,17 @@ class VLMModelLoader:
 
 # --- Context understanding testing core program ---
 
+"""
+VLM Context Testing Framework
+
+This module provides testing capabilities for Vision Language Models
+to evaluate their context understanding and retention abilities.
+"""
+
+logger = logging.getLogger(__name__)
+
 class VLMContextTester:
-    """VLM Context Understanding Capability Tester"""
+    """Test framework for VLM context understanding"""
     
     def __init__(self):
         self.results = {
@@ -908,4 +919,4 @@ def main():
     print("\nContext understanding capability testing complete!")
 
 if __name__ == "__main__":
-    main() 
+    main()

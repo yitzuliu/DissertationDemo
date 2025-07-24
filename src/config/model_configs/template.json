@@ -1,54 +1,55 @@
 {
-  "model_name": "MODEL_NAME_HERE",
+  "model_name": "Template Model",
   "model_id": "template",
-  "model_path": "MODEL_PATH_HERE",
+  "model_path": "path/to/model",
   "device": "auto",
+  "timeout": 60,
+  "max_tokens": 100,
   "version": "1.0.0",
-  "description": "Model description",
-  "features": [
-    "Feature 1",
-    "Feature 2"
-  ],
-  "server": {
-    "command": "command_to_run_server",
-    "args": ["arg1", "arg2"],
-    "port": 8080,
-    "health_endpoint": "/health",
-    "startup_timeout": 60
+  "description": "Template configuration for new models",
+  
+  "capabilities": {
+    "vision": false,
+    "text_generation": false,
+    "image_understanding": false,
+    "conversation": false,
+    "multimodal": false
   },
-  "image_processing": {
-    "size": [640, 480],
-    "format": "jpeg",
-    "jpeg_quality": 90,
-    "contrast_factor": 1.0,
-    "brightness_factor": 1.0,
-    "sharpness_factor": 1.0,
-    "gaussian_blur_radius": 0.0
-  },
+  
   "model_config": {
-    "max_new_tokens": 512,
+    "torch_dtype": "auto",
+    "device_map": "auto",
+    "trust_remote_code": false
+  },
+  
+  "image_processing": {
+    "size": [512, 512],
+    "max_size": 1024,
+    "format": "RGB",
+    "quality": 95,
+    "preserve_aspect_ratio": true
+  },
+  
+  "generation_config": {
+    "max_new_tokens": 100,
     "temperature": 0.7,
-    "top_p": 1.0,
-    "frequency_penalty": 0.0,
-    "presence_penalty": 0.0
+    "top_p": 0.9,
+    "do_sample": true
   },
-  "api": {
-    "endpoint": "/v1/chat/completions",
-    "timeout": 60,
-    "max_tokens": 512
+  
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "framework": "fastapi"
   },
+  
   "ui": {
-    "default_instruction": "Describe what you see in this image.",
-    "capture_intervals": [1000, 2000, 3000, 5000],
-    "default_interval": 2000
+    "default_instruction": "Analyze this image and provide a detailed description.",
+    "capture_intervals": [1000, 2000, 5000, 10000],
+    "default_interval": 5000
   },
-  "memory": {
-    "max_previous_scenes": 5,
-    "max_context_history": 3
-  },
-  "hardware": {
-    "recommended_ram": "8GB",
-    "recommended_gpu": "4GB",
+  
+  "performance": {
     "supports_cpu": true,
     "supports_gpu": true,
     "supports_mps": true

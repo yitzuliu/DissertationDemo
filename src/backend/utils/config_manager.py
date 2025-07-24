@@ -46,7 +46,11 @@ class ConfigManager:
                 "video_height": 480, 
                 "api_base_url": "http://localhost:8000"
             },
-            "active_model": "llava_mlx"
+            "model_server": {
+                "host": "localhost",
+                "port": 8080
+            },
+            "active_model": "phi3_vision"
         }
         
         # Initialize with default configuration
@@ -57,7 +61,6 @@ class ConfigManager:
         try:
             config_file = self.base_path / "app_config.json"
             logger.info(f"Looking for app config at: {config_file}")
-            logger.info(f"Config file exists: {config_file.exists()}")
             
             if config_file.exists():
                 with open(config_file, 'r') as f:
@@ -66,7 +69,6 @@ class ConfigManager:
                 # Merge with defaults, with loaded config taking precedence
                 self._config = self._deep_merge(copy.deepcopy(self._defaults), loaded_config)
                 logger.info(f"App config loaded successfully from {config_file}")
-                logger.info(f"Active model from app config: {self._config.get('active_model')}")
             else:
                 logger.warning(f"App config file not found: {config_file}")
                 self._config = copy.deepcopy(self._defaults)
@@ -78,26 +80,20 @@ class ConfigManager:
             return copy.deepcopy(self._config)
     
     def load_model_config(self, model_name: str) -> Dict[str, Any]:
-        """Load configuration for a specific model with debugging"""
+        """Load configuration for a specific model"""
         try:
             if model_name in self._model_configs:
-                logger.info(f"Using cached config for {model_name}")
-                return self._model_configs[model_name]
+                return copy.deepcopy(self._model_configs[model_name])
             
             config_file = self.base_path / "model_configs" / f"{model_name}.json"
-            logger.info(f"Loading model config from: {config_file}")
-            logger.info(f"Config file exists: {config_file.exists()}")
             
             if config_file.exists():
-                with open(config_file, 'r') as f:
+                with open(config_file, 'r', encoding='utf-8') as f:
                     model_config = json.load(f)
-                
-                logger.info(f"Loaded model config keys: {list(model_config.keys())}")
-                logger.info(f"Model config model_path: {model_config.get('model_path', 'NOT FOUND')}")
                 
                 self._model_configs[model_name] = model_config
                 logger.info(f"Successfully loaded model config for {model_name}")
-                return model_config
+                return copy.deepcopy(model_config)
             else:
                 logger.warning(f"Model config file not found: {config_file}")
                 return {}
@@ -107,9 +103,7 @@ class ConfigManager:
     
     def get_active_model(self) -> str:
         """Get the currently active model name"""
-        active_model = self._config.get("active_model", "llava_mlx")
-        logger.info(f"Active model: {active_model}")
-        return active_model
+        return self._config.get("active_model", "phi3_vision")
     
     def get_active_model_config(self) -> Dict[str, Any]:
         """Get configuration for the currently active model"""
@@ -145,12 +139,24 @@ class ConfigManager:
     def set_active_model(self, model_name: str, save: bool = True) -> bool:
         """Set the active model"""
         try:
-            # Verify model exists first
+            # Verify model exists first by checking both config file and models_config.json
             model_config_path = self.base_path / "model_configs" / f"{model_name}.json"
-            if not model_config_path.exists():
-                logger.error(f"Cannot set active model: Model configuration for '{model_name}' not found")
-                return False
+            models_config_path = self.base_path / "models_config.json"
             
+            # Check individual model config file
+            if not model_config_path.exists():
+                # Check if model exists in models_config.json
+                if models_config_path.exists():
+                    with open(models_config_path, 'r', encoding='utf-8') as f:
+                        models_config = json.load(f)
+                    if model_name not in models_config.get("models", {}):
+                        logger.error(f"Cannot set active model: Model '{model_name}' not found in models_config.json")
+                        return False
+                else:
+                    logger.error(f"Cannot set active model: Model configuration for '{model_name}' not found")
+                    return False
+            
+            old_model = self._config.get("active_model", "none")
             self._config["active_model"] = model_name
             
             # Refresh model config cache
@@ -158,9 +164,13 @@ class ConfigManager:
                 del self._model_configs[model_name]
             
             if save:
-                self._save_app_config()
+                success = self._save_app_config()
+                if not success:
+                    # Rollback on save failure
+                    self._config["active_model"] = old_model
+                    return False
                 
-            logger.info(f"Active model set to '{model_name}'")
+            logger.info(f"Active model changed from '{old_model}' to '{model_name}'")
             return True
         except Exception as e:
             logger.error(f"Failed to set active model {model_name}: {e}")
@@ -220,21 +230,6 @@ class ConfigManager:
                 
         return result
 
-        # Create a singleton instance for import elsewhere
-        config_manager = ConfigManager()
-        if key is None:
-            return copy.deepcopy(self._config)
-        
-        parts = key.split('.')
-        value = self._config
-        
-        try:
-            for part in parts:
-                value = value[part]
-            return value
-        except (KeyError, TypeError):
-            return default
-    
     def get_model_config_value(self, model_name: str, key: str, default: Any = None) -> Any:
         """
         Get a value from a specific model's configuration.
@@ -258,6 +253,26 @@ class ConfigManager:
         except (KeyError, TypeError):
             return default
     
+    def get_available_models(self) -> Dict[str, Any]:
+        """Get list of available models from models_config.json"""
+        try:
+            models_config_path = self.base_path / "models_config.json"
+            if models_config_path.exists():
+                with open(models_config_path, 'r', encoding='utf-8') as f:
+                    models_config = json.load(f)
+                return models_config.get("models", {})
+            else:
+                logger.warning("models_config.json not found")
+                return {}
+        except Exception as e:
+            logger.error(f"Failed to load available models: {e}")
+            return {}
+    
+    def validate_model_exists(self, model_name: str) -> bool:
+        """Validate that a model exists in the configuration"""
+        available_models = self.get_available_models()
+        return model_name in available_models
+    
     def _save_app_config(self) -> bool:
         """
         Save the current application configuration to disk.
@@ -268,8 +283,11 @@ class ConfigManager:
         config_path = self.base_path / "app_config.json"
         
         try:
+            # Ensure directory exists
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            
             with open(config_path, 'w', encoding='utf-8') as f:
-                json.dump(self._config, f, indent=2)
+                json.dump(self._config, f, indent=2, ensure_ascii=False)
             logger.info(f"Configuration saved to {config_path}")
             return True
         except Exception as e:

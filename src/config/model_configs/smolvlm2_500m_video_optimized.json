@@ -1,81 +1,67 @@
 {
-  "model_name": "SmolVLM2-500M Video Optimized",
+  "model_name": "SmolVLM2-500M-Video-Optimized",
   "model_id": "smolvlm2_500m_video_optimized",
-  "model_path": "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct",
-  "model_file": "smolvlm2_500m_video_optimized.py",
+  "model_path": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
   "device": "mps",
-  "server": {
-    "type": "optimized_in_process",
-    "port": 8080,
-    "health_endpoint": "/health",
-    "startup_script": "run_smolvlm2_500m_video_optimized.py"
+  "timeout": 90,
+  "max_tokens": 150,
+  "version": "optimized",
+  "description": "Optimized SmolVLM2 500M Video model with MPS acceleration and memory optimizations",
+  
+  "capabilities": {
+    "vision": true,
+    "text_generation": true,
+    "image_understanding": true,
+    "video_understanding": true,
+    "conversation": true,
+    "multimodal": true,
+    "apple_silicon_optimized": true
   },
-  "image_processing": {
-    "smart_crop": true,
-    "size": [1024, 1024],
-    "min_size": 256,
-    "preserve_aspect_ratio": true,
-    "jpeg_quality": 85,
-    "optimize": true,
-    "unified_preprocessing": true,
-    "resize_method": "LANCZOS",
-    "noise_reduction": {
-      "enabled": false,
-      "method": "bilateral"
-    },
-    "color_balance": {
-      "enabled": false,
-      "method": "lab"
-    },
-    "preprocessing": {
-      "contrast_factor": 1.0,
-      "brightness_factor": 1.0,
-      "sharpness_factor": 1.0
-    }
-  },
-  "inference": {
-    "batch_size": 1,
-    "expected_response_time": 3.0,
-    "max_image_size": 1024,
-    "use_half_precision": true,
-    "fast_mode": true,
-    "use_cache": true,
-    "num_beams": 1,
-    "max_new_tokens": 100,
-    "do_sample": false,
-    "temperature": 0.0
-  },
-  "memory": {
-    "required_gb": 4.0,
-    "cleanup_interval": 10,
-    "cleanup_aggressive": false,
-    "smart_cleanup": true,
-    "max_memory_gb": 16.0
-  },
-  "optimization": {
-    "enable_kv_cache": true,
+  
+  "model_config": {
+    "torch_dtype": "float16",
+    "device_map": "mps",
+    "trust_remote_code": true,
     "low_cpu_mem_usage": true,
-    "skip_memory_checks": true,
+    "use_cache": true
+  },
+  
+  "image_processing": {
+    "size": [384, 384],
+    "max_size": 512,
+    "format": "RGB",
+    "quality": 85,
+    "preserve_aspect_ratio": true,
+    "smart_crop": true,
+    "cache_enabled": true
+  },
+  
+  "generation_config": {
+    "max_new_tokens": 150,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "do_sample": false,
+    "repetition_penalty": 1.1,
+    "use_cache": true
+  },
+  
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "framework": "flask",
+    "threaded": true
+  },
+  
+  "performance": {
+    "mps_acceleration": true,
+    "memory_optimization": true,
     "image_caching": true,
-    "batch_optimization": true
+    "response_caching": true
   },
-  "api": {
-    "timeout": 30,
-    "max_tokens": 100,
-    "temperature": 0.0
-  },
+  
   "ui": {
-    "default_instruction": "You are an AI Manual Assistant with state tracking and RAG integration capabilities. Your primary function is to guide users through multi-step procedures by analyzing visual information and maintaining task state.\n\nFor each image analysis:\n1. TASK IDENTIFICATION: Determine the specific task being performed (assign a task_id for RAG retrieval)\n2. PROGRESS TRACKING: Identify which step of the procedure is currently active (update current_step_index)\n3. VISUAL ASSESSMENT: Document visible tools, materials, and components in the scene\n4. STATUS EVALUATION: Determine if the current step is pending, active, done, or has errors\n\nStructure your response as follows:\n- [OBSERVATION]: Brief summary of what you see (will be stored as last_vlm_observation)\n- [TASK]: Name of identified procedure (e.g., \"replace-kitchen-faucet\")\n- [STEP]: Current step number and total steps if identifiable (e.g., \"Step 3 of 8\")\n- [STATUS]: Current step status (\"pending\", \"active\", \"done\", or \"error\")\n- [GUIDANCE]: Detailed instructions for completing the current step\n- [SAFETY]: Any relevant safety warnings\n- [ALTERNATIVES]: Suggestions if standard tools are missing\n\nYour guidance should be precise, actionable, and help the user systematically progress through their task while the system tracks their advancement.",
-    "capture_intervals": [500, 1000, 2000, 5000, 10000, 20000],
-    "default_interval": 10000
-  },
-  "version": "2.1.0-testing-framework-aligned",
-  "description": "SmolVLM2-500M configuration aligned with testing framework. Uses MLX-VLM subprocess, unified preprocessing, and consistent generation parameters.",
-  "performance_notes": "Aligned with VQA testing framework: unified image preprocessing (1024px), consistent generation params (max_new_tokens=100, do_sample=False), MLX-VLM subprocess inference.",
-  "framework_alignment": {
-    "unified_image_preprocessing": true,
-    "unified_generation_params": true,
-    "mlx_vlm_subprocess": true,
-    "consistent_error_handling": true
+    "default_instruction": "You are an AI Manual Assistant with optimized video understanding. Quickly analyze images in video context and provide structured guidance.\n\n[OBSERVATION]: Brief description of current frame\n[VIDEO_CONTEXT]: Relationship to video sequence\n[TASK]: Specific task identification\n[STEP]: Current step number and status\n[GUIDANCE]: Clear, numbered instructions\n[SAFETY]: Key safety points\n\nOptimized for fast, accurate responses with Apple Silicon acceleration.",
+    "capture_intervals": [3000, 5000, 10000, 15000],
+    "default_interval": 3000
   }
-} 
+}

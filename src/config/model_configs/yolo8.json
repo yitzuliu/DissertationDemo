@@ -1,36 +1,43 @@
 {
   "model_name": "YOLO8",
   "model_id": "yolo8",
-  "model_path": "models/yolo8/yolov8n.pt",
+  "model_path": "yolov8n.pt",
   "device": "auto",
-  "server": {
-    "command": "python",
-    "args": ["models/yolo8/run_yolo.py"],
-    "port": 8080,
-    "health_endpoint": "/health"
+  "timeout": 30,
+  "max_tokens": 50,
+  "version": "1.0.0",
+  "description": "YOLO8 object detection model for real-time object detection and tracking",
+  
+  "capabilities": {
+    "object_detection": true,
+    "tracking": true,
+    "segmentation": false,
+    "classification": false
   },
+  
+  "model_config": {
+    "confidence": 0.25,
+    "iou_threshold": 0.45,
+    "max_detections": 300,
+    "agnostic_nms": false
+  },
+  
   "image_processing": {
     "size": [640, 640],
-    "format": "jpeg",
-    "jpeg_quality": 90
+    "format": "RGB",
+    "normalize": true,
+    "letterbox": true
   },
-  "detection": {
-    "confidence_threshold": 0.5,
-    "iou_threshold": 0.7,
-    "max_detections": 100
+  
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "framework": "fastapi"
   },
-  "api": {
-    "endpoint": "/v1/detect",
-    "timeout": 30,
-    "response_format": "json"
-  },
+  
   "ui": {
     "default_instruction": "Detect and identify all objects in this image.",
-    "capture_intervals": [1000, 2000, 5000],
-    "default_interval": 2000,
-    "show_bboxes": true,
-    "show_confidence": true
-  },
-  "version": "1.0.0",
-  "description": "YOLO8 object detection model configuration"
+    "capture_intervals": [500, 1000, 2000, 5000],
+    "default_interval": 1000
+  }
 }

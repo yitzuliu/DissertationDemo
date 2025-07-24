@@ -98,6 +98,10 @@ logger.info("Backend server starting...")
 config_manager.load_app_config()
 logger.info("Configuration loaded successfully")
 
+# 確保使用正確的 ACTIVE_MODEL
+ACTIVE_MODEL = config_manager.get_active_model()
+logger.info(f"Using active model: {ACTIVE_MODEL}")
+
 app = FastAPI(title="Vision Models Unified API")
 
 # Configure CORS
@@ -109,8 +113,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Determine which model to use based on configuration
-ACTIVE_MODEL = config_manager.get_active_model()
 # Get model server URL from configuration
 def get_model_server_url():
     """Get the model server URL from configuration"""
@@ -240,8 +242,21 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
     try:
         logger.info(f"[{request_id}] Processing request with model: {ACTIVE_MODEL}")
         
-        # 更新支援的模型清單，添加 llava_mlx 模型
-        if ACTIVE_MODEL in ["smolvlm", "phi3_vision", "phi3_vision_optimized", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized", "moondream2", "moondream2_optimized", "llava_mlx"]:
+        # 更新支援的模型清單，確保包含所有配置的模型
+        supported_models = [
+            "smolvlm", 
+            "phi3_vision", 
+            "phi3_vision_optimized", 
+            "smolvlm2_500m_video", 
+            "smolvlm2_500m_video_optimized", 
+            "moondream2", 
+            "moondream2_optimized", 
+            "llava_mlx",
+            "qwen2_vl",
+            "yolo8"
+        ]
+        
+        if ACTIVE_MODEL in supported_models:
             image_count = 0
             image_processing_start = time.time()
             
@@ -416,8 +431,19 @@ async def get_status():
         return {
             "active_model": display_name,
             "model_id": model_id,
-            # 更新可用模型清單，添加 llava_mlx
-            "available_models": ["smolvlm", "phi3_vision", "phi3_vision_optimized", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized", "moondream2", "moondream2_optimized", "llava_mlx"],
+            # 更新可用模型清單，確保包含所有模型
+            "available_models": [
+                "smolvlm", 
+                "phi3_vision", 
+                "phi3_vision_optimized", 
+                "smolvlm2_500m_video", 
+                "smolvlm2_500m_video_optimized", 
+                "moondream2", 
+                "moondream2_optimized", 
+                "llava_mlx",
+                "qwen2_vl",
+                "yolo8"
+            ],
             "config": config_manager.get_config(),
             "model_status": {
                 "name": display_name,
@@ -511,24 +537,27 @@ def format_message_for_model(message, image_count, model_name):
                 images.append(content_item)
         
         # Format text based on model type
-        if model_name == "smolvlm":
-            # SmolVLM doesn't need special image tags, keep original text
+        if model_name in ["smolvlm", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
+            # SmolVLM doesn't need special image tags
             formatted_text = text_content
         elif model_name in ["phi3_vision", "phi3_vision_optimized"]:
-            # Phi-3 Vision uses <|image_1|> format for image references
+            # Phi-3 Vision uses <|image_1|> format
             if image_count > 0:
                 formatted_text = f"<|image_1|>\n{text_content}"
             else:
                 formatted_text = text_content
-        elif model_name in ["smolvlm2", "smolvlm2-500", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
-            # SmolVLM2 doesn't need special image tags, keep original text
-            formatted_text = text_content
         elif model_name in ["moondream2", "moondream2_optimized"]:
-            # Moondream2 doesn't need special image tags, keep original text
+            # Moondream2 doesn't need special image tags
             formatted_text = text_content
         elif model_name == "llava_mlx":
-            # LLaVA MLX doesn't need special image tags, keep original text
+            # LLaVA MLX doesn't need special image tags
             formatted_text = text_content
+        elif model_name == "qwen2_vl":
+            # Qwen2-VL doesn't need special image tags
+            formatted_text = text_content
+        elif model_name == "yolo8":
+            # YOLO8 for object detection
+            formatted_text = text_content or "Detect objects in this image"
         else:
             formatted_text = text_content
         
@@ -546,10 +575,10 @@ def format_message_for_model(message, image_count, model_name):
 # Start frontend separately: cd ../frontend && python -m http.server 5500
 
 if __name__ == "__main__":
+    # 確保在啟動時正確配置
+    logger.info(f"Starting backend server with model: {ACTIVE_MODEL}")
     uvicorn.run(
         app,
-
-
+        host=config_manager.get_config("server.host", "localhost"),
+        port=config_manager.get_config("server.port", 8000)
     )
-    host=config_manager.get_config("server.host"),
-    port=config_manager.get_config("server.port")

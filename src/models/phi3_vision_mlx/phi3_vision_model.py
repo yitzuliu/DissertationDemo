@@ -142,6 +142,10 @@ class StandardPhi3VisionServer:
         if not self.loaded:
             return {"error": "Model not loaded"}
         
+        # 確保沒有硬編碼的回應
+        logger.info(f"🔍 Processing prompt: '{prompt[:50]}...'")
+        logger.info(f"🔍 Image size: {image.size}")
+        
         try:
             start_time = time.time()
             
@@ -159,8 +163,9 @@ class StandardPhi3VisionServer:
                 image.save(temp_path, 'JPEG', quality=95)
                 
                 try:
-                    # MLX prompt format
+                    # MLX prompt format - 確保使用正確的提示
                     mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
+                    logger.info(f"🔍 MLX prompt: '{mlx_prompt[:100]}...'")
                     
                     response = generate(
                         model=self.model,
@@ -168,8 +173,11 @@ class StandardPhi3VisionServer:
                         image=temp_path,
                         prompt=mlx_prompt,
                         max_tokens=max_tokens,
-                        temp=0.7
+                        temp=0.7,
+                        verbose=True  # 啟用詳細模式來調試
                     )
+                    
+                    logger.info(f"🔍 Raw MLX response: {response}")
                     
                     # Process response
                     if isinstance(response, tuple):
@@ -177,8 +185,15 @@ class StandardPhi3VisionServer:
                     else:
                         text_response = str(response)
                     
-                    # Clean response
+                    # Clean response - 確保不會意外過濾掉有效回應
                     text_response = text_response.replace("<|end|>", "").replace("<|endoftext|>", "").strip()
+                    
+                    # 檢查是否為空回應
+                    if not text_response:
+                        logger.warning("⚠️ Empty response from MLX model")
+                        text_response = f"MLX model processed your request about the image but returned an empty response."
+                    
+                    logger.info(f"🔍 Processed response: '{text_response[:100]}...'")
                     
                 finally:
                     # Cleanup temp file
@@ -188,8 +203,9 @@ class StandardPhi3VisionServer:
                         pass
                 
             else:
-                # Transformers inference
+                # Transformers inference - 確保使用正確的提示格式
                 messages = [{"role": "user", "content": f"<|image_1|>\n{prompt}"}]
+                logger.info(f"🔍 Transformers messages: {messages}")
                 
                 prompt_text = self.processor.tokenizer.apply_chat_template(
                     messages,
@@ -197,16 +213,30 @@ class StandardPhi3VisionServer:
                     add_generation_prompt=True
                 )
                 
+                logger.info(f"🔍 Formatted prompt: '{prompt_text[:100]}...'")
+                
                 inputs = self.processor(prompt_text, [image], return_tensors="pt")
                 
                 with torch.no_grad():
                     outputs = self.model.generate(
                         **inputs,
                         max_new_tokens=max_tokens,
-                        do_sample=False
+                        do_sample=False,
+                        temperature=0.7,
+                        pad_token_id=self.processor.tokenizer.eos_token_id
                     )
                 
                 text_response = self.processor.decode(outputs[0], skip_special_tokens=True)
+                logger.info(f"🔍 Raw transformers response: '{text_response[:100]}...'")
+                
+                # Clean transformers response
+                if "Assistant:" in text_response:
+                    text_response = text_response.split("Assistant:")[-1].strip()
+                
+                # 檢查是否為空回應
+                if not text_response:
+                    logger.warning("⚠️ Empty response from transformers model")
+                    text_response = f"Transformers model processed your request about the image but returned an empty response."
             
             processing_time = time.time() - start_time
             
@@ -223,16 +253,6 @@ class StandardPhi3VisionServer:
                 "error": f"Inference failed: {str(e)}",
                 "success": False
             }
-    
-    def stop(self):
-        """Stop and cleanup"""
-        try:
-            self.model = None
-            self.processor = None
-            self.loaded = False
-            logger.info("Phi-3.5-Vision server stopped")
-        except Exception as e:
-            logger.error(f"Error stopping server: {e}")
 
 class Phi3VisionModel(BaseVisionModel):
     """

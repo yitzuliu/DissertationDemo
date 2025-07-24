@@ -237,7 +237,7 @@ class SmolVLM2Model(BaseVisionModel):
         """
         super().__init__(model_name, config)
         
-        self.model_path = config.get("model_path", "../")
+        self.model_path = config.get("model_path", "HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
         self.device = config.get("device", "mps")
         self.timeout = config.get("timeout", 60)
         self.max_tokens = config.get("max_tokens", 150)

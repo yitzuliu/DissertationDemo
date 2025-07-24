@@ -1,12 +1,12 @@
 /* AI Manual Assistant - Main Styles */
 
 :root {
-    --primary: #2563eb; /* Royal blue */
+    --primary: #2563eb;
     --primary-light: #dbeafe;
     --primary-dark: #1d4ed8;
-    --secondary: #06b6d4; /* Cyan */
+    --secondary: #06b6d4;
     --secondary-light: #cffafe;
-    --accent: #8b5cf6; /* Purple */
+    --accent: #8b5cf6;
     --accent-light: #ede9fe;
     --success: #10b981;
     --success-light: #d1fae5;

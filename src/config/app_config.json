@@ -1,5 +1,4 @@
 {
-  "active_model": "smolvlm2_500m_video_optimized",
   "server": {
     "host": "localhost",
     "port": 8000
@@ -8,5 +7,10 @@
     "video_width": 640,
     "video_height": 480,
     "api_base_url": "http://localhost:8000"
-  }
+  },
+  "model_server": {
+    "host": "localhost",
+    "port": 8080
+  },
+  "active_model": "smolvlm"
 }

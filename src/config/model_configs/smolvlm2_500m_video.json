@@ -1,63 +1,54 @@
 {
   "model_name": "SmolVLM2-500M-Video",
   "model_id": "smolvlm2_500m_video",
-  "model_path": "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct",
-  "model_file": "smolvlm2_500m_video.py",
-  "device": "mps",
-  "server": {
-    "type": "in_process",
-    "port": 8080,
-    "health_endpoint": "/health",
-    "startup_script": "run_smolvlm2_500m_video.py"
+  "model_path": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+  "device": "auto",
+  "timeout": 120,
+  "max_tokens": 150,
+  "version": "1.0.0",
+  "description": "SmolVLM2 500M Video model with enhanced video understanding capabilities",
+  
+  "capabilities": {
+    "vision": true,
+    "text_generation": true,
+    "image_understanding": true,
+    "video_understanding": true,
+    "conversation": true,
+    "multimodal": true
   },
+  
+  "model_config": {
+    "torch_dtype": "float16",
+    "device_map": "auto",
+    "trust_remote_code": true,
+    "low_cpu_mem_usage": true
+  },
+  
   "image_processing": {
-    "smart_crop": true,
-    "size": [1024, 1024],
-    "min_size": 512,
-    "preserve_aspect_ratio": true,
-    "jpeg_quality": 95,
-    "optimize": true,
-    "noise_reduction": {
-      "enabled": true,
-      "method": "bilateral",
-      "diameter": 9,
-      "sigma_color": 75,
-      "sigma_space": 75
-    },
-    "color_balance": {
-      "enabled": true,
-      "method": "lab",
-      "l_channel_boost": 1.2,
-      "ab_channel_boost": 1.1
-    },
-    "preprocessing": {
-      "contrast_factor": 1.2,
-      "brightness_factor": 1.1,
-      "sharpness_factor": 1.2
-    }
+    "size": [384, 384],
+    "max_size": 768,
+    "format": "RGB",
+    "quality": 90,
+    "preserve_aspect_ratio": true
   },
-  "inference": {
-    "batch_size": 1,
-    "expected_response_time": 10.0,
-    "max_image_size": 1024
-  },
-  "memory": {
-    "required_gb": 6.0,
-    "cleanup_aggressive": true,
-    "pre_check_memory": true,
-    "max_memory_gb": 18.0
-  },
-  "api": {
-    "max_tokens": 512,
+  
+  "generation_config": {
+    "max_new_tokens": 150,
     "temperature": 0.7,
-    "timeout": 90
+    "top_p": 0.9,
+    "do_sample": false,
+    "repetition_penalty": 1.1
   },
+  
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "framework": "flask"
+  },
+  
   "ui": {
-    "default_instruction": "Describe what you see in this image in detail.",
-    "capture_intervals": [1000, 2000, 3000, 5000],
-    "default_interval": 2000
-  },
-  "version": "2.0.0",
-  "description": "Enhanced video-capable vision language model optimized for real-time processing",
-  "testing_note": "Enhanced video understanding model with temporal reasoning capabilities. Under testing for comparison with image analysis approach."
-} 
+    "default_instruction": "You are an AI Manual Assistant with video understanding capabilities. Analyze this image in the context of a video sequence and provide structured guidance.\n\nFor each analysis, provide:\n\n[OBSERVATION]: What you see in the current frame\n[TEMPORAL_CONTEXT]: How this relates to previous frames if applicable\n[TASK_IDENTIFICATION]: Specific task being performed\n[STEP_ANALYSIS]: Current step in the sequence\n[GUIDANCE]: Clear instructions for the current step\n[SAFETY_NOTES]: Important safety considerations\n\nThis format helps maintain continuity across video frames and provides contextual understanding.",
+    "capture_intervals": [2000, 5000, 10000, 15000],
+    "default_interval": 5000
+  }
+}

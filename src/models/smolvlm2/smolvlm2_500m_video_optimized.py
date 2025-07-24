@@ -324,7 +324,7 @@ class OptimizedSmolVLM2Model(BaseVisionModel):
         super().__init__(model_name, config)
         
         # Get model path from config, with proper path resolution
-        model_path = config.get("model_path", "src/models/smolvlm2/SmolVLM2-500M-Video-Instruct")
+        model_path = config.get("model_path", "HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
         if not os.path.isabs(model_path):
             # Get project root (6 levels up from current file to get to destination_code)
             project_root = Path(__file__).resolve().parent.parent.parent.parent.parent.parent

@@ -3,10 +3,10 @@
 Standard Phi-3.5-Vision Server Runner
 
 Standard version of Phi-3.5-Vision server with:
-- FastAPI server for maximum compatibility
-- Standard precision processing
-- Robust error handling
+- FastAPI server for compatibility
+- MLX-VLM with transformers fallback
 - Cross-platform support
+- Robust error handling
 """
 
 import os
@@ -14,60 +14,54 @@ import json
 import logging
 import time
 import base64
+import signal
+import subprocess
+import socket
 import sys
 from io import BytesIO
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from PIL import Image
-import torch
-from pathlib import Path
 from typing import List, Dict, Any, Optional
 import uvicorn
-from contextlib import asynccontextmanager
+from PIL import Image
+import torch
 
 # Setup logging
 def setup_logging():
     """Setup logging with proper path and permissions"""
     try:
-        # Get absolute path to project root
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
         log_dir = base_dir / "logs"
-        
-        # Create logs directory with parents if needed
         log_dir.mkdir(parents=True, exist_ok=True)
+        os.chmod(log_dir, 0o755)
         
-        # Setup log file path with timestamp
         timestamp = time.strftime("%Y%m%d")
         log_file = log_dir / f"phi3_vision_standard_{timestamp}.log"
         
-        # Configure logging
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler(log_file),
+                logging.FileHandler(log_file, encoding='utf-8'),
                 logging.StreamHandler()
             ]
         )
         
         logger = logging.getLogger(__name__)
         logger.info(f"Phi-3.5-Vision standard logging initialized. Log file: {log_file}")
-        
         return logger
         
     except Exception as e:
         print(f"Failed to setup logging: {e}")
         raise
 
-# Initialize logging
 logger = setup_logging()
 
 # Import model with fallbacks
 def import_model_with_fallbacks():
     """Import Phi-3.5-Vision model with multiple fallback strategies"""
-    
-    # Add current directory and parent directories to Python path
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(parent_dir)))
@@ -84,16 +78,8 @@ def import_model_with_fallbacks():
     except ImportError as e:
         logger.warning(f"Strategy 1 failed: {e}")
     
-    # Strategy 2: Try importing optimized model as fallback
-    try:
-        from phi3_vision_optimized import OptimizedPhi3VisionModel
-        logger.info("✅ Imported OptimizedPhi3VisionModel as fallback (Strategy 2)")
-        return OptimizedPhi3VisionModel
-    except ImportError as e:
-        logger.warning(f"Strategy 2 failed: {e}")
-    
-    # Strategy 3: Create minimal fallback
-    logger.error("❌ All import strategies failed, creating minimal fallback")
+    # Strategy 2: Create minimal implementation
+    logger.error("❌ Model import failed, creating minimal implementation")
     
     class MinimalPhi3VisionModel:
         def __init__(self, model_name, config):
@@ -102,7 +88,7 @@ def import_model_with_fallbacks():
             self.loaded = False
             
         def load_model(self):
-            logger.error("❌ Minimal fallback model - no actual functionality")
+            logger.error("❌ Minimal model - no actual functionality")
             return False
             
         def predict(self, image, prompt, options=None):
@@ -114,56 +100,22 @@ def import_model_with_fallbacks():
     
     return MinimalPhi3VisionModel
 
-# Import model with fallbacks
-try:
-    Phi3VisionModel = import_model_with_fallbacks()
-    logger.info(f"✅ Model import successful: {Phi3VisionModel.__name__}")
-except Exception as e:
-    logger.error(f"❌ Critical import failure: {e}")
-    exit(1)
-
-# Global server instance
-server = None
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Modern FastAPI lifespan handler"""
-    # Startup
-    global server
-    logger.info("🔥 Starting STANDARD Phi-3.5-Vision Server...")
-    server = StandardPhi3VisionServer()
-    if not server.initialize_model():
-        logger.error("❌ Server startup failed")
-        raise RuntimeError("Failed to initialize model")
-    logger.info("🚀 STANDARD Phi-3.5-Vision Server ready!")
-    
-    yield
-    
-    # Shutdown
-    logger.info("🛑 Shutting down STANDARD Phi-3.5-Vision Server...")
-
-# Create FastAPI app with lifespan
-app = FastAPI(title="Phi-3.5-Vision Standard Server", lifespan=lifespan)
-
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+Phi3VisionModel = import_model_with_fallbacks()
 
 class ChatCompletionRequest(BaseModel):
+    max_tokens: Optional[int] = None
     messages: List[Dict[str, Any]]
-    max_tokens: Optional[int] = 100
 
 class StandardPhi3VisionServer:
-    """Standard Phi-3.5-Vision server implementation"""
+    """Standard Phi-3.5-Vision Server"""
     
     def __init__(self, config_path="phi3_vision.json"):
+        self.app = FastAPI(title="Phi-3.5-Vision Standard API")
         self.model = None
         self.config = self.load_config(config_path)
+        self.setup_middleware()
+        self.setup_routes()
+        
         self.stats = {
             "requests": 0,
             "total_time": 0.0,
@@ -173,7 +125,6 @@ class StandardPhi3VisionServer:
     def load_config(self, config_path):
         """Load standard configuration"""
         try:
-            # Default standard config
             default_config = {
                 "model_name": "Phi-3.5-Vision",
                 "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",
@@ -183,7 +134,6 @@ class StandardPhi3VisionServer:
                 "timeout": 180
             }
             
-            # Try to load from the project's config directory first
             project_root = Path(__file__).resolve().parent.parent.parent.parent
             project_config_path = project_root / "src/config/model_configs/phi3_vision.json"
             
@@ -201,8 +151,8 @@ class StandardPhi3VisionServer:
             else:
                 logger.info("⚙️ Using default standard config")
             
-            # 確保 model_path 正確設定
-            if "model_path" not in default_config or not default_config["model_path"]:
+            # 確保 model_path 正確設定並避免使用 model_id 作為路徑
+            if "model_path" not in default_config or not default_config["model_path"] or default_config["model_path"] == "phi3_vision":
                 default_config["model_path"] = "mlx-community/Phi-3.5-vision-instruct-4bit"
                 logger.info("🔧 Set default model_path: mlx-community/Phi-3.5-vision-instruct-4bit")
             
@@ -221,6 +171,16 @@ class StandardPhi3VisionServer:
                 "timeout": 180
             }
     
+    def setup_middleware(self):
+        """Setup CORS middleware"""
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    
     def initialize_model(self):
         """Initialize standard model"""
         try:
@@ -229,9 +189,10 @@ class StandardPhi3VisionServer:
             
             # 確保傳遞正確的配置
             model_config = self.config.copy()
-            # 如果配置中有 model_id，確保它指向正確的模型路徑
-            if "model_id" in model_config:
-                model_config["model_path"] = model_config["model_path"]  # 使用 model_path 而不是 model_id
+            # 確保 model_path 不是 model_id
+            if model_config.get("model_path") == "phi3_vision":
+                model_config["model_path"] = "mlx-community/Phi-3.5-vision-instruct-4bit"
+                logger.warning("🔧 Fixed model_path that was incorrectly set to model_id")
             
             logger.info(f"🔧 Initializing with model_path: {model_config.get('model_path')}")
             
@@ -251,137 +212,164 @@ class StandardPhi3VisionServer:
         except Exception as e:
             logger.error(f"❌ Model initialization error: {e}")
             return False
-
-@app.get("/health")
-def health():
-    """Health check endpoint"""
-    global server
-    if server and server.model and server.model.loaded:
-        return {
-            "status": "healthy",
-            "model": "Phi-3.5-Vision-Standard",
-            "version": "1.0.0",
-            "performance": {
-                "requests": server.stats["requests"],
-                "avg_time": f"{server.stats['avg_time']:.2f}s"
-            }
-        }
-    else:
-        return {"status": "loading", "model": "Phi-3.5-Vision-Standard"}, 503
-
-@app.post("/v1/chat/completions")
-async def chat_completions(request: ChatCompletionRequest):
-    """OpenAI-compatible chat completions endpoint"""
-    global server
-    try:
-        start_time = time.time()
+    
+    def setup_routes(self):
+        """Setup FastAPI routes"""
         
-        if not server or not server.model or not server.model.loaded:
-            raise HTTPException(status_code=503, detail="Model not ready")
+        @self.app.get("/health")
+        async def health():
+            """Health check endpoint"""
+            if self.model and hasattr(self.model, 'loaded') and self.model.loaded:
+                return {
+                    "status": "healthy",
+                    "model": "Phi-3.5-Vision",
+                    "version": "1.0.0",
+                    "framework": "FastAPI",
+                    "performance": {
+                        "requests": self.stats["requests"],
+                        "avg_time": f"{self.stats['avg_time']:.2f}s"
+                    }
+                }
+            else:
+                return {"status": "loading", "model": "Phi-3.5-Vision"}
         
-        messages = request.messages
-        max_tokens = min(request.max_tokens or 100, 150)
+        @self.app.post("/v1/chat/completions")
+        async def chat_completions(request: ChatCompletionRequest):
+            """OpenAI-compatible chat completions endpoint"""
+            try:
+                start_time = time.time()
+                
+                if not self.model or not hasattr(self.model, 'loaded') or not self.model.loaded:
+                    raise HTTPException(status_code=503, detail="Model not ready")
+                
+                messages = request.messages
+                max_tokens = min(request.max_tokens or 100, 200)
+                
+                if not messages:
+                    raise HTTPException(status_code=400, detail="No messages provided")
+                
+                # Extract user message
+                user_message = None
+                for message in reversed(messages):
+                    if message.get('role') == 'user':
+                        user_message = message
+                        break
+                
+                if not user_message:
+                    raise HTTPException(status_code=400, detail="No user message found")
+                
+                # Process content
+                content = user_message.get('content', [])
+                text_content = ""
+                image_data = None
+                
+                for item in content:
+                    if item.get('type') == 'text':
+                        text_content = item.get('text', '')
+                    elif item.get('type') == 'image_url':
+                        image_url = item.get('image_url', {}).get('url', '')
+                        if image_url.startswith('data:image/'):
+                            image_data = image_url.split(',')[1]
+                
+                if not image_data:
+                    raise HTTPException(status_code=400, detail="No image provided")
+                
+                # Process image
+                try:
+                    image_bytes = base64.b64decode(image_data)
+                    image = Image.open(BytesIO(image_bytes))
+                except Exception as e:
+                    raise HTTPException(status_code=400, detail=f"Image processing failed: {e}")
+                
+                # Generate response
+                result = self.model.predict(
+                    image=image,
+                    prompt=text_content,
+                    options={"max_tokens": max_tokens}
+                )
+                
+                processing_time = time.time() - start_time
+                
+                # Update stats
+                self.stats["requests"] += 1
+                self.stats["total_time"] += processing_time
+                self.stats["avg_time"] = self.stats["total_time"] / self.stats["requests"]
+                
+                if result.get("success"):
+                    response_text = result.get("response", {}).get("text", "")
+                    
+                    return {
+                        "choices": [{
+                            "message": {
+                                "role": "assistant",
+                                "content": response_text
+                            },
+                            "finish_reason": "stop"
+                        }],
+                        "usage": {
+                            "prompt_tokens": len(text_content.split()),
+                            "completion_tokens": len(response_text.split()),
+                            "total_tokens": len(text_content.split()) + len(response_text.split())
+                        },
+                        "model": "Phi-3.5-Vision",
+                        "performance": {
+                            "processing_time": f"{processing_time:.2f}s",
+                            "framework": "FastAPI"
+                        }
+                    }
+                else:
+                    raise HTTPException(status_code=500, detail=result.get("error", "Unknown error"))
+                    
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Request processing error: {e}")
+                raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
         
-        if not messages:
-            raise HTTPException(status_code=400, detail="No messages provided")
-        
-        # Extract user message (latest)
-        user_message = None
-        for message in reversed(messages):
-            if message.get('role') == 'user':
-                user_message = message
-                break
-        
-        if not user_message:
-            raise HTTPException(status_code=400, detail="No user message found")
-        
-        # Process content
-        content = user_message.get('content', [])
-        text_content = ""
-        image_data = None
-        
-        for item in content:
-            if item.get('type') == 'text':
-                text_content = item.get('text', '')
-            elif item.get('type') == 'image_url':
-                image_url = item.get('image_url', {}).get('url', '')
-                if image_url.startswith('data:image/'):
-                    # Extract base64 data
-                    image_data = image_url.split(',')[1]
-        
-        if not image_data:
-            raise HTTPException(status_code=400, detail="No image provided")
-        
-        # Process image
-        try:
-            image_bytes = base64.b64decode(image_data)
-            image = Image.open(BytesIO(image_bytes))
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Image processing failed: {e}")
-        
-        # Generate response
-        result = server.model.predict(
-            image=image,
-            prompt=text_content,
-            options={"max_tokens": max_tokens}
-        )
-        
-        processing_time = time.time() - start_time
-        
-        # Update stats
-        server.stats["requests"] += 1
-        server.stats["total_time"] += processing_time
-        server.stats["avg_time"] = server.stats["total_time"] / server.stats["requests"]
-        
-        if result.get("success"):
-            response_text = result.get("response", "")
-            if isinstance(response_text, dict):
-                response_text = response_text.get("text", str(response_text))
-            
-            # OpenAI-compatible response
+        @self.app.get("/stats")
+        async def stats():
+            """Performance statistics"""
             return {
-                "choices": [{
-                    "message": {
-                        "role": "assistant",
-                        "content": response_text
-                    },
-                    "finish_reason": "stop"
-                }],
-                "usage": {
-                    "prompt_tokens": len(text_content.split()),
-                    "completion_tokens": len(str(response_text).split()),
-                    "total_tokens": len(text_content.split()) + len(str(response_text).split())
-                },
-                "model": "Phi-3.5-Vision-Standard",
-                "performance": {
-                    "processing_time": f"{processing_time:.2f}s",
-                    "optimized": False
+                "model": "Phi-3.5-Vision",
+                "statistics": self.stats,
+                "framework": "FastAPI",
+                "features": {
+                    "mlx_support": True,
+                    "transformers_fallback": True,
+                    "cross_platform": True
                 }
             }
-        else:
-            error_msg = result.get("error", "Unknown error")
-            raise HTTPException(status_code=500, detail=error_msg)
-            
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Request processing error: {e}")
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
-
-@app.get("/stats")
-def stats():
-    """Performance statistics"""
-    global server
-    return {
-        "model": "Phi-3.5-Vision-Standard",
-        "statistics": server.stats if server else {"requests": 0, "total_time": 0.0, "avg_time": 0.0},
-        "features": {
-            "fastapi_server": True,
-            "standard_precision": True,
-            "cross_platform": True,
-            "maximum_compatibility": True
-        }
-    }
+    
+    async def startup(self):
+        """Startup event"""
+        if not self.initialize_model():
+            raise RuntimeError("Failed to initialize model")
+    
+    def run(self, host='0.0.0.0', port=8080):
+        """Start standard server"""
+        logger.info("🚀 Starting STANDARD Phi-3.5-Vision Server...")
+        logger.info(f"🎯 Target: Cross-platform compatibility")
+        logger.info(f"🔧 Framework: FastAPI with MLX-VLM + Transformers")
+        
+        # Add startup event
+        @self.app.on_event("startup")
+        async def startup_event():
+            await self.startup()
+        
+        try:
+            uvicorn.run(
+                self.app,
+                host=host,
+                port=port,
+                log_level="info"
+            )
+        except KeyboardInterrupt:
+            logger.info("🛑 Server stopped by user")
+        except Exception as e:
+            logger.error(f"❌ Server error: {e}")
+            return False
+        
+        return True
 
 def main():
     """Main execution"""
@@ -401,15 +389,10 @@ def main():
     except ImportError:
         logger.warning("⚠️ MLX not available, will use transformers fallback")
     
+    server = StandardPhi3VisionServer()
+    
     try:
-        uvicorn.run(
-            app,
-            host="0.0.0.0",
-            port=8080,
-            log_level="info"
-        )
-    except KeyboardInterrupt:
-        logger.info("🛑 Server stopped by user")
+        server.run(host='0.0.0.0', port=8080)
     except Exception as e:
         logger.error(f"❌ Unexpected error: {e}")
         exit(1)

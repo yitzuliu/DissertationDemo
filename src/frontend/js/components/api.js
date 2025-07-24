@@ -26,13 +26,14 @@ class APIClient {
             } else {
                 return {
                     online: false,
-                    error: `HTTP ${response.status}`
+                    error: `Backend API returned ${response.status}: ${response.statusText}`
                 };
             }
         } catch (error) {
+            console.error('Failed to connect to backend API:', error);
             return {
                 online: false,
-                error: error.message
+                error: `Failed to connect to backend API at ${this.baseURL}: ${error.message}`
             };
         }
     }

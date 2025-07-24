@@ -6,7 +6,37 @@
 class ConfigManager {
     constructor() {
         this.config = null;
-        this.baseURL = "http://localhost:8000";
+        this.baseURL = this.detectModelServerURL();
+    }
+
+    /**
+     * Detect backend API URL
+     * @returns {string} Base URL for backend API
+     */
+    detectModelServerURL() {
+        // The frontend should connect to the backend API, not directly to model servers
+        // Backend API runs on port 8000 and provides all necessary endpoints
+        const backendPort = 8000;
+        
+        // Allow override via URL parameter for development/testing
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramPort = urlParams.get('backend_port');
+        
+        if (paramPort) {
+            return `http://localhost:${paramPort}`;
+        }
+        
+        // Default to backend API port
+        return `http://localhost:${backendPort}`;
+    }
+
+    /**
+     * Set backend API port
+     * @param {number} port - Port number
+     */
+    setModelServerPort(port) {
+        this.baseURL = `http://localhost:${port}`;
+        console.log(`🔄 Backend API URL updated to: ${this.baseURL}`);
     }
 
     /**
