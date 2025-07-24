@@ -1,133 +1,36 @@
 {
-  "model_name": "SmolVLM2-500M-Video-Optimized",
-  "model_id": "smolvlm2_500m_video_optimized",
-  "model_path": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-  "device": "auto",
-  "timeout": 30,
-  "max_tokens": 100,
-  "version": "optimized_mlx",
-  "description": "Optimized SmolVLM2-500M-Video model with MLX framework, performance optimizations, and video understanding capabilities for Apple Silicon",
+  "model_name": "SmolVLM2-500M-Video-Instruct",
+  "model_path": "./SmolVLM2-500M-Video-Instruct",
+  "device": "mps",
+  "max_tokens": 150,
+  "timeout": 60,
+  "version": "optimized",
+  "description": "SmolVLM2-500M-Video-Instruct model optimized for Apple Silicon with video understanding capabilities",
   
   "capabilities": {
     "vision": true,
     "text_generation": true,
-    "image_understanding": true,
     "video_understanding": true,
-    "conversation": true,
     "multimodal": true,
     "apple_silicon_optimized": true
   },
   
-  "model_config": {
-    "torch_dtype": "float16",
-    "device_map": "auto",
-    "trust_remote_code": true,
-    "low_cpu_mem_usage": true,
-    "quantization": "int4"
-  },
-  
-  "mlx_config": {
-    "use_mlx": true,
-    "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-    "quantization_bits": 4,
-    "fallback_to_transformers": true,
-    "temp_image_cleanup": true
-  },
-  
   "image_processing": {
-    "size": [384, 384],
-    "max_size": 1024,
-    "format": "RGB",
+    "size": [512, 512],
     "quality": 95,
-    "preserve_aspect_ratio": true,
-    "cache_enabled": true,
-    "cache_size": 20
-  },
-  
-  "generation_config": {
-    "max_new_tokens": 100,
-    "do_sample": false,
-    "temperature": 0.7,
-    "top_p": 0.9,
-    "repetition_penalty": 1.2,
-    "use_cache": false,
-    "pad_token_id": "eos_token_id"
+    "smart_crop": true
   },
   
   "server": {
     "host": "0.0.0.0",
     "port": 8080,
     "framework": "flask",
-    "cors_enabled": true,
-    "log_level": "info",
-    "threaded": false,
-    "processes": 1
-  },
-  
-  "performance": {
-    "compile_model": false,
-    "use_flash_attention": false,
-    "enable_optimizations": true,
-    "memory_optimization": "high",
-    "apple_silicon_mps": true,
-    "int4_quantization": true,
-    "image_caching": true,
-    "smart_memory_cleanup": true,
-    "video_optimization": true
-  },
-  
-  "optimization_flags": {
-    "use_mps": true,
-    "half_precision": true,
-    "cache_image_preprocessing": true,
-    "mlx_primary": true,
-    "transformers_fallback": true,
-    "memory_efficient": true,
-    "single_threaded": true
-  },
-  
-  "limits": {
-    "max_sequence_length": 2048,
-    "max_image_size": 1024,
-    "timeout_seconds": 30,
-    "max_tokens_cap": 150
-  },
-  
-  "cache_settings": {
-    "image_cache_size": 20,
-    "response_cache_size": 50,
-    "temp_file_cleanup": true,
-    "cleanup_interval": 3
-  },
-  
-  "environment": {
-    "required_packages": [
-      "mlx-vlm>=0.0.9",
-      "mlx>=0.11.0",
-      "transformers>=4.40.0",
-      "torch>=2.0.0",
-      "Pillow>=9.0.0",
-      "flask>=2.3.0"
-    ],
-    "optional_packages": [
-      "mlx-lm",
-      "accelerate"
-    ],
-    "python_version": ">=3.9",
-    "platform": "darwin",
-    "recommended_hardware": "Apple Silicon (M1/M2/M3)"
-  },
-  
-  "fallback_config": {
-    "enabled": true,
-    "fallback_model_path": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-    "fallback_device": "cpu",
-    "fallback_dtype": "float32"
+    "cors_enabled": true
   },
   
   "ui": {
-    "default_instruction": "You are an optimized AI Assistant with advanced visual understanding and video analysis capabilities. Your role is to analyze images quickly and provide detailed, helpful responses.\n\nAnalyze the image and provide a clear, concise response. Focus on the most important visual elements and their relationships.",
-    "capture_intervals": [1000, 2000, 3000, 5000, 10000],
-    "default_interval": 3000
+    "default_instruction": "You are an AI Manual Assistant with advanced visual understanding capabilities. Analyze this image and describe what you see, including any objects, actions, or important details.",
+    "capture_intervals": [1000, 2000, 5000, 10000],
+    "default_interval": 5000
   }
 }

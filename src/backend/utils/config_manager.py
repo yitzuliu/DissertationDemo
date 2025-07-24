@@ -91,6 +91,11 @@ class ConfigManager:
                 with open(config_file, 'r', encoding='utf-8') as f:
                     model_config = json.load(f)
                 
+                # 統一配置鍵名：確保 model_path 存在
+                if "model_id" in model_config and "model_path" not in model_config:
+                    model_config["model_path"] = model_config["model_id"]
+                    logger.info(f"Converted model_id to model_path for {model_name}")
+                
                 self._model_configs[model_name] = model_config
                 logger.info(f"Successfully loaded model config for {model_name}")
                 return copy.deepcopy(model_config)

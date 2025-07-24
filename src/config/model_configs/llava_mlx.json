@@ -1,9 +1,8 @@
 {
   "model_name": "LLaVA-MLX",
-  "model_id": "llava_mlx",
   "model_path": "mlx-community/llava-v1.6-mistral-7b-4bit",
-  "device": "auto",
-  "timeout": 180,
+  "device": "mps",
+  "quantization": "int4",
   "max_tokens": 150,
   "version": "1.0.0",
   "description": "LLaVA MLX model optimized for Apple Silicon with INT4 quantization",
@@ -25,11 +24,10 @@
   },
   
   "image_processing": {
-    "size": [1024, 1024],
     "max_size": 1024,
+    "min_size": 224,
     "format": "RGB",
-    "quality": 95,
-    "preserve_aspect_ratio": true
+    "quality": 95
   },
   
   "generation_config": {
@@ -41,10 +39,8 @@
   },
   
   "server": {
-    "host": "0.0.0.0",
-    "port": 8080,
     "framework": "flask",
-    "timeout": 180
+    "cors_enabled": true
   },
   
   "performance": {
@@ -78,8 +74,8 @@
   ],
   
   "ui": {
-    "default_instruction": "You are an AI Manual Assistant with state tracking and knowledge retrieval capabilities. Your role is to analyze images of hands-on tasks and provide structured guidance while maintaining awareness of task progress.\n\nFor each image analysis, structure your response as follows:\n\n[OBSERVATION]: {Brief description of what you observe in the image}\n[TASK_IDENTIFICATION]: {Specific task name and category, e.g., \"Replacing Kitchen Faucet (Plumbing)\"}\n[PROGRESS_ASSESSMENT]: {Current step number and estimated total steps, e.g., \"Step 2 of 8\"}\n[STEP_STATUS]: {One of: \"pending\", \"active\", \"done\", \"error\"}\n[DETECTED_ITEMS]: {List of tools, materials, and components visible in the image}\n[CURRENT_STEP_GUIDANCE]: {Detailed instructions for completing the current step}\n[SAFETY_WARNINGS]: {Any relevant safety precautions}\n[ALTERNATIVE_APPROACHES]: {Suggestions if standard tools are unavailable}\n\nThis structured format will integrate with our RAG system to retrieve relevant procedural knowledge and with our State-Tracking module to maintain awareness of task progress across multiple interactions.",
-    "capture_intervals": [1000, 2000, 5000, 10000],
+    "default_instruction": "Analyze this image in detail.",
+    "capture_intervals": [2000, 5000, 10000],
     "default_interval": 5000
   }
 }

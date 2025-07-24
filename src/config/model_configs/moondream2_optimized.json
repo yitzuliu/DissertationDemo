@@ -1,80 +1,21 @@
 {
   "model_name": "Moondream2-Optimized",
-  "model_id": "moondream2_optimized",
   "model_path": "vikhyatk/moondream2",
-  "device": "auto",
-  "timeout": 60,
+  "device": "mps",
   "max_tokens": 100,
-
-  "trust_remote_code": true,
+  "performance": {
+    "mps_acceleration": true,
+    "image_caching": true,
+    "memory_management": true,
+    "special_api": true
+  },
   "server": {
-    "host": "0.0.0.0",
-    "port": 8080,
     "framework": "flask",
-    "cors_enabled": true,
-    "log_level": "info",
-    "threaded": true
-  },
-  "image_processing": {
-    "smart_crop": true,
-    "size": [384, 384],
-    "min_size": 256,
-    "preserve_aspect_ratio": true,
-    "jpeg_quality": 85,
-    "optimize": true,
-    "noise_reduction": {
-      "enabled": false,
-      "method": "bilateral"
-    },
-    "color_balance": {
-      "enabled": false,
-      "method": "lab"
-    },
-    "preprocessing": {
-      "contrast_factor": 1.0,
-      "brightness_factor": 1.0,
-      "sharpness_factor": 1.0
-    }
-  },
-  "inference": {
-    "batch_size": 1,
-    "expected_response_time": 2.0,
-    "max_image_size": 384,
-    "use_cache": true,
-    "special_api": {
-      "encode_image": true,
-      "answer_question": true,
-      "custom_tokenizer": true
-    },
-    "optimization": {
-      "mps_acceleration": true,
-      "memory_management": true,
-      "image_caching": true,
-      "response_caching": true
-    }
-  },
-  "memory": {
-    "required_gb": 4.0,
-    "cleanup_interval": 8,
-    "cleanup_aggressive": false,
-    "smart_cleanup": true,
-    "max_memory_gb": 12.0
-  },
-  "api": {
-    "timeout": 30,
-    "max_tokens": 100,
-    "temperature": 0.7,
-    "note": "max_tokens cannot be controlled in Moondream2 API due to model limitations"
+    "cors_enabled": true
   },
   "ui": {
-    "default_instruction": "You are an AI Manual Assistant with state tracking capabilities. As a fast and efficient model, your role is to quickly analyze images and maintain task state awareness.\n\nFor each image analysis, provide a concise response with these components:\n\n[OBSERVATION]: Brief description of what you see in the image\n[TASK]: Identify the specific task or procedure (e.g., \"pasta-preparation\", \"bike-tire-replacement\")\n[STEP]: Estimate which step is currently active and total steps if possible (e.g., \"Step 2 of 5\")\n[STATUS]: Indicate if the current step is \"pending\", \"active\", \"done\", or has \"error\"\n[GUIDANCE]: Clear, numbered instructions for completing the current step\n[SAFETY]: Brief safety notes if relevant\n\nKeep your responses concise but informative. Focus on accurately identifying the task, tracking progress, and providing practical guidance. This structured format will help the system track task state and retrieve relevant information from the knowledge base.",
-    "capture_intervals": [1000, 2000, 5000, 10000, 20000],
+    "default_instruction": "What do you see in this image?",
+    "capture_intervals": [1000, 2000, 5000, 10000],
     "default_interval": 5000
-  },
-  "performance_notes": "Optimized for Apple Silicon with MPS acceleration. Uses Moondream2's special encode_image + answer_question API. Fast inference but max_tokens cannot be controlled.",
-  "model_type": "image-text-to-text",
-  "load_method": "custom_api",
-  "torch_dtype": "auto",
-  "version": "1.0.0-optimized",
-  "description": "Optimized Moondream2 vision language model with MPS acceleration, image caching, and special API handling for maximum performance on Apple Silicon."
-} 
+  }
+}

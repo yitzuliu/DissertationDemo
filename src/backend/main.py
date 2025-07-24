@@ -143,6 +143,10 @@ def preprocess_image(image_url):
             model_config = config_manager.load_model_config(ACTIVE_MODEL)
             image_config = model_config.get("image_processing", {})
             
+            # 統一配置存取：優先使用 model_path，fallback 到 model_id
+            model_identifier = model_config.get("model_path", model_config.get("model_id", ACTIVE_MODEL))
+            logger.info(f"Processing image for model: {model_identifier}")
+            
             # Unified handling of different configuration formats
             # Support both "size": [1024, 1024] and "max_size": 512 formats
             if "size" in image_config:
