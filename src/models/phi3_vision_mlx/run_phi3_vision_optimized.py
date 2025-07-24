@@ -26,6 +26,21 @@ from PIL import Image
 import torch
 from pathlib import Path
 
+# Print startup banner
+def print_startup_banner(model_name, server_type, features, optimizations=None, port=None):
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    print("=" * 60)
+    print()
+
 # Setup logging
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -532,18 +547,25 @@ class OptimizedPhi3VisionServer:
 
 def main():
     """Main execution with optimization info and port cleanup"""
-    print("🔥 OPTIMIZED Phi-3.5-Vision Server with Metal Conflict Prevention")
-    print("=" * 60)
-    print("🎯 Performance Improvements:")
-    print("   • Single-threaded Flask to prevent Metal GPU conflicts")
-    print("   • MLX acceleration for Apple Silicon")
-    print("   • Memory optimization and cleanup")
-    print("   • Port management and cleanup")
-    print("🧹 Port Management:")
-    print("   • Automatic port 8080 cleanup")
-    print("   • Process detection and termination")
-    print("   • Graceful and force kill options")
-    print("=" * 60)
+    print_startup_banner(
+        model_name="Phi-3.5-Vision-Optimized",
+        server_type="Server",
+        features=[
+            "Single-threaded Flask to prevent Metal GPU conflicts",
+            "MLX acceleration for Apple Silicon",
+            "Memory optimization and cleanup",
+            "Port management and cleanup",
+            "Automatic port 8080 cleanup",
+            "Process detection and termination",
+            "Graceful and force kill options"
+        ],
+        optimizations=[
+            "Single-threaded Flask",
+            "Memory management",
+            "Port cleanup"
+        ],
+        port=8080
+    )
     
     # Check MLX availability
     try:

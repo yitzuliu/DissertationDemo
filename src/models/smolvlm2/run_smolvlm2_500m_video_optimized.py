@@ -24,6 +24,21 @@ from PIL import Image
 import torch
 from pathlib import Path
 
+# Print startup banner
+def print_startup_banner(model_name, server_type, features, optimizations=None, port=None):
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    print("=" * 60)
+    print()
+
 # Setup logging (same as optimized phi3_vision)
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -67,6 +82,27 @@ def setup_logging():
         raise
 
 logger = setup_logging()
+
+def print_startup_banner(
+    model_name: str,
+    server_type: str,
+    features: list,
+    optimizations: list = None,
+    port: int = None):
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    if port:
+        print(f"🌐 Server will start on port {port}")
+    print("=" * 60)
+    print()
 
 class OptimizedSmolVLM2VideoServer:
     """
@@ -480,6 +516,13 @@ def main():
         exit(1)
 
 if __name__ == "__main__":
+    print_startup_banner(
+        model_name="SmolVLM2-500M-Video-Optimized",
+        server_type="Server",
+        features=["Single-threaded Flask", "MLX acceleration", "Memory optimization", "Video understanding"],
+        optimizations=["Single-threaded", "Memory management", "MLX acceleration"],
+        port=8080
+    )
     main()
 
 

@@ -25,6 +25,21 @@ from PIL import Image
 import torch
 from pathlib import Path
 
+# Print startup banner
+def print_startup_banner(model_name, server_type, features, optimizations=None, port=None):
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    print("=" * 60)
+    print()
+
 # Setup logging
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -606,20 +621,29 @@ class OptimizedMoondream2Server:
         return True
 
 def main():
-    """Main execution with optimization info and port cleanup"""
-    print("🔥 OPTIMIZED Moondream2 Server with Port Cleanup")
-    print("=" * 60)
-    print("🎯 Performance Improvements:")
-    print("   • MPS acceleration for Apple Silicon")
-    print("   • Optimized memory management")
-    print("   • Image preprocessing cache")
-    print("   • Response caching for repeated queries")
-    print("   • Special API handling (encode_image + answer_question)")
-    print("🧹 Port Management:")
-    print("   • Automatic port 8080 cleanup")
-    print("   • Process detection and termination")
-    print("   • Graceful and force kill options")
-    print("=" * 60)
+
+    print_startup_banner(
+        model_name="Moondream2-Optimized",
+        server_type="Server",
+        features=[
+            "MPS acceleration for Apple Silicon",
+            "Optimized memory management",
+            "Image preprocessing cache",
+            "Response caching for repeated queries",
+            "Special API handling (encode_image + answer_question)",
+            "Automatic port 8080 cleanup",
+            "Process detection and termination",
+            "Graceful and force kill options"
+        ],
+        optimizations=[
+            "MPS acceleration",
+            "Memory management",
+            "Image caching",
+            "Response caching",
+            "Special API handling"
+        ],
+        port=8080
+    )
     
     # Check PyTorch and MPS availability
     logger.info(f"PyTorch version: {torch.__version__}")

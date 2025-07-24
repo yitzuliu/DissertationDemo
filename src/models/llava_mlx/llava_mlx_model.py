@@ -37,18 +37,18 @@ class LlavaMlxModel(BaseVisionModel):
         self.loaded = False
         self.stats = {"requests": 0, "total_time": 0.0}
         
-        # 添加狀態追蹤 - 參考測試框架的單次推理模式
+        # add status tracking - reference test framework single inference mode
         self.inference_count = 0
-        self.max_inferences_before_reload = 1  # 每次推理後重載模型
+        self.max_inferences_before_reload = 1  # reload model after each inference
 
     def load_model(self):
-        """Load LLaVA MLX model using MLX-VLM framework (參考 vlm_tester.py 的成功實現)"""
+        """Load LLaVA MLX model using MLX-VLM framework (reference vlm_tester.py success implementation)"""
         print(f"Loading LLaVA MLX model: {self.model_id}...")
         try:
             from mlx_vlm import load
             print(f"🚀 Using MLX-VLM to load: {self.model_id}")
             
-            # 參考 vlm_tester.py 的載入方式
+            # reference vlm_tester.py loading method
             self.model, self.processor = load(self.model_id)
             self.loaded = True
             print("✅ LLaVA MLX model loaded successfully.")
@@ -61,24 +61,24 @@ class LlavaMlxModel(BaseVisionModel):
             raise RuntimeError(f"Failed to load LLaVA MLX model from {self.model_id}: {e}")
 
     def predict(self, image: Any, prompt: str, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Predict method for compatibility with BaseVisionModel (參考 vlm_tester.py)"""
+        """Predict method for compatibility with BaseVisionModel (reference vlm_tester.py)"""
         try:
-            # 確保輸入圖像是 PIL Image
+            # ensure input image is PIL Image
             if not isinstance(image, Image.Image):
                 if hasattr(image, 'shape'):  # numpy array
                     image = Image.fromarray(image)
                 else:
                     raise ValueError("Invalid image format")
             
-            # 獲取 max_tokens 參數
-            max_tokens = 150  # 默認值
+            # get max_tokens parameter
+            max_tokens = 150  # default value
             if options and "max_tokens" in options:
                 max_tokens = options["max_tokens"]
             
-            # 調用 generate_response 方法
+            # call generate_response method
             response_text = self.generate_response(image, prompt, max_tokens)
             
-            # 確保返回正確的格式
+            # ensure return correct format
             return {
                 "success": True,
                 "response": {"text": response_text}
@@ -93,8 +93,8 @@ class LlavaMlxModel(BaseVisionModel):
             }
 
     def generate_response(self, image: Image.Image, prompt: str, max_tokens: int = 100) -> str:
-        """Generate response with automatic model reloading - 參考測試框架的成功方法"""
-        # 檢查是否需要重載模型來避免狀態累積
+        " Generate response with automatic model reloading - reference test framework success method"
+        # check if need to reload model to avoid state accumulation
         if self.inference_count >= self.max_inferences_before_reload:
             print(f"🔄 Reloading model after {self.inference_count} inferences to prevent state issues")
             self.unload_model()
@@ -109,11 +109,11 @@ class LlavaMlxModel(BaseVisionModel):
         print(f"Generating response with LLaVA MLX (inference #{self.inference_count + 1})...")
         
         try:
-            # 參考測試框架的圖像處理
+            # reference test framework image processing
             if image.mode != 'RGB':
                 image = image.convert('RGB')
             
-            # 使用測試框架驗證的尺寸處理
+            # reference test framework verified size processing
             unified_image_size = 1024
             original_size = image.size
             if max(image.size) > unified_image_size:
@@ -122,18 +122,18 @@ class LlavaMlxModel(BaseVisionModel):
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
                 print(f"🔧 Resized image: {original_size} → {new_size}")
             
-            # 使用唯一的臨時文件名避免衝突
+            # use unique temporary file name to avoid conflict
             import uuid
             temp_image_path = f"temp_mlx_image_{uuid.uuid4().hex[:8]}.jpg"
             
             try:
-                # 保存圖像 - 參考測試框架
+                # save image - reference test framework
                 image.save(temp_image_path, 'JPEG', quality=95, optimize=True)
                 print(f"💾 Saved image to: {temp_image_path}")
 
                 from mlx_vlm import generate
                 
-                # 使用測試框架驗證的生成參數
+                # use test framework verified generation parameters
                 response = generate(
                     model=self.model,
                     processor=self.processor,
@@ -143,7 +143,7 @@ class LlavaMlxModel(BaseVisionModel):
                     verbose=False
                 )
 
-                # 處理響應 - 參考測試框架
+                # process response - reference test framework
                 if isinstance(response, tuple) and len(response) >= 1:
                     text_response = response[0] if response[0] else ""
                 elif isinstance(response, list) and len(response) > 0:
@@ -155,7 +155,7 @@ class LlavaMlxModel(BaseVisionModel):
                 if not text_response:
                     text_response = "No response generated"
                 
-                # 增加推理計數
+                # increase inference count
                 self.inference_count += 1
                 
                 print(f"✅ Generated response: {text_response[:100]}...")
@@ -163,14 +163,14 @@ class LlavaMlxModel(BaseVisionModel):
 
             except Exception as e:
                 print(f"❌ MLX generation error: {e}")
-                # 發生錯誤時立即重載模型
+                # reload model immediately if error occurs
                 if "axis remapping" in str(e):
                     print("🔄 Axis remapping error detected - forcing model reload")
                     self.inference_count = self.max_inferences_before_reload
                 return f"MLX inference failed: {str(e)}"
                 
             finally:
-                # 清理臨時文件
+                # clean up temporary file
                 try:
                     if os.path.exists(temp_image_path):
                         os.remove(temp_image_path)
@@ -180,7 +180,7 @@ class LlavaMlxModel(BaseVisionModel):
 
         except Exception as e:
             print(f"❌ Error during LLaVA MLX inference: {e}")
-            # 發生錯誤時標記需要重載
+            # mark need to reload if error occurs
             self.inference_count = self.max_inferences_before_reload
             return f"Inference failed: {str(e)}"
 
@@ -190,28 +190,28 @@ class LlavaMlxModel(BaseVisionModel):
             return
 
         try:
-            # 更積極的緩存清理
+            # more aggressive cache clearing
             if hasattr(self.model, 'language_model') and hasattr(self.model.language_model, 'model'):
                 layers = self.model.language_model.model.layers
                 for layer in layers:
                     if hasattr(layer, "self_attn"):
-                        # 清理所有可能的緩存屬性
+                        # clear all possible cache attributes
                         for cache_attr in ["cache", "kv_cache", "_cache", "past_key_values"]:
                             if hasattr(layer.self_attn, cache_attr):
                                 delattr(layer.self_attn, cache_attr)
         except Exception as e:
             print(f"Cache clearing error: {e}")
         
-        # 強制垃圾回收
+        # force garbage collection
         gc.collect()
 
     def unload_model(self) -> bool:
         """Enhanced model unloading"""
         try:
-            # 清理緩存
+            # clear cache
             self.clear_cache()
             
-            # 刪除模型對象
+            # delete model object
             if self.model is not None:
                 del self.model
                 self.model = None
@@ -222,7 +222,7 @@ class LlavaMlxModel(BaseVisionModel):
             self.loaded = False
             self.inference_count = 0
             
-            # 強制垃圾回收
+            # force garbage collection
             gc.collect()
             
             print("🗑️ Model unloaded successfully")
@@ -256,8 +256,8 @@ class LlavaMlxModel(BaseVisionModel):
             raise ValueError("Unsupported image URL format. Please use base64 data URI.")
 
     def preprocess_image(self, image: Any) -> Any:
-        """Preprocess image for LLaVA MLX model (unified preprocessing) - 實現抽象方法"""
-        # 統一圖像預處理（參考 vlm_tester.py）
+        """Preprocess image for LLaVA MLX model (unified preprocessing) - implement abstract method"""
+        # unified image preprocessing (reference vlm_tester.py)
         if isinstance(image, Image.Image):
             original_size = image.size
             unified_image_size = 1024
@@ -268,7 +268,7 @@ class LlavaMlxModel(BaseVisionModel):
         return image
     
     def format_response(self, raw_response: Any) -> Dict[str, Any]:
-        """Format response for API compatibility - 實現抽象方法"""
+        "Format response for API compatibility - implement abstract method"
         if isinstance(raw_response, dict):
             return raw_response
         else:

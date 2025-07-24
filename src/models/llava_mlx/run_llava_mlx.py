@@ -25,6 +25,29 @@ from PIL import Image
 import torch
 from pathlib import Path
 
+# Print startup banner
+def print_startup_banner(
+    model_name: str,
+    server_type: str,
+    features: list,
+    optimizations: list = None,
+    port: int = None):
+
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    if port:
+        print(f"🌐 Server will start on port {port}")
+    print("=" * 60)
+    print()
+
 # Setup logging
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -382,7 +405,7 @@ class LLaVAMLXServer:
                 logger.info(f"📁 Loaded config keys: {list(file_config.keys())}")
                 logger.info(f"📁 Model path in config: {file_config.get('model_path', 'NOT FOUND')}")
                 
-                # 確保正確合併配置
+                # combine config with default config
                 default_config.update(file_config)
                 logger.info(f"📁 Final model_path after merge: {default_config.get('model_path')}")
                 
@@ -394,12 +417,12 @@ class LLaVAMLXServer:
             else:
                 logger.info("⚙️ Using default LLaVA MLX config")
             
-            # 驗證並修復 model_path
+            # Validate and fix model_path
             if "model_path" not in default_config or not default_config["model_path"]:
                 default_config["model_path"] = "mlx-community/llava-v1.6-mistral-7b-4bit"
                 logger.info("🔧 Set default model_path: mlx-community/llava-v1.6-mistral-7b-4bit")
             
-            # 避免使用 model_id 作為路徑
+            # avoid using model_id as path
             if default_config.get("model_path") == "llava_mlx":
                 default_config["model_path"] = "mlx-community/llava-v1.6-mistral-7b-4bit"
                 logger.warning("🔧 Fixed incorrect model_path, was set to model_id")
@@ -428,7 +451,7 @@ class LLaVAMLXServer:
             logger.info("🚀 Initializing LLaVA MLX...")
             start_time = time.time()
             
-            # 確保傳遞正確的配置
+            # ensure passing correct config
             model_config = self.config.copy()
             logger.info(f"🔧 Initializing with model_path: {model_config.get('model_path')}")
             
@@ -522,17 +545,17 @@ class LLaVAMLXServer:
                         "error": "No image provided"
                     }), 400
                 
-                # 參考測試框架的圖像處理方式
+                # reference test framework image processing
                 try:
                     image_bytes = base64.b64decode(image_data)
                     image = Image.open(BytesIO(image_bytes))
                     
-                    # 確保圖像是 RGB 格式（參考測試框架）
+                    # ensure image is RGB format (reference test framework)
                     if image.mode != 'RGB':
                         image = image.convert('RGB')
                         logger.info("🔧 Converted image to RGB format")
                     
-                    # 參考測試框架的統一圖像預處理（1024px）
+                    # reference test framework unified image preprocessing (1024px)
                     unified_image_size = 1024
                     original_size = image.size
                     if max(image.size) > unified_image_size:
@@ -541,12 +564,12 @@ class LLaVAMLXServer:
                         image = image.resize(new_size, Image.Resampling.LANCZOS)
                         logger.info(f"🔧 Resized image: {original_size} → {new_size} (test framework method)")
                     
-                    # 檢查圖像尺寸是否合理
+                    # check image size is reasonable
                     if image.size[0] < 32 or image.size[1] < 32:
                         logger.warning(f"⚠️ Image too small: {image.size}, using minimum size")
                         image = image.resize((224, 224), Image.Resampling.LANCZOS)
                     
-                    # 檢查圖像尺寸是否過大
+                    # check image size is too large
                     if image.size[0] > 2048 or image.size[1] > 2048:
                         logger.warning(f"⚠️ Image too large: {image.size}, reducing size")
                         max_dim = max(image.size)
@@ -584,7 +607,7 @@ class LLaVAMLXServer:
                     self.stats["total_time"] = float(self.stats["total_time"] + processing_time)
                     self.stats["avg_time"] = float(self.stats["total_time"] / self.stats["requests"])
                     
-                    # 確保結果格式正確（參考之前的修復）
+                    # ensure result format is correct (reference previous fix)
                     if result.get("success"):
                         response_text = result.get("response", {}).get("text", "No response")
                         
@@ -610,7 +633,7 @@ class LLaVAMLXServer:
                             }
                         })
                     else:
-                        # 錯誤時也要返回正確的格式
+                        # error should return correct format
                         error_msg = result.get("error", "Unknown error")
                         return jsonify({
                             "choices": [{
@@ -625,7 +648,7 @@ class LLaVAMLXServer:
                         
                 except Exception as e:
                     logger.error(f"Model prediction error: {e}")
-                    # 即使發生異常也要返回正確的格式
+                    # even if error occurs, return correct format
                     return jsonify({
                         "choices": [{
                             "message": {
@@ -639,7 +662,7 @@ class LLaVAMLXServer:
                     
             except Exception as e:
                 logger.error(f"Request processing error: {e}")
-                # 最終異常處理也要返回正確的格式
+                # final error handling should return correct format
                 return jsonify({
                     "choices": [{
                         "message": {
@@ -706,21 +729,22 @@ class LLaVAMLXServer:
         return True
 
 def main():
-    """Main execution with MLX info and port cleanup"""
-    print("🚀 LLaVA MLX Server with Apple Silicon Optimization")
-    print("=" * 60)
-    print("🎯 Features:")
-    print("   • MLX framework for Apple Silicon (M1/M2/M3)")
-    print("   • INT4 quantization for memory efficiency")
-    print("   • Unified image preprocessing (1024px)")
-    print("   • OpenAI-compatible API endpoints")
-    print("   • Automatic port 8080 cleanup")
-    print("=" * 60)
-    print("⚠️  Requirements:")
-    print("   • Apple Silicon Mac (M1/M2/M3)")
-    print("   • mlx-vlm package: pip install mlx-vlm")
-    print("   • Known issues with synthetic/square images")
-    print("=" * 60)
+    print_startup_banner(
+        model_name="LLaVA-MLX",
+        server_type="Standard Server",
+        features=[
+            "OpenAI-compatible API",
+            "MLX acceleration for Apple Silicon",
+            "Transformers fallback",
+            "Robust error handling"
+        ],
+        optimizations=[
+            "Single-threaded Flask",
+            "Memory management",
+            "Port cleanup"
+        ],
+        port=8080
+    )
     
     # Check MLX availability
     try:

@@ -29,6 +29,21 @@ import uvicorn
 from PIL import Image
 import torch
 
+# Print startup banner
+def print_startup_banner(model_name, server_type, features, optimizations=None, port=None):
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    print("=" * 60)
+    print()
+
 # Setup logging
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -591,14 +606,23 @@ class StandardPhi3VisionServer:
 
 def main():
     """Main execution"""
-    print("🔥 STANDARD Phi-3.5-Vision Server")
-    print("=" * 50)
-    print("🎯 Features:")
-    print("   • FastAPI server for maximum compatibility")
-    print("   • MLX-VLM with transformers fallback")
-    print("   • Cross-platform support")
-    print("   • Robust error handling")
-    print("=" * 50)
+    print_startup_banner(
+        model_name="Phi-3.5-Vision-Standard",
+        server_type="Server",
+        features=[
+            "FastAPI server for maximum compatibility",
+            "MLX-VLM with transformers fallback",
+            "Cross-platform support",
+            "Robust error handling"
+        ],
+        optimizations=[
+            "FastAPI server",
+            "MLX-VLM with transformers fallback",
+            "Cross-platform support",
+            "Robust error handling"
+        ],
+        port=8080
+    )
     
     # Check MLX availability
     try:

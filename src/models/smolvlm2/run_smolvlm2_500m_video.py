@@ -22,6 +22,21 @@ from flask import Flask, request, jsonify
 from PIL import Image
 import torch
 
+# Print startup banner
+def print_startup_banner(model_name, server_type, features, optimizations=None, port=None):
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    print("=" * 60)
+    print()
+
 # Setup logging
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -421,15 +436,13 @@ class SmolVLM2VideoServer:
 
 def main():
     """Main execution"""
-    print("🔥 SmolVLM2-500M-Video Standard Server")
-    print("=" * 50)
-    print("🎯 Features:")
-    print("   • Video understanding capabilities")
-    print("   • MLX-VLM with transformers fallback")
-    print("   • Flask server for compatibility")
-    print("   • Robust error handling")
-    print("=" * 50)
-    
+    print_startup_banner(
+        model_name="SmolVLM2-500M-Video-Standard",
+        server_type="Server",
+        features=["Video understanding capabilities", "MLX-VLM with transformers fallback", "Flask server for compatibility", "Robust error handling"],
+        optimizations=["MLX-VLM with transformers fallback", "Flask server for compatibility", "Robust error handling"],
+        port=8080
+    )
     # Check MLX availability
     try:
         import mlx.core as mx

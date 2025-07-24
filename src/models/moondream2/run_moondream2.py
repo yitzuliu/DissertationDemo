@@ -26,6 +26,21 @@ from typing import List, Dict, Any, Optional
 import uvicorn
 from contextlib import asynccontextmanager
 
+# Print startup banner
+def print_startup_banner(model_name, server_type, features, optimizations=None, port=None):
+    print()
+    print(f"🔥 {model_name} {server_type}")
+    print("=" * 60)
+    print("🎯 Features:")
+    for feat in features:
+        print(f"   • {feat}")
+    if optimizations:
+        print("⚡ Optimizations:")
+        for opt in optimizations:
+            print(f"   • {opt}")
+    print("=" * 60)
+    print()
+
 # Setup logging
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -381,15 +396,23 @@ def stats():
     }
 
 def main():
-    """Main execution"""
-    print("🔥 STANDARD Moondream2 Server")
-    print("=" * 50)
-    print("🎯 Features:")
-    print("   • FastAPI server for maximum compatibility")
-    print("   • Standard precision (float32)")
-    print("   • Cross-platform support")
-    print("   • Robust error handling")
-    print("=" * 50)
+    print_startup_banner(
+        model_name="Moondream2-Standard",
+        server_type="Server",
+        features=[
+            "FastAPI server for maximum compatibility",
+            "Standard precision (float32)",
+            "Cross-platform support",
+            "Robust error handling"
+        ],
+        optimizations=[
+            "FastAPI server",
+            "Standard precision",
+            "Cross-platform support",
+            "Robust error handling"
+        ],
+        port=8080
+    )   
     
     # Check PyTorch availability
     logger.info(f"PyTorch version: {torch.__version__}")
