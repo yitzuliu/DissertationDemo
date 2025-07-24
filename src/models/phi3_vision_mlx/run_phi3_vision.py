@@ -18,6 +18,7 @@ import signal
 import subprocess
 import socket
 import sys
+import tempfile
 from io import BytesIO
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
@@ -59,49 +60,6 @@ def setup_logging():
 
 logger = setup_logging()
 
-# Import model with fallbacks
-def import_model_with_fallbacks():
-    """Import Phi-3.5-Vision model with multiple fallback strategies"""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(parent_dir)))
-    
-    for path in [current_dir, parent_dir, project_root]:
-        if path not in sys.path:
-            sys.path.insert(0, path)
-    
-    # Strategy 1: Try importing standard model
-    try:
-        from phi3_vision_model import Phi3VisionModel
-        logger.info("✅ Imported Phi3VisionModel (Strategy 1)")
-        return Phi3VisionModel
-    except ImportError as e:
-        logger.warning(f"Strategy 1 failed: {e}")
-    
-    # Strategy 2: Create minimal implementation
-    logger.error("❌ Model import failed, creating minimal implementation")
-    
-    class MinimalPhi3VisionModel:
-        def __init__(self, model_name, config):
-            self.model_name = model_name
-            self.config = config
-            self.loaded = False
-            
-        def load_model(self):
-            logger.error("❌ Minimal model - no actual functionality")
-            return False
-            
-        def predict(self, image, prompt, options=None):
-            return {
-                "error": "Model import failed - check dependencies",
-                "success": False,
-                "response": {"text": "Model not available"}
-            }
-    
-    return MinimalPhi3VisionModel
-
-Phi3VisionModel = import_model_with_fallbacks()
-
 class ChatCompletionRequest(BaseModel):
     max_tokens: Optional[int] = None
     messages: List[Dict[str, Any]]
@@ -112,7 +70,9 @@ class StandardPhi3VisionServer:
     def __init__(self, config_path="phi3_vision.json"):
         self.app = FastAPI(title="Phi-3.5-Vision Standard API")
         self.model = None
+        self.processor = None
         self.config = self.load_config(config_path)
+        self.use_mlx = False
         self.setup_middleware()
         self.setup_routes()
         
@@ -140,7 +100,6 @@ class StandardPhi3VisionServer:
             if project_config_path.exists():
                 with open(project_config_path, 'r') as f:
                     file_config = json.load(f)
-                # 正確處理配置文件合併
                 default_config.update(file_config)
                 logger.info(f"📁 Loaded config from {project_config_path}")
             elif os.path.exists(config_path):
@@ -151,7 +110,7 @@ class StandardPhi3VisionServer:
             else:
                 logger.info("⚙️ Using default standard config")
             
-            # 確保 model_path 正確設定並避免使用 model_id 作為路徑
+            # Ensure model_path is correct
             if "model_path" not in default_config or not default_config["model_path"] or default_config["model_path"] == "phi3_vision":
                 default_config["model_path"] = "mlx-community/Phi-3.5-vision-instruct-4bit"
                 logger.info("🔧 Set default model_path: mlx-community/Phi-3.5-vision-instruct-4bit")
@@ -182,32 +141,62 @@ class StandardPhi3VisionServer:
         )
     
     def initialize_model(self):
-        """Initialize standard model"""
+        """Initialize standard model with MLX and transformers fallback"""
         try:
             logger.info("🚀 Initializing STANDARD Phi-3.5-Vision...")
             start_time = time.time()
             
-            # 確保傳遞正確的配置
             model_config = self.config.copy()
-            # 確保 model_path 不是 model_id
             if model_config.get("model_path") == "phi3_vision":
                 model_config["model_path"] = "mlx-community/Phi-3.5-vision-instruct-4bit"
                 logger.warning("🔧 Fixed model_path that was incorrectly set to model_id")
             
             logger.info(f"🔧 Initializing with model_path: {model_config.get('model_path')}")
             
-            self.model = Phi3VisionModel(
-                model_name=model_config.get("model_name", "Phi-3.5-Vision"),
-                config=model_config
-            )
-            
-            if self.model.load_model():
+            # Strategy 1: Try MLX-VLM first (same as vlm_tester.py)
+            try:
+                from mlx_vlm import load
+                logger.info("🚀 Attempting MLX-VLM load...")
+                
+                self.model, self.processor = load(
+                    model_config.get("model_path"), 
+                    trust_remote_code=True
+                )
+                self.use_mlx = True
+                
                 init_time = time.time() - start_time
-                logger.info(f"✅ STANDARD Phi-3.5-Vision ready in {init_time:.2f}s")
+                logger.info(f"✅ MLX Phi-3.5-Vision loaded in {init_time:.2f}s")
                 return True
-            else:
-                logger.error("❌ Failed to load standard model")
-                return False
+                
+            except ImportError as e:
+                logger.warning(f"MLX-VLM not available: {e}, falling back to transformers")
+                self.use_mlx = False
+            except Exception as e:
+                logger.warning(f"MLX loading failed: {e}, falling back to transformers")
+                self.use_mlx = False
+            
+            # Strategy 2: Fallback to transformers (same as vlm_tester.py)
+            if not self.use_mlx:
+                from transformers import AutoModelForCausalLM, AutoProcessor
+                logger.info("📥 Loading transformers Phi-3.5-Vision...")
+                
+                self.processor = AutoProcessor.from_pretrained(
+                    "microsoft/Phi-3.5-vision-instruct", 
+                    trust_remote_code=True,
+                    num_crops=4
+                )
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    "microsoft/Phi-3.5-vision-instruct",
+                    torch_dtype=torch.float16,
+                    _attn_implementation="eager",
+                    device_map="cpu",
+                    low_cpu_mem_usage=True,
+                    trust_remote_code=True
+                )
+                
+                init_time = time.time() - start_time
+                logger.info(f"✅ Transformers Phi-3.5-Vision loaded in {init_time:.2f}s")
+                return True
                 
         except Exception as e:
             logger.error(f"❌ Model initialization error: {e}")
@@ -219,12 +208,13 @@ class StandardPhi3VisionServer:
         @self.app.get("/health")
         async def health():
             """Health check endpoint"""
-            if self.model and hasattr(self.model, 'loaded') and self.model.loaded:
+            if self.model and self.processor:
                 return {
                     "status": "healthy",
                     "model": "Phi-3.5-Vision",
                     "version": "1.0.0",
                     "framework": "FastAPI",
+                    "method": "MLX" if self.use_mlx else "Transformers",
                     "performance": {
                         "requests": self.stats["requests"],
                         "avg_time": f"{self.stats['avg_time']:.2f}s"
@@ -239,7 +229,7 @@ class StandardPhi3VisionServer:
             try:
                 start_time = time.time()
                 
-                if not self.model or not hasattr(self.model, 'loaded') or not self.model.loaded:
+                if not self.model or not self.processor:
                     raise HTTPException(status_code=503, detail="Model not ready")
                 
                 messages = request.messages
@@ -248,7 +238,7 @@ class StandardPhi3VisionServer:
                 if not messages:
                     raise HTTPException(status_code=400, detail="No messages provided")
                 
-                # Extract user message
+                # Extract user message (same pattern as vlm_tester.py)
                 user_message = None
                 for message in reversed(messages):
                     if message.get('role') == 'user':
@@ -278,15 +268,16 @@ class StandardPhi3VisionServer:
                 try:
                     image_bytes = base64.b64decode(image_data)
                     image = Image.open(BytesIO(image_bytes))
+                    if image.mode != 'RGB':
+                        image = image.convert('RGB')
                 except Exception as e:
                     raise HTTPException(status_code=400, detail=f"Image processing failed: {e}")
                 
-                # Generate response
-                result = self.model.predict(
-                    image=image,
-                    prompt=text_content,
-                    options={"max_tokens": max_tokens}
-                )
+                # Generate response using same logic as vlm_tester.py
+                if self.use_mlx:
+                    response_text = await self._generate_mlx_response(image, text_content, max_tokens)
+                else:
+                    response_text = await self._generate_transformers_response(image, text_content, max_tokens)
                 
                 processing_time = time.time() - start_time
                 
@@ -295,30 +286,26 @@ class StandardPhi3VisionServer:
                 self.stats["total_time"] += processing_time
                 self.stats["avg_time"] = self.stats["total_time"] / self.stats["requests"]
                 
-                if result.get("success"):
-                    response_text = result.get("response", {}).get("text", "")
-                    
-                    return {
-                        "choices": [{
-                            "message": {
-                                "role": "assistant",
-                                "content": response_text
-                            },
-                            "finish_reason": "stop"
-                        }],
-                        "usage": {
-                            "prompt_tokens": len(text_content.split()),
-                            "completion_tokens": len(response_text.split()),
-                            "total_tokens": len(text_content.split()) + len(response_text.split())
+                return {
+                    "choices": [{
+                        "message": {
+                            "role": "assistant",
+                            "content": response_text
                         },
-                        "model": "Phi-3.5-Vision",
-                        "performance": {
-                            "processing_time": f"{processing_time:.2f}s",
-                            "framework": "FastAPI"
-                        }
+                        "finish_reason": "stop"
+                    }],
+                    "usage": {
+                        "prompt_tokens": len(text_content.split()),
+                        "completion_tokens": len(response_text.split()),
+                        "total_tokens": len(text_content.split()) + len(response_text.split())
+                    },
+                    "model": "Phi-3.5-Vision",
+                    "performance": {
+                        "processing_time": f"{processing_time:.2f}s",
+                        "framework": "FastAPI",
+                        "method": "MLX" if self.use_mlx else "Transformers"
                     }
-                else:
-                    raise HTTPException(status_code=500, detail=result.get("error", "Unknown error"))
+                }
                     
             except HTTPException:
                 raise
@@ -333,12 +320,97 @@ class StandardPhi3VisionServer:
                 "model": "Phi-3.5-Vision",
                 "statistics": self.stats,
                 "framework": "FastAPI",
+                "method": "MLX" if self.use_mlx else "Transformers",
                 "features": {
                     "mlx_support": True,
                     "transformers_fallback": True,
                     "cross_platform": True
                 }
             }
+    
+    async def _generate_mlx_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
+        """Generate response using MLX (same as vlm_tester.py)"""
+        try:
+            from mlx_vlm import generate
+            logger.info("🚀 Using MLX-VLM inference for Phi-3.5-Vision...")
+            
+            # Save image to temporary file for MLX
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                temp_image_path = tmp_file.name
+                image.save(temp_image_path, 'JPEG', quality=95)
+            
+            try:
+                # Use same prompt format as vlm_tester.py
+                mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
+                
+                response = generate(
+                    model=self.model,
+                    processor=self.processor,
+                    image=temp_image_path,
+                    prompt=mlx_prompt,
+                    max_tokens=max_tokens,
+                    temp=0.0,
+                    verbose=False
+                )
+                
+                # Process response (same as vlm_tester.py)
+                text_response = str(response)
+                text_response = text_response.replace("<|end|>", "").replace("<|endoftext|>", "").strip()
+                if "1. What is meant by" in text_response:
+                    text_response = text_response.split("1. What is meant by")[0].strip()
+                text_response = ' '.join(text_response.split())
+                
+                return text_response
+                
+            finally:
+                # Clean up temporary file
+                try:
+                    os.remove(temp_image_path)
+                except:
+                    pass
+                    
+        except Exception as e:
+            logger.error(f"MLX inference error: {e}")
+            return f"MLX inference failed: {str(e)}"
+    
+    async def _generate_transformers_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
+        """Generate response using transformers (same as vlm_tester.py)"""
+        try:
+            # Same format as vlm_tester.py
+            messages = [{"role": "user", "content": f"<|image_1|>\n{prompt}"}]
+            
+            prompt_text = self.processor.tokenizer.apply_chat_template(
+                messages, 
+                tokenize=False, 
+                add_generation_prompt=True
+            )
+            
+            inputs = self.processor(prompt_text, [image], return_tensors="pt")
+            
+            # Move to correct device
+            device = next(self.model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs, 
+                    max_new_tokens=max_tokens,
+                    do_sample=False,
+                    use_cache=False,
+                    pad_token_id=self.processor.tokenizer.eos_token_id
+                )
+            
+            result = self.processor.decode(outputs[0], skip_special_tokens=True)
+            
+            # Clean response
+            if "Assistant:" in result:
+                result = result.split("Assistant:")[-1].strip()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Transformers inference error: {e}")
+            return f"Transformers inference failed: {str(e)}"
     
     async def startup(self):
         """Startup event"""

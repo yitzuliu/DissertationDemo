@@ -541,11 +541,8 @@ def format_message_for_model(message, image_count, model_name):
             # SmolVLM doesn't need special image tags
             formatted_text = text_content
         elif model_name in ["phi3_vision", "phi3_vision_optimized"]:
-            # Phi-3 Vision uses <|image_1|> format
-            if image_count > 0:
-                formatted_text = f"<|image_1|>\n{text_content}"
-            else:
-                formatted_text = text_content
+            # Don't add <|image_1|> here - let model server handle it
+            formatted_text = text_content  # Remove the prefix addition
         elif model_name in ["moondream2", "moondream2_optimized"]:
             # Moondream2 doesn't need special image tags
             formatted_text = text_content
@@ -568,12 +565,13 @@ def format_message_for_model(message, image_count, model_name):
         
         logger.info(f"Formatted message for {model_name}: images={image_count}, text='{formatted_text[:50]}...'")
     
+        logger.info(f"Formatted message for {model_name}: images={image_count}, text='{formatted_text[:50]}...'")
     return message
-
-# ...existing code...
-
 # Start frontend separately: cd ../frontend && python -m http.server 5500
-
+# ...existing code...
+if __name__ == "__main__":
+# Start frontend separately: cd ../frontend && python -m http.server 5500
+    logger.info(f"Starting backend server with model: {ACTIVE_MODEL}")
 if __name__ == "__main__":
     # 確保在啟動時正確配置
     logger.info(f"Starting backend server with model: {ACTIVE_MODEL}")
