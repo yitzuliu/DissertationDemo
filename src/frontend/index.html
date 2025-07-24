@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vision Intelligence Hub</title>
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles - Create inline fallback for missing CSS files -->
     <style>
+        /* Include all the existing CSS from the previous version */
         :root {
-            --primary: #2563eb; /* Royal blue */
+            --primary: #2563eb;
             --primary-light: #dbeafe;
             --primary-dark: #1d4ed8;
-            --secondary: #06b6d4; /* Cyan */
+            --secondary: #06b6d4;
             --secondary-light: #cffafe;
-            --accent: #8b5cf6; /* Purple */
+            --accent: #8b5cf6;
             --accent-light: #ede9fe;
             --success: #10b981;
             --success-light: #d1fae5;
@@ -53,8 +58,8 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-main);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(var(--secondary), 0.03) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(var(--accent), 0.03) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.03) 0px, transparent 50%);
             color: var(--text);
             line-height: 1.5;
             margin: 0;
@@ -151,7 +156,7 @@
             animation: pulse 2s infinite;
         }
         
-        /* Main container */
+        /* Container */
         .container {
             height: var(--content-height);
             margin: 1rem auto;
@@ -160,6 +165,13 @@
             grid-template-columns: 3fr 1fr;
             grid-template-rows: 1fr;
             gap: 16px;
+            overflow: hidden;
+        }
+        
+        .main-content-flex {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
             overflow: hidden;
         }
         
@@ -215,25 +227,53 @@
             font-size: 1.2rem;
         }
         
-        /* Video & camera */
+        /* Video Controls Card */
+        .video-controls-card {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .video-controls-layout {
+            display: flex;
+            gap: 0.75rem;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .video-section {
+            flex: 13;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .controls-section {
+            flex: 7;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Video */
         .video-container {
             position: relative;
             border-radius: var(--radius-md);
             overflow: hidden;
             background-color: rgba(0,0,0,0.9);
             box-shadow: var(--shadow-sm);
-            margin-bottom: 0.75rem;
-            min-height: 0;
+            margin-bottom: 0.5rem;
+            flex-grow: 1;
         }
         
         .video-preview {
             width: 100%;
+            height: 100%;
             border-radius: var(--radius-md);
             background: linear-gradient(to bottom right, #101010, #232323);
-            aspect-ratio: 16/9;
             object-fit: cover;
             transition: var(--transition);
-            height: 100%;
         }
         
         .video-container::after {
@@ -249,16 +289,14 @@
         }
         
         .thumbnail-container {
-            margin-top: 1rem;
             display: flex;
             align-items: center;
-            gap: 12px;
-            position: relative;
+            gap: 0.5rem;
         }
         
         .image-preview {
-            width: 120px;
-            height: 90px;
+            width: 80px;
+            height: 60px;
             object-fit: cover;
             border-radius: var(--radius-sm);
             border: 2px solid var(--primary);
@@ -271,35 +309,42 @@
         }
         
         .capture-label {
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             color: var(--text-light);
             font-weight: 600;
             padding: 0.5rem 1rem;
             background: var(--bg-secondary);
             border-radius: 2rem;
+            min-width: 150px;
         }
         
         /* Form elements */
         .form-group {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
         
         .form-group label {
             display: block;
             margin-bottom: 0.25rem;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-light);
             text-transform: uppercase;
             letter-spacing: 0.03em;
         }
         
+        .settings-label {
+            margin-bottom: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-light);
+        }
+        
         textarea, input, select {
             font-family: 'Inter', sans-serif;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             border-radius: var(--radius-md);
             border: 1px solid var(--border-light);
-            padding: 0.5rem 0.75rem;
+            padding: 0.35rem 0.5rem;
             width: 100%;
             background-color: #fff;
             color: var(--text);
@@ -315,96 +360,34 @@
         textarea[readonly] {
             background-color: var(--bg-secondary);
             cursor: default;
-            border: 1px solid var(--border-light);
         }
         
-        .textarea-container {
-            position: relative;
+        #instructionText {
+            height: 60px;
+            resize: none;
         }
         
-        .help-msg {
-            color: var(--primary);
-            font-size: 0.85rem;
-            margin-top: 0.75rem;
-            padding: 0.75rem 1rem;
-            background-color: var(--primary-light);
-            border-radius: var(--radius-md);
-            position: relative;
-        }
-        
-        .help-msg::before {
-            content: '\f05a';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            margin-right: 0.5rem;
-        }
-        
-        .error-msg {
-            color: var(--error);
-            font-size: 0.85rem;
-            margin-top: 0.75rem;
-            font-weight: 500;
-            padding: 0.75rem 1rem;
-            background-color: var(--error-light);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .error-msg::before {
-            content: '\f071';
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-        }
-        
-        /* Parameters */
+        /* Parameter grid */
         .parameter-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin-top: 0.25rem;
-            margin-bottom: 0.5rem;
+            grid-template-columns: 1fr;
+            gap: 0.4rem;
         }
         
         /* Buttons */
-        .btn-container {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 0.75rem;
-        }
-        
         .btn {
-            padding: 0.5rem 1.25rem;
+            padding: 0.35rem 0.5rem;
             border: none;
             border-radius: var(--radius-md);
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .btn:hover::before {
-            opacity: 1;
         }
         
         .btn-primary {
@@ -432,102 +415,172 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none !important;
-            box-shadow: none !important;
         }
         
-        /* Info sidebar */
-        .sidebar .card {
-            position: relative;
+        /* Messages */
+        .help-msg {
+            color: var(--primary);
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: var(--primary-light);
+            border-radius: var(--radius-md);
         }
         
-        .sidebar .card::before {
-            background: var(--gradient-primary);
-            opacity: 0.8;
+        .help-msg::before {
+            content: '\f05a';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            margin-right: 0.5rem;
         }
         
-        .sidebar .card-body {
-            font-size: 0.95rem;
-            padding: 0.5rem 0;
-        }
-        
-        .sidebar .section-title {
-            position: relative;
-            padding-bottom: 0.75rem;
-            margin-bottom: 1.25rem;
-            font-weight: 700;
-            color: var(--text);
-            font-size: 1.1rem;
+        .error-msg {
+            color: var(--error);
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background-color: var(--error-light);
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             gap: 8px;
         }
         
-        .sidebar .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: var(--gradient-primary);
-            border-radius: 1.5px;
+        .error-msg::before {
+            content: '\f071';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
         }
         
-        .sidebar .section-title i {
-            color: var(--primary);
-        }
-        
-        .info-list {
-            list-style-type: none;
-            margin: 1rem 0 1.5rem;
-            border-radius: var(--radius-md);
+        /* Response Card */
+        .response-card {
+            height: 300px;
             overflow: hidden;
-            border: 1px solid var(--border-light);
+            margin-bottom: 0;
         }
         
-        .info-list li {
-            padding: 0.9rem 1rem;
+        .response-textarea {
+            height: 255px;
+            resize: none;
+            font-size: 0.8rem;
+            overflow-y: auto;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+            min-width: 220px;
+            max-width: 280px;
+        }
+        
+        .system-status {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            margin: 0;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+        
+        /* Info tabs */
+        .info-tabs-card {
+            flex-grow: 1;
+            margin-bottom: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .tabs-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .tabs-header {
+            display: flex;
             border-bottom: 1px solid var(--border-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 0.25rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            opacity: 0.6;
+        }
+        
+        .tab-btn.active-tab {
+            opacity: 1;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .tab-btn:hover {
+            opacity: 0.85;
+        }
+        
+        .tab-content {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        
+        .tab-panel {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        .model-info h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        
+        .model-info p {
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+            color: var(--text-light);
+        }
+        
+        .feature-list {
+            margin-top: 0.75rem;
+        }
+        
+        .feature-item {
             display: flex;
             align-items: center;
-            background-color: var(--bg-secondary);
-            transition: var(--transition);
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
         }
         
-        .info-list li:hover {
-            background-color: var(--bg-card);
-        }
-        
-        .info-list li:last-child {
-            border-bottom: none;
-        }
-        
-        .info-list i {
-            width: 24px;
+        .feature-item i {
             color: var(--primary);
-            margin-right: 12px;
+            width: 16px;
         }
         
         .advice-list {
-            list-style-type: none;
-            margin-top: 1rem;
-            padding: 1.25rem;
-            background-color: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-light);
+            list-style: none;
+            margin: 0;
+            padding: 0;
         }
         
         .advice-list li {
-            padding: 0.5rem 0;
+            padding: 0.25rem 0 0.25rem 1.25rem;
+            margin-bottom: 0.5rem;
             position: relative;
-            padding-left: 1.5rem;
-            line-height: 1.65;
-            color: var(--text);
-            margin-bottom: 0.75rem;
-        }
-        
-        .advice-list li:last-child {
-            margin-bottom: 0;
+            line-height: 1.4;
         }
         
         .advice-list li::before {
@@ -537,54 +590,35 @@
             color: var(--secondary);
             position: absolute;
             left: 0;
-            top: 0.5rem;
-            font-size: 0.8rem;
+            top: 0.25rem;
+            font-size: 0.7rem;
         }
         
-        /* Tab panels */
-        .tab-panel {
-            transition: var(--transition);
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 0; transform: scale(1.8); }
+            100% { opacity: 0.6; transform: scale(1); }
         }
         
-        .tab-panel.active {
-            animation: fadeIn 0.3s ease-out forwards;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .tab-btn {
-            transition: var(--transition);
-            cursor: pointer;
+        @keyframes shimmer {
+            0% { background-position: -468px 0; }
+            100% { background-position: 468px 0; }
         }
         
-        .tab-btn:hover {
-            opacity: 0.85 !important;
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
         }
         
-        /* Response section */
-        .response-area {
-            min-height: 200px;
-            padding: 1rem;
-            background-color: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            margin-top: 1rem;
-        }
-        
-        /* System status display */
-        .system-status {
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            margin: 1rem 0;
-            font-size: 0.9rem;
-        }
-        
-        .model-description {
-            line-height: 1.65;
-            color: var(--text-light);
-            background: var(--bg-secondary);
-            padding: 1.25rem;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-light);
-            margin: 1rem 0 1.5rem;
+        .shimmer {
+            background: linear-gradient(to right, var(--bg-secondary) 8%, var(--bg-main) 18%, var(--bg-secondary) 33%);
+            background-size: 800px 104px;
+            animation: shimmer 1.5s infinite linear;
         }
         
         /* Responsive */
@@ -598,20 +632,7 @@
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
                 gap: 24px;
-            }
-            
-            .parameter-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
-        @media (max-width: 992px) {
-            .parameter-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .sidebar {
-                grid-template-columns: 1fr;
+                max-width: none;
             }
         }
         
@@ -636,48 +657,17 @@
                 margin-bottom: 1rem;
             }
             
-            .parameter-grid {
-                grid-template-columns: 1fr;
+            .video-controls-layout {
+                flex-direction: column;
             }
             
-            .card {
-                padding: 1.25rem;
+            .parameter-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .btn {
                 width: 100%;
             }
-        }
-        
-        /* Animation */
-        @keyframes pulse {
-            0% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 0; transform: scale(1.8); }
-            100% { opacity: 0.6; transform: scale(1); }
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -468px 0; }
-            100% { background-position: 468px 0; }
-        }
-        
-        .animate-pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-        
-        .shimmer {
-            background: linear-gradient(to right, var(--bg-secondary) 8%, var(--bg-main) 18%, var(--bg-secondary) 33%);
-            background-size: 800px 104px;
-            animation: shimmer 1.5s infinite linear;
         }
     </style>
 </head>
@@ -703,12 +693,10 @@
     <div class="container">
         <!-- Main Content Area -->
         <div class="main-content">
-            <div class="main-content-flex" style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
-                <!-- Video and Controls in a single card -->
-                <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; margin-bottom: 0.5rem; overflow: hidden;">
-                    <!-- Header with tabs -->
-                    <!-- Removing the tab interface since it was confusing and not fully implemented -->
-                    <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.5rem;">
+            <div class="main-content-flex">
+                <!-- Video and Controls Card -->
+                <div class="card video-controls-card">
+                    <div class="card-header">
                         <h2 class="card-title">
                             <i class="fas fa-video"></i>
                             Live Camera Feed & Controls
@@ -716,851 +704,788 @@
                     </div>
                     
                     <!-- Content area with video and controls side by side -->
-                    <div style="display: flex; gap: 0.75rem; height: 100%; overflow: hidden;">
-                        <!-- Video container - takes 65% width -->
-                        <div style="flex: 13; display: flex; flex-direction: column; min-height: 0;">
-                            <div class="video-container" style="flex-grow: 1; margin-bottom: 0.5rem;">
+                    <div class="video-controls-layout">
+                        <!-- Video container -->
+                        <div class="video-section">
+                            <div class="video-container">
                                 <video id="videoFeed" class="video-preview" autoplay playsinline></video>
                                 <canvas id="canvas" style="display:none;"></canvas>
                             </div>
-                            <div class="thumbnail-container" style="display: flex; align-items: center; gap: 0.5rem;">
-                                <img id="imagePreview" class="image-preview" style="width: 80px; height: 60px; display:none;" />
-                                <span class="capture-label" style="font-size: 0.7rem; min-width: 150px;">Last captured frame</span>
+                            <div class="thumbnail-container">
+                                <img id="imagePreview" class="image-preview" style="display:none;" />
+                                <span class="capture-label">Click Start to begin</span>
                             </div>
                         </div>
                         
-                        <!-- Controls container - takes 35% width -->
-                        <div style="flex: 7; display: flex; flex-direction: column;">
-                            <div class="form-group" style="margin-bottom: 0.5rem;">
-                                <label for="instructionText" style="font-size: 0.7rem;">Ask about the image:</label>
-                                <textarea id="instructionText" rows="2" style="height: 60px; resize: none; font-size: 0.8rem;" placeholder="Enter question about the image..."></textarea>
+                        <!-- Controls container -->
+                        <div class="controls-section">
+                            <div class="form-group">
+                                <label for="instructionText">Ask about the image:</label>
+                                <textarea id="instructionText" rows="2" placeholder="Enter question about the image..."></textarea>
                             </div>
                             
-                            <div style="margin-bottom: 0.5rem; font-size: 0.7rem; color: var(--text-light);">
+                            <div class="settings-label">
                                 <strong>Processing Settings:</strong>
                             </div>
                             
-                            <div class="parameter-grid" style="grid-template-columns: 1fr; gap: 0.4rem;">
+                            <div class="parameter-grid mobile-single-column">
                                 <div class="form-group">
-                                    <label for="cameraSelect" style="font-size: 0.7rem;">Select Camera</label>
-                                    <select id="cameraSelect" style="padding: 0.35rem 0.25rem; font-size: 0.75rem;"></select>
+                                    <label for="cameraSelect">Select Camera</label>
+                                    <select id="cameraSelect"></select>
                                 </div>
                                 <div>
-                                    <label for="intervalSelect" style="font-size: 0.7rem;">Capture Rate</label>
-                                    <select id="intervalSelect" style="padding: 0.35rem 0.25rem; font-size: 0.75rem;"></select>
+                                    <label for="intervalSelect">Capture Rate</label>
+                                    <select id="intervalSelect">
+                                        <option value="2000">2s</option>
+                                        <option value="3000">3s</option>
+                                        <option value="5000">5s</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label for="qualitySelect" style="font-size: 0.7rem;">Image Quality</label>
-                                    <select id="qualitySelect" style="padding: 0.35rem 0.25rem; font-size: 0.75rem;">
+                                    <label for="qualitySelect">Image Quality</label>
+                                    <select id="qualitySelect">
                                         <option value="0.7">Fast</option>
                                         <option value="0.8">Medium</option>
                                         <option value="0.9" selected>High</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="tokensSelect" style="font-size: 0.7rem;">Max Tokens</label>
-                                    <select id="tokensSelect" style="padding: 0.35rem 0.25rem; font-size: 0.75rem;">
+                                    <label for="tokensSelect">Max Tokens</label>
+                                    <select id="tokensSelect">
                                         <option value="100" selected>100</option>
                                         <option value="200">200</option>
                                         <option value="300">300</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <button id="startButton" class="btn btn-primary" style="width: 100%; padding: 0.35rem 0.25rem; font-size: 0.75rem;">
+                                    <button id="startButton" class="btn btn-primary">
                                         <i class="fas fa-play"></i>
                                         <span>Start</span>
                                     </button>
                                 </div>
                             </div>
                             
-                            <div id="modelHelp" class="help-msg" style="margin-top: 0.5rem; padding: 0.5rem; font-size: 0.7rem;"></div>
-                            <div id="errorMsg" class="error-msg" style="margin-top: 0.5rem; padding: 0.5rem; font-size: 0.7rem; display:none;"></div>
+                            <div id="modelHelp" class="help-msg" style="display:none;"></div>
+                            <div id="errorMsg" class="error-msg" style="display:none;"></div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Response Card -->
-                <div class="card" style="height: 300px; overflow: hidden; margin-bottom: 0;">
-                    <div class="card-header" style="margin-bottom: 0.25rem; padding-bottom: 0.25rem;">
+                <div class="card response-card">
+                    <div class="card-header">
                         <h2 class="card-title">
                             <i class="fas fa-comment-dots"></i>
                             Model Response
                         </h2>
                     </div>
-                    <textarea id="responseText" style="height: 255px; resize: none; font-size: 0.8rem; overflow-y: auto;" readonly placeholder="AI responses will appear here..."></textarea>
+                    <textarea id="responseText" class="response-textarea" readonly placeholder="AI responses will appear here..."></textarea>
                 </div>
             </div>
         </div>
         
         <!-- Sidebar with info cards -->
-        <div class="sidebar" style="display: flex; flex-direction: column; height: 100%; overflow: hidden; min-width: 220px; max-width: 280px;">
+        <div class="sidebar">
             <!-- System Status Card -->
-            <div class="card" style="margin-bottom: 0.5rem;">
-                <div class="card-header" style="margin-bottom: 0.25rem; padding-bottom: 0.25rem;">
+            <div class="card">
+                <div class="card-header">
                     <h2 class="card-title">
                         <i class="fas fa-server"></i>
                         System Status
                     </h2>
                 </div>
-                <div class="system-status" id="systemStatus" style="padding: 0.5rem; font-size: 0.75rem; margin: 0;">Loading system information...</div>
+                <div class="system-status" id="systemStatus">Backend not connected. Camera works independently.</div>
             </div>
             
             <!-- Info accordion panel -->
-            <div class="accordion-container" style="flex-grow: 1; display: flex; flex-direction: column;">
-                <div class="card" style="flex-grow: 1; margin-bottom: 0; overflow: hidden; display: flex; flex-direction: column;">
-                    <!-- Tabs for model info and tips -->
-                    <div class="tabs-container">
-                        <div class="tabs-header" style="display: flex; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
-                            <h2 class="tab-btn active-tab" data-target="model-panel" style="margin: 0; flex: 1; text-align: center; padding: 0.25rem; border-bottom: 2px solid var(--primary); font-size: 0.8rem; cursor: pointer;">
-                                <i class="fas fa-info-circle"></i>
-                                Info
-                            </h2>
-                            <h2 class="tab-btn" data-target="tips-panel" style="margin: 0; flex: 1; text-align: center; padding: 0.25rem; opacity: 0.6; cursor: pointer; font-size: 0.8rem;">
-                                <i class="fas fa-lightbulb"></i>
-                                Tips
-                            </h2>
+            <div class="card info-tabs-card">
+                <!-- Tabs for model info and tips -->
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-btn active-tab" data-target="model-panel">
+                            <i class="fas fa-info-circle"></i>
+                            Info
+                        </button>
+                        <button class="tab-btn" data-target="tips-panel">
+                            <i class="fas fa-lightbulb"></i>
+                            Tips
+                        </button>
+                    </div>
+                
+                    <!-- Content panels -->
+                    <div class="tab-content">
+                        <!-- Model info content -->
+                        <div id="model-panel" class="tab-panel active">
+                            <div id="modelDesc">
+                                <div class="model-info">
+                                    <h4>Vision Intelligence Hub</h4>
+                                    <p>This application provides real-time vision analysis using AI models. Connect to the backend server for full functionality, or use camera features independently.</p>
+                                    <div class="feature-list">
+                                        <div class="feature-item">
+                                            <i class="fas fa-camera"></i>
+                                            <span>Live camera feed</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <i class="fas fa-brain"></i>
+                                            <span>AI vision analysis</span>
+                                        </div>
+                                        <div class="feature-item">
+                                            <i class="fas fa-mobile-alt"></i>
+                                            <span>Multi-device support</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    
-                        <!-- Content panels -->
-                        <div class="tab-content" style="overflow-y: auto; flex-grow: 1;">
-                            <!-- Model info content -->
-                            <div id="model-panel" class="tab-panel active" style="padding: 0.5rem; font-size: 0.75rem;">
-                                <div id="modelDesc">Loading model details...</div>
-                            </div>
-                            
-                            <!-- Tips content -->
-                            <div id="tips-panel" class="tab-panel" style="display: none;">
-                                <ul class="advice-list" style="margin: 0; padding: 0.5rem; font-size: 0.75rem; list-style-type: none;">
-                                    <li style="padding: 0.25rem 0 0.25rem 1.25rem; margin-bottom: 0.5rem; position: relative;">Ensure camera permissions are enabled.</li>
-                                    <li style="padding: 0.25rem 0 0.25rem 1.25rem; margin-bottom: 0.5rem; position: relative;">Check instruction format if errors occur.</li>
-                                    <li style="padding: 0.25rem 0 0.25rem 1.25rem; margin-bottom: 0.5rem; position: relative;">Adjust capture rate based on connection speed.</li>
-                                    <li style="padding: 0.25rem 0 0.25rem 1.25rem; position: relative;">Higher image quality provides better results.</li>
-                                </ul>
-                            </div>
+                        
+                        <!-- Tips content -->
+                        <div id="tips-panel" class="tab-panel">
+                            <ul class="advice-list">
+                                <li>Ensure camera permissions are enabled for your browser.</li>
+                                <li>Check instruction format if errors occur with AI processing.</li>
+                                <li>Adjust capture rate based on your connection speed.</li>
+                                <li>Higher image quality provides better AI analysis results.</li>
+                                <li>Use descriptive questions for better AI responses.</li>
+                                <li>Test different cameras if multiple devices are connected.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-        // DOM elements
-        const video = document.getElementById('videoFeed');
-        const canvas = document.getElementById('canvas');
-        const imagePreview = document.getElementById('imagePreview');
-        const instructionText = document.getElementById('instructionText');
-        const responseText = document.getElementById('responseText');
-        const intervalSelect = document.getElementById('intervalSelect');
-        const qualitySelect = document.getElementById('qualitySelect');
-        const tokensSelect = document.getElementById('tokensSelect');
-        const startButton = document.getElementById('startButton');
-        const errorMsg = document.getElementById('errorMsg');
-        const modelHelp = document.getElementById('modelHelp');
-        const activeModel = document.getElementById('activeModel');
-        const apiStatusDot = document.getElementById('apiStatusDot');
-        const apiStatusText = document.getElementById('apiStatusText');
-        const systemStatus = document.getElementById('systemStatus');
-        const modelDesc = document.getElementById('modelDesc');
 
-        // UI Tab elements
-        const tabHeaders = document.querySelectorAll('.tabs-header .card-title');
-        const adviceList = document.querySelector('.advice-list');
-        const modelDescription = document.querySelector('.model-description');
+    <!-- JavaScript Modules - Fix the import structure -->
+    <script type="module">
+        // Create a simplified modular structure that works
+        class ConfigManager {
+            constructor() {
+                this.baseURL = "http://localhost:8000";
+                this.config = null;
+            }
 
-        // Set up tab switching functionality
-        function setupTabs() {
-            // Setup sidebar tab functionality
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            
-            tabButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Get the target panel
-                    const targetId = btn.getAttribute('data-target');
-                    const targetPanel = document.getElementById(targetId);
-                    
-                    // Hide all panels
-                    document.querySelectorAll('.tab-panel').forEach(panel => {
-                        panel.style.display = 'none';
-                        panel.classList.remove('active');
+            async loadConfig() {
+                try {
+                    const res = await fetch(this.baseURL + "/config", {
+                        signal: AbortSignal.timeout(3000)
                     });
                     
-                    // Show target panel
-                    if (targetPanel) {
-                        targetPanel.style.display = 'block';
-                        targetPanel.classList.add('active');
+                    if (!res.ok) throw new Error("Failed to load configuration");
+                    
+                    this.config = await res.json();
+                    return this.config;
+                } catch (error) {
+                    console.error("Failed to load config:", error);
+                    return null;
+                }
+            }
+
+            getConfig() {
+                return this.config;
+            }
+        }
+
+        class APIClient {
+            constructor() {
+                this.baseURL = "http://localhost:8000";
+            }
+
+            async checkStatus() {
+                try {
+                    const res = await fetch(this.baseURL + "/status", {
+                        signal: AbortSignal.timeout(5000)
+                    });
+                    
+                    if (res.ok) {
+                        return await res.json();
+                    } else {
+                        throw new Error(`HTTP ${res.status}`);
                     }
-                    
-                    // Update tab button styles
-                    tabButtons.forEach(b => {
-                        b.classList.remove('active-tab');
-                        b.style.opacity = '0.6';
-                        b.style.borderBottom = 'none';
-                    });
-                    
-                    // Set active tab style
-                    btn.classList.add('active-tab');
-                    btn.style.opacity = '1';
-                    btn.style.borderBottom = '2px solid var(--primary)';
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            async sendChatCompletion(instruction, imageBase64URL, maxTokens = 100) {
+                const response = await fetch(`${this.baseURL}/v1/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        max_tokens: maxTokens,
+                        messages: [
+                            { 
+                                role: 'user', 
+                                content: [
+                                    { type: 'text', text: instruction },
+                                    { type: 'image_url', image_url: { url: imageBase64URL } }
+                                ]
+                            }
+                        ]
+                    }),
+                    signal: AbortSignal.timeout(30000)
                 });
-            });
-        }
-
-        let stream, intervalId, isProcessing = false, config = null;
-        let baseURL = "http://localhost:8000";
-
-        // Update UI with loading states
-        function setLoadingState() {
-            systemStatus.classList.add('shimmer');
-            modelDesc.classList.add('shimmer');
-        }
-
-        // Remove loading states
-        function removeLoadingState() {
-            systemStatus.classList.remove('shimmer');
-            modelDesc.classList.remove('shimmer');
-        }
-
-        async function checkApiStatus() {
-            setLoadingState();
-            try {
-                const res = await fetch(baseURL + "/status");
-                if (res.ok) {
-                    updateApiStatusOnline(await res.json());
-                } else {
-                    updateApiStatusOffline();
-                }
-            } catch (error) {
-                updateApiStatusOffline(error);
-            } finally {
-                removeLoadingState();
-            }
-        }
-        
-        // Update UI for online API status
-        function updateApiStatusOnline(data) {
-            // Update status indicators
-            apiStatusDot.className = "status-dot online";
-            apiStatusText.textContent = "API Online";
-            
-            // Use model's display name
-            const modelName = data.model_status?.name || data.active_model || "Unknown";
-            activeModel.textContent = modelName;
-            
-            // Create a nicely formatted status display
-            const availableModels = data.available_models && data.available_models.length 
-                ? data.available_models.join(", ") 
-                : "None";
                 
-            systemStatus.innerHTML = `
-                <div style="margin-bottom: 0.75rem;"><strong>Status:</strong> <span style="color: var(--success);">Connected</span></div>
-                <div style="margin-bottom: 0.75rem;"><strong>Active Model:</strong> ${modelName}</div>
-                <div style="margin-bottom: 0.75rem;"><strong>Version:</strong> ${data.model_status?.version || "N/A"}</div>
-                <div><strong>Available Models:</strong> ${availableModels}</div>
-            `;
-
-            // Update model description if available
-            if (data.model_status?.description) {
-                modelDesc.innerHTML = `
-                    <div style="margin-bottom: 0.75rem;">${data.model_status.description}</div>
-                `;
-            }
-        }
-        
-        // Update UI for offline API status
-        function updateApiStatusOffline(error = null) {
-            // Update status indicators
-            apiStatusDot.className = "status-dot offline";
-            apiStatusText.textContent = "API Offline";
-            
-            // Create error message
-            let errorMessage = error ? `Unable to connect to the backend API: ${error.message}` 
-                : "Unable to connect to the backend API. Please check if the server is running.";
-            
-            systemStatus.innerHTML = `
-                <div style="color: var(--error);"><i class="fas fa-exclamation-triangle"></i> Connection Error</div>
-                <div style="margin-top: 0.75rem;">${errorMessage}</div>
-                <div style="margin-top: 0.5rem;">Please ensure the server is running on ${baseURL}</div>
-            `;
-        }
-
-        async function loadConfig() {
-            try {
-                const res = await fetch(baseURL + "/config");
-                if (!res.ok) throw new Error("Failed to load configuration");
-                
-                config = await res.json();
-                
-                // 不再更新 activeModel.textContent
-                
-                if (config.model_help) {
-                    modelHelp.style.display = "block";
-                    modelHelp.textContent = config.model_help;
-                } else {
-                    modelHelp.style.display = "none";
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
                 }
                 
-                if (config.default_instruction) {
-                    instructionText.value = config.default_instruction;
-                }
-                
-                // Update interval options if available
-                if (config.capture_intervals && Array.isArray(config.capture_intervals)) {
-                    intervalSelect.innerHTML = config.capture_intervals.map(interval => 
-                        `<option value="${interval}">${interval/1000}s</option>`
-                    ).join('');
-                }
-            } catch (error) {
-                console.error("Failed to load config:", error);
-                showError("Failed to load configuration. Please refresh the page.");
+                const data = await response.json();
+                return data.choices[0].message.content;
             }
         }
 
-        // Add camera selection elements
-        const cameraSelect = document.getElementById('cameraSelect');
+        class CameraManager {
+            constructor() {
+                this.stream = null;
+                this.video = document.getElementById('videoFeed');
+                this.canvas = document.getElementById('canvas');
+                this.cameraSelect = document.getElementById('cameraSelect');
+            }
 
-        // Add these functions for camera management
-        async function populateCameraList() {
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            async populateCameraList() {
+                try {
+                    await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-                // Map devices to options with icons
-                cameraSelect.innerHTML = videoDevices.map(device => {
-                    const isIPhone = device.label.toLowerCase().includes('continuity') || 
-                                   device.label.toLowerCase().includes('iphone');
-                    const isMacBook = device.label.toLowerCase().includes('facetime') ||
-                                    device.label.toLowerCase().includes('built-in');
-                    const icon = isIPhone ? '📱 ' : isMacBook ? '💻 ' : '📷 ';
-                    return `<option value="${device.deviceId}">${icon}${device.label || `Camera ${device.deviceId}`}</option>`;
-                }).join('');
+                    if (videoDevices.length === 0) {
+                        throw new Error("No cameras found");
+                    }
 
-                if (videoDevices.length > 0) {
-                    // Try to find MacBook's built-in camera first
+                    this.cameraSelect.innerHTML = videoDevices.map(device => {
+                        const isIPhone = device.label.toLowerCase().includes('continuity') || 
+                                       device.label.toLowerCase().includes('iphone');
+                        const isMacBook = device.label.toLowerCase().includes('facetime') ||
+                                        device.label.toLowerCase().includes('built-in');
+                        const isExternal = device.label.toLowerCase().includes('usb') ||
+                                         device.label.toLowerCase().includes('capture');
+                        
+                        let icon = '📷 ';
+                        if (isIPhone) icon = '📱 ';
+                        else if (isMacBook) icon = '💻 ';
+                        else if (isExternal) icon = '🎥 ';
+                        
+                        const label = device.label || `Camera ${videoDevices.indexOf(device) + 1}`;
+                        return `<option value="${device.deviceId}">${icon}${label}</option>`;
+                    }).join('');
+
                     const macBookCamera = videoDevices.find(d => 
                         d.label.toLowerCase().includes('facetime') || 
                         d.label.toLowerCase().includes('built-in')
                     );
 
-                    if (macBookCamera) {
-                        // Set MacBook camera as default
-                        cameraSelect.value = macBookCamera.deviceId;
-                        await startCamera(macBookCamera.deviceId);
-                    } else {
-                        // Fallback to first available camera
-                        cameraSelect.value = videoDevices[0].deviceId;
-                        await startCamera(videoDevices[0].deviceId);
-                    }
+                    const selectedCamera = macBookCamera || videoDevices[0];
+                    this.cameraSelect.value = selectedCamera.deviceId;
+                    await this.startCamera(selectedCamera.deviceId);
+
+                } catch (err) {
+                    console.error("Error accessing cameras:", err);
+                    throw err;
                 }
-            } catch (err) {
-                console.error("Error listing cameras:", err);
-                showError("Failed to list cameras.");
             }
-        }
 
-        async function startCamera(deviceId) {
-            try {
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
+            async startCamera(deviceId) {
+                try {
+                    if (this.stream) {
+                        this.stream.getTracks().forEach(track => track.stop());
+                    }
 
-                const constraints = {
-                    video: deviceId ? 
-                        {
-                            deviceId: { exact: deviceId },
+                    const constraints = {
+                        video: {
+                            deviceId: deviceId ? { exact: deviceId } : undefined,
                             width: { ideal: 1920 },
-                            height: { ideal: 1080 }
-                        } : 
-                        {
-                            facingMode: "user",  // Default to front camera if no deviceId
-                            width: { ideal: 1920 },
-                            height: { ideal: 1080 }
+                            height: { ideal: 1080 },
+                            facingMode: deviceId ? undefined : "user"
                         },
-                    audio: false
+                        audio: false
+                    };
+
+                    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    this.video.srcObject = this.stream;
+
+                    this.video.onloadedmetadata = () => {
+                        this.video.classList.add('animate-fade-in');
+                        console.log(`Camera started: ${this.video.videoWidth}x${this.video.videoHeight}`);
+                    };
+
+                } catch (err) {
+                    throw err;
+                }
+            }
+
+            captureImage(quality = 0.9) {
+                if (!this.stream || !this.video.videoWidth) return null;
+                
+                try {
+                    const targetWidth = 1024;
+                    const aspectRatio = this.video.videoHeight / this.video.videoWidth;
+                    const targetHeight = Math.round(targetWidth * aspectRatio);
+                    
+                    this.canvas.width = targetWidth;
+                    this.canvas.height = targetHeight;
+                    
+                    const ctx = this.canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(this.video, 0, 0, targetWidth, targetHeight);
+                    
+                    const imageQuality = Math.max(0.92, parseFloat(quality) || 0.9);
+                    return this.canvas.toDataURL('image/jpeg', imageQuality);
+                } catch (err) {
+                    console.error("Error capturing image:", err);
+                    return null;
+                }
+            }
+
+            cleanup() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                }
+            }
+        }
+
+        class UIManager {
+            constructor() {
+                this.elements = {
+                    apiStatusDot: document.getElementById('apiStatusDot'),
+                    apiStatusText: document.getElementById('apiStatusText'),
+                    activeModel: document.getElementById('activeModel'),
+                    systemStatus: document.getElementById('systemStatus'),
+                    modelDesc: document.getElementById('modelDesc'),
+                    errorMsg: document.getElementById('errorMsg'),
+                    modelHelp: document.getElementById('modelHelp'),
+                    instructionText: document.getElementById('instructionText'),
+                    responseText: document.getElementById('responseText'),
+                    startButton: document.getElementById('startButton'),
+                    imagePreview: document.getElementById('imagePreview'),
+                    captureLabel: document.querySelector('.capture-label'),
+                    intervalSelect: document.getElementById('intervalSelect'),
+                    qualitySelect: document.getElementById('qualitySelect'),
+                    tokensSelect: document.getElementById('tokensSelect'),
+                    cameraSelect: document.getElementById('cameraSelect')
                 };
+            }
 
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                errorMsg.style.display = "none";
+            updateApiStatusOnline(data) {
+                this.elements.apiStatusDot.className = "status-dot online";
+                this.elements.apiStatusText.textContent = "API Online";
+                
+                const modelName = data.model_status?.name || data.active_model || "Unknown";
+                this.elements.activeModel.textContent = modelName;
+                
+                const availableModels = data.available_models && data.available_models.length 
+                    ? data.available_models.join(", ") 
+                    : "None";
+                    
+                this.elements.systemStatus.innerHTML = `
+                    <div style="margin-bottom: 0.75rem;"><strong>Status:</strong> <span style="color: var(--success);">Connected</span></div>
+                    <div style="margin-bottom: 0.75rem;"><strong>Active Model:</strong> ${modelName}</div>
+                    <div style="margin-bottom: 0.75rem;"><strong>Version:</strong> ${data.model_status?.version || "N/A"}</div>
+                    <div><strong>Available Models:</strong> ${availableModels}</div>
+                `;
 
-                // Add animation effect
-                video.onloadedmetadata = () => {
-                    video.classList.add('animate-fade-in');
-                };
-
-                // Update camera selection to match current camera
-                const tracks = stream.getVideoTracks();
-                if (tracks.length > 0) {
-                    const currentCamera = tracks[0].getSettings().deviceId;
-                    if (currentCamera && cameraSelect.value !== currentCamera) {
-                        cameraSelect.value = currentCamera;
+                if (data.model_status?.description) {
+                    const modelInfoDiv = document.querySelector('.model-info');
+                    if (modelInfoDiv) {
+                        const featureList = modelInfoDiv.querySelector('.feature-list');
+                        modelInfoDiv.innerHTML = `
+                            <h4>${modelName}</h4>
+                            <p>${data.model_status.description}</p>
+                            ${featureList ? featureList.outerHTML : ''}
+                        `;
                     }
                 }
-            } catch (err) {
-                handleCameraError(err);
             }
-        }
+            
+            updateApiStatusOffline() {
+                this.elements.apiStatusDot.className = "status-dot offline";
+                this.elements.apiStatusText.textContent = "Backend Offline";
+                this.elements.activeModel.textContent = "Camera Only Mode";
+                
+                this.elements.systemStatus.innerHTML = `
+                    <div style="color: var(--warning);"><i class="fas fa-info-circle"></i> Backend Not Connected</div>
+                    <div style="margin-top: 0.75rem;">Please start the backend server on port 8000</div>
+                    <div style="margin-top: 0.5rem;">Camera functionality works without backend.</div>
+                `;
+            }
 
-        // Add event listener for camera selection
-        cameraSelect.addEventListener('change', async () => {
-            const selectedDeviceId = cameraSelect.value;
-            await startCamera(selectedDeviceId);
-        });
+            showError(message) {
+                this.elements.errorMsg.textContent = message;
+                this.elements.errorMsg.style.display = "block";
+            }
+            
+            hideError() {
+                this.elements.errorMsg.style.display = "none";
+            }
 
-        // Watch for device changes (like iPhone connecting/disconnecting)
-        navigator.mediaDevices.addEventListener('devicechange', async () => {
-            await populateCameraList();
-        });
-
-        function captureImage() {
-            if (!stream || !video.videoWidth) return null;
-            
-            try {
-                // Set higher canvas resolution
-                const targetWidth = 1024;  // Optimized target width
-                const aspectRatio = video.videoHeight / video.videoWidth;
-                const targetHeight = Math.round(targetWidth * aspectRatio);
+            updateImagePreview(dataUrl) {
+                if (!dataUrl) return;
                 
-                canvas.width = targetWidth;
-                canvas.height = targetHeight;
+                this.elements.imagePreview.src = dataUrl;
+                this.elements.imagePreview.style.display = "inline-block";
                 
-                const ctx = canvas.getContext('2d');
-                
-                // Enable high-quality image smoothing
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                
-                // Use better scaling algorithm
-                ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
-                
-                // Apply basic image enhancement
-                const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-                const enhancedData = enhanceImageData(imageData);
-                ctx.putImageData(enhancedData, 0, 0);
-                
-                // Use higher JPEG quality
-                const quality = Math.max(0.92, parseFloat(qualitySelect.value) || 0.9);
-                const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                
-                // Update preview
-                updateImagePreview(dataUrl);
-                
-                return dataUrl;
-            } catch (err) {
-                console.error("Error capturing image:", err);
-                showError("Failed to capture image with high quality");
-                return null;
-            }
-        }
-        
-        // Add image enhancement function
-        function enhanceImageData(imageData) {
-            const data = imageData.data;
-            const contrast = 1.1;  // Slightly increase contrast
-            const brightness = 1.05;  // Slightly increase brightness
-            
-            for (let i = 0; i < data.length; i += 4) {
-                // Apply contrast
-                for (let j = 0; j < 3; j++) {
-                    data[i + j] = ((data[i + j] / 255 - 0.5) * contrast + 0.5) * 255;
-                }
-                
-                // Apply brightness
-                for (let j = 0; j < 3; j++) {
-                    data[i + j] *= brightness;
-                }
-                
-                // Ensure values are within valid range
-                for (let j = 0; j < 3; j++) {
-                    data[i + j] = Math.max(0, Math.min(255, data[i + j]));
-                }
-            }
-            
-            return imageData;
-        }
-
-        // Separate function to handle image preview updates
-        function updateImagePreview(dataUrl) {
-            if (!dataUrl) return;
-            
-            // Show the preview with a nice animation
-            imagePreview.src = dataUrl;
-            imagePreview.style.display = "inline-block";
-            
-            // Show timestamp in the capture label
-            const captureLabel = document.querySelector('.capture-label');
-            if (captureLabel) {
-                captureLabel.innerHTML = `Frame sent to AI<br><span style="font-size: 0.65rem;">${new Date().toLocaleTimeString()}</span>`;
-                captureLabel.style.backgroundColor = "var(--success-light)";
-                captureLabel.style.color = "var(--success)";
-                
-                // Return to normal after 2 seconds
-                setTimeout(() => {
-                    captureLabel.style.backgroundColor = "";
-                    captureLabel.style.color = "";
-                }, 2000);
-            }
-            
-            // Reset animation to trigger it again
-            imagePreview.classList.remove('animate-fade-in');
-            void imagePreview.offsetWidth; // Trigger reflow
-            imagePreview.classList.add('animate-fade-in');
-        }
-
-        /**
-         * Sends a chat completion request to the backend API
-         * @param {string} instruction - User text instruction
-         * @param {string} imageBase64URL - Base64 encoded image URL
-         * @returns {Promise<string>} The model's response text
-         */
-        async function sendChatCompletionRequest(instruction, imageBase64URL) {
-            // Frontend doesn't process any tags, keeping instructions as is, unifying processing by the backend
-            const maxTokens = parseInt(tokensSelect.value) || 100;
-            
-            const response = await fetch(`${baseURL}/v1/chat/completions`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    max_tokens: maxTokens,
-                    messages: [
-                        { 
-                            role: 'user', 
-                            content: [
-                                { type: 'text', text: instruction },
-                                { type: 'image_url', image_url: { url: imageBase64URL } }
-                            ]
-                        }
-                    ]
-                })
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Server error: ${response.status} - ${errorText}`);
-            }
-            
-            const data = await response.json();
-            return data.choices[0].message.content;
-        }
-
-        /**
-         * Processes and sends the current data to the backend
-         */
-        async function sendData() {
-            if (!isProcessing) return;
-            
-            // Check if a request is already being processed
-            if (window.currentRequestProcessing) {
-                console.log("⏳ Previous request still processing, skipping this one");
-                return;
-            }
-            
-            // Clear previous errors
-            hideError();
-            
-            // Get and validate instruction
-            const instruction = instructionText.value.trim();
-            if (!instruction) {
-                showError("Please enter an instruction before starting.");
-                handleStop();
-                return;
-            }
-            
-            // Capture and validate image
-            const imageBase64URL = captureImage();
-            if (!imageBase64URL) {
-                showError("Unable to capture image. Please check camera status.");
-                return;
-            }
-            
-            // Set processing flag
-            window.currentRequestProcessing = true;
-            
-            // Update capture indicator
-            updateCaptureIndicator();
-            
-            try {
-                // Show a loading animation in the capture label instead
-                const captureLabel = document.querySelector('.capture-label');
-                if (captureLabel) {
-                    captureLabel.innerHTML = `Processing...<br><span style="font-size: 0.65rem;">Please wait</span>`;
-                    captureLabel.style.backgroundColor = "var(--warning-light)";
-                    captureLabel.style.color = "var(--warning)";
-                }
-                
-                // Show processing indicator in header
-                showProcessingIndicator(true);
-                
-                // Send request and update UI with response
-                const response = await sendChatCompletionRequest(instruction, imageBase64URL);
-                updateResponseText(response);
-                
-                // Hide processing indicator
-                showProcessingIndicator(false);
-                
-                // Update capture label to show success
-                if (captureLabel) {
-                    captureLabel.innerHTML = `Response received<br><span style="font-size: 0.65rem;">${new Date().toLocaleTimeString()}</span>`;
-                    captureLabel.style.backgroundColor = "var(--success-light)";
-                    captureLabel.style.color = "var(--success)";
+                if (this.elements.captureLabel) {
+                    this.elements.captureLabel.innerHTML = `Frame sent to AI<br><span style="font-size: 0.65rem;">${new Date().toLocaleTimeString()}</span>`;
+                    this.elements.captureLabel.style.backgroundColor = "var(--success-light)";
+                    this.elements.captureLabel.style.color = "var(--success)";
                     
                     setTimeout(() => {
-                        captureLabel.style.backgroundColor = "";
-                        captureLabel.style.color = "";
-                        // Update with current interval
-                        const intervalTime = getValidCaptureInterval();
-                        captureLabel.textContent = `Next capture in ${intervalTime/1000}s`;
+                        this.elements.captureLabel.style.backgroundColor = "";
+                        this.elements.captureLabel.style.color = "";
                     }, 2000);
                 }
-            } catch (error) {
-                // Hide processing indicator on error
-                showProcessingIndicator(false);
-                showError(error.message);
-            } finally {
-                // Clear processing flag
-                window.currentRequestProcessing = false;
-            }
-        }
-        
-        // Add visual feedback for image capture
-        function updateCaptureIndicator() {
-            // Flash the capture label to show activity
-            const captureLabel = document.querySelector('.capture-label');
-            if (captureLabel) {
-                captureLabel.textContent = `Captured (${new Date().toLocaleTimeString()})`;
-                captureLabel.style.backgroundColor = "var(--primary-light)";
-                captureLabel.style.color = "var(--primary-dark)";
                 
-                // Reset after a short delay
-                setTimeout(() => {
-                    captureLabel.style.backgroundColor = "";
-                    captureLabel.style.color = "";
-                    // Update with current interval
-                    const intervalTime = getValidCaptureInterval();
-                    captureLabel.textContent = `Next capture in ${intervalTime/1000}s`;
-                }, 500);
+                this.elements.imagePreview.classList.remove('animate-fade-in');
+                void this.elements.imagePreview.offsetWidth;
+                this.elements.imagePreview.classList.add('animate-fade-in');
             }
-        }
-        
-        /**
-         * Updates the response text area with the given content
-         */
-        function updateResponseText(content) {
-            responseText.value = content || "No response received";
-        }
 
-        function handleStart() {
-            if (!stream) {
-                showError("Camera not available. Please check permissions.");
-                return;
-            }
-            
-            // Set processing state
-            isProcessing = true;
-            
-            // Update UI for processing state
-            updateUIForProcessingState(true);
-            
-            // Send first request immediately
-            sendData();
-            
-            // Get and validate the capture interval
-            const intervalTime = getValidCaptureInterval();
-            
-            // Show capture interval info
-            const captureLabel = document.querySelector('.capture-label');
-            if (captureLabel) {
-                captureLabel.innerHTML = `Processing starts<br>Capture every ${intervalTime/1000}s`;
-            }
-            
-            // Start interval for continuous processing
-            intervalId = setInterval(sendData, intervalTime);
-        }
-        
-        function handleStop() {
-            // Clear processing state
-            isProcessing = false;
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-            
-            // Remove processing indicator if it exists
-            showProcessingIndicator(false);
-            
-            // Update UI for stopped state
-            updateUIForProcessingState(false);
-            
-            // Reset capture label
-            const captureLabel = document.querySelector('.capture-label');
-            if (captureLabel) {
-                captureLabel.innerHTML = `<span style="color: var(--text);">Click Start to begin<br>This will show captured images</span>`;
-                captureLabel.style.backgroundColor = "";
-                captureLabel.style.color = "";
-            }
-        }
-        
-        // Get a valid capture interval from the UI or use default
-        function getValidCaptureInterval() {
-            const defaultInterval = 2000;
-            
-            // Return default if no selection or "none" selected
-            if (!intervalSelect.value || intervalSelect.value === "none") {
-                console.log("No valid interval config selected, using default interval");
-                return defaultInterval;
-            }
-            
-            // Parse and validate the selected interval
-            const intervalTime = parseInt(intervalSelect.value, 10);
-            if (isNaN(intervalTime) || intervalTime < 100) {
-                console.log("Invalid interval value, using default interval");
-                return defaultInterval;
-            }
-            
-            // Adjust minimum intervals for optimized model
-            if (config && config.active_model === "smolvlm2_500m_video_optimized") {
-                // Minimum 3 second interval for optimized model
-                return Math.max(intervalTime, 3000);
-            } else if (config && config.active_model === "smolvlm2_500m_video") {
-                // Minimum 5 second interval for standard model
-                return Math.max(intervalTime, 5000);
-            }
-            
-            return intervalTime;
-        }
-        
-        // Update UI elements based on processing state
-        function updateUIForProcessingState(isProcessing) {
-            if (isProcessing) {
-                // Updating button to show stop state
-                startButton.innerHTML = '<i class="fas fa-stop"></i><span>Stop Processing</span>';
-                startButton.classList.add('btn-danger');
-                startButton.classList.remove('btn-primary');
-                
-                // Disable controls during processing
-                instructionText.disabled = true;
-                intervalSelect.disabled = true;
-                qualitySelect.disabled = true;
-                tokensSelect.disabled = true;
-                
-                // Clear any previous response text
-                responseText.value = "";
-            } else {
-                // Updating button to show start state
-                startButton.innerHTML = '<i class="fas fa-play"></i><span>Start Processing</span>';
-                startButton.classList.add('btn-primary');
-                startButton.classList.remove('btn-danger');
-                
-                // Re-enable controls
-                instructionText.disabled = false;
-                intervalSelect.disabled = false;
-                qualitySelect.disabled = false;
-                tokensSelect.disabled = false;
-            }
-        }
-        
-        // Show error message in the UI
-        function showError(message) {
-            errorMsg.textContent = message;
-            errorMsg.style.display = "block";
-        }
-        
-        // Hide error message in the UI
-        function hideError() {
-            errorMsg.style.display = "none";
-        }
-        
-        /**
-         * Set up all event listeners
-         */
-        function setupEventListeners() {
-            // Start/stop button click
-            startButton.addEventListener('click', toggleProcessing);
-            
-            // Ctrl+Enter keyboard shortcut for start/stop
-            instructionText.addEventListener('keydown', handleKeyboardShortcuts);
-        }
-        
-        /**
-         * Toggle between processing and stopped states
-         */
-        function toggleProcessing() {
-            if (isProcessing) {
-                handleStop();
-            } else {
-                handleStart();
-            }
-        }
-        
-        /**
-         * Handle keyboard shortcuts
-         */
-        function handleKeyboardShortcuts(e) {
-            // Ctrl+Enter to start/stop processing
-            if (e.key === 'Enter' && e.ctrlKey) {
-                e.preventDefault();
-                toggleProcessing();
-            }
-        }
-        
-        // Set up event listeners
-        setupEventListeners();
-
-        /**
-         * Initialize the application
-         */
-        async function initializeApplication() {
-            try {
-                await Promise.all([
-                    checkApiStatus(),
-                    loadConfig(),
-                    populateCameraList()
-                ]);
-                
-                // Set up tab switching functionality
-                setupTabs();
-                
-                // Initialize the capture label with helpful information
-                const captureLabel = document.querySelector('.capture-label');
-                if (captureLabel) {
-                    captureLabel.innerHTML = `<span style="color: var(--text);">Click Start to begin<br>This will show captured images</span>`;
-                }
-                
-            } catch (error) {
-                console.error("Error initializing application:", error);
-                showError("Application initialization failed. Please refresh and try again.");
-            }
-        }
-        
-        // Initialize the application when DOM content is loaded
-        document.addEventListener('DOMContentLoaded', initializeApplication);
-        
-        // Add a small status indicator in the header without altering the response text
-        function showProcessingIndicator(isProcessing) {
-            const statusItem = document.querySelector('.status-item:first-child');
-            const processingIndicator = document.getElementById('processingIndicator');
-            
-            if (isProcessing) {
-                // Create indicator if it doesn't exist
-                if (!processingIndicator) {
-                    const indicator = document.createElement('div');
-                    indicator.id = 'processingIndicator';
-                    indicator.innerHTML = '<i class="fas fa-sync fa-spin"></i> Processing';
-                    indicator.style.marginLeft = '15px';
-                    indicator.style.color = 'var(--warning)';
-                    indicator.style.fontSize = '0.8rem';
-                    indicator.style.display = 'flex';
-                    indicator.style.alignItems = 'center';
-                    indicator.style.gap = '5px';
+            updateProcessingState(isProcessing) {
+                if (isProcessing) {
+                    this.elements.startButton.innerHTML = '<i class="fas fa-stop"></i><span>Stop</span>';
+                    this.elements.startButton.classList.add('btn-danger');
+                    this.elements.startButton.classList.remove('btn-primary');
                     
-                    if (statusItem) {
-                        statusItem.parentNode.insertBefore(indicator, statusItem.nextSibling);
-                    }
+                    this.elements.instructionText.disabled = true;
+                    this.elements.intervalSelect.disabled = true;
+                    this.elements.qualitySelect.disabled = true;
+                    this.elements.tokensSelect.disabled = true;
+                    this.elements.cameraSelect.disabled = true;
+                    
+                    this.elements.responseText.value = "";
+                } else {
+                    this.elements.startButton.innerHTML = '<i class="fas fa-play"></i><span>Start</span>';
+                    this.elements.startButton.classList.add('btn-primary');
+                    this.elements.startButton.classList.remove('btn-danger');
+                    
+                    this.elements.instructionText.disabled = false;
+                    this.elements.intervalSelect.disabled = false;
+                    this.elements.qualitySelect.disabled = false;
+                    this.elements.tokensSelect.disabled = false;
+                    this.elements.cameraSelect.disabled = false;
                 }
-            } else if (processingIndicator) {
-                // Remove indicator when processing is complete
-                processingIndicator.remove();
             }
         }
+
+        class TabManager {
+            constructor() {
+                this.setupTabs();
+            }
+
+            setupTabs() {
+                const tabButtons = document.querySelectorAll('.tab-btn');
+                
+                tabButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const targetId = btn.getAttribute('data-target');
+                        const targetPanel = document.getElementById(targetId);
+                        
+                        // Hide all panels
+                        document.querySelectorAll('.tab-panel').forEach(panel => {
+                            panel.style.display = 'none';
+                            panel.classList.remove('active');
+                        });
+                        
+                        // Show target panel
+                        if (targetPanel) {
+                            targetPanel.style.display = 'block';
+                            targetPanel.classList.add('active');
+                        }
+                        
+                        // Update tab button styles
+                        tabButtons.forEach(b => {
+                            b.classList.remove('active-tab');
+                            b.style.opacity = '0.6';
+                            b.style.borderBottom = 'none';
+                        });
+                        
+                        // Set active tab style
+                        btn.classList.add('active-tab');
+                        btn.style.opacity = '1';
+                        btn.style.borderBottom = '2px solid var(--primary)';
+                    });
+                });
+            }
+        }
+
+        // Main VisionApp class
+        class VisionApp {
+            constructor() {
+                this.managers = {
+                    config: new ConfigManager(),
+                    api: new APIClient(),
+                    camera: new CameraManager(),
+                    ui: new UIManager(),
+                    tabs: new TabManager()
+                };
+                
+                this.isProcessing = false;
+                this.intervalId = null;
+            }
+
+            getManager(name) {
+                return this.managers[name];
+            }
+
+            async initialize() {
+                try {
+                    console.log('🚀 Initializing Vision Intelligence Hub...');
+                    
+                    // Initialize camera
+                    await this.managers.camera.populateCameraList();
+                    
+                    // Try to connect to backend
+                    await Promise.allSettled([
+                        this.checkApiStatus(),
+                        this.loadConfig()
+                    ]);
+                    
+                    // Setup event listeners
+                    this.setupEventListeners();
+                    
+                    // Initialize UI
+                    if (this.managers.ui.elements.captureLabel) {
+                        this.managers.ui.elements.captureLabel.innerHTML = `<span style="color: var(--text);">Click Start to begin<br>Camera ready for analysis</span>`;
+                    }
+                    
+                    console.log('✅ Application initialized successfully');
+                    
+                } catch (error) {
+                    console.error('❌ Failed to initialize application:', error);
+                    this.managers.ui.showError('Application initialization had some issues, but camera should still work.');
+                }
+            }
+
+            async checkApiStatus() {
+                try {
+                    const data = await this.managers.api.checkStatus();
+                    this.managers.ui.updateApiStatusOnline(data);
+                } catch (error) {
+                    this.managers.ui.updateApiStatusOffline();
+                }
+            }
+
+            async loadConfig() {
+                try {
+                    const config = await this.managers.config.loadConfig();
+                    
+                    if (config?.model_help) {
+                        this.managers.ui.elements.modelHelp.style.display = "block";
+                        this.managers.ui.elements.modelHelp.textContent = config.model_help;
+                    } else {
+                        this.managers.ui.elements.modelHelp.style.display = "block";
+                        this.managers.ui.elements.modelHelp.textContent = "Camera is ready. Enter a question about what you want to analyze in the image.";
+                    }
+                    
+                    if (config?.default_instruction) {
+                        this.managers.ui.elements.instructionText.value = config.default_instruction;
+                    }
+                    
+                    if (config?.capture_intervals && Array.isArray(config.capture_intervals)) {
+                        this.managers.ui.elements.intervalSelect.innerHTML = config.capture_intervals.map(interval => 
+                            `<option value="${interval}">${interval/1000}s</option>`
+                        ).join('');
+                    }
+                } catch (error) {
+                    console.error("Failed to load config:", error);
+                    this.managers.ui.elements.modelHelp.style.display = "block";
+                    this.managers.ui.elements.modelHelp.textContent = "Camera is ready. Backend connection required for AI analysis.";
+                }
+            }
+
+            setupEventListeners() {
+                this.managers.ui.elements.startButton.addEventListener('click', () => {
+                    if (this.isProcessing) {
+                        this.handleStop();
+                    } else {
+                        this.handleStart();
+                    }
+                });
+                
+                this.managers.ui.elements.instructionText.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        if (this.isProcessing) {
+                            this.handleStop();
+                        } else {
+                            this.handleStart();
+                        }
+                    }
+                });
+
+                this.managers.ui.elements.cameraSelect.addEventListener('change', async () => {
+                    const selectedDeviceId = this.managers.ui.elements.cameraSelect.value;
+                    await this.managers.camera.startCamera(selectedDeviceId);
+                });
+
+                navigator.mediaDevices.addEventListener('devicechange', async () => {
+                    console.log('Camera devices changed');
+                    await this.managers.camera.populateCameraList();
+                });
+            }
+
+            handleStart() {
+                if (!this.managers.camera.stream) {
+                    this.managers.ui.showError("Camera not available. Please check permissions.");
+                    return;
+                }
+                
+                this.isProcessing = true;
+                this.managers.ui.updateProcessingState(true);
+                
+                this.sendData();
+                
+                const intervalTime = this.getValidCaptureInterval();
+                if (this.managers.ui.elements.captureLabel) {
+                    this.managers.ui.elements.captureLabel.innerHTML = `Processing starts<br>Capture every ${intervalTime/1000}s`;
+                }
+                
+                this.intervalId = setInterval(() => this.sendData(), intervalTime);
+            }
+            
+            handleStop() {
+                this.isProcessing = false;
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+                
+                this.managers.ui.updateProcessingState(false);
+                
+                if (this.managers.ui.elements.captureLabel) {
+                    this.managers.ui.elements.captureLabel.innerHTML = `<span style="color: var(--text);">Click Start to begin<br>Camera ready for analysis</span>`;
+                    this.managers.ui.elements.captureLabel.style.backgroundColor = "";
+                    this.managers.ui.elements.captureLabel.style.color = "";
+                }
+            }
+
+            async sendData() {
+                if (!this.isProcessing) return;
+                
+                if (window.currentRequestProcessing) {
+                    console.log("⏳ Previous request still processing, skipping this one");
+                    return;
+                }
+                
+                this.managers.ui.hideError();
+                
+                const instruction = this.managers.ui.elements.instructionText.value.trim();
+                if (!instruction) {
+                    this.managers.ui.showError("Please enter an instruction before starting.");
+                    this.handleStop();
+                    return;
+                }
+                
+                const quality = this.managers.ui.elements.qualitySelect.value;
+                const imageBase64URL = this.managers.camera.captureImage(quality);
+                if (!imageBase64URL) {
+                    this.managers.ui.showError("Unable to capture image. Please check camera status.");
+                    return;
+                }
+                
+                window.currentRequestProcessing = true;
+                
+                try {
+                    this.managers.ui.updateImagePreview(imageBase64URL);
+                    
+                    const maxTokens = parseInt(this.managers.ui.elements.tokensSelect.value) || 100;
+                    const response = await this.managers.api.sendChatCompletion(instruction, imageBase64URL, maxTokens);
+                    
+                    this.managers.ui.elements.responseText.value = response || "No response received";
+                    
+                } catch (error) {
+                    this.managers.ui.showError(error.message);
+                } finally {
+                    window.currentRequestProcessing = false;
+                }
+            }
+
+            getValidCaptureInterval() {
+                const defaultInterval = 2000;
+                const intervalValue = this.managers.ui.elements.intervalSelect.value;
+                
+                if (!intervalValue || intervalValue === "none") {
+                    return defaultInterval;
+                }
+                
+                const intervalTime = parseInt(intervalValue, 10);
+                if (isNaN(intervalTime) || intervalTime < 100) {
+                    return defaultInterval;
+                }
+                
+                return intervalTime;
+            }
+
+            cleanup() {
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                }
+                this.managers.camera.cleanup();
+            }
+        }
+
+        // Initialize the application
+        let app;
+        
+        async function initializeApp() {
+            try {
+                console.log('🚀 Initializing Vision Intelligence Hub...');
+                
+                // Create main application instance
+                app = new VisionApp();
+                
+                // Start the application
+                await app.initialize();
+                
+                console.log('✅ Application initialized successfully');
+                
+                // Set up global error handling
+                window.addEventListener('error', (event) => {
+                    console.error('❌ Global error:', event.error);
+                    const uiManager = app.getManager('ui');
+                    if (uiManager) {
+                        uiManager.showError('An unexpected error occurred. Please refresh the page.');
+                    }
+                });
+                
+                // Set up unload cleanup
+                window.addEventListener('beforeunload', () => {
+                    if (app) {
+                        app.cleanup();
+                    }
+                });
+                
+                // Retry API connection periodically when offline
+                setInterval(() => {
+                    const apiStatusDot = document.getElementById('apiStatusDot');
+                    if (apiStatusDot && apiStatusDot.classList.contains('offline')) {
+                        app.checkApiStatus();
+                    }
+                }, 30000);
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize application:', error);
+                
+                // Fallback error display
+                const errorMsg = document.getElementById('errorMsg');
+                if (errorMsg) {
+                    errorMsg.textContent = 'Failed to initialize application. Please refresh the page.';
+                    errorMsg.style.display = 'block';
+                }
+            }
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+        
+        // Export for debugging
+        window.visionApp = () => app;
     </script>
 </body>
 </html>

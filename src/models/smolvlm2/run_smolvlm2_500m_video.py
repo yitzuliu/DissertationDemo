@@ -292,7 +292,7 @@ class SmolVLM2VideoServer:
             })
     
     def _generate_mlx_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
-        """Generate response using MLX (same as phi3_vision and vlm_tester)"""
+        """Generate response using MLX (fixed for SmolVLM2 format)"""
         try:
             from mlx_vlm import generate
             logger.info("🚀 Using MLX-VLM inference for SmolVLM2-500M-Video...")
@@ -303,12 +303,17 @@ class SmolVLM2VideoServer:
                 image.save(temp_image_path, 'JPEG', quality=95)
             
             try:
-                # Use MLX-VLM generate (same as vlm_tester)
+                # FIXED: SmolVLM2 requires specific format with image token
+                # SmolVLM2 expects the image token to be present in the text
+                mlx_prompt = f"<image>\n{prompt}"
+                
+                logger.info(f"🔍 SmolVLM2 MLX prompt: {mlx_prompt[:100]}...")
+                
                 response = generate(
                     model=self.model,
                     processor=self.processor,
                     image=temp_image_path,
-                    prompt=prompt,
+                    prompt=mlx_prompt,
                     max_tokens=max_tokens,
                     temp=0.0,
                     verbose=False
@@ -335,9 +340,9 @@ class SmolVLM2VideoServer:
             return f"MLX inference failed: {str(e)}"
     
     def _generate_transformers_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
-        """Generate response using transformers (same as phi3_vision)"""
+        """Generate response using transformers (fixed for SmolVLM2 format)"""
         try:
-            # SmolVLM2 format
+            # SmolVLM2 format - use proper message structure
             messages = [
                 {
                     "role": "user",
@@ -348,13 +353,19 @@ class SmolVLM2VideoServer:
                 }
             ]
             
+            # Apply chat template
             input_text = self.processor.apply_chat_template(
                 messages, 
                 tokenize=False, 
                 add_generation_prompt=True
             )
             
-            inputs = self.processor(text=input_text, images=image, return_tensors="pt")
+            # Process inputs - SmolVLM2 expects images as a list
+            inputs = self.processor(
+                text=input_text, 
+                images=[image],  # FIXED: Pass as list for SmolVLM2
+                return_tensors="pt"
+            )
             
             # Move to correct device
             device = next(self.model.parameters()).device

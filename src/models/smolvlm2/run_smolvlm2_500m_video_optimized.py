@@ -304,7 +304,7 @@ class OptimizedSmolVLM2VideoServer:
             })
     
     def _generate_mlx_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
-        """Generate response using MLX (same as vlm_tester.py)"""
+        """Generate response using MLX (fixed for SmolVLM2 format)"""
         try:
             from mlx_vlm import generate
             logger.info("🚀 Using MLX-VLM inference for optimized SmolVLM2-500M-Video...")
@@ -315,12 +315,17 @@ class OptimizedSmolVLM2VideoServer:
                 image.save(temp_image_path, 'JPEG', quality=95)
             
             try:
-                # Use MLX-VLM generate (same as vlm_tester)
+                # FIXED: SmolVLM2 doesn't use <|image_1|> format like Phi3
+                # Use the prompt directly as SmolVLM2 handles image-text pairing automatically
+                mlx_prompt = prompt
+                
+                logger.info(f"🔍 SmolVLM2 MLX prompt: {mlx_prompt[:100]}...")
+                
                 response = generate(
                     model=self.model,
                     processor=self.processor,
                     image=temp_image_path,
-                    prompt=prompt,
+                    prompt=mlx_prompt,
                     max_tokens=max_tokens,
                     temp=0.0,
                     verbose=False

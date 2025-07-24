@@ -81,6 +81,12 @@ class StandardPhi3VisionServer:
             "total_time": 0.0,
             "avg_time": 0.0
         }
+        
+        # Add request counter for debugging
+        self.request_count = 0
+        
+        # Add model state tracking
+        self.last_inference_time = 0
     
     def load_config(self, config_path):
         """Load standard configuration"""
@@ -202,8 +208,203 @@ class StandardPhi3VisionServer:
             logger.error(f"❌ Model initialization error: {e}")
             return False
     
+    async def _generate_mlx_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
+        """Generate response using MLX with improved error handling and cleanup"""
+        self.request_count += 1
+        request_id = self.request_count
+        
+        try:
+            from mlx_vlm import generate
+            logger.info(f"🚀 Request #{request_id}: Using MLX-VLM inference for Phi-3.5-Vision...")
+            
+            # Create temporary file with more explicit control
+            temp_image_path = None
+            try:
+                # Use a more controlled temporary file approach
+                import tempfile
+                import uuid
+                
+                # Create temp directory if it doesn't exist
+                temp_dir = Path(tempfile.gettempdir()) / "phi3_vision_mlx"
+                temp_dir.mkdir(exist_ok=True)
+                
+                # Create unique filename
+                temp_filename = f"phi3_image_{request_id}_{uuid.uuid4().hex[:8]}.jpg"
+                temp_image_path = temp_dir / temp_filename
+                
+                # Save image with high quality
+                logger.info(f"📁 Request #{request_id}: Saving image to {temp_image_path}")
+                image.save(str(temp_image_path), 'JPEG', quality=95, optimize=True)
+                
+                # Verify file exists and is readable
+                if not temp_image_path.exists():
+                    raise FileNotFoundError(f"Failed to create temporary image file: {temp_image_path}")
+                
+                file_size = temp_image_path.stat().st_size
+                logger.info(f"📊 Request #{request_id}: Image saved, size: {file_size} bytes")
+                
+                # Clean prompt format - remove any existing image tokens
+                clean_prompt = prompt.replace("<|image_1|>", "").strip()
+                
+                # Use consistent MLX prompt format
+                mlx_prompt = f"<|image_1|>\nUser: {clean_prompt}\nAssistant:"
+                
+                logger.info(f"💭 Request #{request_id}: Prompt: {mlx_prompt[:100]}...")
+                
+                # Add memory cleanup before inference
+                if hasattr(torch, 'mps') and torch.mps.is_available():
+                    torch.mps.empty_cache()
+                
+                # Generate response with timeout protection
+                logger.info(f"🔄 Request #{request_id}: Starting MLX generation...")
+                start_time = time.time()
+                
+                response = generate(
+                    model=self.model,
+                    processor=self.processor,
+                    image=str(temp_image_path),  # Ensure string path
+                    prompt=mlx_prompt,
+                    max_tokens=max_tokens,
+                    temp=0.0,
+                    verbose=True  # Enable verbose for debugging
+                )
+                
+                generation_time = time.time() - start_time
+                logger.info(f"✅ Request #{request_id}: MLX generation completed in {generation_time:.2f}s")
+                
+                # Process response with better cleaning
+                if response is None:
+                    logger.error(f"❌ Request #{request_id}: MLX returned None response")
+                    return "Error: No response generated from MLX model"
+                
+                text_response = str(response).strip()
+                logger.info(f"📝 Request #{request_id}: Raw response length: {len(text_response)}")
+                logger.info(f"📝 Request #{request_id}: Raw response preview: {text_response[:200]}...")
+                
+                # Clean response more carefully
+                # Remove special tokens
+                text_response = text_response.replace("<|end|>", "")
+                text_response = text_response.replace("<|endoftext|>", "")
+                text_response = text_response.replace("<|im_end|>", "")
+                
+                # Remove repeated prompts or artifacts
+                if "User:" in text_response and "Assistant:" in text_response:
+                    # Extract only the assistant's response
+                    parts = text_response.split("Assistant:")
+                    if len(parts) > 1:
+                        text_response = parts[-1].strip()
+                
+                # Remove common artifacts
+                if "1. What is meant by" in text_response:
+                    text_response = text_response.split("1. What is meant by")[0].strip()
+                
+                # Clean whitespace
+                text_response = ' '.join(text_response.split())
+                
+                logger.info(f"✨ Request #{request_id}: Cleaned response length: {len(text_response)}")
+                logger.info(f"✨ Request #{request_id}: Final response: {text_response}")
+                
+                if not text_response:
+                    logger.warning(f"⚠️ Request #{request_id}: Cleaned response is empty!")
+                    return "Error: Generated response was empty after cleaning"
+                
+                # Update timing
+                self.last_inference_time = time.time()
+                
+                return text_response
+                
+            finally:
+                # Cleanup temporary file
+                if temp_image_path and temp_image_path.exists():
+                    try:
+                        temp_image_path.unlink()
+                        logger.info(f"🧹 Request #{request_id}: Cleaned up temporary file")
+                    except Exception as cleanup_error:
+                        logger.warning(f"⚠️ Request #{request_id}: Failed to cleanup temp file: {cleanup_error}")
+                
+                # Force memory cleanup
+                if hasattr(torch, 'mps') and torch.mps.is_available():
+                    torch.mps.empty_cache()
+                    
+        except Exception as e:
+            logger.error(f"❌ Request #{request_id}: MLX inference error: {e}", exc_info=True)
+            # Return more specific error information
+            return f"MLX inference failed (Request #{request_id}): {str(e)}"
+    
+    async def _generate_transformers_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
+        """Generate response using transformers with improved error handling"""
+        self.request_count += 1
+        request_id = self.request_count
+        
+        try:
+            logger.info(f"🚀 Request #{request_id}: Using Transformers inference for Phi-3.5-Vision...")
+            
+            # Clean prompt
+            clean_prompt = prompt.replace("<|image_1|>", "").strip()
+            
+            # Format messages
+            messages = [{"role": "user", "content": f"<|image_1|>\n{clean_prompt}"}]
+            
+            prompt_text = self.processor.tokenizer.apply_chat_template(
+                messages, 
+                tokenize=False, 
+                add_generation_prompt=True
+            )
+            
+            logger.info(f"💭 Request #{request_id}: Formatted prompt: {prompt_text[:100]}...")
+            
+            # Process inputs
+            inputs = self.processor(prompt_text, [image], return_tensors="pt")
+            
+            # Move to correct device
+            device = next(self.model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            
+            logger.info(f"💭 Request #{request_id}: Inputs prepared, device: {device}")
+            
+            # Generate with memory management
+            with torch.no_grad():
+                start_time = time.time()
+                
+                outputs = self.model.generate(
+                    **inputs, 
+                    max_new_tokens=max_tokens,
+                    do_sample=False,
+                    use_cache=False,
+                    pad_token_id=self.processor.tokenizer.eos_token_id
+                )
+                
+                generation_time = time.time() - start_time
+                logger.info(f"✅ Request #{request_id}: Transformers generation completed in {generation_time:.2f}s")
+            
+            # Decode response
+            result = self.processor.decode(outputs[0], skip_special_tokens=True)
+            
+            logger.info(f"📝 Request #{request_id}: Raw result length: {len(result)}")
+            logger.info(f"📝 Request #{request_id}: Raw result preview: {result[:200]}...")
+            
+            # Clean response
+            if "Assistant:" in result:
+                result_parts = result.split("Assistant:")
+                result = result_parts[-1].strip()
+            
+            # Additional cleaning
+            result = ' '.join(result.split())
+            
+            logger.info(f"✨ Request #{request_id}: Final result: {result}")
+            
+            if not result:
+                logger.warning(f"⚠️ Request #{request_id}: Transformers result is empty!")
+                return "Error: Generated response was empty"
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Request #{request_id}: Transformers inference error: {e}", exc_info=True)
+            return f"Transformers inference failed (Request #{request_id}): {str(e)}"
+    
     def setup_routes(self):
-        """Setup FastAPI routes"""
+        """Setup FastAPI routes with enhanced error handling"""
         
         @self.app.get("/health")
         async def health():
@@ -225,20 +426,27 @@ class StandardPhi3VisionServer:
         
         @self.app.post("/v1/chat/completions")
         async def chat_completions(request: ChatCompletionRequest):
-            """OpenAI-compatible chat completions endpoint"""
+            """OpenAI-compatible chat completions endpoint with enhanced debugging"""
+            request_start_time = time.time()
+            self.request_count += 1
+            request_id = self.request_count
+            
             try:
-                start_time = time.time()
+                logger.info(f"🎯 Request #{request_id}: Starting chat completion")
                 
                 if not self.model or not self.processor:
+                    logger.error(f"❌ Request #{request_id}: Model not ready")
                     raise HTTPException(status_code=503, detail="Model not ready")
                 
                 messages = request.messages
                 max_tokens = min(request.max_tokens or 100, 200)
                 
+                logger.info(f"📊 Request #{request_id}: max_tokens={max_tokens}, messages_count={len(messages)}")
+                
                 if not messages:
                     raise HTTPException(status_code=400, detail="No messages provided")
                 
-                # Extract user message (same pattern as vlm_tester.py)
+                # Extract user message
                 user_message = None
                 for message in reversed(messages):
                     if message.get('role') == 'user':
@@ -261,6 +469,9 @@ class StandardPhi3VisionServer:
                         if image_url.startswith('data:image/'):
                             image_data = image_url.split(',')[1]
                 
+                logger.info(f"📝 Request #{request_id}: text_content length: {len(text_content)}")
+                logger.info(f"🖼️ Request #{request_id}: has_image: {bool(image_data)}")
+                
                 if not image_data:
                     raise HTTPException(status_code=400, detail="No image provided")
                 
@@ -270,23 +481,37 @@ class StandardPhi3VisionServer:
                     image = Image.open(BytesIO(image_bytes))
                     if image.mode != 'RGB':
                         image = image.convert('RGB')
+                    
+                    logger.info(f"🖼️ Request #{request_id}: Image processed, size: {image.size}, mode: {image.mode}")
+                    
                 except Exception as e:
+                    logger.error(f"❌ Request #{request_id}: Image processing failed: {e}")
                     raise HTTPException(status_code=400, detail=f"Image processing failed: {e}")
                 
-                # Generate response using same logic as vlm_tester.py
+                # Generate response
+                logger.info(f"🔄 Request #{request_id}: Starting generation with method: {'MLX' if self.use_mlx else 'Transformers'}")
+                
                 if self.use_mlx:
                     response_text = await self._generate_mlx_response(image, text_content, max_tokens)
                 else:
                     response_text = await self._generate_transformers_response(image, text_content, max_tokens)
                 
-                processing_time = time.time() - start_time
+                processing_time = time.time() - request_start_time
+                
+                logger.info(f"✅ Request #{request_id}: Generation completed in {processing_time:.2f}s")
+                logger.info(f"📝 Request #{request_id}: Response length: {len(response_text)}")
+                
+                # Check for error responses
+                if response_text.startswith("Error:") or "failed" in response_text.lower():
+                    logger.error(f"❌ Request #{request_id}: Generation returned error: {response_text}")
+                    raise HTTPException(status_code=500, detail=response_text)
                 
                 # Update stats
                 self.stats["requests"] += 1
                 self.stats["total_time"] += processing_time
                 self.stats["avg_time"] = self.stats["total_time"] / self.stats["requests"]
                 
-                return {
+                response_data = {
                     "choices": [{
                         "message": {
                             "role": "assistant",
@@ -303,14 +528,19 @@ class StandardPhi3VisionServer:
                     "performance": {
                         "processing_time": f"{processing_time:.2f}s",
                         "framework": "FastAPI",
-                        "method": "MLX" if self.use_mlx else "Transformers"
+                        "method": "MLX" if self.use_mlx else "Transformers",
+                        "request_id": request_id
                     }
                 }
+                
+                logger.info(f"🎉 Request #{request_id}: Successfully completed")
+                return response_data
                     
             except HTTPException:
                 raise
             except Exception as e:
-                logger.error(f"Request processing error: {e}")
+                processing_time = time.time() - request_start_time
+                logger.error(f"❌ Request #{request_id}: Unexpected error after {processing_time:.2f}s: {e}", exc_info=True)
                 raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
         
         @self.app.get("/stats")
@@ -327,90 +557,6 @@ class StandardPhi3VisionServer:
                     "cross_platform": True
                 }
             }
-    
-    async def _generate_mlx_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
-        """Generate response using MLX (same as vlm_tester.py)"""
-        try:
-            from mlx_vlm import generate
-            logger.info("🚀 Using MLX-VLM inference for Phi-3.5-Vision...")
-            
-            # Save image to temporary file for MLX
-            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
-                temp_image_path = tmp_file.name
-                image.save(temp_image_path, 'JPEG', quality=95)
-            
-            try:
-                # Use same prompt format as vlm_tester.py
-                mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
-                
-                response = generate(
-                    model=self.model,
-                    processor=self.processor,
-                    image=temp_image_path,
-                    prompt=mlx_prompt,
-                    max_tokens=max_tokens,
-                    temp=0.0,
-                    verbose=False
-                )
-                
-                # Process response (same as vlm_tester.py)
-                text_response = str(response)
-                text_response = text_response.replace("<|end|>", "").replace("<|endoftext|>", "").strip()
-                if "1. What is meant by" in text_response:
-                    text_response = text_response.split("1. What is meant by")[0].strip()
-                text_response = ' '.join(text_response.split())
-                
-                return text_response
-                
-            finally:
-                # Clean up temporary file
-                try:
-                    os.remove(temp_image_path)
-                except:
-                    pass
-                    
-        except Exception as e:
-            logger.error(f"MLX inference error: {e}")
-            return f"MLX inference failed: {str(e)}"
-    
-    async def _generate_transformers_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
-        """Generate response using transformers (same as vlm_tester.py)"""
-        try:
-            # Same format as vlm_tester.py
-            messages = [{"role": "user", "content": f"<|image_1|>\n{prompt}"}]
-            
-            prompt_text = self.processor.tokenizer.apply_chat_template(
-                messages, 
-                tokenize=False, 
-                add_generation_prompt=True
-            )
-            
-            inputs = self.processor(prompt_text, [image], return_tensors="pt")
-            
-            # Move to correct device
-            device = next(self.model.parameters()).device
-            inputs = {k: v.to(device) for k, v in inputs.items()}
-            
-            with torch.no_grad():
-                outputs = self.model.generate(
-                    **inputs, 
-                    max_new_tokens=max_tokens,
-                    do_sample=False,
-                    use_cache=False,
-                    pad_token_id=self.processor.tokenizer.eos_token_id
-                )
-            
-            result = self.processor.decode(outputs[0], skip_special_tokens=True)
-            
-            # Clean response
-            if "Assistant:" in result:
-                result = result.split("Assistant:")[-1].strip()
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Transformers inference error: {e}")
-            return f"Transformers inference failed: {str(e)}"
     
     async def startup(self):
         """Startup event"""

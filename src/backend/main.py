@@ -538,7 +538,7 @@ def format_message_for_model(message, image_count, model_name):
         
         # Format text based on model type
         if model_name in ["smolvlm", "smolvlm2_500m_video", "smolvlm2_500m_video_optimized"]:
-            # SmolVLM doesn't need special image tags
+            # FIXED: SmolVLM doesn't need ANY special image tags - it handles images automatically
             formatted_text = text_content
         elif model_name in ["phi3_vision", "phi3_vision_optimized"]:
             # Don't add <|image_1|> here - let model server handle it
@@ -565,8 +565,8 @@ def format_message_for_model(message, image_count, model_name):
         
         logger.info(f"Formatted message for {model_name}: images={image_count}, text='{formatted_text[:50]}...'")
     
-        logger.info(f"Formatted message for {model_name}: images={image_count}, text='{formatted_text[:50]}...'")
     return message
+
 # Start frontend separately: cd ../frontend && python -m http.server 5500
 # ...existing code...
 if __name__ == "__main__":
