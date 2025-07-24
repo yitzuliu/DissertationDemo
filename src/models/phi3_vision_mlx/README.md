@@ -1,220 +1,284 @@
 # Phi-3.5-Vision MLX Model
 
-Microsoft's Phi-3.5-Vision multimodal model with dual implementation for performance and compatibility.
+Microsoft's Phi-3.5-Vision model optimized for Apple Silicon with MLX framework integration and transformers fallback.
 
-## File Structure
+## 🎯 Model Overview
 
-Phi-3.5-Vision follows the project's standard dual-implementation pattern:
+Phi-3.5-Vision is a high-accuracy vision-language model that excels at detailed image analysis and reasoning tasks. While not the fastest model in our system, it provides comprehensive and accurate descriptions, making it ideal for applications requiring detailed visual understanding.
 
-### Optimized Version (Recommended for Apple Silicon)
-- **`run_phi3_vision_optimized.py`** - Flask server with MLX optimization
-- **`phi3_vision_optimized.py`** - MLX-optimized model implementation with INT4 quantization
-- **`phi3_vision_optimized.json`** - Configuration for optimized version
+## 📁 File Structure
 
-### Standard Version (Maximum Compatibility)
-- **`run_phi3_vision.py`** - FastAPI server for universal compatibility
-- **`phi3_vision_model.py`** - Standard transformers implementation
-- **`phi3_vision.json`** - Configuration for standard version
+### Server Implementations
+- **`run_phi_vision.py`** - Standard FastAPI server with MLX-VLM and transformers fallback
+- **`run_phi_vision_optimized.py`** - Optimized Flask server (if available)
 
-## Quick Start
+### Configuration Files
+- **`src/config/model_configs/phi3_vision.json`** - Standard configuration
+- **`src/config/model_configs/phi3_vision_optimized.json`** - Optimized configuration
 
-### Optimized Version (Better Performance on Apple Silicon)
+## ⚠️ Known Issues
+
+### Critical Issue: Empty Responses After First Request
+**Status**: Under Investigation
+
+**Symptoms**:
+- First inference request works correctly
+- Subsequent requests return empty responses
+- Issue appears to be related to MLX temporary file handling
+
+**Current Workaround**:
+- Restart the model server between sessions
+- Use shorter inference sessions
+- Monitor logs for MLX-related errors
+
+**Technical Details**:
+- MLX temporary file cleanup timing issue
+- Model state not properly reset between requests
+- Request tracking shows successful processing but empty output
+
+## 🚀 Quick Start
+
+### Starting the Server
 
 ```bash
-# Install MLX dependencies first
-pip install mlx-vlm mlx>=0.11.0
+# Activate the environment
+source ai_vision_env/bin/activate
 
-# Run optimized server
-cd "src/models/Phi_3.5_Vision MLX"
-python run_phi3_vision_optimized.py
+# Navigate to Phi-3.5-Vision directory
+cd src/models/phi3_vision_mlx
+
+# Start the standard server
+python run_phi_vision.py
 ```
 
-**Features:**
-- 🍎 MLX optimization for Apple Silicon (M1/M2/M3)
-- ⚡ INT4 quantization for memory efficiency
-- 🗄️ Image preprocessing cache
-- 🚀 Flask server with threading
-- 📉 Significant memory and speed improvements
-- 🔄 Automatic fallback to transformers
+The server will start on **port 8080** by default.
 
-### Standard Version (Universal Compatibility)
+### Verifying the Server
 
 ```bash
-# Run standard server
-cd "src/models/Phi_3.5_Vision MLX"
-python run_phi3_vision.py
-```
-
-**Features:**
-- 🌐 FastAPI server with full async support
-- 🛡️ Maximum compatibility across platforms
-- 💻 CPU inference for stability
-- 📡 Full transformers integration
-- 🔧 Standard precision (float32)
-
-## Performance Comparison
-
-| Version | Framework | Device | Load Time | Inference | Memory | Quantization |
-|---------|-----------|---------|-----------|-----------|---------|--------------|
-| **Optimized** | MLX + Flask | Apple Silicon | ~8-12s | ~3-5s | 4-6GB | INT4 |
-| **Standard** | Transformers + FastAPI | CPU/MPS | ~15-25s | ~8-15s | 8-12GB | float32 |
-
-## API Usage
-
-Both versions provide OpenAI-compatible endpoints:
-
-### Health Check
-```bash
+# Health check
 curl http://localhost:8080/health
-```
 
-### Chat Completions
-```bash
+# Test single inference (first request should work)
 curl -X POST http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "phi-3.5-vision",
-    "messages": [
-      {
-        "role": "user",
-        "content": [
-          {
-            "type": "text",
-            "text": "What do you see in this image?"
-          },
-          {
-            "type": "image_url",
-            "image_url": {
-              "url": "data:image/jpeg;base64,..."
-            }
-          }
-        ]
-      }
-    ],
-    "max_tokens": 100
+    "max_tokens": 100,
+    "messages": [{
+      "role": "user",
+      "content": [
+        {"type": "text", "text": "What do you see in this image?"},
+        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,..."}}
+      ]
+    }]
   }'
 ```
 
-### Performance Stats
-```bash
-curl http://localhost:8080/stats
-```
+## ⚙️ Configuration
 
-## MLX Optimization Details
-
-The optimized version uses several performance enhancements:
-
-### 1. MLX Framework
-- **Apple Silicon optimization** - Native M1/M2/M3 acceleration
-- **INT4 quantization** - Reduces memory usage by ~75%
-- **Unified memory** - Efficient GPU/CPU memory sharing
-
-### 2. Caching System
-- **Image preprocessing cache** - Avoid repeated processing
-- **Response cache** - Cache recent predictions
-- **Temporary file management** - Automatic cleanup
-
-### 3. Fallback Strategy
-```python
-try:
-    # Primary: MLX inference
-    result = mlx_generate(image, prompt)
-except:
-    # Fallback: Transformers inference
-    result = transformers_generate(image, prompt)
-```
-
-## Installation Requirements
-
-### Optimized Version
-```bash
-pip install mlx-vlm>=0.0.9 mlx>=0.11.0
-pip install transformers>=4.40.0 torch>=2.0.0
-pip install Pillow>=9.0.0 flask>=2.3.0
-```
-
-### Standard Version
-```bash
-pip install transformers>=4.40.0 torch>=2.0.0
-pip install Pillow>=9.0.0 fastapi>=0.100.0 uvicorn>=0.22.0
-```
-
-## Model Information
-
-- **Base Model**: microsoft/Phi-3.5-vision-instruct
-- **MLX Model**: lokinfey/Phi-3.5-vision-mlx-int4
-- **Context Length**: 2048 tokens
-- **Image Size**: Up to 1024x1024
-- **Supported Formats**: JPEG, PNG, WebP
-
-## Common Issues & Solutions
-
-### MLX Not Available
-```
-⚠️ MLX not available, install with: pip install mlx-vlm
-```
-**Solution**: Install MLX dependencies or use standard version
-
-### Memory Issues
-```
-❌ CUDA out of memory / MPS allocation failed
-```
-**Solution**: Use CPU device or reduce image size
-
-### Long Loading Times
-```
-⏳ Model loading takes 15+ seconds
-```
-**Solution**: Pre-load model or use optimized version
-
-## Version Selection Guide
-
-| Use Case | Recommended Version | Reason |
-|----------|-------------------|---------|
-| **Apple Silicon (M1/M2/M3)** | Optimized | 3-4x faster, less memory |
-| **Development/Testing** | Standard | Better debugging, more stable |
-| **Production (Mac)** | Optimized | Best performance |
-| **Production (Linux/Windows)** | Standard | Better compatibility |
-| **Limited Memory (<8GB)** | Optimized | INT4 quantization |
-| **Maximum Stability** | Standard | Mature transformers backend |
-
-## Configuration
-
-Models can be configured via JSON files in `src/config/model_configs/`:
-
-- `phi3_vision.json` - Standard version settings
-- `phi3_vision_optimized.json` - Optimized version settings
+### Model Configuration
+Located at: `src/config/model_configs/phi3_vision.json`
 
 Key configuration options:
-- `max_tokens`: Response length limit
-- `device`: Target device (auto/cpu/mps)
-- `image_processing.max_size`: Maximum image resolution
-- `cache_settings.image_cache_size`: Cache size
-
-## Testing
-
-Both implementations can be tested with the unified test framework:
-
-```python
-from src.testing.vlm_tester import VLMTester
-
-# Test optimized version
-tester = VLMTester()
-results = tester.test_model("Phi-3.5-Vision-Optimized")
-
-# Test standard version  
-results = tester.test_model("Phi-3.5-Vision")
+```json
+{
+  "model_name": "Phi-3.5-Vision",
+  "model_path": "mlx-community/Phi-3.5-vision-instruct-4bit",
+  "device": "auto",
+  "timeout": 180,
+  "max_tokens": 100,
+  "image_processing": {
+    "size": [512, 512],
+    "quality": 95,
+    "preserve_aspect_ratio": true
+  },
+  "mlx_config": {
+    "use_mlx": true,
+    "quantization_bits": 4,
+    "fallback_to_transformers": true
+  }
+}
 ```
 
-## Project Integration
+### Setting as Active Model
+```bash
+# Through backend API
+curl -X PATCH http://localhost:8000/api/v1/config \
+  -H "Content-Type: application/json" \
+  -d '{"active_model": "phi3_vision"}'
+```
 
-Phi-3.5-Vision integrates with the broader vision language model framework:
+## 🔧 Technical Specifications
 
-- **Base Model**: Inherits from `BaseVisionModel`
-- **Config Manager**: Uses `src/backend/utils/config_manager.py`
-- **Image Processing**: Uses `src/backend/utils/image_processing.py`
-- **Testing**: Compatible with `src/testing/vlm_tester.py`
+### Model Architecture
+- **Base Model**: microsoft/Phi-3.5-vision-instruct
+- **MLX Version**: mlx-community/Phi-3.5-vision-instruct-4bit
+- **Quantization**: INT4 for MLX, Float16 for transformers
+- **Context Length**: 2048 tokens
+- **Vision Encoder**: Integrated with language model
 
-## License
+### Capabilities
+- **Image Understanding**: High-accuracy visual analysis
+- **Detailed Descriptions**: Comprehensive scene analysis
+- **Reasoning**: Strong logical reasoning about visual content
+- **Formats**: JPEG, PNG, WebP support
+- **Resolution**: Up to 1024px input
 
-This implementation follows the license terms of the base Phi-3.5-Vision model from Microsoft. 
+### Performance Benchmarks
+| Metric | Score | Context |
+|--------|-------|---------|
+| **VQA 2.0 Accuracy** | 60.0% | High accuracy |
+| **Inference Time** | 13.61s | Slower but detailed |
+| **Memory Usage** | 1.53GB | Efficient |
+| **Loading Time** | ~30s | MLX optimization |
+
+## 🏗️ Implementation Details
+
+### Dual Strategy Loading
+1. **Primary: MLX-VLM**
+   ```python
+   from mlx_vlm import load
+   self.model, self.processor = load(
+       "mlx-community/Phi-3.5-vision-instruct-4bit",
+       trust_remote_code=True
+   )
+   ```
+
+2. **Fallback: Transformers**
+   ```python
+   from transformers import AutoModelForCausalLM, AutoProcessor
+   self.processor = AutoProcessor.from_pretrained(
+       "microsoft/Phi-3.5-vision-instruct",
+       trust_remote_code=True
+   )
+   ```
+
+### Image Token Format
+Phi-3.5-Vision uses specific image token formatting:
+```python
+# MLX format
+mlx_prompt = f"<|image_1|>\nUser: {prompt}\nAssistant:"
+
+# Transformers format
+messages = [{"role": "user", "content": f"<|image_1|>\n{prompt}"}]
+```
+
+### Enhanced Error Handling and Debugging
+The current implementation includes:
+- Request ID tracking for debugging
+- Detailed logging of each processing step
+- Memory cleanup after each inference
+- Temporary file management for MLX
+
+## 📊 Performance Comparison
+
+| Feature | Phi-3.5-Vision | SmolVLM2 | Moondream2 |
+|---------|----------------|----------|------------|
+| **Accuracy** | 60.0% | 66.0% | 56.0% |
+| **Speed** | 13.61s | 6.61s | 4.06s |
+| **Memory** | 1.53GB | 2.08GB | 0.10GB |
+| **Detail Level** | ✅ High | ✅ Good | ⚡ Basic |
+| **Apple Silicon** | ✅ MLX | ✅ MLX | ✅ MPS |
+
+## 🔍 Troubleshooting
+
+### Known Issues and Solutions
+
+1. **Empty Responses After First Request**
+   ```bash
+   # Current workaround: Restart server
+   # Kill existing process
+   pkill -f "run_phi3_vision"
+   
+   # Restart server
+   python run_phi3_vision.py
+   ```
+
+2. **MLX Loading Fails**
+   ```bash
+   # Check MLX installation
+   pip install mlx-vlm>=0.0.9
+   
+   # Verify MLX availability
+   python -c "import mlx.core as mx; print('MLX available')"
+   ```
+
+3. **Transformers Fallback Issues**
+   ```bash
+   # Ensure transformers version
+   pip install transformers>=4.40.0
+   
+   # Check model download
+   python -c "from transformers import AutoProcessor; AutoProcessor.from_pretrained('microsoft/Phi-3.5-vision-instruct')"
+   ```
+
+4. **Memory Issues on Apple Silicon**
+   ```bash
+   # Check MPS availability
+   python -c "import torch; print(f'MPS: {torch.backends.mps.is_available()}')"
+   ```
+
+### Debug Mode
+Enable enhanced debugging:
+```bash
+export LOG_LEVEL=DEBUG
+python run_phi3_vision.py
+```
+
+Monitor logs for:
+- Request ID tracking
+- MLX generation steps
+- Temporary file operations
+- Memory cleanup operations
+
+## 🎯 Use Cases
+
+### Recommended For
+- **Detailed image analysis** - When accuracy is more important than speed
+- **Educational applications** - Comprehensive descriptions
+- **Research and development** - High-quality baseline model
+- **Quality benchmarking** - Reference implementation
+
+### Not Recommended For
+- **Real-time applications** - Due to slower inference speed
+- **Production systems** - Until empty response issue is resolved
+- **High-volume processing** - Consider faster alternatives
+
+### Example Applications
+- Educational content analysis with detailed explanations
+- Research applications requiring high accuracy
+- Baseline comparisons for other models
+- Quality assessment tasks
+
+## 🔧 Development Status
+
+### Current Priorities
+1. **🔴 High Priority**: Fix empty response issue after first request
+2. **🟡 Medium Priority**: Optimize MLX inference speed
+3. **🟢 Low Priority**: Implement response caching
+
+### Recent Changes
+- Enhanced request tracking and debugging
+- Improved memory management
+- Better error handling and logging
+- Temporary file cleanup improvements
+
+### Contributing
+If working on Phi-3.5-Vision improvements:
+1. Focus on the empty response issue
+2. Test memory cleanup thoroughly
+3. Monitor MLX temporary file handling
+4. Ensure cross-platform compatibility
+
+## 📚 Additional Resources
+
+- **[Model Card](https://huggingface.co/microsoft/Phi-3.5-vision-instruct)** - Official model documentation
+- **[MLX Community Model](https://huggingface.co/mlx-community/Phi-3.5-vision-instruct-4bit)** - MLX optimized version
+- **[System Architecture](../../docs/ARCHITECTURE.md)** - Overall system design
+- **[Known Issues Tracking](../../docs/KNOWN_ISSUES.md)** - Detailed issue documentation
+
+---
+
+**Status**: ⚠️ **Has Issues** | **Recommended**: ❌ **Not for Production** | **Last Updated**: January 2025
+
+**⚠️ Important**: This model has known issues with consecutive requests. Use SmolVLM2 for production deployments.

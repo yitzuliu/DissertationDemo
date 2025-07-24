@@ -1,8 +1,62 @@
 # AI Manual Assistant - Vision Models
 
-This directory contains all Vision-Language Model (VLM) implementations for the AI Manual Assistant project. Each model runs as a standalone server with OpenAI-compatible APIs.
+This directory contains all vision-language model implementations for the AI Manual Assistant system. Each model provides unique capabilities optimized for different use cases and performance requirements.
 
-## 🏗️ Current Model Structure
+## 🎯 Available Models Overview
+
+### Production-Ready Models
+
+#### 🏆 SmolVLM2-500M-Video-Instruct (Recommended)
+- **Status**: ✅ **Production Ready**
+- **Best For**: General-purpose vision analysis with video capabilities
+- **Performance**: 6.61s inference, 2.08GB memory
+- **Strengths**: Best accuracy/performance balance, video understanding
+- **Location**: `smolvlm2/`
+
+#### ⚡ Moondream2 (Speed Champion)
+- **Status**: ✅ **Production Ready**
+- **Best For**: Real-time applications, resource-constrained environments
+- **Performance**: 4.06s inference, 0.10GB memory
+- **Strengths**: Fastest inference, minimal memory usage
+- **Location**: `moondream2/`
+
+#### 🛡️ SmolVLM (Reliability Champion)
+- **Status**: ✅ **Production Ready**
+- **Best For**: Server-based deployments, batch processing
+- **Performance**: 5.98s inference, 1.58GB memory
+- **Strengths**: Robust llama-server architecture, comprehensive testing
+- **Location**: `smolvlm/`
+
+#### 🏆 LLaVA MLX (Accuracy Champion)
+- **Status**: ✅ **Production Ready**
+- **Best For**: High-accuracy image analysis, Apple Silicon systems
+- **Performance**: 2.8s inference, 7.2GB memory
+- **Strengths**: Highest accuracy, native MLX optimization
+- **Location**: `llava_mlx/`
+
+### Models with Known Issues
+
+#### ⚠️ Phi-3.5-Vision MLX
+- **Status**: ⚠️ **Has Issues**
+- **Issue**: Empty responses after first request
+- **Best For**: Single-use analysis (with restart)
+- **Performance**: 13.61s inference, 1.53GB memory
+- **Location**: `phi3_vision_mlx/`
+
+## 📊 Performance Comparison Matrix
+
+| Model | Accuracy | Speed | Memory | Apple Silicon | Status | Use Case |
+|-------|----------|-------|---------|---------------|--------|----------|
+| **SmolVLM2** | 🥇 66.0% | 6.61s | 2.08GB | ✅ MLX | ✅ Ready | General Purpose |
+| **LLaVA MLX** | 🏆 High | 2.8s | 7.2GB | 🏆 Native | ✅ Ready | High Accuracy |
+| **SmolVLM** | 🥈 64.0% | 5.98s | 1.58GB | ✅ MLX | ✅ Ready | Server Deployment |
+| **Moondream2** | 🥉 56.0% | 🏆 4.06s | 🏆 0.10GB | ✅ MPS | ✅ Ready | Real-time |
+| **Phi-3.5-Vision** | 60.0% | 13.61s | 1.53GB | ✅ MLX | ⚠️ Issues | Research Only |
+
+## 🏗️ Architecture Overview
+
+### Standard Implementation Pattern
+Each model follows a consistent dual-implementation pattern:
 
 ```
 src/models/
@@ -28,67 +82,7 @@ src/models/
     └── yolo8_model.py              # Detection implementation
 ```
 
-## 🎯 Model Performance Summary
-
-Based on VQA 2.0 testing results:
-
-| Model | VQA Accuracy | Inference Time | Memory Usage | Status |
-|-------|:------------:|:--------------:|:------------:|:------:|
-| **SmolVLM2-500M-Video** | 🥇 66.0% | 6.61s | 2.08GB | ✅ **Recommended** |
-| **SmolVLM-500M** | 🥈 64.0% | 5.98s | 1.58GB | ✅ **Excellent** |
-| **Moondream2** | 56.0% | 🏆 4.06s | 🏆 0.10GB | ✅ **Fastest** |
-| **Phi-3.5-Vision (MLX)** | 60.0% | 13.61s | 1.53GB | ✅ **Detailed** |
-| **LLaVA-v1.6 (MLX)** | ⚠️ 34.0% | 17.86s | 1.16GB | 🔧 **Issues** |
-
-For detailed performance analysis, see [Model Comparison Guide](../../docs/MODEL_COMPARISON.md).
-
-## 🚀 Quick Start
-
-### Starting a Model Server
-
-Each model runs as a standalone server. Choose one model to run:
-
-```bash
-# Recommended: SmolVLM2 (Best Overall Performance)
-python src/models/smolvlm2/run_smolvlm2.py
-
-# Alternative: SmolVLM (Excellent Alternative)
-python src/models/smolvlm/run_smolvlm.py
-
-# Speed: Moondream2 (Fastest Inference)
-python src/models/moondream2/run_moondream2_optimized.py
-
-# Accuracy: Phi-3.5-Vision (Detailed Analysis)
-python "src/models/Phi_3.5_Vision MLX/run_phi3_vision_optimized.py"
-```
-
-### Model Server API
-
-All models expose OpenAI-compatible endpoints:
-
-```bash
-# Health check
-curl http://localhost:8080/health
-
-# Image analysis
-curl -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "smolvlm2",
-    "messages": [
-      {
-        "role": "user",
-        "content": [
-          {"type": "text", "text": "Describe this image"},
-          {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,..."}}
-        ]
-      }
-    ],
-    "max_tokens": 150
-  }'
-```
-
-## ⚙️ Model Configuration
+### Model Configuration
 
 Each model has its own configuration file in `src/config/model_configs/`:
 
