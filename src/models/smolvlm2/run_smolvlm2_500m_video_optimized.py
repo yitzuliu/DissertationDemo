@@ -1,466 +1,464 @@
+#!/usr/bin/env python3
 """
-SmolVLM2-500M-Video-Optimized Model Server
+Optimized SmolVLM2-500M-Video Server Runner
 
-Optimized implementation of SmolVLM2 500M Video model with Apple Silicon MPS acceleration,
-memory optimizations, image caching, and performance enhancements.
+Optimized version of SmolVLM2-500M-Video server with:
+- Single-threaded Flask to avoid conflicts
+- MLX acceleration for Apple Silicon
+- Memory management and cleanup
+- Performance optimizations
 """
 
 import os
-import sys
-import logging
 import json
-import base64
-import io
+import logging
 import time
+import base64
+import subprocess
+import sys
+import tempfile
 import gc
-from pathlib import Path
+from io import BytesIO
 from flask import Flask, request, jsonify
 from PIL import Image
 import torch
-from transformers import AutoTokenizer, AutoProcessor, LlavaForConditionalGeneration
-import warnings
-from functools import lru_cache
-import hashlib
+from pathlib import Path
 
-# Suppress specific warnings
-warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
-
-# Add project root to path for imports
-project_root = Path(__file__).resolve().parent.parent.parent
-sys.path.append(str(project_root))
-
-from backend.utils.config_manager import config_manager
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-# Model configuration
-MODEL_ID = "smolvlm2_500m_video_optimized"  # This matches the config file name
-MODEL_NAME = "SmolVLM2-500M-Video-Optimized"  # This is the display name
-
-class ImageCache:
-    """Simple image cache for optimization"""
-    
-    def __init__(self, max_size=15):
-        self.cache = {}
-        self.max_size = max_size
-        self.access_order = []
-    
-    def _generate_key(self, image_data):
-        """Generate cache key from image data"""
-        return hashlib.md5(image_data.encode() if isinstance(image_data, str) else image_data).hexdigest()
-    
-    def get(self, image_data):
-        """Get cached image"""
-        key = self._generate_key(image_data)
-        if key in self.cache:
-            # Move to end (most recently used)
-            self.access_order.remove(key)
-            self.access_order.append(key)
-            return self.cache[key]
-        return None
-    
-    def set(self, image_data, processed_image):
-        """Cache processed image"""
-        key = self._generate_key(image_data)
-        
-        # Remove oldest if cache is full
-        if len(self.cache) >= self.max_size and key not in self.cache:
-            oldest_key = self.access_order.pop(0)
-            del self.cache[oldest_key]
-        
-        self.cache[key] = processed_image
-        if key not in self.access_order:
-            self.access_order.append(key)
-    
-    def clear(self):
-        """Clear cache"""
-        self.cache.clear()
-        self.access_order.clear()
-
-class SmolVLM2VideoOptimizedModel:
-    """Optimized SmolVLM2 500M Video model handler with Apple Silicon optimizations"""
-    
-    def __init__(self):
-        self.model = None
-        self.processor = None
-        self.tokenizer = None
-        self.device = None
-        self.config = None
-        self.image_cache = ImageCache()
-        self.load_config()
-        
-    def load_config(self):
-        """Load model configuration"""
-        try:
-            self.config = config_manager.load_model_config(MODEL_ID)
-            if not self.config:
-                raise ValueError(f"No configuration found for model {MODEL_ID}")
-            logger.info(f"Loaded configuration for {MODEL_NAME}")
-        except Exception as e:
-            logger.error(f"Failed to load config: {e}")
-            # Fallback configuration with correct model path
-            self.config = {
-                "model_path": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
-                "device": "mps",
-                "model_config": {
-                    "torch_dtype": "float16",
-                    "device_map": "mps",
-                    "trust_remote_code": True,
-                    "low_cpu_mem_usage": True,
-                    "use_cache": True
-                },
-                "generation_config": {
-                    "max_new_tokens": 150,
-                    "temperature": 0.7,
-                    "top_p": 0.9,
-                    "do_sample": False,
-                    "repetition_penalty": 1.1,
-                    "use_cache": True
-                },
-                "image_processing": {
-                    "cache_enabled": True,
-                    "smart_crop": True
-                },
-                "performance": {
-                    "mps_acceleration": True,
-                    "memory_optimization": True,
-                    "image_caching": True
-                }
-            }
-    
-    def load_model(self):
-        """Load the SmolVLM2 model and processor with optimizations"""
-        try:
-            logger.info(f"Loading {MODEL_NAME} model with optimizations...")
-            start_time = time.time()
-            
-            model_path = self.config.get("model_path", "HuggingFaceTB/SmolVLM2-500M-Video-Instruct")
-            model_config = self.config.get("model_config", {})
-            
-            # Determine device with MPS preference for Apple Silicon
-            device_setting = self.config.get("device", "auto")
-            if device_setting == "auto":
-                if hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-                    self.device = "mps"
-                    logger.info("Apple Silicon MPS acceleration enabled")
-                elif torch.cuda.is_available():
-                    self.device = "cuda"
-                else:
-                    self.device = "cpu"
-            else:
-                self.device = device_setting
-            
-            logger.info(f"Using device: {self.device}")
-            
-            # Enable memory optimizations for MPS
-            if self.device == "mps":
-                torch.mps.empty_cache()
-                # Set memory fraction for MPS
-                os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.8'
-            
-            # Load processor and tokenizer for SmolVLM2
-            from transformers import AutoProcessor, AutoTokenizer, AutoModelForImageTextToText
-            
-            self.processor = AutoProcessor.from_pretrained(
-                model_path,
-                trust_remote_code=model_config.get("trust_remote_code", True)
-            )
-            
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                model_path,
-                trust_remote_code=model_config.get("trust_remote_code", True)
-            )
-            
-            # Configure torch dtype for optimization
-            torch_dtype = model_config.get("torch_dtype", "float16")
-            if torch_dtype == "float16" and self.device == "mps":
-                dtype = torch.float16  # MPS supports float16
-            elif torch_dtype == "float32":
-                dtype = torch.float32
-            else:
-                dtype = torch.float16  # Default
-            
-            # Load SmolVLM2 model with optimized configuration
-            self.model = AutoModelForImageTextToText.from_pretrained(
-                model_path,
-                torch_dtype=dtype,
-                device_map=model_config.get("device_map", "auto") if self.device != "mps" else None,
-                trust_remote_code=model_config.get("trust_remote_code", True),
-                low_cpu_mem_usage=model_config.get("low_cpu_mem_usage", True)
-            )
-            
-            # Move to MPS device
-            if self.device == "mps":
-                self.model = self.model.to(self.device)
-            
-            # Enable model optimizations
-            if hasattr(self.model, 'eval'):
-                self.model.eval()
-            
-            # Memory cleanup
-            gc.collect()
-            if self.device == "mps":
-                torch.mps.empty_cache()
-            
-            load_time = time.time() - start_time
-            logger.info(f"{MODEL_NAME} loaded successfully in {load_time:.2f} seconds")
-            
-        except Exception as e:
-            logger.error(f"Failed to load {MODEL_NAME}: {e}")
-            raise
-    
-    def preprocess_image(self, image_data):
-        """Optimized image preprocessing with caching"""
-        try:
-            # Check cache first
-            img_config = self.config.get("image_processing", {})
-            if img_config.get("cache_enabled", True):
-                cached_image = self.image_cache.get(image_data)
-                if cached_image is not None:
-                    logger.debug("Using cached preprocessed image")
-                    return cached_image
-            
-            # Decode base64 image
-            if image_data.startswith('data:image'):
-                image_data = image_data.split(',')[1]
-            
-            image_bytes = base64.b64decode(image_data)
-            image = Image.open(io.BytesIO(image_bytes)).convert('RGB')
-            
-            # Apply smart cropping and resizing
-            if "size" in img_config:
-                target_size = img_config["size"]
-                if isinstance(target_size, (list, tuple)) and len(target_size) >= 2:
-                    width, height = int(target_size[0]), int(target_size[1])
-                    
-                    # Smart crop for better image quality
-                    if img_config.get("smart_crop", True):
-                        # Calculate aspect ratio
-                        img_ratio = image.width / image.height
-                        target_ratio = width / height
-                        
-                        if img_ratio > target_ratio:
-                            # Image is wider, crop horizontally
-                            new_width = int(image.height * target_ratio)
-                            left = (image.width - new_width) // 2
-                            image = image.crop((left, 0, left + new_width, image.height))
-                        elif img_ratio < target_ratio:
-                            # Image is taller, crop vertically
-                            new_height = int(image.width / target_ratio)
-                            top = (image.height - new_height) // 2
-                            image = image.crop((0, top, image.width, top + new_height))
-                    
-                    # Resize with high quality
-                    if img_config.get("preserve_aspect_ratio", True):
-                        image.thumbnail((width, height), Image.Resampling.LANCZOS)
-                    else:
-                        image = image.resize((width, height), Image.Resampling.LANCZOS)
-            
-            # Cache the processed image
-            if img_config.get("cache_enabled", True):
-                self.image_cache.set(image_data, image)
-            
-            return image
-            
-        except Exception as e:
-            logger.error(f"Image preprocessing failed: {e}")
-            raise
-    
-    def generate_response(self, image, text_input):
-        """Optimized response generation with MPS acceleration"""
-        try:
-            start_time = time.time()
-            
-            # Get generation config
-            gen_config = self.config.get("generation_config", {})
-            
-            # Process inputs for SmolVLM2
-            inputs = self.processor(
-                text=text_input,
-                images=image,
-                return_tensors="pt"
-            )
-            
-            # Move inputs to device with optimization
-            if self.device and self.device != "cpu":
-                inputs = {k: v.to(self.device, non_blocking=True) if hasattr(v, 'to') else v 
-                         for k, v in inputs.items()}
-            
-            # Generate response with optimizations
-            with torch.no_grad():
-                if self.device == "mps":
-                    # MPS-specific optimizations
-                    outputs = self.model.generate(
-                        **inputs,
-                        max_new_tokens=gen_config.get("max_new_tokens", 150),
-                        temperature=gen_config.get("temperature", 0.7),
-                        top_p=gen_config.get("top_p", 0.9),
-                        do_sample=gen_config.get("do_sample", False),
-                        repetition_penalty=gen_config.get("repetition_penalty", 1.1),
-                        pad_token_id=self.processor.tokenizer.eos_token_id,
-                        use_cache=gen_config.get("use_cache", True)
-                    )
-                else:
-                    outputs = self.model.generate(
-                        **inputs,
-                        max_new_tokens=gen_config.get("max_new_tokens", 150),
-                        temperature=gen_config.get("temperature", 0.7),
-                        top_p=gen_config.get("top_p", 0.9),
-                        do_sample=gen_config.get("do_sample", False),
-                        repetition_penalty=gen_config.get("repetition_penalty", 1.1),
-                        pad_token_id=self.processor.tokenizer.eos_token_id,
-                        use_cache=gen_config.get("use_cache", True)
-                    )
-            
-            # Decode response
-            generated_text = self.processor.batch_decode(
-                outputs, 
-                skip_special_tokens=True
-            )[0].strip()
-            
-            # Memory cleanup for MPS
-            if self.device == "mps":
-                del inputs, outputs
-                torch.mps.empty_cache()
-            
-            generation_time = time.time() - start_time
-            logger.debug(f"Response generated in {generation_time:.2f} seconds")
-            
-            return generated_text
-            
-        except Exception as e:
-            logger.error(f"Generation failed: {e}")
-            # Cleanup on error
-            if self.device == "mps":
-                torch.mps.empty_cache()
-            raise
-    
-    def cleanup_memory(self):
-        """Perform memory cleanup"""
-        gc.collect()
-        if self.device == "mps":
-            torch.mps.empty_cache()
-        
-        # Clear image cache periodically
-        cache_size = len(self.image_cache.cache)
-        if cache_size > self.image_cache.max_size * 0.8:  # Clear when 80% full
-            logger.debug(f"Clearing image cache ({cache_size} items)")
-            self.image_cache.clear()
-
-# Initialize model
-model_handler = SmolVLM2VideoOptimizedModel()
-
-# Create Flask app
-app = Flask(__name__)
-
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check endpoint"""
-    return jsonify({
-        "status": "healthy",
-        "model": MODEL_NAME,
-        "model_id": MODEL_ID,
-        "device": getattr(model_handler, 'device', 'unknown'),
-        "optimizations": {
-            "mps_acceleration": model_handler.config.get("performance", {}).get("mps_acceleration", False),
-            "image_caching": model_handler.config.get("performance", {}).get("image_caching", False),
-            "memory_optimization": model_handler.config.get("performance", {}).get("memory_optimization", False)
-        }
-    })
-
-@app.route('/v1/chat/completions', methods=['POST'])
-def chat_completions():
-    """OpenAI-compatible chat completions endpoint with optimizations"""
+# Setup logging (same as optimized phi3_vision)
+def setup_logging():
+    """Setup logging with proper path and permissions"""
     try:
-        data = request.get_json()
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent
+        log_dir = base_dir / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        os.chmod(log_dir, 0o755)
         
-        if not data or 'messages' not in data:
-            return jsonify({"error": "Invalid request format"}), 400
+        timestamp = time.strftime("%Y%m%d")
+        log_file = log_dir / f"smolvlm2_500m_video_optimized_{timestamp}.log"
         
-        messages = data['messages']
-        if not messages:
-            return jsonify({"error": "No messages provided"}), 400
+        file_handler = logging.FileHandler(
+            filename=log_file,
+            mode='a',
+            encoding='utf-8'
+        )
+        os.chmod(log_file, 0o644)
         
-        # Extract the last user message
-        user_message = None
-        for message in reversed(messages):
-            if message.get('role') == 'user':
-                user_message = message
-                break
+        console_handler = logging.StreamHandler()
         
-        if not user_message:
-            return jsonify({"error": "No user message found"}), 400
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
         
-        # Process content
-        content = user_message.get('content', [])
-        if isinstance(content, str):
-            content = [{"type": "text", "text": content}]
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
         
-        text_input = ""
-        image_data = None
+        root_logger.setLevel(logging.INFO)
+        root_logger.addHandler(file_handler)
+        root_logger.addHandler(console_handler)
         
-        for item in content:
-            if item.get('type') == 'text':
-                text_input = item.get('text', '')
-            elif item.get('type') == 'image_url':
-                image_url = item.get('image_url', {}).get('url', '')
-                if image_url:
-                    image_data = image_url
-        
-        if not text_input:
-            return jsonify({"error": "No text input provided"}), 400
-        
-        if not image_data:
-            return jsonify({"error": "No image provided"}), 400
-        
-        # Process image and generate response with optimizations
-        image = model_handler.preprocess_image(image_data)
-        response_text = model_handler.generate_response(image, text_input)
-        
-        # Periodic memory cleanup
-        model_handler.cleanup_memory()
-        
-        # Return OpenAI-compatible response
-        return jsonify({
-            "id": f"chatcmpl-{int(time.time())}",
-            "object": "chat.completion",
-            "created": int(time.time()),
-            "model": MODEL_ID,
-            "choices": [{
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": response_text
-                },
-                "finish_reason": "stop"
-            }],
-            "usage": {
-                "prompt_tokens": len(text_input.split()),
-                "completion_tokens": len(response_text.split()),
-                "total_tokens": len(text_input.split()) + len(response_text.split())
-            }
-        })
+        root_logger.info(f"SmolVLM2-500M-Video optimized logging initialized. Log file: {log_file}")
+        return root_logger
         
     except Exception as e:
-        logger.error(f"Error in chat completions: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f"Failed to setup logging: {e}")
+        raise
 
-@app.route('/', methods=['GET'])
-def root():
-    """Root endpoint"""
-    return jsonify({
-        "message": f"{MODEL_NAME} API Server",
-        "model": MODEL_NAME,
-        "model_id": MODEL_ID,
-        "status": "running",
-        "optimizations": "Apple Silicon MPS, Image Caching, Memory Management"
-    })
+logger = setup_logging()
+
+class OptimizedSmolVLM2VideoServer:
+    """
+    Optimized Flask server for SmolVLM2-500M-Video (single-threaded to avoid conflicts)
+    """
+    
+    def __init__(self, config_path="smolvlm2_500m_video_optimized.json"):
+        self.app = Flask(__name__)
+        self.model = None
+        self.processor = None
+        self.config = self.load_config(config_path)
+        self.use_mlx = False
+        self.setup_routes()
+        
+        # Performance tracking
+        self.stats = {
+            "requests": 0,
+            "total_time": 0.0,
+            "avg_time": 0.0,
+            "cache_hits": 0
+        }
+    
+    def load_config(self, config_path):
+        """Load optimized configuration"""
+        try:
+            default_config = {
+                "model_name": "SmolVLM2-500M-Video-Optimized",
+                "model_path": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "device": "auto",
+                "trust_remote_code": True,
+                "max_tokens": 100,
+                "timeout": 30
+            }
+            
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            project_config_path = project_root / "src/config/model_configs/smolvlm2_500m_video_optimized.json"
+            
+            if project_config_path.exists():
+                with open(project_config_path, 'r') as f:
+                    file_config = json.load(f)
+                default_config.update(file_config)
+                logger.info(f"📁 Loaded config from {project_config_path}")
+            elif os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    file_config = json.load(f)
+                default_config.update(file_config)
+                logger.info(f"📁 Loaded config from {config_path}")
+            else:
+                logger.info("⚙️ Using default optimized config")
+            
+            return default_config
+            
+        except Exception as e:
+            logger.error(f"Config loading error: {e}")
+            return {}
+    
+    def initialize_model(self):
+        """Initialize optimized model with error handling"""
+        try:
+            logger.info("🚀 Initializing OPTIMIZED SmolVLM2-500M-Video...")
+            start_time = time.time()
+            
+            # Strategy 1: Try MLX-VLM first (same as vlm_tester.py)
+            try:
+                from mlx_vlm import load
+                logger.info("🚀 Attempting MLX-VLM load...")
+                
+                self.model, self.processor = load(
+                    self.config.get("model_path", "mlx-community/SmolVLM2-500M-Video-Instruct-mlx"),
+                    trust_remote_code=True
+                )
+                self.use_mlx = True
+                
+                init_time = time.time() - start_time
+                logger.info(f"✅ OPTIMIZED MLX SmolVLM2-500M-Video ready in {init_time:.2f}s")
+                return True
+                
+            except ImportError as e:
+                logger.warning(f"MLX-VLM not available: {e}, falling back to transformers")
+                self.use_mlx = False
+            except Exception as e:
+                logger.warning(f"MLX loading failed: {e}, falling back to transformers")
+                self.use_mlx = False
+            
+            # Strategy 2: Fallback to transformers (same as vlm_tester.py)
+            if not self.use_mlx:
+                from transformers import AutoProcessor, AutoModelForImageTextToText
+                logger.info("📥 Loading optimized transformers SmolVLM2-500M-Video...")
+                
+                fallback_model_path = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+                
+                self.processor = AutoProcessor.from_pretrained(
+                    fallback_model_path,
+                    trust_remote_code=True
+                )
+                self.model = AutoModelForImageTextToText.from_pretrained(
+                    fallback_model_path,
+                    torch_dtype=torch.float16,
+                    device_map="cpu",
+                    low_cpu_mem_usage=True,
+                    trust_remote_code=True
+                )
+                
+                init_time = time.time() - start_time
+                logger.info(f"✅ OPTIMIZED Transformers SmolVLM2-500M-Video ready in {init_time:.2f}s")
+                return True
+                
+        except Exception as e:
+            logger.error(f"❌ Model initialization error: {e}")
+            return False
+    
+    def setup_routes(self):
+        """Setup Flask routes with optimization"""
+        
+        @self.app.route('/health', methods=['GET'])
+        def health():
+            """Fast health check"""
+            if self.model and self.processor:
+                return jsonify({
+                    "status": "healthy",
+                    "model": "SmolVLM2-500M-Video-Optimized",
+                    "version": "1.0.0",
+                    "method": "MLX" if self.use_mlx else "Transformers",
+                    "optimization": "Single-threaded, Memory-optimized, Video-capable",
+                    "performance": {
+                        "requests": self.stats["requests"],
+                        "avg_time": f"{self.stats['avg_time']:.2f}s",
+                        "cache_hits": self.stats["cache_hits"]
+                    }
+                })
+            else:
+                return jsonify({"status": "loading", "model": "SmolVLM2-500M-Video-Optimized"}), 503
+        
+        @self.app.route('/v1/chat/completions', methods=['POST'])
+        def chat_completions():
+            """Optimized OpenAI-compatible endpoint"""
+            try:
+                start_time = time.time()
+                
+                if not self.model or not self.processor:
+                    return jsonify({"error": "Model not ready"}), 503
+                
+                data = request.get_json()
+                messages = data.get('messages', [])
+                max_tokens = min(data.get('max_tokens', 100), 150)  # Cap for speed
+                
+                if not messages:
+                    return jsonify({"error": "No messages provided"}), 400
+                
+                # Extract user message (same as standard version)
+                user_message = None
+                for message in reversed(messages):
+                    if message.get('role') == 'user':
+                        user_message = message
+                        break
+                
+                if not user_message:
+                    return jsonify({"error": "No user message found"}), 400
+                
+                # Process content
+                content = user_message.get('content', [])
+                text_content = ""
+                image_data = None
+                
+                for item in content:
+                    if item.get('type') == 'text':
+                        text_content = item.get('text', '')
+                    elif item.get('type') == 'image_url':
+                        image_url = item.get('image_url', {}).get('url', '')
+                        if image_url.startswith('data:image/'):
+                            image_data = image_url.split(',')[1]
+                
+                if not image_data:
+                    return jsonify({"error": "No image provided"}), 400
+                
+                # Fast image processing
+                try:
+                    image_bytes = base64.b64decode(image_data)
+                    image = Image.open(BytesIO(image_bytes))
+                    if image.mode != 'RGB':
+                        image = image.convert('RGB')
+                except Exception as e:
+                    return jsonify({"error": f"Image processing failed: {e}"}), 400
+                
+                # Generate response with optimized model (same logic as vlm_tester.py)
+                if self.use_mlx:
+                    response_text = self._generate_mlx_response(image, text_content, max_tokens)
+                else:
+                    response_text = self._generate_transformers_response(image, text_content, max_tokens)
+                
+                processing_time = time.time() - start_time
+                
+                # Update stats
+                self.stats["requests"] += 1
+                self.stats["total_time"] += processing_time
+                self.stats["avg_time"] = self.stats["total_time"] / self.stats["requests"]
+                
+                return jsonify({
+                    "choices": [{
+                        "message": {
+                            "role": "assistant",
+                            "content": response_text
+                        },
+                        "finish_reason": "stop"
+                    }],
+                    "usage": {
+                        "prompt_tokens": len(text_content.split()),
+                        "completion_tokens": len(response_text.split()),
+                        "total_tokens": len(text_content.split()) + len(response_text.split())
+                    },
+                    "model": "SmolVLM2-500M-Video-Optimized",
+                    "performance": {
+                        "processing_time": f"{processing_time:.2f}s",
+                        "optimized": True,
+                        "method": "MLX" if self.use_mlx else "Transformers"
+                    }
+                })
+                    
+            except Exception as e:
+                logger.error(f"Request processing error: {e}")
+                return jsonify({"error": f"Processing failed: {str(e)}"}), 500
+        
+        @self.app.route('/stats', methods=['GET'])
+        def stats():
+            """Performance statistics"""
+            return jsonify({
+                "model": "SmolVLM2-500M-Video-Optimized",
+                "statistics": self.stats,
+                "optimizations": {
+                    "single_threaded": True,
+                    "memory_management": True,
+                    "mlx_acceleration": self.use_mlx,
+                    "video_understanding": True
+                }
+            })
+    
+    def _generate_mlx_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
+        """Generate response using MLX (same as vlm_tester.py)"""
+        try:
+            from mlx_vlm import generate
+            logger.info("🚀 Using MLX-VLM inference for optimized SmolVLM2-500M-Video...")
+            
+            # Save image to temporary file for MLX
+            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                temp_image_path = tmp_file.name
+                image.save(temp_image_path, 'JPEG', quality=95)
+            
+            try:
+                # Use MLX-VLM generate (same as vlm_tester)
+                response = generate(
+                    model=self.model,
+                    processor=self.processor,
+                    image=temp_image_path,
+                    prompt=prompt,
+                    max_tokens=max_tokens,
+                    temp=0.0,
+                    verbose=False
+                )
+                
+                # Process response (same as vlm_tester)
+                text_response = str(response)
+                text_response = text_response.replace("<|end|>", "").replace("<|endoftext|>", "").strip()
+                if "1. What is meant by" in text_response:
+                    text_response = text_response.split("1. What is meant by")[0].strip()
+                text_response = ' '.join(text_response.split())
+                
+                return text_response
+                
+            finally:
+                # Clean up temporary file
+                try:
+                    os.remove(temp_image_path)
+                except:
+                    pass
+                    
+        except Exception as e:
+            logger.error(f"MLX inference error: {e}")
+            return f"MLX inference failed: {str(e)}"
+    
+    def _generate_transformers_response(self, image: Image.Image, prompt: str, max_tokens: int) -> str:
+        """Generate response using transformers (same as vlm_tester.py)"""
+        try:
+            # SmolVLM2 format
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "image": image},
+                        {"type": "text", "text": prompt}
+                    ]
+                }
+            ]
+            
+            input_text = self.processor.apply_chat_template(
+                messages, 
+                tokenize=False, 
+                add_generation_prompt=True
+            )
+            
+            inputs = self.processor(text=input_text, images=image, return_tensors="pt")
+            
+            # Move to correct device
+            device = next(self.model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_tokens,
+                    do_sample=False,
+                    use_cache=False,
+                    pad_token_id=self.processor.tokenizer.eos_token_id
+                )
+            
+            input_len = inputs["input_ids"].shape[1]
+            generated_ids = outputs[0][input_len:]
+            result = self.processor.decode(generated_ids, skip_special_tokens=True).strip()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Transformers inference error: {e}")
+            return f"Transformers inference failed: {str(e)}"
+    
+    def run(self, host='0.0.0.0', port=8080):
+        """Start optimized server"""
+        logger.info("🔥 Starting OPTIMIZED SmolVLM2-500M-Video Server...")
+        logger.info(f"🎯 Target: Apple Silicon optimization + Video understanding")
+        logger.info(f"⚙️ Optimizations: Single-threaded, Memory management, MLX acceleration")
+        
+        if not self.initialize_model():
+            logger.error("❌ Server startup failed")
+            return False
+        
+        logger.info(f"🌐 Server starting on http://{host}:{port}")
+        logger.info("🚀 OPTIMIZED SmolVLM2-500M-Video Server ready!")
+        
+        try:
+            # **CRITICAL FIX**: Disable threading to prevent conflicts
+            self.app.config['THREADED'] = False
+            
+            self.app.run(
+                host=host,
+                port=port,
+                debug=False,
+                threaded=False,  # FIXED: Single-threaded to prevent conflicts
+                processes=1,
+                use_reloader=False
+            )
+        except KeyboardInterrupt:
+            logger.info("🛑 Server stopped by user")
+        except Exception as e:
+            logger.error(f"❌ Server error: {e}")
+            return False
+        
+        return True
+
+def main():
+    """Main execution with optimization info"""
+    print("🔥 OPTIMIZED SmolVLM2-500M-Video Server")
+    print("=" * 60)
+    print("🎯 Performance Improvements:")
+    print("   • Single-threaded Flask to prevent conflicts")
+    print("   • MLX acceleration for Apple Silicon")
+    print("   • Memory optimization and cleanup")
+    print("   • Video understanding capabilities")
+    print("=" * 60)
+    
+    # Check MLX availability
+    try:
+        import mlx.core as mx
+        logger.info("✅ MLX framework available")
+    except ImportError:
+        logger.warning("⚠️ MLX not available, falling back to transformers")
+    
+    # Check PyTorch and device availability
+    logger.info(f"PyTorch version: {torch.__version__}")
+    if torch.backends.mps.is_available():
+        logger.info("✅ MPS (Apple Silicon) acceleration available")
+    else:
+        logger.warning("⚠️ MPS not available, using CPU")
+    
+    server = OptimizedSmolVLM2VideoServer()
+    
+    try:
+        server.run(host='0.0.0.0', port=8080)
+    except Exception as e:
+        logger.error(f"❌ Unexpected error: {e}")
+        exit(1)
+
+if __name__ == "__main__":
+    main()
 
 @app.route('/cache/stats', methods=['GET'])
 def cache_stats():

@@ -4,18 +4,20 @@
  */
 
 // Import modules
-import { CameraManager } from './modules/camera.js';
-import { UIController } from './modules/ui.js';
-import { APIClient } from './modules/api.js';
-import { ConfigManager } from './modules/config.js';
+import { cameraManager } from './components/camera.js';
+import { uiManager } from './components/ui.js';
+import { apiClient } from './components/api.js';
+import { configManager } from './utils/config.js';
+import { tabManager } from './components/tabs.js';
 
 // Main application class
 class VisionIntelligenceApp {
     constructor() {
-        this.cameraManager = new CameraManager();
-        this.uiController = new UIController();
-        this.apiClient = new APIClient();
-        this.configManager = new ConfigManager();
+        this.cameraManager = cameraManager;
+        this.uiManager = uiManager;
+        this.apiClient = apiClient;
+        this.configManager = configManager;
+        this.tabManager = tabManager;
         
         this.isProcessing = false;
         this.intervalId = null;
@@ -23,21 +25,30 @@ class VisionIntelligenceApp {
 
     async initialize() {
         try {
-            // Initialize all modules
+            // Initialize UI components first
+            this.uiManager.initialize();
+            this.tabManager.initialize();
+            
+            // Initialize other modules
             await Promise.all([
                 this.configManager.loadConfig(),
                 this.apiClient.checkStatus(),
                 this.cameraManager.initialize()
             ]);
 
-            // Setup UI
-            this.uiController.setupTabs();
+            // Setup event listeners
             this.setupEventListeners();
+            
+            // Update UI with loaded configuration
+            const config = this.configManager.get();
+            if (config) {
+                this.uiManager.updateConfigUI(config);
+            }
 
             console.log('✅ Application initialized successfully');
         } catch (error) {
             console.error('❌ Application initialization failed:', error);
-            this.uiController.showError('Application initialization failed. Please refresh and try again.');
+            this.uiManager.showError('Application initialization failed. Please refresh and try again.');
         }
     }
 
@@ -57,7 +68,7 @@ class VisionIntelligenceApp {
 
         // Camera selection
         document.getElementById('cameraSelect').addEventListener('change', (e) => {
-            this.cameraManager.switchCamera(e.target.value);
+            this.cameraManager.startCamera(e.target.value);
         });
     }
 
@@ -71,14 +82,14 @@ class VisionIntelligenceApp {
 
     async startProcessing() {
         try {
-            const instruction = document.getElementById('instructionText').value.trim();
-            if (!instruction) {
-                this.uiController.showError('Please enter an instruction before starting.');
+            const formValues = this.uiManager.getFormValues();
+            if (!formValues.instruction.trim()) {
+                this.uiManager.showError('Please enter an instruction before starting.');
                 return;
             }
 
             this.isProcessing = true;
-            this.uiController.updateProcessingState(true);
+            this.uiManager.updateProcessingState(true);
 
             // Send first request immediately
             await this.processFrame();
@@ -89,7 +100,7 @@ class VisionIntelligenceApp {
 
         } catch (error) {
             console.error('Error starting processing:', error);
-            this.uiController.showError(error.message);
+            this.uiManager.showError(error.message);
             this.stopProcessing();
         }
     }
@@ -102,7 +113,7 @@ class VisionIntelligenceApp {
             this.intervalId = null;
         }
 
-        this.uiController.updateProcessingState(false);
+        this.uiManager.updateProcessingState(false);
     }
 
     async processFrame() {
@@ -110,24 +121,28 @@ class VisionIntelligenceApp {
 
         try {
             // Capture image
-            const imageData = this.cameraManager.captureFrame();
+            const imageData = this.cameraManager.captureImage();
             if (!imageData) {
                 throw new Error('Failed to capture image');
             }
 
-            // Get instruction
-            const instruction = document.getElementById('instructionText').value.trim();
+            // Get form values
+            const formValues = this.uiManager.getFormValues();
 
             // Send to API
-            const response = await this.apiClient.sendChatCompletion(instruction, imageData);
+            const response = await this.apiClient.sendChatCompletion(
+                formValues.instruction, 
+                imageData, 
+                formValues.maxTokens
+            );
             
             // Update UI
-            this.uiController.updateResponse(response);
-            this.uiController.updateImagePreview(imageData);
+            this.uiManager.updateResponseText(response);
+            this.cameraManager.updateImagePreview(imageData);
 
         } catch (error) {
             console.error('Error processing frame:', error);
-            this.uiController.showError(error.message);
+            this.uiManager.showError(error.message);
         }
     }
 
@@ -139,12 +154,11 @@ class VisionIntelligenceApp {
 }
 
 // Initialize application when DOM is loaded
+let app;
 document.addEventListener('DOMContentLoaded', async () => {
-    const app = new VisionIntelligenceApp();
+    app = new VisionIntelligenceApp();
     await app.initialize();
+    
+    // Export for debugging purposes
+    window.visionApp = app;
 });
-
-// Export for debugging purposes
-window.visionApp = app;
-
-export default app;

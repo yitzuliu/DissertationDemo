@@ -1,12 +1,12 @@
 {
   "model_name": "SmolVLM2-500M-Video",
   "model_id": "smolvlm2_500m_video",
-  "model_path": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+  "model_path": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
   "device": "auto",
-  "timeout": 120,
-  "max_tokens": 150,
-  "version": "1.0.0",
-  "description": "SmolVLM2 500M Video model with enhanced video understanding capabilities",
+  "timeout": 60,
+  "max_tokens": 100,
+  "version": "standard",
+  "description": "Standard SmolVLM2-500M-Video model with video understanding capabilities using MLX-VLM for Apple Silicon optimization",
   
   "capabilities": {
     "vision": true,
@@ -14,7 +14,8 @@
     "image_understanding": true,
     "video_understanding": true,
     "conversation": true,
-    "multimodal": true
+    "multimodal": true,
+    "apple_silicon_optimized": true
   },
   
   "model_config": {
@@ -24,31 +25,77 @@
     "low_cpu_mem_usage": true
   },
   
+  "mlx_config": {
+    "use_mlx": true,
+    "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+    "quantization_bits": 4,
+    "fallback_to_transformers": true,
+    "temp_image_cleanup": true
+  },
+  
   "image_processing": {
-    "size": [384, 384],
-    "max_size": 768,
+    "size": [512, 512],
+    "max_size": 1024,
     "format": "RGB",
-    "quality": 90,
+    "quality": 95,
     "preserve_aspect_ratio": true
   },
   
   "generation_config": {
-    "max_new_tokens": 150,
+    "max_new_tokens": 100,
+    "do_sample": false,
     "temperature": 0.7,
     "top_p": 0.9,
-    "do_sample": false,
-    "repetition_penalty": 1.1
+    "repetition_penalty": 1.1,
+    "use_cache": false,
+    "pad_token_id": "eos_token_id"
   },
   
   "server": {
     "host": "0.0.0.0",
     "port": 8080,
-    "framework": "flask"
+    "framework": "flask",
+    "cors_enabled": true,
+    "log_level": "info"
+  },
+  
+  "performance": {
+    "compile_model": false,
+    "use_flash_attention": false,
+    "enable_optimizations": true,
+    "memory_optimization": "medium",
+    "apple_silicon_mps": true
+  },
+  
+  "limits": {
+    "max_sequence_length": 2048,
+    "max_image_size": 1024,
+    "timeout_seconds": 60
+  },
+  
+  "environment": {
+    "required_packages": [
+      "mlx-vlm>=0.0.9",
+      "transformers>=4.40.0",
+      "torch>=2.0.0",
+      "Pillow>=9.0.0",
+      "flask>=2.3.0"
+    ],
+    "python_version": ">=3.9",
+    "platform": "darwin",
+    "recommended_hardware": "Apple Silicon (M1/M2/M3)"
+  },
+  
+  "fallback_config": {
+    "enabled": true,
+    "fallback_model_path": "HuggingFaceTB/SmolVLM2-500M-Video-Instruct",
+    "fallback_device": "cpu",
+    "fallback_dtype": "float32"
   },
   
   "ui": {
-    "default_instruction": "You are an AI Manual Assistant with video understanding capabilities. Analyze this image in the context of a video sequence and provide structured guidance.\n\nFor each analysis, provide:\n\n[OBSERVATION]: What you see in the current frame\n[TEMPORAL_CONTEXT]: How this relates to previous frames if applicable\n[TASK_IDENTIFICATION]: Specific task being performed\n[STEP_ANALYSIS]: Current step in the sequence\n[GUIDANCE]: Clear instructions for the current step\n[SAFETY_NOTES]: Important safety considerations\n\nThis format helps maintain continuity across video frames and provides contextual understanding.",
-    "capture_intervals": [2000, 5000, 10000, 15000],
+    "default_instruction": "You are an AI Assistant with advanced visual understanding and video analysis capabilities. Your role is to analyze images and provide detailed, helpful responses.\n\nFor each image analysis, provide a comprehensive response that includes:\n\n[OBSERVATION]: Detailed description of what you see in the image\n[ANALYSIS]: Key insights and understanding of the scene\n[RESPONSE]: Clear, helpful answer to the user's question\n\nThis model has enhanced video understanding capabilities and can process sequential frames and temporal information.",
+    "capture_intervals": [1000, 2000, 5000, 10000, 15000],
     "default_interval": 5000
   }
 }

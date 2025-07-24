@@ -356,6 +356,21 @@ class UIManager {
     }
 
     /**
+     * Show error message
+     * @param {string} message - Error message to display
+     */
+    showError(message) {
+        showError(message);
+    }
+
+    /**
+     * Hide error message
+     */
+    hideError() {
+        hideError();
+    }
+
+    /**
      * Check if UI is initialized
      * @returns {boolean} True if initialized
      */
