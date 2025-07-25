@@ -1,0 +1,45 @@
+{
+  "storage": {
+    "type": "chroma",
+    "persist_directory": "src/data/chroma_db",
+    "collection_name": "memory_collection",
+    "embedding_model": "all-MiniLM-L6-v2",
+    "max_memories": 10000,
+    "backup_enabled": true,
+    "backup_interval_hours": 24
+  },
+  "processing": {
+    "relevance_threshold": 0.3,
+    "max_content_length": 10000,
+    "auto_tagging_enabled": true,
+    "deduplication_enabled": true,
+    "similarity_threshold": 0.85
+  },
+  "retrieval": {
+    "default_limit": 10,
+    "max_limit": 100,
+    "default_min_relevance": 0.5,
+    "search_timeout": 5.0,
+    "cache_enabled": true,
+    "cache_ttl_seconds": 300
+  },
+  "cleanup": {
+    "enabled": true,
+    "max_age_days": 30,
+    "max_total_memories": 10000,
+    "cleanup_interval_hours": 6,
+    "min_relevance_for_retention": 0.2
+  },
+  "logging": {
+    "level": "INFO",
+    "log_file": "src/logs/memory_system.log",
+    "max_file_size_mb": 10,
+    "backup_count": 5
+  },
+  "performance": {
+    "batch_size": 100,
+    "index_rebuild_interval_hours": 168,
+    "vacuum_interval_hours": 72,
+    "memory_usage_limit_mb": 500
+  }
+}
