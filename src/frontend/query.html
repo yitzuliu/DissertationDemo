@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Query - Vision Intelligence Hub</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <style>
+        /* Query-specific styles */
+        .query-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .query-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .query-header h1 {
+            color: var(--text);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .query-header p {
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+        
+        .query-input-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+        
+        .query-input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .query-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        .query-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .query-button {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .query-button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .query-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .query-examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .example-query {
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .example-query:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        
+        .response-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            min-height: 200px;
+        }
+        
+        .response-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        
+        .response-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+        
+        .response-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-light);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-connected {
+            background: var(--success-light);
+            color: var(--success);
+        }
+        
+        .status-disconnected {
+            background: var(--error-light);
+            color: var(--error);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1 class="header-title">
+                    <i class="fas fa-brain"></i>
+                    State Query System
+                </h1>
+            </div>
+            <div class="header-right">
+                <div id="connectionStatus" class="status-indicator status-disconnected">
+                    <i class="fas fa-circle"></i>
+                    Disconnected
+                </div>
+                <a href="index.html" class="header-link">
+                    <i class="fas fa-home"></i>
+                    Main App
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="query-container">
+            <!-- Header Section -->
+            <div class="query-header">
+                <h1>Instant State Query</h1>
+                <p>Ask questions about your current task progress and get immediate responses</p>
+            </div>
+
+            <!-- Query Input Section -->
+            <div class="query-input-section">
+                <div class="query-input-group">
+                    <input 
+                        type="text" 
+                        id="queryInput" 
+                        class="query-input" 
+                        placeholder="Ask about your current state... (e.g., 我在哪個步驟？)"
+                        autocomplete="off"
+                    >
+                    <button id="queryButton" class="query-button">
+                        <i class="fas fa-search"></i>
+                        Query
+                    </button>
+                </div>
+                
+                <div class="query-examples">
+                    <div class="example-query" data-query="我在哪個步驟？">我在哪個步驟？</div>
+                    <div class="example-query" data-query="下一步是什麼？">下一步是什麼？</div>
+                    <div class="example-query" data-query="需要什麼工具？">需要什麼工具？</div>
+                    <div class="example-query" data-query="完成了嗎？">完成了嗎？</div>
+                    <div class="example-query" data-query="整體進度如何？">整體進度如何？</div>
+                    <div class="example-query" data-query="current step">current step</div>
+                    <div class="example-query" data-query="next step">next step</div>
+                    <div class="example-query" data-query="help">help</div>
+                </div>
+            </div>
+
+            <!-- Response Section -->
+            <div class="response-section">
+                <div class="response-header">
+                    <h3>Response</h3>
+                </div>
+                
+                <div id="responseContent">
+                    <div class="loading" style="display: none;">
+                        <div class="spinner"></div>
+                        Processing your query...
+                    </div>
+                    
+                    <div id="responseText" class="response-text">
+                        Welcome! Ask a question about your current task state to get started.
+                    </div>
+                    
+                    <div id="responseMeta" class="response-meta" style="display: none;">
+                        <div class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span id="processingTime">-</span>ms
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span id="queryType">-</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-percentage"></i>
+                            <span id="confidence">-</span>% confidence
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script src="js/query.js"></script>
+</body>
+</html>

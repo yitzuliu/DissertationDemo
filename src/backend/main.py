@@ -450,6 +450,49 @@ async def get_current_state():
         logger.error(f"Error getting state: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting state: {str(e)}")
 
+@app.get("/api/v1/state/metrics")
+async def get_processing_metrics():
+    """Get quantifiable processing metrics"""
+    try:
+        state_tracker = get_state_tracker()
+        metrics = state_tracker.get_processing_metrics()
+        summary = state_tracker.get_metrics_summary()
+        
+        return {
+            "status": "success",
+            "metrics": metrics,
+            "summary": summary
+        }
+    except Exception as e:
+        logger.error(f"Error getting metrics: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting metrics: {str(e)}")
+
+@app.get("/api/v1/state/memory")
+async def get_memory_stats():
+    """Get sliding window memory management statistics"""
+    try:
+        state_tracker = get_state_tracker()
+        memory_stats = state_tracker.get_memory_stats()
+        sliding_window_data = state_tracker.get_sliding_window_data()
+        history_analysis = state_tracker.get_state_history_analysis()
+        
+        return {
+            "status": "success",
+            "memory_stats": {
+                "total_records": memory_stats.total_records,
+                "memory_usage_bytes": memory_stats.memory_usage_bytes,
+                "memory_usage_mb": memory_stats.memory_usage_bytes / (1024 * 1024),
+                "cleanup_count": memory_stats.cleanup_count,
+                "max_size_reached": memory_stats.max_size_reached,
+                "avg_record_size_bytes": memory_stats.avg_record_size
+            },
+            "sliding_window": sliding_window_data,
+            "history_analysis": history_analysis
+        }
+    except Exception as e:
+        logger.error(f"Error getting memory stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting memory stats: {str(e)}")
+
 @app.post("/api/v1/state/process")
 async def process_vlm_text(request: dict):
     """Manually process VLM text for testing"""
@@ -470,6 +513,44 @@ async def process_vlm_text(request: dict):
     except Exception as e:
         logger.error(f"Error processing VLM text: {e}")
         raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")
+
+@app.post("/api/v1/state/query")
+async def process_instant_query(request: dict):
+    """Process instant user query for immediate response"""
+    try:
+        query = request.get("query", "").strip()
+        if not query:
+            raise HTTPException(status_code=400, detail="Query is required")
+        
+        state_tracker = get_state_tracker()
+        result = state_tracker.process_instant_query(query)
+        
+        return {
+            "status": "success",
+            "query": result.raw_query,
+            "query_type": result.query_type.value,
+            "response": result.response_text,
+            "processing_time_ms": result.processing_time_ms,
+            "confidence": result.confidence
+        }
+    except Exception as e:
+        logger.error(f"Error processing instant query: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+
+@app.get("/api/v1/state/query/capabilities")
+async def get_query_capabilities():
+    """Get query processing capabilities and examples"""
+    try:
+        state_tracker = get_state_tracker()
+        capabilities = state_tracker.get_query_capabilities()
+        
+        return {
+            "status": "success",
+            "capabilities": capabilities
+        }
+    except Exception as e:
+        logger.error(f"Error getting query capabilities: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting capabilities: {str(e)}")
 
 @app.get("/api/v1/config")
 async def get_full_config():
