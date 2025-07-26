@@ -24,6 +24,10 @@ from utils.image_processing import (
 )
 import time
 
+# Import State Tracker
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from state_tracker import get_state_tracker
+
 def setup_logging():
     """Setup logging with proper path and permissions"""
     try:
@@ -343,6 +347,51 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                 logger.info(f"[{request_id}] Received response from model in {model_request_time:.2f}s")
                 logger.info(f"[{request_id}] Model response: {json.dumps(sanitized_response, indent=2)}")
                 
+                # State Tracker Integration: Process VLM response
+                try:
+                    if 'choices' in model_response and len(model_response['choices']) > 0:
+                        content = model_response['choices'][0]['message']['content']
+                        
+                        # Handle different VLM response formats
+                        vlm_text = None
+                        
+                        if isinstance(content, str):
+                            # Simple string response
+                            vlm_text = content
+                            logger.info(f"[{request_id}] VLM returned string content (length: {len(content)})")
+                        
+                        elif isinstance(content, list):
+                            # List format (some models return structured content)
+                            text_parts = []
+                            for item in content:
+                                if isinstance(item, dict) and item.get('type') == 'text':
+                                    text_parts.append(item.get('text', ''))
+                                elif isinstance(item, str):
+                                    text_parts.append(item)
+                            vlm_text = ' '.join(text_parts)
+                            logger.info(f"[{request_id}] VLM returned list content, extracted text (length: {len(vlm_text)})")
+                        
+                        elif isinstance(content, dict):
+                            # Dictionary format
+                            vlm_text = content.get('text', str(content))
+                            logger.info(f"[{request_id}] VLM returned dict content, extracted: {vlm_text[:50]}...")
+                        
+                        else:
+                            # Fallback: convert to string
+                            vlm_text = str(content)
+                            logger.warning(f"[{request_id}] VLM returned unexpected format ({type(content)}), converted to string")
+                        
+                        # Process with State Tracker if we have valid text
+                        if vlm_text and len(vlm_text.strip()) > 0:
+                            state_tracker = get_state_tracker()
+                            state_updated = await state_tracker.process_vlm_response(vlm_text)
+                            logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}, text='{vlm_text[:50]}...'")
+                        else:
+                            logger.warning(f"[{request_id}] No valid text extracted from VLM response")
+                            
+                except Exception as e:
+                    logger.warning(f"[{request_id}] State Tracker processing failed: {e}")
+                
                 # Calculate total processing time
                 total_time = time.time() - request_start_time
                 logger.info(f"[{request_id}] Total request processing time: {total_time:.2f}s")
@@ -383,6 +432,44 @@ async def health_check():
         "timestamp": datetime.datetime.now().isoformat(),
         "version": "1.0.0"
     }
+
+@app.get("/api/v1/state")
+async def get_current_state():
+    """Get current state from State Tracker"""
+    try:
+        state_tracker = get_state_tracker()
+        current_state = state_tracker.get_current_state()
+        summary = state_tracker.get_state_summary()
+        
+        return {
+            "status": "success",
+            "current_state": current_state,
+            "summary": summary
+        }
+    except Exception as e:
+        logger.error(f"Error getting state: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting state: {str(e)}")
+
+@app.post("/api/v1/state/process")
+async def process_vlm_text(request: dict):
+    """Manually process VLM text for testing"""
+    try:
+        vlm_text = request.get("text", "")
+        if not vlm_text:
+            raise HTTPException(status_code=400, detail="Text is required")
+        
+        state_tracker = get_state_tracker()
+        result = await state_tracker.process_vlm_response(vlm_text)
+        current_state = state_tracker.get_current_state()
+        
+        return {
+            "status": "success",
+            "updated": result,
+            "current_state": current_state
+        }
+    except Exception as e:
+        logger.error(f"Error processing VLM text: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")
 
 @app.get("/api/v1/config")
 async def get_full_config():
