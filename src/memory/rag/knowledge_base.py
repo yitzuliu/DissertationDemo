@@ -10,6 +10,7 @@ import logging
 from pathlib import Path
 from .task_loader import TaskKnowledgeLoader, TaskKnowledge
 from .vector_search import ChromaVectorSearchEngine, MatchResult
+from .vector_optimizer import VectorOptimizer
 from .validation import validate_task_file
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,10 @@ class RAGKnowledgeBase:
         # Initialize components
         self.task_loader = TaskKnowledgeLoader(self.tasks_directory)
         self.vector_engine = ChromaVectorSearchEngine(model_name, cache_dir)
+        self.vector_optimizer = VectorOptimizer(
+            self.vector_engine, 
+            cache_dir=f"{cache_dir}_optimizer"
+        )
         
         # Track loaded tasks
         self.loaded_tasks: Dict[str, TaskKnowledge] = {}
@@ -71,8 +76,9 @@ class RAGKnowledgeBase:
             for task_name, task in self.loaded_tasks.items():
                 self.vector_engine.add_task_knowledge(task)
             
-            # ChromaDB automatically handles embeddings during add_task_knowledge
-            # No separate precomputation step needed
+            # Precompute embeddings using vector optimizer
+            if precompute_embeddings:
+                self.vector_optimizer.precompute_all_embeddings(self.loaded_tasks)
             
             self.is_initialized = True
             logger.info(f"RAG Knowledge Base initialized with {len(self.loaded_tasks)} tasks")
@@ -278,6 +284,9 @@ class RAGKnowledgeBase:
             self.loaded_tasks[task.task_name] = task
             self.vector_engine.add_task_knowledge(task)
             
+            # Update optimizer cache
+            self.vector_optimizer.update_task_embeddings(task.task_name, task)
+            
             logger.info(f"Successfully added new task: {task.task_name}")
             return True
             
@@ -300,6 +309,7 @@ class RAGKnowledgeBase:
                 "tasks_directory": str(self.tasks_directory)
             },
             "vector_engine": self.vector_engine.get_performance_stats(),
+            "vector_optimizer": self.vector_optimizer.get_optimization_stats(),
             "task_loader": self.task_loader.get_performance_stats()
         }
         
@@ -377,6 +387,7 @@ class RAGKnowledgeBase:
         Clear all caches in the system
         """
         self.vector_engine.clear_collection()
+        self.vector_optimizer.clear_all_cache()
         self.task_loader.clear_cache()
         logger.info("All caches cleared")
     
