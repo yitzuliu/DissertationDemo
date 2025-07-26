@@ -39,7 +39,27 @@ class RAGKnowledgeBase:
             model_name: Sentence transformer model for embeddings
             cache_dir: Directory for caching embeddings
         """
-        self.tasks_directory = Path(tasks_directory)
+        # Convert relative paths to absolute paths based on project root
+        if not Path(tasks_directory).is_absolute():
+            # Find project root by looking for specific markers
+            current_path = Path(__file__).resolve()
+            project_root = None
+            
+            # Search upwards for project root indicators
+            for parent in current_path.parents:
+                if (parent / "src").exists() and (parent / "data").exists():
+                    project_root = parent
+                    break
+            
+            if project_root:
+                self.tasks_directory = project_root / tasks_directory
+                cache_dir = str(project_root / cache_dir)
+            else:
+                self.tasks_directory = Path(tasks_directory)
+        else:
+            self.tasks_directory = Path(tasks_directory)
+        
+        logger.info(f"RAG Knowledge Base tasks directory: {self.tasks_directory}")
         
         # Initialize components
         self.task_loader = TaskKnowledgeLoader(self.tasks_directory)

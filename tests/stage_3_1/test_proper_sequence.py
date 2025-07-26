@@ -23,6 +23,16 @@ class Stage31ProperTester:
         self.backend_process = None
         self.max_retries = 3
         
+        # 虛擬環境設置
+        self.base_dir = Path(__file__).parent.parent.parent
+        self.venv_path = self.base_dir / "ai_vision_env"
+        self.python_executable = self.venv_path / "bin" / "python"
+        
+        if not self.python_executable.exists():
+            print(f"⚠️ 虛擬環境Python路徑不存在: {self.python_executable}")
+            print(f"將使用系統Python: {sys.executable}")
+            self.python_executable = sys.executable
+        
     def kill_port(self, port):
         """強制關閉占用端口的進程"""
         try:
@@ -40,14 +50,18 @@ class Stage31ProperTester:
             print(f"⚠️ 清理端口 {port} 時出錯: {e}")
     
     def start_model_service(self):
-        """第一步：啟動模型服務"""
+        """第一步：啟動模型服務 (run_smolvlm.py)"""
         print("🚀 第一步：啟動模型服務 (SmolVLM)")
         print("=" * 50)
         
-        model_script = Path("src/models/smolvlm/run_smolvlm.py")
+        # 使用絕對路徑確保正確找到腳本
+        model_script = self.base_dir / "src/models/smolvlm/run_smolvlm.py"
         if not model_script.exists():
             print(f"❌ 模型啟動腳本不存在: {model_script}")
             return False
+        
+        print(f"🐍 使用Python: {self.python_executable}")
+        print(f"📄 模型腳本: {model_script}")
         
         for attempt in range(self.max_retries):
             print(f"📋 嘗試 {attempt + 1}/{self.max_retries} 啟動模型服務...")
@@ -56,17 +70,25 @@ class Stage31ProperTester:
             self.kill_port(self.model_port)
             
             try:
+                # 設置環境變量，激活虛擬環境
+                env = os.environ.copy()
+                if self.venv_path.exists():
+                    env["VIRTUAL_ENV"] = str(self.venv_path)
+                    env["PATH"] = f"{self.venv_path / 'bin'}:{env.get('PATH', '')}"
+                
                 # 啟動模型服務
                 self.model_process = subprocess.Popen(
-                    [sys.executable, str(model_script)],
+                    [str(self.python_executable), str(model_script)],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    env=env,
+                    cwd=str(model_script.parent)
                 )
                 
                 # 等待啟動
                 print("⏳ 等待模型服務啟動...")
-                time.sleep(15)  # SmolVLM需要更長時間啟動
+                time.sleep(20)  # SmolVLM需要更長時間啟動
                 
                 # 檢查服務狀態
                 if self.check_model_service():
@@ -88,31 +110,45 @@ class Stage31ProperTester:
         try:
             # 檢查進程狀態
             if self.model_process and self.model_process.poll() is not None:
+                print("❌ 模型進程已終止")
                 return False
             
-            # 檢查端口響應 - SmolVLM可能沒有/health端點，嘗試其他端點
+            # 檢查端口響應 - llama-server通常監聽在根路徑
             try:
-                response = requests.get(f"http://localhost:{self.model_port}/health", timeout=5)
-                return response.status_code == 200
-            except:
-                # 如果/health不存在，嘗試根路徑
-                try:
-                    response = requests.get(f"http://localhost:{self.model_port}/", timeout=5)
-                    return response.status_code in [200, 404]  # 404也表示服務在運行
-                except:
-                    return False
-        except:
+                response = requests.get(f"http://localhost:{self.model_port}/v1/models", timeout=10)
+                if response.status_code == 200:
+                    print("✅ 模型服務 /v1/models 端點響應正常")
+                    return True
+            except Exception as e:
+                print(f"⚠️ /v1/models 檢查失敗: {e}")
+            
+            # 備用檢查：嘗試根路徑
+            try:
+                response = requests.get(f"http://localhost:{self.model_port}/", timeout=5)
+                if response.status_code in [200, 404]:  # 404也表示服務在運行
+                    print("✅ 模型服務根路徑響應正常")
+                    return True
+            except Exception as e:
+                print(f"⚠️ 根路徑檢查失敗: {e}")
+            
+            return False
+        except Exception as e:
+            print(f"❌ 檢查模型服務時出錯: {e}")
             return False
     
     def start_backend_service(self):
-        """第二步：啟動後端服務"""
+        """第二步：啟動後端服務 (main.py)"""
         print("\n🚀 第二步：啟動後端服務")
         print("=" * 50)
         
-        backend_script = Path("src/backend/main.py")
+        # 使用絕對路徑確保正確找到腳本
+        backend_script = self.base_dir / "src/backend/main.py"
         if not backend_script.exists():
             print(f"❌ 後端啟動腳本不存在: {backend_script}")
             return False
+        
+        print(f"🐍 使用Python: {self.python_executable}")
+        print(f"📄 後端腳本: {backend_script}")
         
         for attempt in range(self.max_retries):
             print(f"📋 嘗試 {attempt + 1}/{self.max_retries} 啟動後端服務...")
@@ -121,19 +157,27 @@ class Stage31ProperTester:
             self.kill_port(self.backend_port)
             
             try:
-                # 啟動後端服務
+                # 設置環境變量，激活虛擬環境
+                env = os.environ.copy()
+                if self.venv_path.exists():
+                    env["VIRTUAL_ENV"] = str(self.venv_path)
+                    env["PATH"] = f"{self.venv_path / 'bin'}:{env.get('PATH', '')}"
+                    env["PYTHONPATH"] = str(self.base_dir / "src")
+                
+                # 啟動後端服務 - 使用uvicorn命令
                 self.backend_process = subprocess.Popen(
-                    [sys.executable, "-m", "uvicorn", "main:app", 
-                     "--host", "127.0.0.1", "--port", str(self.backend_port)],
-                    cwd=backend_script.parent,
+                    [str(self.python_executable), "-m", "uvicorn", "main:app", 
+                     "--host", "127.0.0.1", "--port", str(self.backend_port), "--reload"],
+                    cwd=str(backend_script.parent),
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    text=True
+                    text=True,
+                    env=env
                 )
                 
                 # 等待啟動
                 print("⏳ 等待後端服務啟動...")
-                time.sleep(8)
+                time.sleep(10)  # 給更多時間讓後端啟動
                 
                 # 檢查服務狀態
                 if self.check_backend_service():
@@ -143,6 +187,7 @@ class Stage31ProperTester:
                     print(f"❌ 嘗試 {attempt + 1} 失敗")
                     if self.backend_process:
                         self.backend_process.terminate()
+                        time.sleep(2)
                         
             except Exception as e:
                 print(f"❌ 啟動後端服務時出錯: {e}")
@@ -155,12 +200,23 @@ class Stage31ProperTester:
         try:
             # 檢查進程狀態
             if self.backend_process and self.backend_process.poll() is not None:
+                print("❌ 後端進程已終止")
+                if self.backend_process.stderr:
+                    stderr_output = self.backend_process.stderr.read()
+                    if stderr_output:
+                        print(f"❌ 後端錯誤信息: {stderr_output[:200]}...")
                 return False
             
             # 檢查端口響應
             response = requests.get(f"http://localhost:{self.backend_port}/health", timeout=5)
-            return response.status_code == 200
-        except:
+            if response.status_code == 200:
+                print("✅ 後端健康檢查端點響應正常")
+                return True
+            else:
+                print(f"❌ 後端健康檢查返回: HTTP {response.status_code}")
+                return False
+        except Exception as e:
+            print(f"❌ 檢查後端服務時出錯: {e}")
             return False
     
     def test_service_communication(self):
@@ -235,8 +291,63 @@ class Stage31ProperTester:
                 tests_passed += 1
             else:
                 print(f"❌ State Tracker端點失敗: HTTP {response.status_code}")
+                try:
+                    error_detail = response.json()
+                    print(f"   錯誤詳情: {error_detail}")
+                except:
+                    print(f"   響應內容: {response.text[:200]}")
         except Exception as e:
             print(f"❌ State Tracker端點連接失敗: {e}")
+        
+        # 測試5：State Tracker VLM處理端點
+        total_tests += 1
+        print("📋 測試5：State Tracker VLM處理...")
+        try:
+            test_vlm_data = {
+                "text": "用戶正在準備咖啡豆和研磨設備"
+            }
+            response = requests.post(
+                f"http://localhost:{self.backend_port}/api/v1/state/process",
+                json=test_vlm_data,
+                timeout=10
+            )
+            if response.status_code == 200:
+                print("✅ State Tracker VLM處理正常")
+                tests_passed += 1
+            else:
+                print(f"❌ State Tracker VLM處理失敗: HTTP {response.status_code}")
+                try:
+                    error_detail = response.json()
+                    print(f"   錯誤詳情: {error_detail}")
+                except:
+                    print(f"   響應內容: {response.text[:200]}")
+        except Exception as e:
+            print(f"❌ State Tracker VLM處理連接失敗: {e}")
+        
+        # 測試6：State Tracker 即時查詢
+        total_tests += 1
+        print("📋 測試6：State Tracker 即時查詢...")
+        try:
+            test_query_data = {
+                "query": "我現在在哪一步？"
+            }
+            response = requests.post(
+                f"http://localhost:{self.backend_port}/api/v1/state/query",
+                json=test_query_data,
+                timeout=5
+            )
+            if response.status_code == 200:
+                print("✅ State Tracker 即時查詢正常")
+                tests_passed += 1
+            else:
+                print(f"❌ State Tracker 即時查詢失敗: HTTP {response.status_code}")
+                try:
+                    error_detail = response.json()
+                    print(f"   錯誤詳情: {error_detail}")
+                except:
+                    print(f"   響應內容: {response.text[:200]}")
+        except Exception as e:
+            print(f"❌ State Tracker 即時查詢連接失敗: {e}")
         
         # 顯示測試結果
         print(f"\n📊 測試結果摘要:")
