@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-階段3.1：服務間通信驗證與啟動測試
+Stage 3.1: Service Communication Verification and Startup Testing
 
-測試目標：
-1. 驗證模型服務 → 後端服務的數據傳輸通道
-2. 驗證後端服務 → 前端服務的查詢響應通道  
-3. 驗證前端服務 → 後端服務的用戶查詢傳輸通道
-4. 測試各服務的獨立啟動
-5. 確認端口通信正常
-6. 驗證基礎數據流：VLM文字 → State Tracker → 前端顯示
+Test Objectives:
+1. Verify model service → backend service data transmission channel
+2. Verify backend service → frontend service query response channel  
+3. Verify frontend service → backend service user query transmission channel
+4. Test independent startup of each service
+5. Confirm port communication normal
+6. Verify basic data flow: VLM text → State Tracker → frontend display
 
-執行日期：2024年7月26日
+Execution Date: 2024-07-26
 """
 
 import asyncio
@@ -25,7 +25,7 @@ from typing import Dict, Any, Optional, List
 import base64
 from datetime import datetime
 
-# 設置日誌
+# Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -33,11 +33,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class ServiceCommunicationTester:
-    """服務間通信驗證測試器"""
+    """Service communication verification tester"""
     
     def __init__(self):
         self.backend_url = "http://localhost:8000"
-        self.frontend_url = "http://localhost:3000"  # 如果有獨立前端服務
+        self.frontend_url = "http://localhost:3000"  # If there's independent frontend service
         self.test_results = {
             "timestamp": datetime.now().isoformat(),
             "tests": {},
@@ -45,16 +45,16 @@ class ServiceCommunicationTester:
         }
         
     async def test_backend_service_health(self) -> bool:
-        """測試後端服務健康狀態"""
-        logger.info("🔍 測試後端服務健康狀態...")
+        """Test backend service health status"""
+        logger.info("🔍 Testing backend service health status...")
         
         try:
             async with aiohttp.ClientSession() as session:
-                # 測試基本健康檢查
+                # Test basic health check
                 async with session.get(f"{self.backend_url}/health") as response:
                     if response.status == 200:
                         data = await response.json()
-                        logger.info(f"✅ 後端服務健康檢查通過: {data}")
+                        logger.info(f"✅ Backend service health check passed: {data}")
                         
                         self.test_results["tests"]["backend_health"] = {
                             "status": "PASS",
@@ -63,7 +63,7 @@ class ServiceCommunicationTester:
                         }
                         return True
                     else:
-                        logger.error(f"❌ 後端服務健康檢查失敗: HTTP {response.status}")
+                        logger.error(f"❌ Backend service health check failed: HTTP {response.status}")
                         self.test_results["tests"]["backend_health"] = {
                             "status": "FAIL",
                             "error": f"HTTP {response.status}"
@@ -71,7 +71,7 @@ class ServiceCommunicationTester:
                         return False
                         
         except Exception as e:
-            logger.error(f"❌ 後端服務連接失敗: {e}")
+            logger.error(f"❌ Backend service connection failed: {e}")
             self.test_results["tests"]["backend_health"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -79,8 +79,8 @@ class ServiceCommunicationTester:
             return False
     
     async def test_backend_status_endpoint(self) -> bool:
-        """測試後端狀態端點"""
-        logger.info("🔍 測試後端狀態端點...")
+        """Test backend status endpoint"""
+        logger.info("🔍 Testing backend status endpoint...")
         
         try:
             async with aiohttp.ClientSession() as session:
@@ -90,7 +90,7 @@ class ServiceCommunicationTester:
                     
                     if response.status == 200:
                         data = await response.json()
-                        logger.info(f"✅ 後端狀態端點正常: {data.get('status', 'Unknown')}")
+                        logger.info(f"✅ Backend status endpoint normal: {data.get('status', 'Unknown')}")
                         
                         self.test_results["tests"]["backend_status"] = {
                             "status": "PASS",
@@ -99,7 +99,7 @@ class ServiceCommunicationTester:
                         }
                         return True
                     else:
-                        logger.error(f"❌ 後端狀態端點失敗: HTTP {response.status}")
+                        logger.error(f"❌ Backend status endpoint failed: HTTP {response.status}")
                         self.test_results["tests"]["backend_status"] = {
                             "status": "FAIL",
                             "error": f"HTTP {response.status}"
@@ -107,7 +107,7 @@ class ServiceCommunicationTester:
                         return False
                         
         except Exception as e:
-            logger.error(f"❌ 後端狀態端點連接失敗: {e}")
+            logger.error(f"❌ Backend status endpoint connection failed: {e}")
             self.test_results["tests"]["backend_status"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -115,8 +115,8 @@ class ServiceCommunicationTester:
             return False
     
     async def test_state_tracker_endpoints(self) -> bool:
-        """測試State Tracker相關端點"""
-        logger.info("🔍 測試State Tracker端點...")
+        """Test State Tracker related endpoints"""
+        logger.info("🔍 Testing State Tracker endpoints...")
         
         endpoints_to_test = [
             "/api/v1/state",
@@ -136,7 +136,7 @@ class ServiceCommunicationTester:
                         
                         if response.status == 200:
                             data = await response.json()
-                            logger.info(f"✅ {endpoint} 端點正常")
+                            logger.info(f"✅ {endpoint} endpoint normal")
                             
                             self.test_results["tests"][f"state_tracker_{endpoint.replace('/', '_')}"] = {
                                 "status": "PASS",
@@ -144,7 +144,7 @@ class ServiceCommunicationTester:
                                 "response_time_ms": response_time
                             }
                         else:
-                            logger.error(f"❌ {endpoint} 端點失敗: HTTP {response.status}")
+                            logger.error(f"❌ {endpoint} endpoint failed: HTTP {response.status}")
                             self.test_results["tests"][f"state_tracker_{endpoint.replace('/', '_')}"] = {
                                 "status": "FAIL",
                                 "error": f"HTTP {response.status}"
@@ -152,7 +152,7 @@ class ServiceCommunicationTester:
                             all_passed = False
                             
         except Exception as e:
-            logger.error(f"❌ State Tracker端點測試失敗: {e}")
+            logger.error(f"❌ State Tracker endpoint test failed: {e}")
             self.test_results["tests"]["state_tracker_endpoints"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -162,22 +162,22 @@ class ServiceCommunicationTester:
         return all_passed
     
     async def test_vlm_to_state_tracker_flow(self) -> bool:
-        """測試VLM文字 → State Tracker的數據流"""
-        logger.info("🔍 測試VLM → State Tracker數據流...")
+        """Test VLM text → State Tracker data flow"""
+        logger.info("🔍 Testing VLM → State Tracker data flow...")
         
-        # 模擬VLM觀察文字
+        # Simulate VLM observation text
         test_vlm_texts = [
-            "用戶正在準備咖啡器具，桌上有咖啡豆和磨豆機",
-            "用戶開始研磨咖啡豆，磨豆機正在運作",
-            "用戶將熱水倒入咖啡濾器中，開始沖泡咖啡"
+            "User is preparing coffee equipment, coffee beans and grinder on table",
+            "User starts grinding coffee beans, grinder is operating",
+            "User pours hot water into coffee filter, starts brewing coffee"
         ]
         
         try:
             async with aiohttp.ClientSession() as session:
                 for i, vlm_text in enumerate(test_vlm_texts):
-                    logger.info(f"📤 發送VLM文字 {i+1}: {vlm_text[:50]}...")
+                    logger.info(f"📤 Sending VLM text {i+1}: {vlm_text[:50]}...")
                     
-                    # 發送到State Tracker處理端點
+                    # Send to State Tracker processing endpoint
                     payload = {"vlm_text": vlm_text}
                     start_time = time.time()
                     
@@ -189,7 +189,7 @@ class ServiceCommunicationTester:
                         
                         if response.status == 200:
                             data = await response.json()
-                            logger.info(f"✅ VLM文字處理成功: 步驟 {data.get('current_step', 'Unknown')}")
+                            logger.info(f"✅ VLM text processing successful: Step {data.get('current_step', 'Unknown')}")
                             
                             self.test_results["tests"][f"vlm_processing_{i+1}"] = {
                                 "status": "PASS",
@@ -198,7 +198,7 @@ class ServiceCommunicationTester:
                                 "response_time_ms": response_time
                             }
                         else:
-                            logger.error(f"❌ VLM文字處理失敗: HTTP {response.status}")
+                            logger.error(f"❌ VLM text processing failed: HTTP {response.status}")
                             self.test_results["tests"][f"vlm_processing_{i+1}"] = {
                                 "status": "FAIL",
                                 "input": vlm_text,
@@ -206,13 +206,13 @@ class ServiceCommunicationTester:
                             }
                             return False
                     
-                    # 短暫延遲模擬真實間隔
+                    # Brief delay to simulate real intervals
                     await asyncio.sleep(0.5)
                     
             return True
             
         except Exception as e:
-            logger.error(f"❌ VLM → State Tracker數據流測試失敗: {e}")
+            logger.error(f"❌ VLM → State Tracker data flow test failed: {e}")
             self.test_results["tests"]["vlm_to_state_tracker"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -220,20 +220,20 @@ class ServiceCommunicationTester:
             return False
     
     async def test_user_query_flow(self) -> bool:
-        """測試用戶查詢 → State Tracker → 回應的數據流"""
-        logger.info("🔍 測試用戶查詢數據流...")
+        """Test user query → State Tracker → response data flow"""
+        logger.info("🔍 Testing user query data flow...")
         
         test_queries = [
-            "我現在在第幾步？",
-            "下一步該做什麼？",
-            "需要什麼工具？",
-            "現在的任務進度如何？"
+            "What step am I on now?",
+            "What should I do next?",
+            "What tools do I need?",
+            "How is my task progress?"
         ]
         
         try:
             async with aiohttp.ClientSession() as session:
                 for i, query in enumerate(test_queries):
-                    logger.info(f"📤 發送用戶查詢 {i+1}: {query}")
+                    logger.info(f"📤 Sending user query {i+1}: {query}")
                     
                     payload = {"query": query}
                     start_time = time.time()
@@ -246,7 +246,7 @@ class ServiceCommunicationTester:
                         
                         if response.status == 200:
                             data = await response.json()
-                            logger.info(f"✅ 查詢處理成功: {data.get('response', 'No response')[:100]}...")
+                            logger.info(f"✅ Query processing successful: {data.get('response', 'No response')[:100]}...")
                             
                             self.test_results["tests"][f"user_query_{i+1}"] = {
                                 "status": "PASS",
@@ -255,7 +255,7 @@ class ServiceCommunicationTester:
                                 "response_time_ms": response_time
                             }
                         else:
-                            logger.error(f"❌ 查詢處理失敗: HTTP {response.status}")
+                            logger.error(f"❌ Query processing failed: HTTP {response.status}")
                             self.test_results["tests"][f"user_query_{i+1}"] = {
                                 "status": "FAIL",
                                 "query": query,
@@ -268,7 +268,7 @@ class ServiceCommunicationTester:
             return True
             
         except Exception as e:
-            logger.error(f"❌ 用戶查詢數據流測試失敗: {e}")
+            logger.error(f"❌ User query data flow test failed: {e}")
             self.test_results["tests"]["user_query_flow"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -276,51 +276,51 @@ class ServiceCommunicationTester:
             return False
     
     async def test_end_to_end_data_flow(self) -> bool:
-        """測試端到端數據流：VLM文字 → State Tracker → 前端顯示"""
-        logger.info("🔍 測試端到端數據流...")
+        """Test end-to-end data flow: VLM text → State Tracker → frontend display"""
+        logger.info("🔍 Testing end-to-end data flow...")
         
         try:
             async with aiohttp.ClientSession() as session:
-                # 1. 發送VLM觀察
-                vlm_text = "用戶正在研磨咖啡豆，磨豆機運作中，咖啡粉正在產生"
-                logger.info(f"📤 步驟1: 發送VLM觀察: {vlm_text}")
+                # 1. Send VLM observation
+                vlm_text = "User is grinding coffee beans, grinder operating, coffee powder being produced"
+                logger.info(f"📤 Step 1: Sending VLM observation: {vlm_text}")
                 
                 async with session.post(
                     f"{self.backend_url}/api/v1/state/process",
                     json={"vlm_text": vlm_text}
                 ) as response:
                     if response.status != 200:
-                        logger.error("❌ VLM處理失敗")
+                        logger.error("❌ VLM processing failed")
                         return False
                     vlm_result = await response.json()
-                    logger.info(f"✅ VLM處理成功: 步驟 {vlm_result.get('current_step')}")
+                    logger.info(f"✅ VLM processing successful: Step {vlm_result.get('current_step')}")
                 
-                # 2. 查詢當前狀態
+                # 2. Query current state
                 await asyncio.sleep(0.5)
-                logger.info("📤 步驟2: 查詢當前狀態")
+                logger.info("📤 Step 2: Querying current state")
                 
                 async with session.get(f"{self.backend_url}/api/v1/state") as response:
                     if response.status != 200:
-                        logger.error("❌ 狀態查詢失敗")
+                        logger.error("❌ State query failed")
                         return False
                     state_result = await response.json()
-                    logger.info(f"✅ 狀態查詢成功: {state_result.get('current_task_description', 'Unknown')[:50]}...")
+                    logger.info(f"✅ State query successful: {state_result.get('current_task_description', 'Unknown')[:50]}...")
                 
-                # 3. 用戶查詢
+                # 3. User query
                 await asyncio.sleep(0.5)
-                logger.info("📤 步驟3: 用戶查詢")
+                logger.info("📤 Step 3: User query")
                 
                 async with session.post(
                     f"{self.backend_url}/api/v1/state/query",
-                    json={"query": "我現在在做什麼？"}
+                    json={"query": "What am I doing now?"}
                 ) as response:
                     if response.status != 200:
-                        logger.error("❌ 用戶查詢失敗")
+                        logger.error("❌ User query failed")
                         return False
                     query_result = await response.json()
-                    logger.info(f"✅ 用戶查詢成功: {query_result.get('response', 'No response')[:100]}...")
+                    logger.info(f"✅ User query successful: {query_result.get('response', 'No response')[:100]}...")
                 
-                # 記錄端到端測試結果
+                # Record end-to-end test results
                 self.test_results["tests"]["end_to_end_flow"] = {
                     "status": "PASS",
                     "vlm_input": vlm_text,
@@ -329,11 +329,11 @@ class ServiceCommunicationTester:
                     "query_result": query_result
                 }
                 
-                logger.info("✅ 端到端數據流測試成功")
+                logger.info("✅ End-to-end data flow test successful")
                 return True
                 
         except Exception as e:
-            logger.error(f"❌ 端到端數據流測試失敗: {e}")
+            logger.error(f"❌ End-to-end data flow test failed: {e}")
             self.test_results["tests"]["end_to_end_flow"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -341,28 +341,28 @@ class ServiceCommunicationTester:
             return False
     
     async def test_service_independence(self) -> bool:
-        """測試服務獨立性（不需要整合為單一系統）"""
-        logger.info("🔍 測試服務獨立性...")
+        """Test service independence (no need to integrate into single system)"""
+        logger.info("🔍 Testing service independence...")
         
         try:
-            # 測試後端服務可以獨立運行
+            # Test backend service can run independently
             async with aiohttp.ClientSession() as session:
                 async with session.get(f"{self.backend_url}/health") as response:
                     if response.status == 200:
-                        logger.info("✅ 後端服務獨立運行正常")
+                        logger.info("✅ Backend service independent operation normal")
                         
                         self.test_results["tests"]["service_independence"] = {
                             "status": "PASS",
                             "backend_independent": True,
-                            "note": "後端服務可以獨立啟動和運行，不需要其他服務依賴"
+                            "note": "Backend service can start and run independently, no dependency on other services"
                         }
                         return True
                     else:
-                        logger.error("❌ 後端服務獨立性測試失敗")
+                        logger.error("❌ Backend service independence test failed")
                         return False
                         
         except Exception as e:
-            logger.error(f"❌ 服務獨立性測試失敗: {e}")
+            logger.error(f"❌ Service independence test failed: {e}")
             self.test_results["tests"]["service_independence"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -370,7 +370,7 @@ class ServiceCommunicationTester:
             return False
     
     def generate_test_report(self) -> Dict[str, Any]:
-        """生成測試報告"""
+        """Generate test report"""
         passed_tests = sum(1 for test in self.test_results["tests"].values() 
                           if test.get("status") == "PASS")
         total_tests = len(self.test_results["tests"])
@@ -386,73 +386,73 @@ class ServiceCommunicationTester:
         return self.test_results
     
     async def run_all_tests(self) -> Dict[str, Any]:
-        """執行所有測試"""
-        logger.info("🚀 開始執行階段3.1服務通信驗證測試...")
+        """Execute all tests"""
+        logger.info("🚀 Starting Stage 3.1 service communication verification tests...")
         logger.info("=" * 60)
         
-        # 測試序列
+        # Test sequence
         tests = [
-            ("後端服務健康檢查", self.test_backend_service_health),
-            ("後端狀態端點", self.test_backend_status_endpoint),
-            ("State Tracker端點", self.test_state_tracker_endpoints),
-            ("VLM → State Tracker數據流", self.test_vlm_to_state_tracker_flow),
-            ("用戶查詢數據流", self.test_user_query_flow),
-            ("端到端數據流", self.test_end_to_end_data_flow),
-            ("服務獨立性", self.test_service_independence)
+            ("Backend service health check", self.test_backend_service_health),
+            ("Backend status endpoint", self.test_backend_status_endpoint),
+            ("State Tracker endpoints", self.test_state_tracker_endpoints),
+            ("VLM → State Tracker data flow", self.test_vlm_to_state_tracker_flow),
+            ("User query data flow", self.test_user_query_flow),
+            ("End-to-end data flow", self.test_end_to_end_data_flow),
+            ("Service independence", self.test_service_independence)
         ]
         
         for test_name, test_func in tests:
-            logger.info(f"\n📋 執行測試: {test_name}")
+            logger.info(f"\n📋 Executing test: {test_name}")
             logger.info("-" * 40)
             
             try:
                 result = await test_func()
                 if result:
-                    logger.info(f"✅ {test_name} - 通過")
+                    logger.info(f"✅ {test_name} - Passed")
                 else:
-                    logger.error(f"❌ {test_name} - 失敗")
+                    logger.error(f"❌ {test_name} - Failed")
             except Exception as e:
-                logger.error(f"❌ {test_name} - 異常: {e}")
+                logger.error(f"❌ {test_name} - Exception: {e}")
         
-        # 生成報告
+        # Generate report
         report = self.generate_test_report()
         
         logger.info("\n" + "=" * 60)
-        logger.info("📊 測試結果摘要")
+        logger.info("📊 Test Results Summary")
         logger.info("=" * 60)
-        logger.info(f"總測試數: {report['summary']['total_tests']}")
-        logger.info(f"通過測試: {report['summary']['passed_tests']}")
-        logger.info(f"失敗測試: {report['summary']['failed_tests']}")
-        logger.info(f"成功率: {report['summary']['success_rate']}")
-        logger.info(f"整體狀態: {report['summary']['overall_status']}")
+        logger.info(f"Total tests: {report['summary']['total_tests']}")
+        logger.info(f"Passed tests: {report['summary']['passed_tests']}")
+        logger.info(f"Failed tests: {report['summary']['failed_tests']}")
+        logger.info(f"Success rate: {report['summary']['success_rate']}")
+        logger.info(f"Overall status: {report['summary']['overall_status']}")
         
         return report
 
 async def main():
-    """主函數"""
-    print("🚀 階段3.1：服務間通信驗證與啟動測試")
+    """Main function"""
+    print("🚀 Stage 3.1: Service Communication Verification and Startup Testing")
     print("=" * 60)
-    print("測試目標：")
-    print("1. 驗證模型服務 → 後端服務的數據傳輸通道")
-    print("2. 驗證後端服務 → 前端服務的查詢響應通道")
-    print("3. 驗證前端服務 → 後端服務的用戶查詢傳輸通道")
-    print("4. 測試各服務的獨立啟動")
-    print("5. 確認端口通信正常")
-    print("6. 驗證基礎數據流：VLM文字 → State Tracker → 前端顯示")
+    print("Test Objectives:")
+    print("1. Verify model service → backend service data transmission channel")
+    print("2. Verify backend service → frontend service query response channel")
+    print("3. Verify frontend service → backend service user query transmission channel")
+    print("4. Test independent startup of each service")
+    print("5. Confirm port communication normal")
+    print("6. Verify basic data flow: VLM text → State Tracker → frontend display")
     print("=" * 60)
     
-    # 創建測試器並執行測試
+    # Create tester and execute tests
     tester = ServiceCommunicationTester()
     report = await tester.run_all_tests()
     
-    # 保存測試報告
+    # Save test report
     report_path = Path(__file__).parent / f"stage_3_1_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     with open(report_path, 'w', encoding='utf-8') as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     
-    print(f"\n📄 測試報告已保存至: {report_path}")
+    print(f"\n📄 Test report saved to: {report_path}")
     
-    # 返回結果
+    # Return result
     return report['summary']['overall_status'] == "PASS"
 
 if __name__ == "__main__":

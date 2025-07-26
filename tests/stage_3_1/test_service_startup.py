@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-階段3.1：服務獨立啟動測試
+Stage 3.1: Service Independent Startup Testing
 
-測試目標：
-1. 驗證後端服務可以獨立啟動
-2. 驗證前端服務可以獨立啟動  
-3. 驗證各服務的端口配置
-4. 確認服務間不需要整合為單一系統
+Test Objectives:
+1. Verify backend service can start independently
+2. Verify frontend service can start independently  
+3. Verify service port configurations
+4. Confirm services don't need to be integrated into a single system
 
-執行日期：2024年7月26日
+Execution Date: 2024-07-26
 """
 
 import subprocess
@@ -24,7 +24,7 @@ from datetime import datetime
 import psutil
 import signal
 
-# 設置日誌
+# Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -32,12 +32,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class ServiceStartupTester:
-    """服務獨立啟動測試器"""
+    """Service independent startup tester"""
     
     def __init__(self):
         self.project_root = Path(__file__).parent.parent.parent
         self.backend_port = 8000
-        self.frontend_port = 3000  # 如果有獨立前端服務
+        self.frontend_port = 3000  # If there's an independent frontend service
         self.test_results = {
             "timestamp": datetime.now().isoformat(),
             "tests": {},
@@ -46,20 +46,20 @@ class ServiceStartupTester:
         self.started_processes = []
         
     def cleanup_processes(self):
-        """清理啟動的進程"""
+        """Clean up started processes"""
         for process in self.started_processes:
             try:
-                if process.poll() is None:  # 進程仍在運行
-                    logger.info(f"🛑 終止進程 PID: {process.pid}")
+                if process.poll() is None:  # Process still running
+                    logger.info(f"🛑 Terminating process PID: {process.pid}")
                     process.terminate()
                     process.wait(timeout=5)
             except Exception as e:
-                logger.warning(f"⚠️ 清理進程時出錯: {e}")
+                logger.warning(f"⚠️ Error cleaning up process: {e}")
         
         self.started_processes.clear()
     
     def check_port_availability(self, port: int) -> bool:
-        """檢查端口是否可用"""
+        """Check if port is available"""
         try:
             for conn in psutil.net_connections():
                 if conn.laddr.port == port and conn.status == 'LISTEN':
@@ -69,7 +69,7 @@ class ServiceStartupTester:
             return True
     
     def wait_for_service(self, url: str, timeout: int = 30) -> bool:
-        """等待服務啟動"""
+        """Wait for service to start"""
         start_time = time.time()
         while time.time() - start_time < timeout:
             try:
@@ -82,42 +82,42 @@ class ServiceStartupTester:
         return False
     
     def test_backend_service_startup(self) -> bool:
-        """測試後端服務獨立啟動"""
-        logger.info("🔍 測試後端服務獨立啟動...")
+        """Test backend service independent startup"""
+        logger.info("🔍 Testing backend service independent startup...")
         
         try:
-            # 檢查端口是否可用
+            # Check if port is available
             if not self.check_port_availability(self.backend_port):
-                logger.warning(f"⚠️ 端口 {self.backend_port} 已被占用，嘗試連接現有服務...")
+                logger.warning(f"⚠️ Port {self.backend_port} is occupied, trying to connect to existing service...")
                 
-                # 嘗試連接現有服務
+                # Try to connect to existing service
                 try:
                     response = requests.get(f"http://localhost:{self.backend_port}/health", timeout=5)
                     if response.status_code == 200:
-                        logger.info("✅ 後端服務已在運行")
+                        logger.info("✅ Backend service is already running")
                         self.test_results["tests"]["backend_startup"] = {
                             "status": "PASS",
-                            "note": "服務已在運行",
+                            "note": "Service already running",
                             "port": self.backend_port
                         }
                         return True
                 except requests.exceptions.RequestException:
-                    logger.error("❌ 端口被占用但服務無響應")
+                    logger.error("❌ Port occupied but service not responding")
                     return False
             
-            # 啟動後端服務
+            # Start backend service
             backend_path = self.project_root / "src" / "backend" / "main.py"
             if not backend_path.exists():
-                logger.error(f"❌ 後端服務文件不存在: {backend_path}")
+                logger.error(f"❌ Backend service file doesn't exist: {backend_path}")
                 self.test_results["tests"]["backend_startup"] = {
                     "status": "FAIL",
-                    "error": "後端服務文件不存在"
+                    "error": "Backend service file doesn't exist"
                 }
                 return False
             
-            logger.info(f"🚀 啟動後端服務: {backend_path}")
+            logger.info(f"🚀 Starting backend service: {backend_path}")
             
-            # 使用uvicorn啟動後端服務
+            # Use uvicorn to start backend service
             cmd = [
                 sys.executable, "-m", "uvicorn", 
                 "main:app", 
@@ -135,12 +135,12 @@ class ServiceStartupTester:
             
             self.started_processes.append(process)
             
-            # 等待服務啟動
-            logger.info("⏳ 等待後端服務啟動...")
+            # Wait for service to start
+            logger.info("⏳ Waiting for backend service to start...")
             if self.wait_for_service(f"http://localhost:{self.backend_port}/health"):
-                logger.info("✅ 後端服務啟動成功")
+                logger.info("✅ Backend service started successfully")
                 
-                # 測試基本功能
+                # Test basic functionality
                 response = requests.get(f"http://localhost:{self.backend_port}/status")
                 if response.status_code == 200:
                     status_data = response.json()
@@ -153,18 +153,18 @@ class ServiceStartupTester:
                     }
                     return True
                 else:
-                    logger.error("❌ 後端服務啟動但狀態異常")
+                    logger.error("❌ Backend service started but status abnormal")
                     return False
             else:
-                logger.error("❌ 後端服務啟動超時")
+                logger.error("❌ Backend service startup timeout")
                 self.test_results["tests"]["backend_startup"] = {
                     "status": "FAIL",
-                    "error": "啟動超時"
+                    "error": "Startup timeout"
                 }
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ 後端服務啟動測試失敗: {e}")
+            logger.error(f"❌ Backend service startup test failed: {e}")
             self.test_results["tests"]["backend_startup"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -172,11 +172,11 @@ class ServiceStartupTester:
             return False
     
     def test_frontend_service_availability(self) -> bool:
-        """測試前端服務可用性"""
-        logger.info("🔍 測試前端服務可用性...")
+        """Test frontend service availability"""
+        logger.info("🔍 Testing frontend service availability...")
         
         try:
-            # 檢查前端文件是否存在
+            # Check if frontend files exist
             frontend_files = [
                 self.project_root / "src" / "frontend" / "index.html",
                 self.project_root / "src" / "frontend" / "query.html"
@@ -184,49 +184,49 @@ class ServiceStartupTester:
             
             missing_files = [f for f in frontend_files if not f.exists()]
             if missing_files:
-                logger.error(f"❌ 前端文件缺失: {missing_files}")
+                logger.error(f"❌ Frontend files missing: {missing_files}")
                 self.test_results["tests"]["frontend_availability"] = {
                     "status": "FAIL",
-                    "error": f"缺失文件: {missing_files}"
+                    "error": f"Missing files: {missing_files}"
                 }
                 return False
             
-            logger.info("✅ 前端文件完整")
+            logger.info("✅ Frontend files complete")
             
-            # 檢查前端文件內容
+            # Check frontend file content
             index_path = frontend_files[0]
             with open(index_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 
-                # 檢查關鍵功能
+                # Check key features
                 required_features = [
-                    "intervalSelect",  # VLM觀察間隔控制
-                    "startButton",     # 啟動按鈕
-                    "responseText",    # 回應顯示
-                    "apiStatusDot"     # API狀態指示
+                    "intervalSelect",  # VLM observation interval control
+                    "startButton",     # Start button
+                    "responseText",    # Response display
+                    "apiStatusDot"     # API status indicator
                 ]
                 
                 missing_features = [f for f in required_features if f not in content]
                 if missing_features:
-                    logger.error(f"❌ 前端功能缺失: {missing_features}")
+                    logger.error(f"❌ Frontend features missing: {missing_features}")
                     self.test_results["tests"]["frontend_availability"] = {
                         "status": "FAIL",
-                        "error": f"缺失功能: {missing_features}"
+                        "error": f"Missing features: {missing_features}"
                     }
                     return False
             
-            logger.info("✅ 前端功能完整")
+            logger.info("✅ Frontend features complete")
             
             self.test_results["tests"]["frontend_availability"] = {
                 "status": "PASS",
                 "files_checked": [str(f) for f in frontend_files],
                 "features_verified": required_features,
-                "note": "前端可以通過瀏覽器直接打開使用"
+                "note": "Frontend can be opened directly in browser"
             }
             return True
             
         except Exception as e:
-            logger.error(f"❌ 前端服務可用性測試失敗: {e}")
+            logger.error(f"❌ Frontend service availability test failed: {e}")
             self.test_results["tests"]["frontend_availability"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -234,14 +234,14 @@ class ServiceStartupTester:
             return False
     
     def test_service_ports_configuration(self) -> bool:
-        """測試服務端口配置"""
-        logger.info("🔍 測試服務端口配置...")
+        """Test service port configuration"""
+        logger.info("🔍 Testing service port configuration...")
         
         try:
-            # 檢查後端服務端口配置
+            # Check backend service port configuration
             backend_url = f"http://localhost:{self.backend_port}"
             
-            # 測試各個端點
+            # Test various endpoints
             endpoints_to_test = [
                 "/health",
                 "/status", 
@@ -265,9 +265,9 @@ class ServiceStartupTester:
                         "accessible": False,
                         "error": str(e)
                     }
-                    logger.error(f"❌ {endpoint} - 無法訪問: {e}")
+                    logger.error(f"❌ {endpoint} - Cannot access: {e}")
             
-            # 檢查是否所有端點都可訪問
+            # Check if all endpoints are accessible
             accessible_endpoints = sum(1 for result in port_test_results.values() 
                                      if result.get("accessible", False))
             total_endpoints = len(endpoints_to_test)
@@ -283,14 +283,14 @@ class ServiceStartupTester:
             }
             
             if success:
-                logger.info(f"✅ 端口配置正常 - {accessible_endpoints}/{total_endpoints} 端點可訪問")
+                logger.info(f"✅ Port configuration normal - {accessible_endpoints}/{total_endpoints} endpoints accessible")
             else:
-                logger.error(f"❌ 端口配置異常 - 僅 {accessible_endpoints}/{total_endpoints} 端點可訪問")
+                logger.error(f"❌ Port configuration abnormal - only {accessible_endpoints}/{total_endpoints} endpoints accessible")
             
             return success
             
         except Exception as e:
-            logger.error(f"❌ 端口配置測試失敗: {e}")
+            logger.error(f"❌ Port configuration test failed: {e}")
             self.test_results["tests"]["port_configuration"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -298,14 +298,14 @@ class ServiceStartupTester:
             return False
     
     def test_service_independence(self) -> bool:
-        """測試服務獨立性（不需要整合為單一系統）"""
-        logger.info("🔍 測試服務獨立性...")
+        """Test service independence (no need to integrate into single system)"""
+        logger.info("🔍 Testing service independence...")
         
         try:
-            # 驗證後端服務可以獨立運行
+            # Verify backend service can run independently
             backend_url = f"http://localhost:{self.backend_port}"
             
-            # 測試後端服務的獨立功能
+            # Test backend service independent functions
             independence_tests = {
                 "health_check": "/health",
                 "status_check": "/status",
@@ -324,7 +324,7 @@ class ServiceStartupTester:
                     }
                     
                     if response.status_code == 200:
-                        logger.info(f"✅ {test_name} - 獨立運行正常")
+                        logger.info(f"✅ {test_name} - Independent operation normal")
                     else:
                         logger.warning(f"⚠️ {test_name} - HTTP {response.status_code}")
                         
@@ -333,15 +333,15 @@ class ServiceStartupTester:
                         "working": False,
                         "error": str(e)
                     }
-                    logger.error(f"❌ {test_name} - 無法訪問: {e}")
+                    logger.error(f"❌ {test_name} - Cannot access: {e}")
             
-            # 計算獨立性得分
+            # Calculate independence score
             working_functions = sum(1 for result in independent_functions.values() 
                                   if result.get("working", False))
             total_functions = len(independence_tests)
             
             independence_score = working_functions / total_functions
-            success = independence_score >= 0.8  # 80%以上功能正常即視為獨立
+            success = independence_score >= 0.8  # 80%+ functions normal considered independent
             
             self.test_results["tests"]["service_independence"] = {
                 "status": "PASS" if success else "FAIL",
@@ -349,18 +349,18 @@ class ServiceStartupTester:
                 "working_functions": working_functions,
                 "total_functions": total_functions,
                 "function_tests": independent_functions,
-                "note": "後端服務可以獨立啟動和運行，不依賴其他服務"
+                "note": "Backend service can start and run independently, no dependency on other services"
             }
             
             if success:
-                logger.info(f"✅ 服務獨立性良好 - {independence_score:.1%} 功能正常")
+                logger.info(f"✅ Service independence good - {independence_score:.1%} functions normal")
             else:
-                logger.error(f"❌ 服務獨立性不足 - 僅 {independence_score:.1%} 功能正常")
+                logger.error(f"❌ Service independence insufficient - only {independence_score:.1%} functions normal")
             
             return success
             
         except Exception as e:
-            logger.error(f"❌ 服務獨立性測試失敗: {e}")
+            logger.error(f"❌ Service independence test failed: {e}")
             self.test_results["tests"]["service_independence"] = {
                 "status": "FAIL",
                 "error": str(e)
@@ -368,7 +368,7 @@ class ServiceStartupTester:
             return False
     
     def generate_test_report(self) -> Dict[str, Any]:
-        """生成測試報告"""
+        """Generate test report"""
         passed_tests = sum(1 for test in self.test_results["tests"].values() 
                           if test.get("status") == "PASS")
         total_tests = len(self.test_results["tests"])
@@ -384,83 +384,83 @@ class ServiceStartupTester:
         return self.test_results
     
     def run_all_tests(self) -> Dict[str, Any]:
-        """執行所有測試"""
-        logger.info("🚀 開始執行階段3.1服務獨立啟動測試...")
+        """Execute all tests"""
+        logger.info("🚀 Starting Stage 3.1 service independent startup tests...")
         logger.info("=" * 60)
         
         try:
-            # 測試序列
+            # Test sequence
             tests = [
-                ("後端服務獨立啟動", self.test_backend_service_startup),
-                ("前端服務可用性", self.test_frontend_service_availability),
-                ("服務端口配置", self.test_service_ports_configuration),
-                ("服務獨立性", self.test_service_independence)
+                ("Backend service independent startup", self.test_backend_service_startup),
+                ("Frontend service availability", self.test_frontend_service_availability),
+                ("Service port configuration", self.test_service_ports_configuration),
+                ("Service independence", self.test_service_independence)
             ]
             
             for test_name, test_func in tests:
-                logger.info(f"\n📋 執行測試: {test_name}")
+                logger.info(f"\n📋 Executing test: {test_name}")
                 logger.info("-" * 40)
                 
                 try:
                     result = test_func()
                     if result:
-                        logger.info(f"✅ {test_name} - 通過")
+                        logger.info(f"✅ {test_name} - Passed")
                     else:
-                        logger.error(f"❌ {test_name} - 失敗")
+                        logger.error(f"❌ {test_name} - Failed")
                 except Exception as e:
-                    logger.error(f"❌ {test_name} - 異常: {e}")
+                    logger.error(f"❌ {test_name} - Exception: {e}")
             
-            # 生成報告
+            # Generate report
             report = self.generate_test_report()
             
             logger.info("\n" + "=" * 60)
-            logger.info("📊 測試結果摘要")
+            logger.info("📊 Test Results Summary")
             logger.info("=" * 60)
-            logger.info(f"總測試數: {report['summary']['total_tests']}")
-            logger.info(f"通過測試: {report['summary']['passed_tests']}")
-            logger.info(f"失敗測試: {report['summary']['failed_tests']}")
-            logger.info(f"成功率: {report['summary']['success_rate']}")
-            logger.info(f"整體狀態: {report['summary']['overall_status']}")
+            logger.info(f"Total tests: {report['summary']['total_tests']}")
+            logger.info(f"Passed tests: {report['summary']['passed_tests']}")
+            logger.info(f"Failed tests: {report['summary']['failed_tests']}")
+            logger.info(f"Success rate: {report['summary']['success_rate']}")
+            logger.info(f"Overall status: {report['summary']['overall_status']}")
             
             return report
             
         finally:
-            # 清理啟動的進程
+            # Clean up started processes
             self.cleanup_processes()
 
 def main():
-    """主函數"""
-    print("🚀 階段3.1：服務獨立啟動測試")
+    """Main function"""
+    print("🚀 Stage 3.1: Service Independent Startup Testing")
     print("=" * 60)
-    print("測試目標：")
-    print("1. 驗證後端服務可以獨立啟動")
-    print("2. 驗證前端服務可以獨立啟動")
-    print("3. 驗證各服務的端口配置")
-    print("4. 確認服務間不需要整合為單一系統")
+    print("Test Objectives:")
+    print("1. Verify backend service can start independently")
+    print("2. Verify frontend service can start independently")
+    print("3. Verify service port configurations")
+    print("4. Confirm services don't need to be integrated into single system")
     print("=" * 60)
     
-    # 創建測試器並執行測試
+    # Create tester and execute tests
     tester = ServiceStartupTester()
     
     try:
         report = tester.run_all_tests()
         
-        # 保存測試報告
+        # Save test report
         report_path = Path(__file__).parent / f"stage_3_1_startup_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_path, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
         
-        print(f"\n📄 測試報告已保存至: {report_path}")
+        print(f"\n📄 Test report saved to: {report_path}")
         
-        # 返回結果
+        # Return result
         return report['summary']['overall_status'] == "PASS"
         
     except KeyboardInterrupt:
-        print("\n⚠️ 測試被用戶中斷")
+        print("\n⚠️ Test interrupted by user")
         tester.cleanup_processes()
         return False
     except Exception as e:
-        print(f"\n❌ 測試執行失敗: {e}")
+        print(f"\n❌ Test execution failed: {e}")
         tester.cleanup_processes()
         return False
 
