@@ -1,22 +1,12 @@
 """
-AI Manual Assistant 記憶系統
+AI Manual Assistant Memory System
 
-這個模組提供持續觀察和上下文記憶功能，實現雙軌架構：
-1. 持續觀察軌道：VLM基於螢幕觀察和處理
-2. 記憶存儲軌道：上下文信息存儲和檢索
+A dual-loop memory architecture for intelligent task progress tracking:
+1. Unconscious Loop: VLM observation → State Tracker → RAG matching → State update
+2. Instant Response Loop: User query → State reading → Direct response
+
+This system implements Dialogue State Tracking (DST) framework with VLM fault tolerance.
 """
-
-from .models import MemoryRecord, MemoryQuery, MemoryContext, MemoryType
-from .storage import MemoryStorage, ChromaMemoryStorage
 
 __version__ = "1.0.0"
 __author__ = "AI Manual Assistant Team"
-
-__all__ = [
-    "MemoryRecord",
-    "MemoryQuery", 
-    "MemoryContext",
-    "MemoryType",
-    "MemoryStorage",
-    "ChromaMemoryStorage"
-]
