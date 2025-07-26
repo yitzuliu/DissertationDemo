@@ -2,12 +2,12 @@
 
 ## 概述
 
-AI Manual Assistant 記憶系統採用雙循環架構，實現智能任務進度追蹤：
+AI Manual Assistant 記憶系統採用分離式服務架構的雙循環設計，實現智能任務進度追蹤：
 
-1. **「潛意識」循環**：VLM持續觀察 → State Tracker比對引擎 → RAG知識匹配 → 狀態更新
-2. **「即時響應」循環**：用戶查詢 → State Tracker直接回應（無需重新計算）
+1. **「潛意識」循環**：模型服務VLM持續觀察 → 後端服務State Tracker比對引擎 → RAG知識匹配 → 狀態更新
+2. **「即時響應」循環**：前端服務用戶查詢 → 後端服務State Tracker直接回應（無需重新計算）
 
-該系統基於 Dialogue State Tracking (DST) 框架設計，State Tracker 扮演「比對引擎」角色，實現實時狀態感知和毫秒級用戶響應。
+該系統基於分離式服務架構設計，包含三個獨立服務：模型服務（VLM觀察）、後端服務（State Tracker + RAG）、前端服務（用戶界面），通過服務間通信實現雙循環協同工作。
 
 ## 核心架構：雙循環設計
 
@@ -51,7 +51,7 @@ graph TB
 
 **特性**：
 - 無狀態設計：只負責當下觀察，不存儲歷史
-- 持續運行：每1~10秒捕獲一次螢幕內容（可配置間隔）
+- 持續運行：間隔2/3/5秒捕獲螢幕內容（通過前端index.html調整）
 - 容錯設計：接受任意格式的VLM輸出，處理異常和失敗情況
 - 輸出清理：標準化處理亂碼、空輸出、異常格式
 
@@ -85,12 +85,12 @@ class VLMObserver:
 ```yaml
 # 完整的任務知識格式
 - step_id: 2
-  task_description: "關閉主水閥，排空管道內的水"
-  tools_needed: ["無需工具", "可能需要手套"]
-  completion_indicators: ["水流完全停止", "管道內無水聲", "水龍頭不再滴水"]
-  visual_cues: ["水閥", "關閉", "水流", "停止", "排水"]
-  estimated_duration: "2-3分鐘"
-  safety_notes: ["確保完全關閉", "注意殘留水壓"]
+  task_description: "研磨咖啡豆至適當粗細度"
+  tools_needed: ["磨豆機", "咖啡豆"]
+  completion_indicators: ["咖啡粉粗細均勻", "研磨聲停止", "粉末質地適中"]
+  visual_cues: ["磨豆機", "研磨", "咖啡粉", "粗細度"]
+  estimated_duration: "1-2分鐘"
+  safety_notes: ["注意磨豆機刀片", "避免過度研磨"]
   embedding: [0.1, 0.2, 0.3, ...]  # 預計算的768維向量
 ```
 
@@ -311,7 +311,7 @@ class SystemConfig:
     # 核心參數
     similarity_threshold: float = 0.35    # 相似度匹配閾值
     sliding_window_size: int = 5          # 滑動窗格大小
-    vlm_observation_interval: int = 2     # VLM觀察間隔(秒)
+    vlm_observation_interval: int = 2     # VLM觀察間隔(秒，2/3/5可調)
     
     # 性能參數
     embedding_dimension: int = 768        # 語義向量維度
@@ -343,10 +343,10 @@ sequenceDiagram
     
     Note over VLM,SW: 潛意識循環 - 用戶無感知的持續狀態更新
     
-    loop 每2秒執行一次
+    loop 間隔2/3/5秒執行（可調整）
         VLM->>VLM: 捕獲當前螢幕
         VLM->>ST: 發送觀察文本
-        Note right of VLM: "用戶正在轉動水閥"
+        Note right of VLM: "用戶正在研磨咖啡豆"
         
         ST->>RAG: 向量搜索匹配步驟
         Note right of ST: 比對引擎工作
@@ -385,7 +385,7 @@ sequenceDiagram
         ST->>System: 返回完整狀態信息
         Note right of ST: 包含步驟、任務、工具、完成標誌
         System->>User: 完整的指導信息
-        Note left of User: "現在第2步：關閉水閥<br/>需要工具：無<br/>完成標誌：水流停止"
+        Note left of User: "現在第2步：研磨咖啡豆<br/>需要工具：磨豆機<br/>完成標誌：咖啡粉粗細均勻"
     else 狀態不明確
         ST->>System: 返回狀態不明確
         System->>User: 請求用戶澄清
@@ -393,32 +393,39 @@ sequenceDiagram
     end
 ```
 
-### 系統整合流程
+### 分離式服務架構流程
 
 ```mermaid
 graph TB
-    subgraph "潛意識循環（持續運行）"
+    subgraph "模型服務（獨立運行）"
         A[VLM眼睛觀察] --> B[視覺數字化]
-        B --> C[State Tracker接收]
-        C --> D[比對引擎：RAG向量搜索]
-        D --> E[決策：相似度判斷]
-        E --> F[更新白板狀態]
-        F --> G[存入滑動窗格]
-        G --> A
+        B --> C[發送到後端服務]
     end
     
-    subgraph "即時響應循環（按需觸發）"
-        H[用戶查詢] --> I[讀取白板狀態]
-        I --> J[直接回應用戶]
+    subgraph "後端服務（獨立運行）"
+        C --> D[State Tracker接收]
+        D --> E[比對引擎：RAG向量搜索]
+        E --> F[決策：相似度判斷]
+        F --> G[更新白板狀態]
+        G --> H[存入滑動窗格]
+        
+        I[接收前端查詢] --> J[讀取白板狀態]
+        J --> K[回應前端服務]
     end
     
-    subgraph "記憶體管控"
-        G --> K[滑動窗格自動清理]
-        K --> L[保持固定記憶體使用]
+    subgraph "前端服務（獨立運行）"
+        L[用戶查詢] --> M[發送到後端服務]
+        M --> I
+        K --> N[顯示給用戶]
     end
     
-    F -.-> I
-    Note1[狀態共享]
+    subgraph "記憶體管控（後端服務內）"
+        H --> O[滑動窗格自動清理]
+        O --> P[保持固定記憶體使用]
+    end
+    
+    G -.-> J
+    Note1[跨服務狀態共享]
 ```
 
 ### 容錯機制
@@ -684,11 +691,11 @@ def test_unconscious_loop():
     
     # 模擬VLM觀察序列
     observations = [
-        "用戶查看工具清單",
-        "用戶手持12號扳手",
-        "用戶走向水龍頭",
-        "用戶開始轉動水閥",
-        "水流逐漸減少"
+        "用戶準備咖啡器具",
+        "用戶拿出咖啡豆",
+        "用戶打開磨豆機",
+        "用戶開始研磨咖啡豆",
+        "咖啡粉研磨完成"
     ]
     
     expected_states = [1, 1, 2, 2, 2]  # 期望的狀態變化
@@ -712,14 +719,14 @@ def test_instant_response_loop():
     
     # 設置已知狀態
     system.state_tracker.current_step = 2
-    system.state_tracker.current_task_description = "關閉主水閥"
-    system.state_tracker.current_tools_needed = ["無需工具"]
+    system.state_tracker.current_task_description = "研磨咖啡豆"
+    system.state_tracker.current_tools_needed = ["磨豆機"]
     
     # 測試各種查詢
     test_queries = [
         ("我下一步該做什麼？", "第3步"),
         ("現在在哪個步驟？", "第2步"),
-        ("需要什麼工具？", "無需工具")
+        ("需要什麼工具？", "磨豆機")
     ]
     
     for query, expected_content in test_queries:
@@ -762,11 +769,11 @@ def test_end_to_end_workflow():
     
     # 模擬完整的用戶場景
     scenario = [
-        ("VLM觀察", "用戶正在準備工具"),
+        ("VLM觀察", "用戶正在準備咖啡器具"),
         ("用戶查詢", "我現在該做什麼？"),
-        ("VLM觀察", "用戶手持扳手走向水龍頭"),
+        ("VLM觀察", "用戶拿出咖啡豆和磨豆機"),
         ("用戶查詢", "下一步是什麼？"),
-        ("VLM觀察", "用戶開始轉動水閥"),
+        ("VLM觀察", "用戶開始研磨咖啡豆"),
         ("用戶查詢", "我做對了嗎？")
     ]
     
@@ -798,7 +805,7 @@ def test_end_to_end_workflow():
 **交付物**：
 - `src/memory/rag/knowledge_base.py` - 知識庫核心
 - `src/memory/rag/vector_search.py` - 向量搜索引擎
-- `data/tasks/faucet_replacement.yaml` - 示例任務數據
+- `data/tasks/coffee_brewing.yaml` - 示例任務數據
 - RAG功能單元測試
 
 **驗收標準**：
@@ -893,7 +900,7 @@ def test_end_to_end_workflow():
 # 核心參數
 SIMILARITY_THRESHOLD = 0.35          # 相似度匹配閾值
 SLIDING_WINDOW_SIZE = 5              # 滑動窗格大小
-VLM_OBSERVATION_INTERVAL = 2         # VLM觀察間隔(秒)
+VLM_OBSERVATION_INTERVAL = 2         # VLM觀察間隔(秒，2/3/5可調)
 EMBEDDING_DIMENSION = 768            # 語義向量維度
 
 # 性能參數
