@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 import logging
 from pathlib import Path
 from .task_loader import TaskKnowledgeLoader, TaskKnowledge
-from .vector_search import VectorSearchEngine, MatchResult
+from .vector_search import ChromaVectorSearchEngine, MatchResult
 from .validation import validate_task_file
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class RAGKnowledgeBase:
         
         # Initialize components
         self.task_loader = TaskKnowledgeLoader(self.tasks_directory)
-        self.vector_engine = VectorSearchEngine(model_name, cache_dir)
+        self.vector_engine = ChromaVectorSearchEngine(model_name, cache_dir)
         
         # Track loaded tasks
         self.loaded_tasks: Dict[str, TaskKnowledge] = {}
@@ -71,9 +71,8 @@ class RAGKnowledgeBase:
             for task_name, task in self.loaded_tasks.items():
                 self.vector_engine.add_task_knowledge(task)
             
-            # Optionally precompute embeddings
-            if precompute_embeddings:
-                self.vector_engine.precompute_all_embeddings()
+            # ChromaDB automatically handles embeddings during add_task_knowledge
+            # No separate precomputation step needed
             
             self.is_initialized = True
             logger.info(f"RAG Knowledge Base initialized with {len(self.loaded_tasks)} tasks")
@@ -377,7 +376,7 @@ class RAGKnowledgeBase:
         """
         Clear all caches in the system
         """
-        self.vector_engine.clear_cache()
+        self.vector_engine.clear_collection()
         self.task_loader.clear_cache()
         logger.info("All caches cleared")
     

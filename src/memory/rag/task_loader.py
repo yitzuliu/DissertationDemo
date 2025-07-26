@@ -237,6 +237,20 @@ class TaskKnowledgeLoader:
     def get_loaded_tasks(self) -> List[str]:
         """Get list of currently loaded task names"""
         return list(self._task_cache.keys())
+    
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """
+        Get performance statistics for the task loader
+        
+        Returns:
+            Dictionary with performance metrics
+        """
+        return {
+            "cached_tasks": len(self._task_cache),
+            "tasks_directory": str(self.tasks_directory),
+            "cache_enabled": True,
+            "loaded_files": len(self._loaded_files)
+        }
 
 
 # Convenience functions
