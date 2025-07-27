@@ -39,6 +39,17 @@ class MatchResult:
     matched_cues: List[str]
     task_name: str
     
+    # Additional properties for State Tracker compatibility
+    @property
+    def step_title(self) -> str:
+        """Get step title from task description"""
+        return self.task_description.split('.')[0] if self.task_description else ""
+    
+    @property
+    def step_description(self) -> str:
+        """Get step description"""
+        return self.task_description
+    
     def __post_init__(self):
         """Determine confidence level based on similarity score"""
         if self.similarity >= 0.7:

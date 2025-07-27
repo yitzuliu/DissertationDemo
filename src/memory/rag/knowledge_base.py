@@ -122,18 +122,15 @@ class RAGKnowledgeBase:
             # Log the search request
             logger.info(f"RAG search: observation='{observation[:100]}...', task_filter='{task_name}'")
             
-            # Get embeddings for the observation
-            observation_embedding = self.vector_engine.encode_text(observation)
-            
-            # Search for matches
+            # Search for matches using the correct method
             if task_name and task_name in self.loaded_tasks:
                 # Search within specific task
                 logger.info(f"RAG search: searching within task '{task_name}'")
-                matches = self.vector_engine.search_within_task(observation_embedding, task_name, top_k=1)
+                matches = self.vector_engine.find_best_match(observation, task_name, top_k=1)
             else:
                 # Search across all tasks
                 logger.info(f"RAG search: searching across all {len(self.loaded_tasks)} tasks")
-                matches = self.vector_engine.search_across_tasks(observation_embedding, top_k=1)
+                matches = self.vector_engine.find_best_match(observation, None, top_k=1)
             
             if not matches:
                 logger.info(f"RAG search: no matches found for observation")
