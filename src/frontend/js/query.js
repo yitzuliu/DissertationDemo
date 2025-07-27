@@ -106,15 +106,40 @@ class StateQuerySystem {
             const totalTime = Math.round(endTime - startTime);
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                let errorMessage = `Server error: ${response.status}`;
+                
+                try {
+                    const errorData = JSON.parse(errorText);
+                    errorMessage = errorData.detail || errorMessage;
+                } catch (e) {
+                    errorMessage = errorText || errorMessage;
+                }
+                
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
+            
+            // Validate response data
+            if (!data || typeof data.response !== 'string') {
+                throw new Error('Invalid response format from server');
+            }
+            
             this.showResponse(data, totalTime);
 
         } catch (error) {
             console.error('Query processing error:', error);
-            this.showError(`Error: ${error.message}`);
+            
+            // Provide more specific error messages
+            let errorMessage = error.message;
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                errorMessage = 'Network error: Unable to connect to server. Please check your connection.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Connection failed: Server may be down or unreachable.';
+            }
+            
+            this.showError(errorMessage);
         }
     }
 
@@ -139,8 +164,8 @@ class StateQuerySystem {
         // Hide loading
         loading.style.display = 'none';
 
-        // Show response
-        responseText.textContent = data.response;
+        // Show response with proper formatting
+        responseText.innerHTML = data.response.replace(/\n/g, '<br>');
         responseText.style.display = 'block';
 
         // Show metadata

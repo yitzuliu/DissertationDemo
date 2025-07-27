@@ -51,15 +51,15 @@ class QueryProcessor:
             ],
             QueryType.REQUIRED_TOOLS: [
                 r'tools?|equipment|what.*tools|what.*need|what.*do.*step|tools.*needed|required.*tools',
-                r'what.*should.*do|how.*do.*this|what.*required|what.*equipment|what.*materials'
+                r'what.*required|what.*equipment|what.*materials'
             ],
             QueryType.COMPLETION_STATUS: [
-                r'progress|status|done|finished|complete|how.*much|percent|percentage',
-                r'completed|finished|done|over|remaining|left'
+                r'progress|status|done|finished|complete|percent|percentage',
+                r'completed|finished|done|remaining|left|how.*much.*done'
             ],
             QueryType.PROGRESS_OVERVIEW: [
-                r'overall|summary|overview|progress.*overview|status.*overview|big.*picture',
-                r'give.*overview|show.*progress|current.*status|what.*progress|total.*progress'
+                r'overall|summary|overview|big.*picture|give.*overview|show.*progress',
+                r'total.*progress|full.*overview|complete.*overview|entire.*progress'
             ],
             QueryType.HELP: [
                 r'help|how.*to|how.*do|instruction|guide|what.*do.*this|how.*step',
@@ -68,11 +68,22 @@ class QueryProcessor:
         }
     
     def _classify_query(self, query: str) -> QueryType:
-        """Classify user query based on keyword patterns"""
+        """Classify user query based on keyword patterns with improved accuracy"""
         query_lower = query.lower().strip()
         
-        # Check each query type
-        for query_type, patterns in self.query_patterns.items():
+        # Define priority order for query types (more specific first)
+        priority_order = [
+            QueryType.CURRENT_STEP,
+            QueryType.NEXT_STEP,
+            QueryType.REQUIRED_TOOLS,
+            QueryType.COMPLETION_STATUS,  # Move completion_status before help
+            QueryType.PROGRESS_OVERVIEW,
+            QueryType.HELP
+        ]
+        
+        # Check each query type in priority order
+        for query_type in priority_order:
+            patterns = self.query_patterns.get(query_type, [])
             for pattern in patterns:
                 if re.search(pattern, query_lower):
                     return query_type

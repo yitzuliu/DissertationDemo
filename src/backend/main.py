@@ -524,12 +524,23 @@ async def process_vlm_text(request: dict):
 async def process_instant_query(request: dict):
     """Process instant user query for immediate response"""
     try:
+        # Validate request
+        if not request:
+            raise HTTPException(status_code=400, detail="Request body is required")
+        
         query = request.get("query", "").strip()
         if not query:
             raise HTTPException(status_code=400, detail="Query is required")
         
+        if len(query) > 500:  # Reasonable limit
+            raise HTTPException(status_code=400, detail="Query too long (max 500 characters)")
+        
         state_tracker = get_state_tracker()
         result = state_tracker.process_instant_query(query)
+        
+        # Validate result
+        if not result or not hasattr(result, 'response_text'):
+            raise HTTPException(status_code=500, detail="Invalid response from query processor")
         
         return {
             "status": "success",
@@ -539,9 +550,12 @@ async def process_instant_query(request: dict):
             "processing_time_ms": result.processing_time_ms,
             "confidence": result.confidence
         }
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
         logger.error(f"Error processing instant query: {e}")
-        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.get("/api/v1/state/query/capabilities")
 async def get_query_capabilities():
