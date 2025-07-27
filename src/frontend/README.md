@@ -1,166 +1,261 @@
-# Frontend Refactoring - Modular Architecture
+# Frontend Documentation
 
-This directory contains the refactored frontend code with a modular architecture.
+## Overview
 
-## 📁 File Structure
+The frontend is a web-based interface for the AI Manual Assistant system, providing real-time interaction with the dual-loop memory system. It consists of two main pages: the main interface (`index.html`) and the query interface (`query.html`).
 
+## Architecture
+
+### File Structure
 ```
 src/frontend/
-├── index.html              # Original monolithic file (1566 lines)
-├── index_new.html          # New modular HTML file (clean, 200 lines)
-├── css/
-│   ├── main.css           # Core styles and CSS variables
+├── index.html              # Main interface with camera and chat
+├── query.html              # Dedicated query interface
+├── old_index.html          # Legacy main interface
+├── Fileindex.html          # File upload interface
+├── assets/                 # Static assets
+│   └── icons/             # Icon files
+├── css/                   # Stylesheets
+│   ├── main.css           # Main styles
 │   ├── components.css     # Component-specific styles
-│   └── responsive.css     # Responsive design and media queries
-├── js/
-│   ├── main.js           # Main application coordinator
-│   ├── components/
-│   │   ├── api.js        # API communication module
-│   │   ├── camera.js     # Camera management module
-│   │   ├── ui.js         # UI management module
-│   │   └── tabs.js       # Tab switching functionality
-│   └── utils/
-│       ├── config.js     # Configuration management
-│       └── helpers.js    # Utility functions
-├── test.html             # Module testing page
-└── README.md             # This file
+│   └── responsive.css     # Responsive design styles
+├── js/                    # JavaScript modules
+│   ├── main.js            # Main application logic
+│   ├── camera.js          # Camera management
+│   ├── query.js           # Query interface logic
+│   ├── components/        # Reusable components
+│   │   ├── api.js         # API communication
+│   │   ├── camera.js      # Camera component
+│   │   ├── tabs.js        # Tab management
+│   │   └── ui.js          # UI utilities
+│   └── utils/             # Utility functions
+│       ├── config.js      # Configuration management
+│       └── helpers.js     # Helper functions
+└── README.md              # This file
 ```
 
-## 🎯 Improvements Made
+## Pages
 
-### 1. **Separation of Concerns**
-- **HTML**: Clean structure, no inline styles or scripts
-- **CSS**: Organized into logical files (main, components, responsive)
-- **JavaScript**: Modular ES6 modules with clear responsibilities
+### Main Interface (`index.html`)
 
-### 2. **Modular Architecture**
-- **ConfigManager**: Handles configuration loading and management
-- **APIClient**: Manages all backend communication
-- **CameraManager**: Handles camera access and image capture
-- **UIManager**: Manages UI updates and form interactions
-- **TabManager**: Handles tab switching functionality
-- **VisionApp**: Main application coordinator
+The main interface provides:
+- **Camera Integration**: Real-time video capture for VLM observations
+- **Chat Interface**: Direct communication with the AI system
+- **Start/Stop Controls**: Manual control over the subconscious loop
+- **Status Display**: Real-time system status and feedback
 
-### 3. **Better Error Handling**
-- Centralized error handling with user-friendly messages
-- Graceful degradation when modules fail to load
-- Proper cleanup on application shutdown
+#### Key Features:
+- Camera stream management
+- Image capture and processing
+- Chat completion requests
+- System status monitoring
+- Responsive design
 
-### 4. **Improved Maintainability**
-- Single responsibility principle for each module
-- Clear interfaces between modules
-- Easy to test individual components
-- Consistent coding patterns
+### Query Interface (`query.html`)
 
-### 5. **Enhanced User Experience**
-- Better loading states and feedback
-- Improved responsive design
-- Cleaner visual hierarchy
-- More intuitive interactions
+The query interface provides:
+- **Instant Query Processing**: Direct access to the State Tracker
+- **Query Examples**: Pre-defined query templates
+- **Response Display**: Formatted response output
+- **Performance Metrics**: Processing time and confidence scores
 
-## 🚀 Usage
+#### Key Features:
+- Real-time query processing
+- Query type classification
+- Detailed response formatting
+- Connection status monitoring
+- Performance tracking
 
-### Development
-1. Use `index_new.html` for the new modular version
-2. Serve files from a web server (required for ES6 modules)
-3. Test individual modules using `test.html`
+## Components
 
-### Production
-1. Replace `index.html` with `index_new.html`
-2. Ensure web server supports ES6 modules
-3. Consider bundling for better performance (optional)
+### JavaScript Modules
 
-## 🔧 Module Details
+#### `main.js`
+- Main application initialization
+- Event handling and coordination
+- System state management
 
-### ConfigManager (`js/utils/config.js`)
-- Loads configuration from backend
-- Provides typed access to config values
-- Handles configuration updates
+#### `camera.js`
+- Camera stream management
+- Image capture and processing
+- Video frame handling
 
-### APIClient (`js/components/api.js`)
-- Singleton pattern for API communication
-- Request deduplication and error handling
-- Consistent response formatting
+#### `query.js`
+- Query interface logic
+- API communication for queries
+- Response formatting and display
+- Error handling
 
-### CameraManager (`js/components/camera.js`)
-- Camera device enumeration and selection
-- High-quality image capture with enhancement
-- Proper resource cleanup
+#### `components/api.js`
+- HTTP request handling
+- API endpoint communication
+- Response processing
 
-### UIManager (`js/components/ui.js`)
-- Centralized UI state management
-- Form validation and user feedback
-- Loading states and error display
+#### `components/camera.js`
+- Camera component logic
+- Video stream management
+- Image capture utilities
 
-### TabManager (`js/components/tabs.js`)
-- Dynamic tab switching
-- Event-driven architecture
-- Extensible tab system
+#### `components/tabs.js`
+- Tab switching logic
+- Content management
+- UI state coordination
 
-### VisionApp (`js/main.js`)
-- Application lifecycle management
-- Module coordination
-- Main processing loop
+#### `components/ui.js`
+- UI utility functions
+- DOM manipulation helpers
+- Animation and effects
 
-## 🧪 Testing
+#### `utils/config.js`
+- Configuration loading
+- Environment settings
+- API endpoint configuration
 
-### Module Testing
-```bash
-# Serve the frontend
-python -m http.server 5501
+#### `utils/helpers.js`
+- General utility functions
+- Data formatting helpers
+- Common operations
 
-# Open test.html to verify modules load correctly
-open http://localhost:5501/test.html
-```
+### CSS Modules
 
-### Integration Testing
-```bash
-# Test with the new modular version
-open http://localhost:5501/index_new.html
-```
+#### `main.css`
+- Global styles and variables
+- Layout and typography
+- Color scheme and theming
 
-## 📈 Performance Benefits
+#### `components.css`
+- Component-specific styles
+- Interactive elements
+- Form styling
 
-1. **Faster Initial Load**: CSS and JS are cached separately
-2. **Better Caching**: Individual modules can be cached independently
-3. **Easier Debugging**: Clear module boundaries and error isolation
-4. **Smaller Updates**: Only changed modules need to be updated
+#### `responsive.css`
+- Mobile-first responsive design
+- Breakpoint management
+- Adaptive layouts
 
-## 🔄 Migration Path
+## API Integration
 
-### Phase 1: Parallel Development
-- Keep both `index.html` and `index_new.html`
-- Test new version thoroughly
-- Gather user feedback
+### Backend Communication
 
-### Phase 2: Feature Parity
-- Ensure all features work in new version
-- Add any missing functionality
-- Performance optimization
+The frontend communicates with the backend through several endpoints:
 
-### Phase 3: Switch Over
-- Replace `index.html` with `index_new.html`
-- Remove old monolithic file
-- Update documentation
+#### Main Interface Endpoints:
+- `POST /api/v1/chat/completions` - Chat completion requests
+- `POST /api/v1/state/process` - VLM observation processing
 
-## 🐛 Known Issues
+#### Query Interface Endpoints:
+- `POST /api/v1/state/query` - Instant query processing
+- `GET /api/v1/state/query/capabilities` - Query capabilities
 
-1. **ES6 Module Support**: Requires modern browser and web server
-2. **CORS**: Must be served from web server, not file:// protocol
-3. **Debugging**: Stack traces may be less clear with modules
+### Data Flow
 
-## 🔮 Future Enhancements
+1. **Camera Stream**: Continuous video capture
+2. **Image Processing**: Frame capture and preprocessing
+3. **VLM Communication**: Image sent to model service
+4. **State Tracking**: Observations processed by State Tracker
+5. **User Queries**: Direct access to current state
+6. **Response Display**: Formatted responses to user
 
-1. **Build System**: Add webpack/vite for bundling and optimization
-2. **TypeScript**: Convert to TypeScript for better type safety
-3. **Testing Framework**: Add unit tests for each module
-4. **Component Library**: Extract reusable UI components
-5. **State Management**: Add centralized state management if needed
+## Features
 
-## 📝 Notes
+### Real-time Processing
+- Continuous camera stream processing
+- Instant query response
+- Live status updates
 
-- All modules use ES6 import/export syntax
-- Singleton pattern used for managers to ensure single instances
-- Event-driven communication between modules
-- Consistent error handling and logging patterns
-- Mobile-first responsive design approach
+### Error Handling
+- Network error recovery
+- Service connection monitoring
+- User-friendly error messages
+
+### Performance Optimization
+- Efficient image processing
+- Optimized API calls
+- Responsive UI updates
+
+### User Experience
+- Intuitive interface design
+- Clear status indicators
+- Helpful query examples
+
+## Configuration
+
+### Environment Variables
+- `API_BASE_URL`: Backend API base URL
+- `MODEL_SERVICE_URL`: Model service URL
+- `DEBUG_MODE`: Debug logging enable/disable
+
+### Browser Requirements
+- Modern browser with WebRTC support
+- Camera access permissions
+- JavaScript enabled
+
+## Development
+
+### Setup
+1. Ensure backend services are running
+2. Open `index.html` or `query.html` in a web browser
+3. Grant camera permissions when prompted
+4. Start the subconscious loop for full functionality
+
+### Testing
+- Use the query interface for testing State Tracker responses
+- Monitor browser console for debugging information
+- Check network tab for API communication
+
+### Debugging
+- Browser developer tools for frontend debugging
+- Console logging for JavaScript debugging
+- Network monitoring for API communication
+
+## Troubleshooting
+
+### Common Issues
+
+#### Camera Not Working
+- Check browser permissions
+- Ensure HTTPS or localhost
+- Verify camera hardware
+
+#### API Connection Errors
+- Verify backend services are running
+- Check API endpoint configuration
+- Monitor network connectivity
+
+#### Query Response Issues
+- Check State Tracker service status
+- Verify query format
+- Monitor response formatting
+
+### Performance Issues
+- Monitor browser performance
+- Check API response times
+- Optimize image processing
+
+## Future Enhancements
+
+### Planned Features
+- Enhanced UI animations
+- Advanced query templates
+- Real-time collaboration
+- Mobile app version
+
+### Technical Improvements
+- Progressive Web App (PWA) support
+- Offline functionality
+- Advanced caching strategies
+- Performance optimizations
+
+## Contributing
+
+When contributing to the frontend:
+
+1. Follow the existing code structure
+2. Maintain responsive design principles
+3. Test across different browsers
+4. Update documentation as needed
+5. Ensure accessibility compliance
+
+## License
+
+This frontend is part of the AI Manual Assistant system and follows the same licensing terms as the main project.

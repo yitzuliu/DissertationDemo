@@ -1,0 +1,135 @@
+{
+  "timestamp": "2025-07-27T21:03:26.464017",
+  "total_tests": 6,
+  "passed_tests": 5,
+  "success_rate": 83.33333333333334,
+  "test_results": {
+    "end_to_end_workflow": {
+      "passed": true,
+      "details": {
+        "total_checks": 8,
+        "valid_responses": 8,
+        "valid_step_detections": 8,
+        "step_consistency": true,
+        "most_common_step": 0,
+        "avg_response_time_ms": 1042.8434908390045,
+        "success_criteria": {
+          "valid_responses": true,
+          "step_detection": true,
+          "step_consistency": true,
+          "response_time": true
+        }
+      }
+    },
+    "dual_loop_coordination": {
+      "passed": true,
+      "details": {
+        "unconscious_success_rate": 100.0,
+        "instant_response_rate": 100.0,
+        "coordination_rate": 100.0,
+        "avg_response_time_ms": 1038.611650466919,
+        "success_criteria": {
+          "unconscious_loop": true,
+          "instant_response": true,
+          "coordination": true,
+          "response_time": true
+        }
+      }
+    },
+    "vlm_fault_tolerance": {
+      "passed": true,
+      "details": {
+        "fault_tolerance_rate": 100.0,
+        "service_stability_rate": 100.0,
+        "continuous_handling_rate": 100.0,
+        "final_service_running": true,
+        "success_criteria": {
+          "fault_tolerance": true,
+          "service_stability": true,
+          "continuous_handling": true,
+          "final_service_running": true
+        }
+      }
+    },
+    "memory_management": {
+      "passed": true,
+      "details": {
+        "initial_memory_mb": 8.703125,
+        "final_memory_mb": 8.703125,
+        "memory_growth_mb": 0.0,
+        "state_count": 3,
+        "memory_samples": [
+          {
+            "iteration": 0,
+            "total_mb": 2071.25,
+            "backend_mb": 8.703125
+          },
+          {
+            "iteration": 10,
+            "total_mb": 2071.953125,
+            "backend_mb": 8.703125
+          },
+          {
+            "iteration": 20,
+            "total_mb": 2072.8125,
+            "backend_mb": 8.703125
+          },
+          {
+            "iteration": 30,
+            "total_mb": 2073.421875,
+            "backend_mb": 8.703125
+          },
+          {
+            "iteration": 40,
+            "total_mb": 2051.0625,
+            "backend_mb": 8.703125
+          }
+        ],
+        "success_criteria": {
+          "memory_growth_controlled": true,
+          "state_count_reasonable": true,
+          "memory_stable": true,
+          "final_memory_reasonable": true
+        }
+      }
+    },
+    "performance_verification": {
+      "passed": false,
+      "details": {
+        "avg_response_time_ms": 23.775450388590496,
+        "max_response_time_ms": 27.363061904907227,
+        "min_response_time_ms": 21.636962890625,
+        "accuracy_rate": 0.0,
+        "concurrent_success_rate": 0.0,
+        "concurrent_avg_time_ms": 59.59615707397461,
+        "total_tests": 15,
+        "concurrent_tests": 5,
+        "success_criteria": {
+          "avg_response_time": true,
+          "max_response_time": true,
+          "accuracy_rate": false,
+          "concurrent_success": false,
+          "concurrent_performance": true
+        }
+      }
+    },
+    "service_recovery": {
+      "passed": true,
+      "details": {
+        "stress_test_success_rate": 100.0,
+        "post_stress_health": true,
+        "abnormal_recovery_rate": 100.0,
+        "frontend_recovery_rate": 100.0,
+        "api_recovery_rate": 100.0,
+        "overall_recovery_rate": 100.0,
+        "success_criteria": {
+          "stress_test_survival": true,
+          "abnormal_recovery": true,
+          "frontend_recovery": true,
+          "api_recovery": true,
+          "overall_recovery": true
+        }
+      }
+    }
+  }
+}
