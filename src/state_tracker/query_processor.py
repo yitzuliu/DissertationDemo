@@ -39,31 +39,31 @@ class QueryProcessor:
     
     def __init__(self):
         """Initialize query processor with keyword patterns"""
-        # Define keyword patterns for each query type
+        # Define keyword patterns for each query type (English only)
         self.query_patterns = {
             QueryType.CURRENT_STEP: [
-                r'我在哪|現在哪|當前|where am i|current step|現在在|在哪個步驟',
-                r'目前|現況|狀況|current|now'
+                r'where am i|current step|what step|which step|my step|current.*step',
+                r'current|now|present|location|position'
             ],
             QueryType.NEXT_STEP: [
-                r'下一步|接下來|然後|next step|next|what\'s next|下個步驟',
-                r'接著|之後|後續|following'
+                r'next step|what.*next|following|after.*this|then.*what|next.*step',
+                r'next|following|subsequent|after|then'
             ],
             QueryType.REQUIRED_TOOLS: [
-                r'需要什麼|工具|準備|tools|equipment|需要的|要用什麼',
-                r'材料|用具|器具|需求'
+                r'tools?|equipment|what.*tools|what.*need|what.*do.*step|tools.*needed|required.*tools',
+                r'what.*should.*do|how.*do.*this|what.*required|what.*equipment|what.*materials'
             ],
             QueryType.COMPLETION_STATUS: [
-                r'完成了嗎|進度|狀態|progress|status|done|finished|完成',
-                r'做完了|結束了|好了嗎'
+                r'progress|status|done|finished|complete|how.*much|percent|percentage',
+                r'completed|finished|done|over|remaining|left'
             ],
             QueryType.PROGRESS_OVERVIEW: [
-                r'整體|全部|總共|overall|summary|概況|總進度',
-                r'全體|整個流程|所有步驟'
+                r'overall|summary|overview|progress.*overview|status.*overview|big.*picture',
+                r'give.*overview|show.*progress|current.*status|what.*progress|total.*progress'
             ],
             QueryType.HELP: [
-                r'怎麼做|說明|幫助|help|how to|指導|教學',
-                r'方法|步驟說明|詳細|instruction'
+                r'help|how.*to|how.*do|instruction|guide|what.*do.*this|how.*step',
+                r'explain|describe|tell.*me.*about|show.*me.*how|assist|support'
             ]
         }
     
@@ -83,34 +83,60 @@ class QueryProcessor:
         """Generate formatted response based on query type and current state"""
         
         if not state_data:
-            return "目前沒有活動狀態。請先開始一個任務。"
+            return "No active state. Please start a task first."
         
         task_id = state_data.get('task_id', 'unknown')
         step_index = state_data.get('step_index', 0)
         confidence = state_data.get('confidence', 0.0)
         
         if query_type == QueryType.CURRENT_STEP:
-            return f"您現在在「{task_id}」任務的第{step_index}步 (信心度: {confidence:.2f})"
+            # Get detailed step information from matched_step
+            step_details = self._get_step_details(state_data)
+            if step_details:
+                return f"You are currently on step {step_index} of task '{task_id}' (confidence: {confidence:.2f})\n\nStep: {step_details['title']}\nDescription: {step_details['description']}"
+            else:
+                return f"You are currently on step {step_index} of task '{task_id}' (confidence: {confidence:.2f})"
         
         elif query_type == QueryType.NEXT_STEP:
             next_step = step_index + 1
-            return f"下一步是第{next_step}步。建議先完成當前第{step_index}步。"
+            return f"Next step is step {next_step}. Please complete the current step {step_index} first."
         
         elif query_type == QueryType.REQUIRED_TOOLS:
-            return f"第{step_index}步可能需要相關工具。請參考任務說明獲取詳細工具清單。"
+            # Get detailed tool information from matched_step
+            step_details = self._get_step_details(state_data)
+            if step_details and step_details.get('tools'):
+                tools_list = ", ".join(step_details['tools'])
+                return f"Step {step_index} requires the following tools:\n{tools_list}\n\nStep: {step_details['title']}\nDescription: {step_details['description']}"
+            else:
+                return f"Step {step_index} may require specific tools. Please refer to the task description for detailed tool requirements."
         
         elif query_type == QueryType.COMPLETION_STATUS:
             progress_percent = min(step_index * 10, 100)  # Simple progress estimation
-            return f"當前進度：第{step_index}步 (約{progress_percent}%完成，信心度: {confidence:.2f})"
+            step_details = self._get_step_details(state_data)
+            if step_details:
+                return f"Current progress: Step {step_index} (approximately {progress_percent}% complete, confidence: {confidence:.2f})\n\nStep: {step_details['title']}\nEstimated duration: {step_details['estimated_duration']}"
+            else:
+                return f"Current progress: Step {step_index} (approximately {progress_percent}% complete, confidence: {confidence:.2f})"
         
         elif query_type == QueryType.PROGRESS_OVERVIEW:
-            return f"任務「{task_id}」進行中，目前在第{step_index}步，系統信心度{confidence:.2f}"
+            step_details = self._get_step_details(state_data)
+            if step_details:
+                return f"Task '{task_id}' in progress, currently on step {step_index}, system confidence {confidence:.2f}\n\nCurrent step: {step_details['title']}\nDescription: {step_details['description']}"
+            else:
+                return f"Task '{task_id}' in progress, currently on step {step_index}, system confidence {confidence:.2f}"
         
         elif query_type == QueryType.HELP:
-            return f"您正在進行「{task_id}」的第{step_index}步。如需詳細說明，請查看任務指南。"
+            step_details = self._get_step_details(state_data)
+            if step_details:
+                tools_list = ", ".join(step_details['tools']) if step_details['tools'] else "No specific tools listed"
+                safety_notes = "\n".join([f"- {note}" for note in step_details['safety_notes']]) if step_details['safety_notes'] else "No specific safety notes"
+                
+                return f"You are currently on step {step_index} of task '{task_id}'.\n\nStep: {step_details['title']}\nDescription: {step_details['description']}\nRequired tools: {tools_list}\nEstimated duration: {step_details['estimated_duration']}\nSafety notes:\n{safety_notes}"
+            else:
+                return f"You are currently on step {step_index} of task '{task_id}'. For detailed instructions, please refer to the task guide."
         
         else:  # UNKNOWN
-            return f"抱歉，我不太理解您的問題。您目前在「{task_id}」的第{step_index}步。您可以問：我在哪？下一步？需要什麼工具？"
+            return f"Sorry, I don't understand your question. You are currently on step {step_index} of task '{task_id}'. You can ask: Where am I? What's next? What tools do I need?"
     
     def process_query(self, query: str, current_state: Optional[Dict[str, Any]]) -> QueryResult:
         """
@@ -145,17 +171,47 @@ class QueryProcessor:
             raw_query=query
         )
     
+    def _get_step_details(self, state_data: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Extract detailed step information from state data
+        
+        Args:
+            state_data: Current state data from State Tracker
+            
+        Returns:
+            Dictionary with step details or None if not available
+        """
+        if not state_data or not state_data.get('matched_step'):
+            return None
+        
+        matched_step = state_data['matched_step']
+        
+        # Extract information from MatchResult structure
+        step_details = {
+            'title': matched_step.get('step_title', ''),
+            'description': matched_step.get('step_description', ''),
+            'tools': matched_step.get('tools_needed', []),
+            'completion_indicators': matched_step.get('completion_indicators', []),
+            'visual_cues': matched_step.get('visual_cues', []),
+            'estimated_duration': matched_step.get('estimated_duration', ''),
+            'safety_notes': matched_step.get('safety_notes', [])
+        }
+        
+        return step_details
+    
     def get_supported_queries(self) -> List[str]:
-        """Get list of example supported queries"""
+        """Get list of example supported queries (English only)"""
         return [
-            "我在哪個步驟？",
-            "下一步是什麼？",
-            "需要什麼工具？",
-            "完成了嗎？",
-            "整體進度如何？",
-            "怎麼做這個步驟？",
-            "current step",
-            "next step",
-            "tools needed",
-            "progress status"
+            "Where am I?",
+            "What is the current step?", 
+            "What's next?",
+            "What tools do I need?",
+            "What should I do in this step?",
+            "How do I do this step?",
+            "What's my progress?",
+            "Give me an overview",
+            "Help me with this step",
+            "What's the status?",
+            "How much is done?",
+            "What equipment is required?"
         ]
