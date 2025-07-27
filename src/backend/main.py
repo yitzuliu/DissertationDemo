@@ -360,6 +360,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                             # Simple string response
                             vlm_text = content
                             logger.info(f"[{request_id}] VLM returned string content (length: {len(content)})")
+                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
                         
                         elif isinstance(content, list):
                             # List format (some models return structured content)
@@ -371,22 +372,26 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                                     text_parts.append(item)
                             vlm_text = ' '.join(text_parts)
                             logger.info(f"[{request_id}] VLM returned list content, extracted text (length: {len(vlm_text)})")
+                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
                         
                         elif isinstance(content, dict):
                             # Dictionary format
                             vlm_text = content.get('text', str(content))
                             logger.info(f"[{request_id}] VLM returned dict content, extracted: {vlm_text[:50]}...")
+                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
                         
                         else:
                             # Fallback: convert to string
                             vlm_text = str(content)
                             logger.warning(f"[{request_id}] VLM returned unexpected format ({type(content)}), converted to string")
+                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
                         
                         # Process with State Tracker if we have valid text
                         if vlm_text and len(vlm_text.strip()) > 0:
                             state_tracker = get_state_tracker()
                             state_updated = await state_tracker.process_vlm_response(vlm_text)
-                            logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}, text='{vlm_text[:50]}...'")
+                            logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}")
+                            logger.info(f"[{request_id}] State Tracker full response: {vlm_text}")
                         else:
                             logger.warning(f"[{request_id}] No valid text extracted from VLM response")
                             

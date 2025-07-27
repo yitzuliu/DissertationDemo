@@ -310,17 +310,27 @@ class StateTracker:
             if not match_result:
                 self._record_vlm_failure("No RAG match found")
                 processing_time = (time.time() - start_time) * 1000
-                self._record_metrics(cleaned_text, 0.0, processing_time, ConfidenceLevel.LOW, ActionType.IGNORE, None, None)
+                self._record_metrics(vlm_text, 0.0, processing_time, ConfidenceLevel.LOW, ActionType.IGNORE, None, None)
+                logger.info(f"RAG match result: NO_MATCH - no matching step found for text: '{cleaned_text[:100]}...'")
                 return False
+            
+            # Log RAG matching details
+            logger.info(f"RAG match result: task='{match_result.task_name}', step={match_result.step_id}, similarity={match_result.similarity:.3f}")
+            logger.info(f"RAG matched step title: '{match_result.step_title}'")
+            logger.info(f"RAG matched step description: '{match_result.step_description[:200]}...'")
             
             # Step 3: Determine confidence level and action
             confidence = match_result.similarity
             confidence_level = self._determine_confidence_level(confidence)
             should_update = self._should_update_state(confidence, confidence_level)
             
+            # Log confidence analysis
+            logger.info(f"Confidence analysis: score={confidence:.3f}, level={confidence_level.value}, should_update={should_update}")
+            
             # Step 4: Take action based on confidence level
             action_taken = ActionType.IGNORE
             state_updated = False
+            decision_reason = ""
             
             if should_update:
                 # Check state consistency before update
@@ -350,25 +360,32 @@ class StateTracker:
                     action_taken = ActionType.UPDATE
                     state_updated = True
                     self.consecutive_low_count = 0  # Reset on successful update
+                    decision_reason = f"High confidence match ({confidence:.3f}) - state updated to step {match_result.step_id}"
                     
                     logger.info(f"State updated: task={state_record.task_id}, step={state_record.step_index}, confidence={confidence:.2f}, level={confidence_level.value}")
                 else:
                     # Consistency check failed
                     action_taken = ActionType.OBSERVE
+                    decision_reason = f"Consistency check failed - observing instead of updating"
                     logger.warning(f"State consistency check failed - observing instead of updating")
                 
             elif confidence_level == ConfidenceLevel.MEDIUM:
                 action_taken = ActionType.OBSERVE
+                decision_reason = f"Medium confidence ({confidence:.3f}) - observing without update"
                 logger.info(f"Medium confidence ({confidence:.2f}) - observing without update")
                 
             else:
                 # Low confidence
                 action_taken = ActionType.IGNORE
                 self.consecutive_low_count += 1
+                decision_reason = f"Low confidence ({confidence:.3f}) - ignoring (consecutive: {self.consecutive_low_count})"
                 logger.info(f"Low confidence ({confidence:.2f}) - ignoring (consecutive: {self.consecutive_low_count})")
                 
                 # Handle consecutive low matches
                 self._handle_consecutive_low_matches()
+            
+            # Log final decision
+            logger.info(f"State Tracker decision: action={action_taken.value}, reason='{decision_reason}'")
             
             # Step 5: Record metrics
             processing_time = (time.time() - start_time) * 1000

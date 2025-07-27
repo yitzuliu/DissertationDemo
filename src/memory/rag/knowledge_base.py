@@ -109,43 +109,50 @@ class RAGKnowledgeBase:
     
     def find_matching_step(self, observation: str, task_name: str = None) -> MatchResult:
         """
-        Find the best matching task step for a VLM observation
-        
-        This is the main method used by the State Tracker to match
-        VLM observations to task steps.
+        Find the best matching step for a given observation
         
         Args:
-            observation: VLM observation text
-            task_name: Optional specific task to search in
+            observation: Text observation from VLM
+            task_name: Optional task name to limit search
             
         Returns:
-            MatchResult with the best matching step
+            MatchResult object with matching information
         """
-        if not self.is_initialized:
-            raise RuntimeError("RAG Knowledge Base not initialized. Call initialize() first.")
-        
-        if not observation or not observation.strip():
-            logger.warning("Empty observation provided to find_matching_step")
-            return self._create_no_match_result()
-        
         try:
-            # Get best match from vector search
-            matches = self.vector_engine.find_best_match(
-                observation=observation,
-                task_name=task_name,
-                top_k=1
-            )
+            # Log the search request
+            logger.info(f"RAG search: observation='{observation[:100]}...', task_filter='{task_name}'")
             
-            if matches:
-                best_match = matches[0]
-                logger.debug(f"Found match: step {best_match.step_id} with similarity {best_match.similarity:.3f}")
-                return best_match
+            # Get embeddings for the observation
+            observation_embedding = self.vector_engine.encode_text(observation)
+            
+            # Search for matches
+            if task_name and task_name in self.loaded_tasks:
+                # Search within specific task
+                logger.info(f"RAG search: searching within task '{task_name}'")
+                matches = self.vector_engine.search_within_task(observation_embedding, task_name, top_k=1)
             else:
-                logger.warning(f"No matches found for observation: {observation[:50]}...")
+                # Search across all tasks
+                logger.info(f"RAG search: searching across all {len(self.loaded_tasks)} tasks")
+                matches = self.vector_engine.search_across_tasks(observation_embedding, top_k=1)
+            
+            if not matches:
+                logger.info(f"RAG search: no matches found for observation")
                 return self._create_no_match_result()
-                
+            
+            # Get the best match
+            best_match = matches[0]
+            logger.info(f"RAG search: best match found - task='{best_match.task_name}', step={best_match.step_id}, similarity={best_match.similarity:.3f}")
+            
+            # Log match details
+            if best_match.step_title:
+                logger.info(f"RAG match details: title='{best_match.step_title}'")
+            if best_match.step_description:
+                logger.info(f"RAG match details: description='{best_match.step_description[:150]}...'")
+            
+            return best_match
+            
         except Exception as e:
-            logger.error(f"Error in find_matching_step: {str(e)}")
+            logger.error(f"Error in find_matching_step: {e}")
             return self._create_no_match_result()
     
     def find_multiple_matches(self, 
