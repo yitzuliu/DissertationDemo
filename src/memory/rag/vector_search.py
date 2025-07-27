@@ -34,6 +34,8 @@ class MatchResult:
     tools_needed: List[str]
     completion_indicators: List[str]
     visual_cues: List[str]
+    estimated_duration: str
+    safety_notes: List[str]
     similarity: float
     confidence_level: str  # "high", "medium", "low", "none"
     matched_cues: List[str]
@@ -270,6 +272,7 @@ class ChromaVectorSearchEngine:
                     tools_needed = metadata["tools_needed"].split(",") if metadata["tools_needed"] else []
                     completion_indicators = metadata["completion_indicators"].split(",") if metadata["completion_indicators"] else []
                     visual_cues = metadata["visual_cues"].split(",") if metadata["visual_cues"] else []
+                    safety_notes = metadata["safety_notes"].split(",") if metadata["safety_notes"] else []
                     
                     # Find matched visual cues
                     matched_cues = self._find_matched_cues(observation, visual_cues)
@@ -280,6 +283,8 @@ class ChromaVectorSearchEngine:
                         tools_needed=tools_needed,
                         completion_indicators=completion_indicators,
                         visual_cues=visual_cues,
+                        estimated_duration=metadata.get("estimated_duration", ""),
+                        safety_notes=safety_notes,
                         similarity=similarity,
                         confidence_level="",  # Will be set in __post_init__
                         matched_cues=matched_cues,

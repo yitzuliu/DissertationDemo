@@ -338,10 +338,27 @@ class StateTracker:
                 
                 if consistency_ok:
                     # Create and update state record
+                    # Include properties in matched_step dictionary
+                    matched_step_dict = {
+                        'step_id': match_result.step_id,
+                        'task_description': match_result.task_description,
+                        'tools_needed': match_result.tools_needed,
+                        'completion_indicators': match_result.completion_indicators,
+                        'visual_cues': match_result.visual_cues,
+                        'estimated_duration': match_result.estimated_duration,
+                        'safety_notes': match_result.safety_notes,
+                        'similarity': match_result.similarity,
+                        'confidence_level': match_result.confidence_level,
+                        'matched_cues': match_result.matched_cues,
+                        'task_name': match_result.task_name,
+                        'step_title': match_result.step_title,  # Include the property
+                        'step_description': match_result.step_description  # Include the property
+                    }
+                    
                     state_record = StateRecord(
                         timestamp=datetime.now(),
                         vlm_text=cleaned_text,
-                        matched_step=vars(match_result),
+                        matched_step=matched_step_dict,
                         confidence=confidence,
                         task_id=match_result.task_name,
                         step_index=match_result.step_id
