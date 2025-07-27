@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-階段3.1快速驗證測試
+Stage 3.1 Quick Verification Test
 
-快速驗證服務間通信的基本功能
+Quick verification of basic service communication functionality
 """
 
 import subprocess
@@ -13,17 +13,17 @@ import os
 from pathlib import Path
 
 def test_backend_basic():
-    """基本後端服務測試"""
-    print("🚀 階段3.1快速驗證測試")
+    """Basic backend service test"""
+    print("🚀 Stage 3.1 Quick Verification Test")
     print("=" * 50)
     
-    # 1. 測試後端服務啟動
-    print("📋 1. 測試後端服務啟動...")
+    # 1. Test backend service startup
+    print("📋 1. Testing backend service startup...")
     
     backend_dir = Path(__file__).parent.parent.parent / "src" / "backend"
     
     try:
-        # 啟動後端服務
+        # Start backend service
         process = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"],
             cwd=backend_dir,
@@ -32,98 +32,98 @@ def test_backend_basic():
             text=True
         )
         
-        print("⏳ 等待服務啟動...")
+        print("⏳ Waiting for service to start...")
         time.sleep(8)
         
         if process.poll() is None:
-            print("✅ 後端服務啟動成功")
+            print("✅ Backend service started successfully")
             
-            # 2. 測試健康檢查
-            print("\n📋 2. 測試健康檢查端點...")
+            # 2. Test health check
+            print("\n📋 2. Testing health check endpoint...")
             try:
                 response = requests.get("http://127.0.0.1:8000/health", timeout=5)
                 if response.status_code == 200:
-                    print("✅ 健康檢查通過")
-                    print(f"   響應: {response.json()}")
+                    print("✅ Health check passed")
+                    print(f"   Response: {response.json()}")
                 else:
-                    print(f"❌ 健康檢查失敗: HTTP {response.status_code}")
+                    print(f"❌ Health check failed: HTTP {response.status_code}")
             except Exception as e:
-                print(f"❌ 健康檢查連接失敗: {e}")
+                print(f"❌ Health check connection failed: {e}")
             
-            # 3. 測試狀態端點
-            print("\n📋 3. 測試狀態端點...")
+            # 3. Test status endpoint
+            print("\n📋 3. Testing status endpoint...")
             try:
                 response = requests.get("http://127.0.0.1:8000/status", timeout=5)
                 if response.status_code == 200:
-                    print("✅ 狀態端點正常")
+                    print("✅ Status endpoint normal")
                     data = response.json()
-                    print(f"   狀態: {data.get('status', 'Unknown')}")
+                    print(f"   Status: {data.get('status', 'Unknown')}")
                 else:
-                    print(f"❌ 狀態端點失敗: HTTP {response.status_code}")
+                    print(f"❌ Status endpoint failed: HTTP {response.status_code}")
             except Exception as e:
-                print(f"❌ 狀態端點連接失敗: {e}")
+                print(f"❌ Status endpoint connection failed: {e}")
             
-            # 4. 測試State Tracker端點
-            print("\n📋 4. 測試State Tracker端點...")
+            # 4. Test State Tracker endpoint
+            print("\n📋 4. Testing State Tracker endpoint...")
             try:
                 response = requests.get("http://127.0.0.1:8000/api/v1/state", timeout=5)
                 if response.status_code == 200:
-                    print("✅ State Tracker端點正常")
+                    print("✅ State Tracker endpoint normal")
                     data = response.json()
-                    print(f"   當前步驟: {data.get('current_step', 'None')}")
+                    print(f"   Current step: {data.get('current_step', 'None')}")
                 else:
-                    print(f"❌ State Tracker端點失敗: HTTP {response.status_code}")
+                    print(f"❌ State Tracker endpoint failed: HTTP {response.status_code}")
             except Exception as e:
-                print(f"❌ State Tracker端點連接失敗: {e}")
+                print(f"❌ State Tracker endpoint connection failed: {e}")
             
-            # 5. 測試VLM文字處理
-            print("\n📋 5. 測試VLM文字處理...")
+            # 5. Test VLM text processing
+            print("\n📋 5. Testing VLM text processing...")
             try:
-                test_data = {"vlm_text": "用戶正在準備咖啡器具，桌上有咖啡豆和磨豆機"}
+                test_data = {"vlm_text": "User is preparing coffee equipment, coffee beans and grinder on table"}
                 response = requests.post("http://127.0.0.1:8000/api/v1/state/process", 
                                        json=test_data, timeout=10)
                 if response.status_code == 200:
-                    print("✅ VLM文字處理成功")
+                    print("✅ VLM text processing successful")
                     data = response.json()
-                    print(f"   處理結果: 步驟 {data.get('current_step', 'Unknown')}")
+                    print(f"   Processing result: Step {data.get('current_step', 'Unknown')}")
                 else:
-                    print(f"❌ VLM文字處理失敗: HTTP {response.status_code}")
+                    print(f"❌ VLM text processing failed: HTTP {response.status_code}")
             except Exception as e:
-                print(f"❌ VLM文字處理連接失敗: {e}")
+                print(f"❌ VLM text processing connection failed: {e}")
             
-            # 6. 測試用戶查詢
-            print("\n📋 6. 測試用戶查詢...")
+            # 6. Test user query
+            print("\n📋 6. Testing user query...")
             try:
-                query_data = {"query": "我現在在第幾步？"}
+                query_data = {"query": "What step am I on now?"}
                 response = requests.post("http://127.0.0.1:8000/api/v1/state/query", 
                                        json=query_data, timeout=10)
                 if response.status_code == 200:
-                    print("✅ 用戶查詢處理成功")
+                    print("✅ User query processing successful")
                     data = response.json()
-                    print(f"   查詢回應: {data.get('response', 'No response')[:100]}...")
+                    print(f"   Query response: {data.get('response', 'No response')[:100]}...")
                 else:
-                    print(f"❌ 用戶查詢處理失敗: HTTP {response.status_code}")
+                    print(f"❌ User query processing failed: HTTP {response.status_code}")
             except Exception as e:
-                print(f"❌ 用戶查詢處理連接失敗: {e}")
+                print(f"❌ User query processing connection failed: {e}")
             
         else:
-            print("❌ 後端服務啟動失敗")
+            print("❌ Backend service startup failed")
             stdout, stderr = process.communicate()
             print(f"   stdout: {stdout}")
             print(f"   stderr: {stderr}")
         
-        # 清理進程
+        # Clean up process
         if process.poll() is None:
             process.terminate()
             process.wait()
         
         print("\n" + "=" * 50)
-        print("🎯 階段3.1快速驗證完成")
-        print("如果上述測試大部分通過，說明服務間通信基本正常")
-        print("可以繼續進行完整的階段3.1測試")
+        print("🎯 Stage 3.1 quick verification completed")
+        print("If most of the above tests pass, service communication is basically normal")
+        print("Can proceed with complete Stage 3.1 testing")
         
     except Exception as e:
-        print(f"❌ 測試執行失敗: {e}")
+        print(f"❌ Test execution failed: {e}")
         return False
 
 if __name__ == "__main__":
