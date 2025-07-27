@@ -12,5 +12,5 @@
     "host": "localhost",
     "port": 8080
   },
-  "active_model": "smolvlm2_500m_video"
+  "active_model": "smolvlm"
 }
