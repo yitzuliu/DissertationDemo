@@ -245,6 +245,11 @@ class VLMModelLoader:
         return SmolVLMGGUFModel(), SmolVLMGGUFProcessor()
     
     @staticmethod
+    def load_smolvlm_gguf(model_id="ggml-org/SmolVLM-500M-Instruct-GGUF"):
+        """Load SmolVLM GGUF version - Alias for load_smolvlm_instruct for backward compatibility"""
+        return VLMModelLoader.load_smolvlm_instruct(model_id)
+    
+    @staticmethod
     def load_moondream2(model_id="vikhyatk/moondream2"):
         from transformers import AutoModelForCausalLM, AutoTokenizer
         print(f"Loading {model_id}...")
@@ -261,6 +266,7 @@ class VLMModelLoader:
             from mlx_vlm import load
             model, processor = load(model_id)
             print("MLX-LLaVA loaded successfully!")
+            print("⚠️  Note: This model has known state pollution issues in batch testing")
             return model, processor
         except ImportError:
             raise RuntimeError("MLX-VLM package not installed (pip install mlx-vlm), cannot test this model.")
@@ -324,8 +330,23 @@ class VLMContextTester:
             "models": {}
         }
         
-        # Model configuration for context understanding tests (same as vlm_tester.py)
+        # Model configuration for context understanding tests (reordered as requested)
         self.models_config = {
+            "Phi-3.5-Vision-Instruct": { 
+                "loader": VLMModelLoader.load_phi3_vision, 
+                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
+            },
+            "LLaVA-v1.6-Mistral-7B-MLX": { 
+                "loader": VLMModelLoader.load_llava_mlx, 
+                "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), has known state pollution issues in batch testing"
+            },
+            "Moondream2": { 
+                "loader": VLMModelLoader.load_moondream2, 
+                "model_id": "vikhyatk/moondream2",
+                "note": "Lightweight vision-only model for Apple Silicon"
+            },
             "SmolVLM2-500M-Video-Instruct": { 
                 "loader": VLMModelLoader.load_smolvlm2_video, 
                 "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
@@ -335,10 +356,7 @@ class VLMContextTester:
                 "loader": VLMModelLoader.load_smolvlm_instruct, 
                 "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
                 "note": "GGUF version via HTTP API (與 run_smolvlm.py 一致)"
-            },
-            "Moondream2": { "loader": VLMModelLoader.load_moondream2, "model_id": "vikhyatk/moondream2" },
-            "LLaVA-v1.6-Mistral-7B-MLX": { "loader": VLMModelLoader.load_llava_mlx, "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit" },
-            "Phi-3.5-Vision-Instruct": { "loader": VLMModelLoader.load_phi3_vision, "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit" }
+            }
         }
         
         # Unified test parameters
@@ -882,14 +900,24 @@ class VLMContextTester:
                                 verbose=False
                             )
                         
-                        # MLX-VLM returns string directly, not tuple
-                        text_response = str(response)
+                        # MLX-VLM 可能返回元組或字符串，需要解析
+                        if isinstance(response, tuple) and len(response) >= 1:
+                            # 如果是元組，取第一個元素作為文本回覆
+                            text_response = str(response[0])
+                        else:
+                            # 如果是字符串，直接使用
+                            text_response = str(response)
                         
                         # Clean up response
                         text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
                         if "1. What is meant by" in text_response:
                             text_response = text_response.split("1. What is meant by")[0].strip()
                         text_response = ' '.join(text_response.split())
+                        
+                        # Remove the original prompt if it appears in the response (but be more careful)
+                        if prompt in text_response and len(text_response) > len(prompt):
+                            # Only remove if the response is longer than the prompt
+                            text_response = text_response.replace(prompt, "").strip()
                         
                         response = text_response
                         
@@ -985,24 +1013,18 @@ class VLMContextTester:
                         )
                     
                     # Process MLX response
-                    if isinstance(raw_response, tuple) and len(raw_response) >= 2:
+                    if isinstance(raw_response, tuple) and len(raw_response) >= 1:
                         response = raw_response[0]
                     elif isinstance(raw_response, list) and len(raw_response) > 0:
                         response = raw_response[0] if isinstance(raw_response[0], str) else str(raw_response[0])
                     else:
                         response = str(raw_response)
 
-                    # Clean up stop tokens
-                    stop_tokens = ["<|end|>", "<|endoftext|>", "ASSISTANT:", "USER:", "<|im_end|>"]
-                    for token in stop_tokens:
-                        response = response.replace(token, "")
-                    
-                    response = response.replace("<|end|><|endoftext|>", " ")
-                    
+                    # Clean up response (same as vlm_tester.py)
+                    response = response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
                     if "1. What is meant by" in response:
                         response = response.split("1. What is meant by")[0].strip()
-                    
-                    response = ' '.join(response.split()).strip()
+                    response = ' '.join(response.split())
                 
                 else:
                     response = "Error: Unknown model type, cannot perform inference."

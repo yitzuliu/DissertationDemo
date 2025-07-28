@@ -215,10 +215,20 @@ class VQAFramework:
         for attempt in range(1, 4):
             print(f"🔄 Attempt {attempt}/3: Starting SmolVLM server...")
             try:
+                # Use same command as vlm_tester.py and vlm_context_tester.py
+                cmd = [
+                    "llama-server",
+                    "-hf", "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                    "-ngl", "99",
+                    "--port", "8080"
+                ]
+                
                 # Start server in background
-                server_process = subprocess.Popen([
-                    sys.executable, "src/models/smolvlm/run_smolvlm.py"
-                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                server_process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
                 
                 # Track server process for cleanup
                 self.server_process = server_process
@@ -287,7 +297,7 @@ class VQAFramework:
                     response = requests.get("http://localhost:8080/health", timeout=2)
                     if response.status_code == 200:
                         print("⚠️ SmolVLM server still running, attempting force kill...")
-                        subprocess.run(["pkill", "-f", "run_smolvlm.py"], timeout=10)
+                        subprocess.run(["pkill", "-f", "llama-server"], timeout=10)
                 except requests.exceptions.RequestException:
                     print("✅ SmolVLM server successfully stopped")
         except Exception as e:
@@ -907,8 +917,13 @@ class VQAFramework:
                         if os.path.exists(temp_image_path):
                             os.remove(temp_image_path)
                     
-                    # MLX-VLM returns string directly, not tuple
-                    text_response = str(response)
+                    # MLX-VLM 可能返回元組或字符串，需要解析
+                    if isinstance(response, tuple) and len(response) >= 1:
+                        # 如果是元組，取第一個元素作為文本回覆
+                        text_response = str(response[0])
+                    else:
+                        # 如果是字符串，直接使用
+                        text_response = str(response)
                     
                     # Clean up response
                     text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
@@ -1022,7 +1037,7 @@ class VQAFramework:
                     
             elif "smolvlm" in model_name.lower():
                 # SmolVLM processing - unified GGUF HTTP API approach
-                if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
+                if (isinstance(model, dict) and model.get("type") == "smolvlm_gguf") or (hasattr(model, 'model_type') and model.model_type == "smolvlm_gguf"):
                     # GGUF model via HTTP API (consistent with vlm_tester.py and vlm_context_tester.py)
                     try:
                         print("  🚀 Using SmolVLM GGUF via HTTP API...")
@@ -1057,21 +1072,28 @@ class VQAFramework:
                         }
                         
                         # Send request to SmolVLM server
+                        api_endpoint = model["api_endpoint"] if isinstance(model, dict) else model.api_endpoint
                         response = requests.post(
-                            model["api_endpoint"],
+                            api_endpoint,
                             json=payload,
                             timeout=60
                         )
                         
                         if response.status_code == 200:
-                            result = response.json()
-                            if "choices" in result and len(result["choices"]) > 0:
-                                content = result["choices"][0]["message"]["content"]
-                                return content.strip()
-                            else:
-                                return "No response content received"
+                            try:
+                                result = response.json()
+                                if "choices" in result and len(result["choices"]) > 0:
+                                    content = result["choices"][0]["message"]["content"]
+                                    if content and content.strip():
+                                        return content.strip()
+                                    else:
+                                        return "Empty response content"
+                                else:
+                                    return f"No choices in response: {result}"
+                            except json.JSONDecodeError as e:
+                                return f"Invalid JSON response: {response.text[:100]}"
                         else:
-                            return f"HTTP error: {response.status_code}"
+                            return f"HTTP error {response.status_code}: {response.text[:100]}"
                             
                     except Exception as e:
                         print(f"  ⚠️ SmolVLM GGUF inference failed: {e}")
@@ -1079,37 +1101,63 @@ class VQAFramework:
                 else:
                     # Fallback for other SmolVLM versions (SmolVLM2, etc.)
                     if hasattr(model, '_is_mlx_model'):
-                        # MLX version SmolVLM2 inference - use MLX-VLM generate (consistent with vlm_tester.py)
+                        # MLX version SmolVLM2 inference - use subprocess method (consistent with vlm_tester.py)
                         try:
-                            from mlx_vlm import generate
-                            print("  🚀 Using MLX-VLM generate for SmolVLM2...")
+                            import subprocess
+                            import tempfile
+                            
+                            print("  🚀 Using MLX-VLM command line for SmolVLM2...")
                             
                             # Create temporary image file
-                            import tempfile
                             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
                                 temp_image_path = tmp_file.name
                                 image.save(temp_image_path)
                             
                             try:
-                                # Use MLX-VLM generate function (same as vlm_tester.py)
-                                response = generate(
-                                    model, 
-                                    processor, 
-                                    question,
-                                    image=temp_image_path,
-                                    max_tokens=unified_generation_params["max_new_tokens"],
-                                    temp=0.0,
-                                    verbose=False
+                                # Use MLX-VLM command line tool (same as vlm_tester.py)
+                                cmd = [
+                                    sys.executable, '-m', 'mlx_vlm.generate',
+                                    '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                                    '--image', temp_image_path,
+                                    '--prompt', question,
+                                    '--max-tokens', str(unified_generation_params["max_new_tokens"]),
+                                    '--temperature', '0.0'
+                                ]
+                                
+                                result = subprocess.run(
+                                    cmd,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=60
                                 )
                                 
-                                # Handle MLX-VLM response format
-                                if isinstance(response, tuple) and len(response) >= 1:
-                                    text_response = response[0] if response[0] else ""
+                                if result.returncode == 0:
+                                    # Parse output, extract generated text (same as vlm_tester.py)
+                                    output_lines = result.stdout.split('\n')
+                                    generated_text = ""
+                                    
+                                    # Keep full Assistant response
+                                    for i, line in enumerate(output_lines):
+                                        line = line.strip()
+                                        if line.startswith('Assistant:'):
+                                            # Find Assistant line
+                                            generated_text = line
+                                            # Check if next line has content
+                                            if i + 1 < len(output_lines):
+                                                next_line = output_lines[i + 1].strip()
+                                                if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                    # Next line has content, combine two lines
+                                                    generated_text = f"{line} {next_line}"
+                                            break
+                                        elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not line.startswith('Peak memory:'):
+                                            # Find other non-system content lines
+                                            if not generated_text:
+                                                generated_text = line
+                                    
+                                    return generated_text
                                 else:
-                                    text_response = str(response) if response else ""
-                                
-                                return text_response.strip()
-                                
+                                    return f"MLX-VLM SmolVLM2 command failed: {result.stderr}"
+                                    
                             finally:
                                 # Clean up temporary file
                                 if os.path.exists(temp_image_path):

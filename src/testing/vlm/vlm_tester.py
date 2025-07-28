@@ -12,6 +12,9 @@ import gc
 import signal
 import threading
 import psutil
+import subprocess
+import socket
+import requests
 from datetime import datetime
 from pathlib import Path
 from PIL import Image
@@ -67,6 +70,113 @@ def run_with_timeout(func, timeout_seconds=120):
         raise exception[0]
     
     return result[0] if result else None
+
+# SmolVLM GGUF Server Management (統一與 run_smolvlm.py 的啟動方式)
+def ensure_smolvlm_server():
+    """確保 SmolVLM 服務器運行 - 使用與 run_smolvlm.py 相同的邏輯"""
+    print("🔄 Checking SmolVLM server status...")
+    
+    # 首先檢查服務器是否已經運行
+    try:
+        response = requests.get("http://localhost:8080/health", timeout=5)
+        if response.status_code == 200:
+            print("✅ SmolVLM server is already running")
+            return True
+    except requests.exceptions.RequestException:
+        pass
+    
+    # 檢查端口 8080 是否被占用
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('localhost', 8080))
+        sock.close()
+        if result == 0:
+            print("⚠️ Port 8080 is occupied, attempting to close existing process...")
+            # 嘗試殺死端口 8080 上的進程
+            try:
+                result = subprocess.run(
+                    ["lsof", "-ti", ":8080"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    pids = result.stdout.strip().split('\n')
+                    for pid in pids:
+                        if pid.strip():
+                            print(f"🔄 Killing process {pid} on port 8080...")
+                            subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                            time.sleep(2)  # 等待進程終止
+            except Exception as e:
+                print(f"⚠️ Failed to kill process on port 8080: {e}")
+    except Exception as e:
+        print(f"⚠️ Error checking port 8080: {e}")
+    
+    # 嘗試啟動服務器（最多 3 次嘗試）
+    for attempt in range(1, 4):
+        print(f"🔄 Attempt {attempt}/3: Starting SmolVLM server...")
+        try:
+            # 使用與 run_smolvlm.py 相同的命令
+            cmd = [
+                "llama-server",
+                "-hf", "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                "-ngl", "99",
+                "--port", "8080"
+            ]
+            
+            # 在後台啟動服務器
+            server_process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            
+            # 等待服務器啟動（最多 30 秒）
+            for i in range(30):
+                time.sleep(2)
+                try:
+                    response = requests.get("http://localhost:8080/health", timeout=5)
+                    if response.status_code == 200:
+                        print(f"✅ SmolVLM server started successfully on attempt {attempt}")
+                        return True
+                except requests.exceptions.RequestException:
+                    continue
+            
+            # 如果到這裡，服務器沒有啟動
+            print(f"❌ SmolVLM server failed to start on attempt {attempt}")
+            try:
+                server_process.terminate()
+                server_process.wait(timeout=5)
+            except:
+                pass
+                
+        except Exception as e:
+            print(f"❌ Error starting SmolVLM server on attempt {attempt}: {e}")
+    
+    print("❌ Failed to start SmolVLM server after 3 attempts")
+    return False
+
+def cleanup_smolvlm_server():
+    """清理 SmolVLM 服務器進程"""
+    try:
+        # 殺死端口 8080 上的任何進程
+        result = subprocess.run(
+            ["lsof", "-ti", ":8080"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            pids = result.stdout.strip().split('\n')
+            for pid in pids:
+                if pid.strip():
+                    print(f"🔄 Cleaning up SmolVLM server process {pid}...")
+                    try:
+                        subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                    except Exception as e:
+                        print(f"⚠️ Failed to kill process {pid}: {e}")
+    except Exception as e:
+        print(f"⚠️ Error during server cleanup: {e}")
 
 # Model Loader Class
 class VLMModelLoader:
@@ -142,12 +252,32 @@ class VLMModelLoader:
             return model, processor
     
     @staticmethod
-    def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
-        """Load SmolVLM-500M-Instruct"""
-        print(f"Loading {model_id}...")
-        processor = AutoProcessor.from_pretrained(model_id)
-        model = AutoModelForVision2Seq.from_pretrained(model_id)
-        return model, processor
+    def load_smolvlm_instruct(model_id="ggml-org/SmolVLM-500M-Instruct-GGUF"):
+        """Load SmolVLM-500M-Instruct GGUF version via HTTP API (統一方式)"""
+        print(f"Loading SmolVLM GGUF version via HTTP API...")
+        
+        # 確保服務器運行
+        if not ensure_smolvlm_server():
+            raise RuntimeError("SmolVLM server is not available")
+        
+        print("✅ SmolVLM GGUF server is ready")
+        
+        # 返回特殊標記，表示這是 HTTP API 模式
+        class SmolVLMGGUFModel:
+            def __init__(self):
+                self.api_endpoint = "http://localhost:8080/v1/chat/completions"
+                self.model_type = "smolvlm_gguf"
+        
+        class SmolVLMGGUFProcessor:
+            def __init__(self):
+                self.tokenizer = None  # GGUF 不需要本地 tokenizer
+        
+        return SmolVLMGGUFModel(), SmolVLMGGUFProcessor()
+    
+    @staticmethod
+    def load_smolvlm_gguf(model_id="ggml-org/SmolVLM-500M-Instruct-GGUF"):
+        """Load SmolVLM GGUF version - Alias for load_smolvlm_instruct for backward compatibility"""
+        return VLMModelLoader.load_smolvlm_instruct(model_id)
     
     @staticmethod
     def load_moondream2(model_id="vikhyatk/moondream2"):
@@ -166,13 +296,14 @@ class VLMModelLoader:
     
     @staticmethod
     def load_llava_mlx(model_id="mlx-community/llava-v1.6-mistral-7b-4bit"):
-        """Load MLX-LLaVA (Apple Silicon optimized)"""
+        """Load MLX-LLaVA (Apple Silicon optimized) - Note: Has known state pollution issues"""
         print(f"Loading MLX-LLaVA {model_id}...")
         try:
             from mlx_vlm import load
             print("Loading MLX optimized LLaVA model...")
             model, processor = load(model_id)
             print("MLX-LLaVA loaded successfully!")
+            print("⚠️  Note: This model has known state pollution issues in batch testing")
             return model, processor
         except ImportError as e:
             print("MLX-VLM not installed. Please run: pip install mlx-vlm")
@@ -265,7 +396,7 @@ class VLMTester:
             "LLaVA-v1.6-Mistral-7B-MLX": {
                 "loader": VLMModelLoader.load_llava_mlx,
                 "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
-                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), has known state pollution issues in batch testing"
             },
             "Moondream2": {
                 "loader": VLMModelLoader.load_moondream2,
@@ -278,7 +409,8 @@ class VLMTester:
             },
             "SmolVLM-500M-Instruct": {
                 "loader": VLMModelLoader.load_smolvlm_instruct,
-                "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct"
+                "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                "note": "GGUF version via HTTP API (與 run_smolvlm.py 一致)"
             }
         }
         
@@ -372,12 +504,6 @@ class VLMTester:
             # Test each image
             for image_path in test_images:
                 try:
-                    # For LLaVA-MLX, reload the model for each image to avoid state bug
-                    if "LLaVA-v1.6-Mistral-7B-MLX" in model_name:
-                        print("  >> LLaVA-MLX: Reloading model to clear state...")
-                        clear_model_memory(model, processor)
-                        model, processor = self.models_config[model_name]["loader"]()
-
                     image_result = self.test_single_image(model, processor, image_path, model_name)
                     model_results["images"][image_path.name] = image_result
                     
@@ -454,8 +580,7 @@ class VLMTester:
             return model_results
         
         # Clear model memory
-        if model_name != "LLaVA-v1.6-Mistral-7B-MLX": # Already cleaned inside loop
-            clear_model_memory(model, processor)
+        clear_model_memory(model, processor)
         
         # Check memory cleanup effect
         memory_after_cleanup = get_memory_usage()
@@ -551,8 +676,13 @@ class VLMTester:
                             if os.path.exists(temp_image_path):
                                 os.remove(temp_image_path)
                         
-                        # MLX-VLM returns string directly, not tuple
-                        text_response = str(response)
+                        # MLX-VLM 可能返回元組或字符串，需要解析
+                        if isinstance(response, tuple) and len(response) >= 1:
+                            # 如果是元組，取第一個元素作為文本回覆
+                            text_response = str(response[0])
+                        else:
+                            # 如果是字符串，直接使用
+                            text_response = str(response)
                         
                         # Clean up response
                         text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
@@ -619,53 +749,109 @@ class VLMTester:
                         
                         return result
                 elif "LLaVA" in model_name:
-                    # Check if this is MLX-LLaVA or standard LLaVA
-                    if "MLX" in model_name:
-                        # MLX-LLaVA inference using simple method (same as other models)
+                    # MLX-LLaVA inference method
+                    print(f"  🚀 Using MLX-LLaVA inference...")
+                    try:
+                        from mlx_vlm import generate
+                        
+                        # Save image to temporary file
+                        temp_image_path = "temp_llava_image.jpg"
+                        image.save(temp_image_path)
+                        
                         try:
-                            from mlx_vlm import generate
-                            print("  🚀 Using MLX-VLM for LLaVA...")
+                            # Simple prompt format for MLX-VLM
+                            mlx_prompt = f"<|image_1|>\nUser: {self.prompt}\nAssistant:"
                             
-                            # Simple prompt for MLX-LLaVA (same as other models)
+                            # Generate output
                             response = generate(
                                 model, 
                                 processor, 
-                                self.prompt, 
-                                image=current_image_path,
+                                mlx_prompt, 
+                                image=temp_image_path,
                                 max_tokens=unified_generation_params["max_new_tokens"],
+                                temp=0.0,
                                 verbose=False
                             )
                             
-                            return str(response)
+                            # Parse response
+                            if isinstance(response, tuple) and len(response) >= 1:
+                                text_response = str(response[0])
+                            else:
+                                text_response = str(response)
                             
-                        except Exception as e:
-                            print(f"  ⚠️ MLX-VLM failed: {e}")
-                            # Fallback: Return descriptive error but don't crash
-                            return f"MLX-VLM inference failed: {str(e)}"
-                    else:
-                        # Standard LLaVA Pipeline method
-                        messages = [
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "image", "image": image},  # Use local image format (consistent with SmolVLM)
-                                    {"type": "text", "text": self.prompt}  # Use unified prompt
-                                ]
-                            },
-                        ]
-                        # 🚀 Optimization: Add generation parameter control
-                        response = model(
-                            text=messages, 
-                            **unified_generation_params,  # Use unified parameters
-                            return_full_text=False  # Only return generated text
-                        )
-                        if isinstance(response, list) and len(response) > 0:
-                            return response[0].get('generated_text', str(response))
-                        else:
-                            return str(response)
+                            # Clean up response
+                            text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
+                            text_response = ' '.join(text_response.split())
+                            
+                            return text_response
+                            
+                        finally:
+                            # Clean up temporary file
+                            if os.path.exists(temp_image_path):
+                                os.remove(temp_image_path)
+                                
+                    except Exception as e:
+                        print(f"  ⚠️ MLX-LLaVA inference failed: {e}")
+                        return f"MLX-LLaVA inference failed: {str(e)}"
                 elif "SmolVLM" in model_name:
                     # SmolVLM optimized method
-                    if "MLX" in model_name or hasattr(model, '_is_mlx_model'):
+                    if hasattr(model, 'model_type') and model.model_type == "smolvlm_gguf":
+                        # GGUF version via HTTP API (統一與 run_smolvlm.py 的方式)
+                        print("  🚀 Using SmolVLM GGUF HTTP API...")
+                        
+                        import base64
+                        import io
+                        
+                        # 將圖片轉換為 base64
+                        buffer = io.BytesIO()
+                        image.save(buffer, format='JPEG')
+                        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                        
+                        # 構建 OpenAI 兼容的請求
+                        payload = {
+                            "model": "gpt-4-vision-preview",  # llama-server 兼容格式
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {
+                                            "type": "text",
+                                            "text": self.prompt
+                                        },
+                                        {
+                                            "type": "image_url",
+                                            "image_url": {
+                                                "url": f"data:image/jpeg;base64,{image_base64}"
+                                            }
+                                        }
+                                    ]
+                                }
+                            ],
+                            "max_tokens": unified_generation_params["max_new_tokens"],
+                            "temperature": 0.0
+                        }
+                        
+                        try:
+                            response = requests.post(
+                                model.api_endpoint,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=timeout_seconds
+                            )
+                            
+                            if response.status_code == 200:
+                                result = response.json()
+                                if 'choices' in result and len(result['choices']) > 0:
+                                    return result['choices'][0]['message']['content']
+                                else:
+                                    return f"GGUF API response format error: {result}"
+                            else:
+                                return f"GGUF API request failed: {response.status_code} - {response.text}"
+                                
+                        except Exception as e:
+                            return f"GGUF API inference failed: {str(e)}"
+                    
+                    elif "MLX" in model_name or hasattr(model, '_is_mlx_model'):
                         # MLX version SmolVLM2 inference
                         try:
                             # Use MLX-VLM command line tool for inference
@@ -974,7 +1160,14 @@ class VLMTester:
                     temp=0.0,
                     verbose=False
                 )
-                return str(response)
+                
+                # MLX-VLM 可能返回元組或字符串，需要解析
+                if isinstance(response, tuple) and len(response) >= 1:
+                    # 如果是元組，取第一個元素作為文本回覆
+                    return str(response[0])
+                else:
+                    # 如果是字符串，直接使用
+                    return str(response)
                 
             except Exception as mlx_e:
                 return f"MLX-VLM text-only inference failed: {str(mlx_e)}"
@@ -1089,6 +1282,44 @@ class VLMTester:
     def _test_smolvlm_text_only(self, model, processor, prompt):
         """SmolVLM-500M-Instruct text-only test"""
         try:
+            # Check if this is GGUF version
+            if hasattr(model, 'model_type') and model.model_type == "smolvlm_gguf":
+                # GGUF version text-only test via HTTP API
+                print("  🚀 Using SmolVLM GGUF HTTP API for text-only...")
+                
+                payload = {
+                    "model": "gpt-4",  # llama-server 兼容格式
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    "max_tokens": self.unified_max_tokens,
+                    "temperature": 0.0
+                }
+                
+                try:
+                    response = requests.post(
+                        model.api_endpoint,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=60
+                    )
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if 'choices' in result and len(result['choices']) > 0:
+                            return result['choices'][0]['message']['content']
+                        else:
+                            return f"GGUF API text-only response format error: {result}"
+                    else:
+                        return f"GGUF API text-only request failed: {response.status_code} - {response.text}"
+                        
+                except Exception as e:
+                    return f"GGUF API text-only inference failed: {str(e)}"
+            
+            # Standard SmolVLM text-only test
             # Method 1: Try text message format
             messages = [
                 {
@@ -1120,41 +1351,37 @@ class VLMTester:
                 return f"SmolVLM text-only inference failed: {str(e)} | Fallback method: {str(e2)}"
     
     def _test_llava_text_only(self, model, processor, prompt):
-        """LLaVA-MLX text-only test"""
+        """MLX-LLaVA text-only test"""
         try:
-            # Method 1: MLX-VLM simple text inference
             from mlx_vlm import generate
+            
+            # Simple prompt format for text-only
+            mlx_prompt = f"User: {prompt}\nAssistant:"
+            
+            # Generate output
             response = generate(
-                model=model,
-                processor=processor,
-                prompt=prompt,
+                model, 
+                processor, 
+                mlx_prompt,
                 max_tokens=self.unified_max_tokens,
+                temp=0.0,
                 verbose=False
             )
             
-            return str(response) if response else ""
+            # Parse response
+            if isinstance(response, tuple) and len(response) >= 1:
+                text_response = str(response[0])
+            else:
+                text_response = str(response)
             
-        except Exception as e:
-            # Method 2: Try pipeline method (if supported)
-            try:
-                # Try text conversation format
-                messages = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt}
-                        ]
-                    },
-                ]
+            # Clean up response
+            text_response = text_response.replace("<|end|><|endoftext|>", " ").replace("<|end|>", " ").replace("<|endoftext|>", " ")
+            text_response = ' '.join(text_response.split())
+            
+            return text_response
                 
-                response = model(text=messages, max_new_tokens=self.unified_max_tokens, return_full_text=False)
-                if isinstance(response, list) and len(response) > 0:
-                    return response[0].get('generated_text', str(response))
-                else:
-                    return str(response)
-                    
-            except Exception as e2:
-                return f"LLaVA text-only inference failed: {str(e)} | Fallback method: {str(e2)}"
+        except Exception as e:
+            return f"MLX-LLaVA text-only inference failed: {str(e)}"
     
     def _test_generic_text_only(self, model, processor, prompt):
         """Generic text-only test method"""
@@ -1196,6 +1423,8 @@ class VLMTester:
                     
             except Exception as e2:
                 return f"Generic text-only inference failed: {str(e)} | Fallback method: {str(e2)}"
+    
+
     
     def run_all_tests(self):
         """Run tests for all models"""
@@ -1275,25 +1504,36 @@ def main():
     # Create tester
     tester = VLMTester()
     
-    # Check if command line arguments specify testing a single model
-    import sys
-    if len(sys.argv) > 1:
-        model_name = sys.argv[1]
-        if model_name in tester.models_config:
-            print(f"Testing single model: {model_name}")
-            model_results = tester.test_single_model(model_name, tester.models_config[model_name])
-            tester.results["models"][model_name] = model_results
-            tester.save_results(f"single_{model_name}")
+    try:
+        # Check if command line arguments specify testing a single model
+        import sys
+        if len(sys.argv) > 1:
+            model_name = sys.argv[1]
+            if model_name in tester.models_config:
+                print(f"Testing single model: {model_name}")
+                model_results = tester.test_single_model(model_name, tester.models_config[model_name])
+                tester.results["models"][model_name] = model_results
+                tester.save_results(f"single_{model_name}")
+            else:
+                print(f"Error: Model {model_name} not found")
+                print(f"Available models: {list(tester.models_config.keys())}")
+                return
         else:
-            print(f"Error: Model {model_name} not found")
-            print(f"Available models: {list(tester.models_config.keys())}")
-            return
-    else:
-        # Run tests for all models
-        tester.run_all_tests()
-    
-    print("\nTesting completed!")
-    print("Results file located in: src/testing/results/")
+            # Run tests for all models
+            tester.run_all_tests()
+        
+        print("\nTesting completed!")
+        print("Results file located in: src/testing/results/")
+        
+    except KeyboardInterrupt:
+        print("\n🛑 Testing interrupted by user")
+    except Exception as e:
+        print(f"\n❌ Testing failed: {str(e)}")
+    finally:
+        # 清理 SmolVLM 服務器進程
+        print("\n🔄 Cleaning up...")
+        cleanup_smolvlm_server()
+        print("👋 Goodbye!")
 
 if __name__ == "__main__":
     main() 
