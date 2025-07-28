@@ -80,7 +80,7 @@ def check_llava_responses():
         
         # 檢查是否所有回應都相同
         if len(set(r[1] for r in responses)) == 1:
-            print("⚠️ 警告: 所有 LLaVA 回應都相同，可能存在狀態污染問題")
+            print("⚠️ 警告: 所有 LLaVA 回應都相同，可能存在批次推理問題")
         else:
             print("✅ LLaVA 回應正常，每張圖片都有不同回應")
             
@@ -139,7 +139,7 @@ def main():
     
     print("\n📋 診斷總結:")
     print("1. 檢查測試結果文件的時間戳，看是否有重複執行")
-    print("2. LLaVA 回應相同可能是狀態污染，已修正重載邏輯")
+    print("2. LLaVA 回應相同可能是批次推理問題，已修正重載邏輯")
     print("3. 如果有多個 vlm_tester 進程，可能是之前的測試沒有正常結束")
     print("4. SmolVLM 服務器可能會在後台持續運行")
 

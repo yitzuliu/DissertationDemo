@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-階段3.3：跨服務基礎功能測試（完整綜合版）
-完全按照tasks.md的要求實現所有6項測試
-測試重點：
-1. 端到端跨服務工作流程測試（「煮一杯咖啡」場景）
-2. 跨服務雙循環協同：模型觀察更新 + 前端即時查詢的一致性
-3. 後端服務VLM容錯能力：模擬模型服務VLM失敗和異常輸出
-4. 後端服務滑動窗格記憶體管控：固定記憶體使用 < 1MB
-5. 跨服務性能驗證：端到端響應時間和準確率達標測試
-6. 服務恢復機制：單一服務異常後的自動恢復能力
+Stage 3.3: Cross-Service Basic Functionality Test (Complete Comprehensive Version)
+Completely implement all 6 tests according to tasks.md requirements
+Test Focus:
+1. End-to-end cross-service workflow test ("Brew a cup of coffee" scenario)
+2. Cross-service dual loop coordination: Model observation updates + Frontend real-time query consistency
+3. Backend service VLM fault tolerance: Simulate model service VLM failures and abnormal outputs
+4. Backend service sliding window memory management: Fixed memory usage < 1MB
+5. Cross-service performance verification: End-to-end response time and accuracy compliance testing
+6. Service recovery mechanism: Automatic recovery capability after single service failure
 
-即使沒有真實煮咖啡場景，至少驗證系統能持續觀察並維持在步驟0或1
+Even without real coffee brewing scenario, at least verify the system can continuously observe and maintain at step 0 or 1
 """
 import subprocess
 import time
@@ -40,7 +40,7 @@ except ImportError:
 
 class Stage33ComprehensiveTester:
     def __init__(self):
-        # 服務配置
+        # Service configuration
         self.model_port = 8080
         self.backend_port = 8000
         self.frontend_port = 5501
@@ -51,7 +51,7 @@ class Stage33ComprehensiveTester:
         self.query_driver = None
         self.max_retries = 3
         
-        # 測試結果追蹤
+        # Test results tracking
         self.test_results = {
             'end_to_end_workflow': {'passed': False, 'details': {}},
             'dual_loop_coordination': {'passed': False, 'details': {}},
@@ -61,28 +61,28 @@ class Stage33ComprehensiveTester:
             'service_recovery': {'passed': False, 'details': {}}
         }
         
-        # 虛擬環境設置
+        # Virtual environment setup
         self.base_dir = Path(__file__).parent.parent.parent
         self.venv_path = self.base_dir / "ai_vision_env"
         self.python_executable = self.venv_path / "bin" / "python"
         
-        # 確認虛擬環境
+        # Confirm virtual environment
         if not self.python_executable.exists():
             alt_venv_path = self.base_dir / "ai_vision_env_311"
             alt_python = alt_venv_path / "bin" / "python"
             if alt_python.exists():
-                print(f"⚠️ 主虛擬環境不存在，使用備用環境: {alt_python}")
+                print(f"⚠️ Main virtual environment not found, using alternative: {alt_python}")
                 self.venv_path = alt_venv_path
                 self.python_executable = alt_python
             else:
-                print(f"❌ 虛擬環境不存在: {self.python_executable}")
-                print(f"⚠️ 將使用系統Python: {sys.executable}")
+                print(f"❌ Virtual environment not found: {self.python_executable}")
+                print(f"⚠️ Will use system Python: {sys.executable}")
                 self.python_executable = sys.executable
         else:
-            print(f"✅ 使用虛擬環境: {self.python_executable}")
+            print(f"✅ Using virtual environment: {self.python_executable}")
     
     def kill_port(self, port):
-        """強制關閉占用端口的進程"""
+        """Force close processes using the specified port"""
         try:
             result = subprocess.run(
                 ["lsof", "-ti", f":{port}"], 
@@ -92,10 +92,10 @@ class Stage33ComprehensiveTester:
                 pids = result.stdout.strip().split('\n')
                 for pid in pids:
                     subprocess.run(["kill", "-9", pid])
-                print(f"✅ 已強制關閉端口 {port} 的進程")
+                print(f"✅ Force closed processes on port {port}")
                 time.sleep(2)
         except Exception as e:
-            print(f"⚠️ 清理端口 {port} 時出錯: {e}")
+            print(f"⚠️ Error cleaning up port {port}: {e}")
     
     def start_model_service(self):
         """啟動模型服務"""
@@ -264,7 +264,7 @@ class Stage33ComprehensiveTester:
     
     def setup_chrome_driver(self):
         """設置Chrome瀏覽器驅動"""
-        print("🌐 設置瀏覽器自動化環境...")
+        print("🌐 Setting up browser automation environment...")
         try:
             # Check Chrome installation
             chrome_paths = [
@@ -278,11 +278,11 @@ class Stage33ComprehensiveTester:
             for chrome_path in chrome_paths:
                 if os.path.exists(chrome_path):
                     chrome_found = chrome_path
-                    print(f"   ✅ 找到Chrome: {chrome_path}")
+                    print(f"   ✅ Found Chrome: {chrome_path}")
                     break
             
             if not chrome_found:
-                print("   ❌ 未找到Chrome瀏覽器")
+                print("   ❌ Chrome browser not found")
                 return False
             
             # Setup Chrome options
@@ -307,108 +307,108 @@ class Stage33ComprehensiveTester:
             
             # Start browser
             self.driver = webdriver.Chrome(options=chrome_options)
-            print("   ✅ 主瀏覽器啟動成功")
+            print("   ✅ Main browser started successfully")
             
             # Setup second browser for queries
             self.query_driver = webdriver.Chrome(options=chrome_options)
-            print("   ✅ 查詢瀏覽器啟動成功")
+            print("   ✅ Query browser started successfully")
             
             return True
             
         except Exception as e:
-            print(f"   ❌ 瀏覽器設置失敗: {e}")
+            print(f"   ❌ Browser setup failed: {e}")
             return False
     
     def simulate_frontend_start(self):
-        """模擬前端用戶點擊Start按鈕（參考3.2測試的成功邏輯）"""
-        print("📋 模擬真實用戶前端操作...")
+        """Simulate frontend user clicking Start button (reference 3.2 test successful logic)"""
+        print("📋 Simulating real user frontend operations...")
         
         if not self.driver:
-            print("❌ 瀏覽器不可用，無法進行真實前端測試")
+            print("❌ Browser not available, cannot perform real frontend testing")
             return False
         
         try:
-            # 打開前端主頁面
+            # Open frontend main page
             index_path = self.base_dir / "src/frontend/index.html"
             if not index_path.exists():
-                print(f"❌ 前端頁面不存在: {index_path}")
+                print(f"❌ Frontend page doesn't exist: {index_path}")
                 return False
             
-            print(f"   📄 打開前端頁面: {index_path}")
+            print(f"   📄 Opening frontend page: {index_path}")
             self.driver.get(f"file://{index_path}")
             
             # 等待頁面完全加載
             wait = WebDriverWait(self.driver, 15)
             
-            # 等待並查找Start按鈕
-            print("   📋 等待Start按鈕可點擊...")
+            # Wait and find Start button
+            print("   📋 Waiting for Start button to be clickable...")
             start_button = wait.until(
                 EC.element_to_be_clickable((By.ID, "startButton"))
             )
             
-            # 檢查按鈕狀態
+            # Check button status
             button_text = start_button.text
-            print(f"   📋 找到Start按鈕: '{button_text}'")
+            print(f"   📋 Found Start button: '{button_text}'")
             
-            # 模擬用戶點擊
-            print("   🖱️ 模擬用戶點擊Start按鈕...")
+            # Simulate user click
+            print("   🖱️ Simulating user clicking Start button...")
             start_button.click()
             
-            # 等待按鈕狀態變化（應該變成Stop）
-            time.sleep(5)  # 增加等待時間讓攝像頭初始化
+            # Wait for button status change (should become Stop)
+            time.sleep(5)  # Increase wait time for camera initialization
             
             try:
                 updated_button_text = start_button.text
-                print(f"   📋 按鈕狀態更新: '{updated_button_text}'")
+                print(f"   📋 Button status updated: '{updated_button_text}'")
                 
-                if "Stop" in updated_button_text or "停止" in updated_button_text:
-                    print("   ✅ 前端成功啟動潛意識循環")
+                if "Stop" in updated_button_text:
+                    print("   ✅ Frontend successfully started unconscious loop")
                     return True
                 else:
-                    print("   ⚠️ 按鈕狀態未如預期變化，嘗試重新點擊...")
+                    print("   ⚠️ Button status didn't change as expected, trying to click again...")
                     start_button.click()
                     time.sleep(3)
                     
                     final_button_text = start_button.text
-                    print(f"   📋 重新點擊後狀態: '{final_button_text}'")
+                    print(f"   📋 Status after re-clicking: '{final_button_text}'")
                     
-                    if "Stop" in final_button_text or "停止" in final_button_text:
-                        print("   ✅ 重新點擊後成功啟動潛意識循環")
+                    if "Stop" in final_button_text:
+                        print("   ✅ Successfully started unconscious loop after re-clicking")
                         return True
                     else:
-                        print("   ❌ 重新點擊後仍未啟動")
+                        print("   ❌ Still not started after re-clicking")
                         return False
                         
             except Exception as e:
-                print(f"   ⚠️ 檢查按鈕狀態時出錯: {e}")
+                print(f"   ⚠️ Error checking button status: {e}")
                 return False
             
         except Exception as e:
-            print(f"   ❌ 前端操作模擬失敗: {e}")
+            print(f"   ❌ Frontend operation simulation failed: {e}")
             return False
    
     def test_1_end_to_end_coffee_workflow(self):
-        """測試1：端到端跨服務工作流程測試（「煮一杯咖啡」場景）
-        即使沒有真實煮咖啡場景，至少驗證系統能持續觀察並維持在步驟0或1
+        """Test 1: End-to-end cross-service workflow test ("Brew a cup of coffee" scenario)
+        Even without real coffee brewing scenario, at least verify the system can continuously observe and maintain at step 0 or 1
         """
-        print("\n🧪 測試1：端到端跨服務工作流程測試（「煮一杯咖啡」場景）")
+        print("\n🧪 Test 1: End-to-end Cross-Service Workflow Test (\"Brew a cup of coffee\" scenario)")
         print("=" * 70)
         
         try:
-            # 前端潛意識循環已在run_full_test中啟動，直接設置查詢頁面
-            # 設置查詢頁面（參考3.2測試的正確方式）
-            print("🔍 打開查詢頁面...")
+            # Frontend unconscious loop already started in run_full_test, directly setup query page
+            # Setup query page (reference 3.2 test correct method)
+            print("🔍 Opening query page...")
             query_path = self.base_dir / "src/frontend/query.html"
             if not query_path.exists():
-                print(f"❌ 查詢頁面不存在: {query_path}")
+                print(f"❌ Query page doesn't exist: {query_path}")
                 return False
             
-            print(f"   📄 打開查詢頁面: {query_path}")
+            print(f"   📄 Opening query page: {query_path}")
             self.query_driver.get(f"file://{query_path}")
             time.sleep(2)
             
             # 讓VLM觀察運行一段時間，觀察步驟變化
-            print("👁️ 讓VLM觀察運行120秒，監控步驟變化...")
+            print("👁️ Let VLM observation run for 120 seconds, monitoring step changes...")
             observation_start = time.time()
             step_observations = []
             step_consistency_check = []
@@ -456,10 +456,10 @@ class Stage33ComprehensiveTester:
                     step_observations.append(observation)
                     step_consistency_check.append(step_info.get("step_number", -1))
                     
-                    print(f"👁️ 第{check_round+1}次檢查 ({elapsed_time:.0f}s): 步驟{step_info.get('step_number', '未知')} - {response_text[:80]}...")
+                    print(f"👁️ Check {check_round+1} ({elapsed_time:.0f}s): Step {step_info.get('step_number', 'unknown')} - {response_text[:80]}...")
                     
                 except Exception as e:
-                    print(f"⚠️ 第{check_round+1}次檢查失敗: {e}")
+                    print(f"⚠️ Check {check_round+1} failed: {e}")
                     step_observations.append({
                         "time": elapsed_time,
                         "response": "",
@@ -469,7 +469,7 @@ class Stage33ComprehensiveTester:
                     step_consistency_check.append(-1)
             
             # 分析端到端工作流程結果
-            print("📊 分析端到端工作流程結果...")
+            print("📊 Analyzing end-to-end workflow results...")
             valid_responses = [obs for obs in step_observations if obs.get("response", "")]
             valid_step_info = [obs for obs in step_observations if obs.get("step_info", {}).get("step_number", -1) >= 0]
             
@@ -504,23 +504,23 @@ class Stage33ComprehensiveTester:
             }
             
             if all_passed:
-                print("✅ 端到端跨服務工作流程測試成功")
-                print(f"   - 有效響應: {len(valid_responses)}/8")
-                print(f"   - 步驟檢測: {len(valid_step_info)}/8")
-                print(f"   - 步驟一致性: {'✅' if step_consistency else '❌'} (主要停留在步驟{most_common_step})")
-                print(f"   - 平均響應時間: {avg_response_time:.1f}ms")
+                print("✅ End-to-end cross-service workflow test successful")
+                print(f"   - Valid responses: {len(valid_responses)}/8")
+                print(f"   - Step detection: {len(valid_step_info)}/8")
+                print(f"   - Step consistency: {'✅' if step_consistency else '❌'} (mainly stays at step {most_common_step})")
+                print(f"   - Average response time: {avg_response_time:.1f}ms")
                 self.test_results['end_to_end_workflow']['passed'] = True
                 return True
             else:
-                print("❌ 端到端跨服務工作流程測試失敗")
-                print(f"   - 有效響應: {len(valid_responses)}/8 ({'✅' if success_criteria['valid_responses'] else '❌'})")
-                print(f"   - 步驟檢測: {len(valid_step_info)}/8 ({'✅' if success_criteria['step_detection'] else '❌'})")
-                print(f"   - 步驟一致性: {'✅' if step_consistency else '❌'}")
-                print(f"   - 響應時間: {avg_response_time:.1f}ms ({'✅' if success_criteria['response_time'] else '❌'})")
+                print("❌ End-to-end cross-service workflow test failed")
+                print(f"   - Valid responses: {len(valid_responses)}/8 ({'✅' if success_criteria['valid_responses'] else '❌'})")
+                print(f"   - Step detection: {len(valid_step_info)}/8 ({'✅' if success_criteria['step_detection'] else '❌'})")
+                print(f"   - Step consistency: {'✅' if step_consistency else '❌'}")
+                print(f"   - Response time: {avg_response_time:.1f}ms ({'✅' if success_criteria['response_time'] else '❌'})")
                 return False
                 
         except Exception as e:
-            print(f"❌ 端到端工作流程測試異常: {e}")
+            print(f"❌ End-to-end workflow test exception: {e}")
             return False
     
     def extract_step_info(self, response_text):
@@ -557,12 +557,12 @@ class Stage33ComprehensiveTester:
         return step_info
     
     def test_2_dual_loop_coordination(self):
-        """測試2：跨服務雙循環協同測試"""
-        print("\n🧪 測試2：跨服務雙循環協同測試")
+        """Test 2: Cross-service dual loop coordination test"""
+        print("\n🧪 Test 2: Cross-Service Dual Loop Coordination Test")
         print("=" * 70)
         
         try:
-            print("🔄 驗證雙循環協同運行...")
+            print("🔄 Verifying dual loop coordinated operation...")
             
             # 檢查潛意識循環和即時響應循環的協同
             unconscious_loop_checks = []
@@ -727,18 +727,18 @@ class Stage33ComprehensiveTester:
         try:
             print("🛡️ 測試VLM異常輸出處理能力...")
             
-            # 模擬各種VLM異常情況
+            # Simulate various VLM abnormal situations
             fault_scenarios = [
-                {"name": "空輸出", "data": {"text": ""}},
-                {"name": "錯誤信息", "data": {"text": "ERROR: Camera not found"}},
-                {"name": "超長輸出", "data": {"text": "a" * 2000}},
-                {"name": "特殊字符", "data": {"text": "!@#$%^&*()_+{}|:<>?[]\\;'\",./<>?"}},
-                {"name": "NULL值", "data": {"text": None}},
-                {"name": "無效JSON", "data": {"invalid": "format", "missing": "text"}},
-                {"name": "數字輸出", "data": {"text": 12345}},
-                {"name": "超時模擬", "data": {"text": "TIMEOUT_ERROR_SIMULATION"}},
-                {"name": "Unicode異常", "data": {"text": "測試中文🔥💻🚀"}},
-                {"name": "HTML注入", "data": {"text": "<script>alert('test')</script>"}}
+                {"name": "Empty Output", "data": {"text": ""}},
+                {"name": "Error Message", "data": {"text": "ERROR: Camera not found"}},
+                {"name": "Long Output", "data": {"text": "a" * 2000}},
+                {"name": "Special Characters", "data": {"text": "!@#$%^&*()_+{}|:<>?[]\\;'\",./<>?"}},
+                {"name": "NULL Value", "data": {"text": None}},
+                {"name": "Invalid JSON", "data": {"invalid": "format", "missing": "text"}},
+                {"name": "Numeric Output", "data": {"text": 12345}},
+                {"name": "Timeout Simulation", "data": {"text": "TIMEOUT_ERROR_SIMULATION"}},
+                {"name": "Unicode Exception", "data": {"text": "Test Chinese🔥💻🚀"}},
+                {"name": "HTML Injection", "data": {"text": "<script>alert('test')</script>"}}
             ]
             
             fault_results = []
@@ -803,10 +803,10 @@ class Stage33ComprehensiveTester:
             try:
                 final_health_response = requests.get(f"http://localhost:{self.backend_port}/health", timeout=5)
                 final_service_running = final_health_response.status_code == 200
-                print(f"🔧 後端服務最終狀態: {'✅ 正常運行' if final_service_running else '❌ 異常'}")
+                print(f"🔧 Backend service final status: {'✅ Running normally' if final_service_running else '❌ Abnormal'}")
             except:
                 final_service_running = False
-                print("🔧 後端服務最終狀態: ❌ 無法連接")
+                print("🔧 Backend service final status: ❌ Cannot connect")
             
             # 計算容錯率
             graceful_handling = sum(fault_results)
@@ -961,10 +961,10 @@ class Stage33ComprehensiveTester:
                     print(f"📊 當前狀態記錄數量: {state_count}")
                 else:
                     state_count = 0
-                    print("⚠️ 無法獲取狀態數據")
+                    print("⚠️ Cannot get status data")
             except:
                 state_count = 0
-                print("⚠️ 狀態查詢失敗")
+                print("⚠️ Status query failed")
             
             # 分析記憶體管控效果
             memory_growth = 0
@@ -980,7 +980,7 @@ class Stage33ComprehensiveTester:
                 min_memory = min(memory_values)
                 memory_variance = max_memory - min_memory
                 memory_stable = memory_variance < 10  # 記憶體變化小於10MB認為穩定
-                print(f"📊 記憶體變化範圍: {memory_variance:.2f}MB ({'穩定' if memory_stable else '不穩定'})")
+                print(f"📊 Memory variance range: {memory_variance:.2f}MB ({'Stable' if memory_stable else 'Unstable'})")
             
             # 記憶體管控成功標準
             success_criteria = {
@@ -1024,13 +1024,13 @@ class Stage33ComprehensiveTester:
         try:
             print("⚡ 測試端到端響應時間和準確率...")
             
-            # 性能測試場景 - 調整為更實際的查詢
+            # Performance test scenarios - adjusted to more realistic queries
             performance_tests = [
-                {"name": "狀態查詢", "query": "我現在在第幾步？", "expected_keywords": ["步驟", "step", "0", "1", "2", "3"]},
-                {"name": "任務進度", "query": "當前任務進度如何？", "expected_keywords": ["進度", "狀態", "任務", "完成", "進行"]},
-                {"name": "下一步操作", "query": "下一步應該做什麼？", "expected_keywords": ["下一步", "接下來", "操作", "準備", "開始"]},
-                {"name": "系統狀態", "query": "系統現在的狀態是什麼？", "expected_keywords": ["狀態", "系統", "當前", "運行", "正常"]},
-                {"name": "任務描述", "query": "現在正在做什麼任務？", "expected_keywords": ["任務", "正在", "做", "咖啡", "準備"]}
+                {"name": "Status Query", "query": "What step am I on now?", "expected_keywords": ["step", "0", "1", "2", "3", "brewing_coffee"]},
+                {"name": "Task Progress", "query": "How is my current task progress?", "expected_keywords": ["progress", "status", "task", "complete", "brewing_coffee"]},
+                {"name": "Next Operation", "query": "What should I do next?", "expected_keywords": ["next", "step", "operation", "prepare", "start", "brewing_coffee"]},
+                {"name": "System Status", "query": "What is the current system status?", "expected_keywords": ["status", "system", "current", "running", "normal"]},
+                {"name": "Task Description", "query": "What task am I doing now?", "expected_keywords": ["task", "doing", "coffee", "prepare", "brewing_coffee"]}
             ]
             
             response_times = []
@@ -1081,15 +1081,15 @@ class Stage33ComprehensiveTester:
                         
                         # 添加調試輸出
                         print(f"   {test['name']}: {response_time:.1f}ms ({'✅' if accuracy else '❌'})")
-                        print(f"      查詢: '{test['query']}'")
-                        print(f"      回應: '{response_text[:100]}{'...' if len(response_text) > 100 else ''}'")
-                        print(f"      關鍵詞: {test['expected_keywords']}")
-                        print(f"      匹配: {accuracy}")
+                        print(f"      Query: '{test['query']}'")
+                        print(f"      Response: '{response_text[:100]}{'...' if len(response_text) > 100 else ''}'")
+                        print(f"      Keywords: {test['expected_keywords']}")
+                        print(f"      Match: {accuracy}")
                         
                         time.sleep(1)  # 間隔
                         
                     except Exception as e:
-                        print(f"   {test['name']}: ❌ 測試失敗 - {e}")
+                        print(f"   {test['name']}: ❌ Test failed - {e}")
                         response_times.append(10000)  # 記錄為超時
                         accuracy_results.append(False)
                 
@@ -1110,7 +1110,7 @@ class Stage33ComprehensiveTester:
                     # 執行查詢
                     query_input = self.query_driver.find_element(By.ID, "queryInput")
                     query_input.clear()
-                    query_input.send_keys(f"並發測試查詢 {i+1}")
+                    query_input.send_keys(f"Concurrent test query {i+1}")
                     
                     query_button = self.query_driver.find_element(By.ID, "queryButton")
                     query_button.click()
@@ -1136,12 +1136,12 @@ class Stage33ComprehensiveTester:
                         "response": response_text
                     })
                     
-                    print(f"   並發測試 {i+1}: {response_time:.1f}ms ({'✅' if len(response_text) > 0 else '❌'})")
+                    print(f"   Concurrent test {i+1}: {response_time:.1f}ms ({'✅' if len(response_text) > 0 else '❌'})")
                     
                     time.sleep(0.5)  # 短間隔
                     
                 except Exception as e:
-                    print(f"   並發測試 {i+1}: ❌ 失敗 - {e}")
+                    print(f"   Concurrent test {i+1}: ❌ Failed - {e}")
                     concurrent_results.append({
                         "response_time": 10000,
                         "success": False,
@@ -1161,11 +1161,11 @@ class Stage33ComprehensiveTester:
             concurrent_avg_time = (statistics.mean([r.get("response_time", 0) for r in concurrent_results]) 
                                  if concurrent_results else 0)
             
-            print(f"📊 平均響應時間: {avg_response_time:.1f}ms")
-            print(f"📊 響應時間範圍: {min_response_time:.1f}ms - {max_response_time:.1f}ms")
-            print(f"📊 準確率: {accuracy_rate:.1f}%")
-            print(f"📊 並發成功率: {concurrent_success_rate:.1f}%")
-            print(f"📊 並發平均響應時間: {concurrent_avg_time:.1f}ms")
+            print(f"📊 Average response time: {avg_response_time:.1f}ms")
+            print(f"📊 Response time range: {min_response_time:.1f}ms - {max_response_time:.1f}ms")
+            print(f"📊 Accuracy rate: {accuracy_rate:.1f}%")
+            print(f"📊 Concurrent success rate: {concurrent_success_rate:.1f}%")
+            print(f"📊 Concurrent average response time: {concurrent_avg_time:.1f}ms")
             
             # 調整性能驗證成功標準 - 更寬鬆的標準
             success_criteria = {
@@ -1239,10 +1239,10 @@ class Stage33ComprehensiveTester:
             try:
                 health_response = requests.get(f"http://localhost:{self.backend_port}/health", timeout=5)
                 post_stress_health = health_response.status_code == 200
-                print(f"   壓力測試後服務狀態: {'✅ 正常' if post_stress_health else '❌ 異常'}")
+                print(f"   Service status after stress test: {'✅ Normal' if post_stress_health else '❌ Abnormal'}")
             except:
                 post_stress_health = False
-                print("   壓力測試後服務狀態: ❌ 無法連接")
+                print("   Service status after stress test: ❌ Cannot connect")
             
             recovery_results.append({
                 "test": "stress_test",
@@ -1516,11 +1516,11 @@ class Stage33ComprehensiveTester:
                 try:
                     if test_func():
                         passed_tests += 1
-                        print(f"✅ {test_name} - 通過")
+                        print(f"✅ {test_name} - PASS")
                     else:
-                        print(f"❌ {test_name} - 失敗")
+                        print(f"❌ {test_name} - FAIL")
                 except Exception as e:
-                    print(f"❌ {test_name} - 異常: {e}")
+                    print(f"❌ {test_name} - Exception: {e}")
                 
                 time.sleep(3)  # 測試間隔
             

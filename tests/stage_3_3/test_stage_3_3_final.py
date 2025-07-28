@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-階段3.3：跨服務基礎功能測試（最終版）
-完全參考階段3.2的成功啟動流程，結合tasks.md中的測試要求
+Stage 3.3: Cross-Service Basic Functionality Test (Final Version)
+Completely reference the successful startup process from Stage 3.2, combined with test requirements from tasks.md
 
-測試重點：
-1. 後端服務VLM容錯能力：模擬模型服務VLM失敗和異常輸出
-2. 後端服務滑動窗格記憶體管控：固定記憶體使用 < 1MB
-3. 跨服務性能驗證：端到端響應時間和準確率達標測試
-4. 服務恢復機制：單一服務異常後的自動恢復能力
+Test Focus:
+1. Backend service VLM fault tolerance: Simulate model service VLM failures and abnormal outputs
+2. Backend service sliding window memory management: Fixed memory usage < 1MB
+3. Cross-service performance verification: End-to-end response time and accuracy compliance testing
+4. Service recovery mechanism: Automatic recovery capability after single service failure
 """
 
 import subprocess
@@ -22,14 +22,14 @@ from datetime import datetime
 
 class Stage33FinalTester:
     def __init__(self):
-        # 完全繼承3.2的成功設置
+        # Completely inherit 3.2's successful setup
         self.model_port = 8080
         self.backend_port = 8000
         self.model_process = None
         self.backend_process = None
         self.max_retries = 3
         
-        # 測試狀態
+        # Test status
         self.test_results = {
             'vlm_fault_tolerance': False,
             'memory_management': False,
@@ -37,29 +37,29 @@ class Stage33FinalTester:
             'service_recovery': False
         }
         
-        # 虛擬環境設置（確保使用正確的環境）
+        # Virtual environment setup (ensure using correct environment)
         self.base_dir = Path(__file__).parent.parent.parent
         self.venv_path = self.base_dir / "ai_vision_env"  # Python 3.13.3
         self.python_executable = self.venv_path / "bin" / "python"
         
-        # 確認虛擬環境存在
+        # Confirm virtual environment exists
         if not self.python_executable.exists():
             alt_venv_path = self.base_dir / "ai_vision_env_311"  # Python 3.11.8
             alt_python = alt_venv_path / "bin" / "python"
             
             if alt_python.exists():
-                print(f"⚠️ 主虛擬環境不存在，使用備用環境: {alt_python}")
+                print(f"⚠️ Main virtual environment not found, using alternative: {alt_python}")
                 self.venv_path = alt_venv_path
                 self.python_executable = alt_python
             else:
-                print(f"❌ 虛擬環境不存在: {self.python_executable}")
-                print(f"⚠️ 將使用系統Python: {sys.executable}")
+                print(f"❌ Virtual environment not found: {self.python_executable}")
+                print(f"⚠️ Will use system Python: {sys.executable}")
                 self.python_executable = sys.executable
         else:
-            print(f"✅ 使用虛擬環境: {self.python_executable}")
+            print(f"✅ Using virtual environment: {self.python_executable}")
     
     def kill_port(self, port):
-        """強制關閉占用端口的進程（完全複製3.2邏輯）"""
+        """Force close processes using the specified port (completely copy 3.2 logic)"""
         try:
             result = subprocess.run(
                 ["lsof", "-ti", f":{port}"], 
@@ -69,13 +69,13 @@ class Stage33FinalTester:
                 pids = result.stdout.strip().split('\n')
                 for pid in pids:
                     subprocess.run(["kill", "-9", pid])
-                print(f"✅ 已強制關閉端口 {port} 的進程")
+                print(f"✅ Force closed processes on port {port}")
                 time.sleep(2)
         except Exception as e:
-            print(f"⚠️ 清理端口 {port} 時出錯: {e}")
+            print(f"⚠️ Error cleaning up port {port}: {e}")
     
     def start_model_service(self):
-        """Step 1: Start model service（完全複製3.2成功邏輯）"""
+        """Step 1: Start model service (completely copy 3.2 successful logic)"""
         print("🚀 Step 1: Starting model service (SmolVLM)")
         print("=" * 50)
         
@@ -130,7 +130,7 @@ class Stage33FinalTester:
         return False    
     
     def check_model_service(self):
-            """Check if model service is running normally（完全複製3.2邏輯）"""
+            """Check if model service is running normally (completely copy 3.2 logic)"""
             try:
                 # Check process status
                 if self.model_process and self.model_process.poll() is not None:
@@ -161,7 +161,7 @@ class Stage33FinalTester:
                 return False
         
     def start_backend_service(self):
-            """Step 2: Start backend service（完全複製3.2成功邏輯）"""
+            """Step 2: Start backend service (completely copy 3.2 successful logic)"""
             print("\n🚀 Step 2: Starting backend service")
             print("=" * 50)
             
@@ -219,7 +219,7 @@ class Stage33FinalTester:
             return False
     
     def check_backend_service(self):
-            """Check if backend service is running normally（完全複製3.2邏輯）"""
+            """Check if backend service is running normally (completely copy 3.2 logic)"""
             try:
                 # Check process status
                 if self.backend_process and self.backend_process.poll() is not None:
@@ -239,37 +239,37 @@ class Stage33FinalTester:
                 return False
         
     def run_full_test(self):
-        """執行完整的階段3.3測試"""
-        print("🎯 階段3.3：跨服務基礎功能測試（最終版）")
+        """Execute complete Stage 3.3 test"""
+        print("🎯 Stage 3.3: Cross-Service Basic Functionality Test (Final Version)")
         print("=" * 60)
         
         try:
-            # 第一步：啟動服務（完全複製3.2流程）
-            print("\n🚀 第一階段：服務啟動")
+            # Step 1: Start services (completely copy 3.2 process)
+            print("\n🚀 Phase 1: Service Startup")
             print("=" * 40)
             
             if not self.start_model_service():
-                print("❌ 階段3.3測試失敗：模型服務啟動失敗")
+                print("❌ Stage 3.3 test failed: Model service startup failed")
                 return False
             
             if not self.start_backend_service():
-                print("❌ 階段3.3測試失敗：後端服務啟動失敗")
+                print("❌ Stage 3.3 test failed: Backend service startup failed")
                 return False
             
-            # 第二步：確認所有服務都正式啟動
+            # Step 2: Confirm all services are officially started
             if not self.verify_all_services_ready():
-                print("❌ 階段3.3測試失敗：服務未完全啟動")
+                print("❌ Stage 3.3 test failed: Services not fully started")
                 return False
             
-            # 第三步：執行API測試
-            print("\n🎯 開始階段3.3跨服務基礎功能測試")
+            # Step 3: Execute API tests
+            print("\n🎯 Starting Stage 3.3 cross-service basic functionality test")
             print("=" * 60)
             
             test_methods = [
-                ("VLM容錯能力測試", self.test_vlm_fault_tolerance),
-                ("記憶體管控測試", self.test_memory_management),
-                ("性能驗證測試", self.test_performance_verification),
-                ("服務恢復機制測試", self.test_service_recovery)
+                ("VLM Fault Tolerance Test", self.test_vlm_fault_tolerance),
+                ("Memory Management Test", self.test_memory_management),
+                ("Performance Verification Test", self.test_performance_verification),
+                ("Service Recovery Mechanism Test", self.test_service_recovery)
             ]
             
             passed_tests = 0
@@ -278,133 +278,133 @@ class Stage33FinalTester:
                 try:
                     if test_method():
                         passed_tests += 1
-                        print(f"🏆 {test_name}: ✅ 通過")
+                        print(f"🏆 {test_name}: ✅ PASS")
                     else:
-                        print(f"🏆 {test_name}: ❌ 失敗")
+                        print(f"🏆 {test_name}: ❌ FAIL")
                 except Exception as e:
-                    print(f"🏆 {test_name}: ❌ 異常 - {e}")
+                    print(f"🏆 {test_name}: ❌ Exception - {e}")
                 
-                time.sleep(2)  # 測試間隔
+                time.sleep(2)  # Test interval
             
-            # 顯示測試結果
-            print("\n📊 階段3.3測試結果摘要")
+            # Display test results
+            print("\n📊 Stage 3.3 Test Results Summary")
             print("=" * 60)
             
             for test_name, result in self.test_results.items():
-                status = "✅ 通過" if result else "❌ 失敗"
+                status = "✅ PASS" if result else "❌ FAIL"
                 print(f"   {test_name}: {status}")
             
             success_rate = (passed_tests / len(test_methods)) * 100
-            print(f"\n總體成功率: {success_rate:.1f}% ({passed_tests}/{len(test_methods)})")
+            print(f"\nOverall Success Rate: {success_rate:.1f}% ({passed_tests}/{len(test_methods)})")
             
-            if success_rate >= 75:  # 75%以上通過
-                print("\n✅ 階段3.3測試成功完成！")
-                print("🎯 跨服務基礎功能正常")
-                print("🎉 展示價值: 分離式架構穩定性 + 跨服務功能驗證")
+            if success_rate >= 75:  # 75% or more pass
+                print("\n✅ Stage 3.3 test completed successfully!")
+                print("🎯 Cross-service basic functionality normal")
+                print("🎉 Demonstration Value: Separated Architecture Stability + Cross-Service Function Verification")
                 return True
             else:
-                print("\n⚠️ 階段3.3部分測試失敗")
-                print("🔧 需要進一步調試和優化")
+                print("\n⚠️ Stage 3.3 partial test failures")
+                print("🔧 Further debugging and optimization needed")
                 return False
                     
         except KeyboardInterrupt:
-            print("\n⚠️ 測試被用戶中斷")
+            print("\n⚠️ Test interrupted by user")
             return False
         finally:
             self.cleanup()
         
     def test_vlm_fault_tolerance(self):
-            """測試：後端服務VLM容錯能力測試"""
-            print("\n🧪 測試：後端服務VLM容錯能力測試")
+            """Test: Backend service VLM fault tolerance test"""
+            print("\n🧪 Test: Backend Service VLM Fault Tolerance Test")
             
             try:
-                print("🛡️ 測試VLM異常輸出處理能力...")
+                print("🛡️ Testing VLM abnormal output handling capability...")
                 
-                # 模擬各種VLM異常情況
+                # Simulate various VLM abnormal situations
                 fault_scenarios = [
-                    {"name": "空輸出", "data": {"text": ""}},
-                    {"name": "錯誤信息", "data": {"text": "ERROR: Camera not found"}},
-                    {"name": "超長輸出", "data": {"text": "a" * 1000}},
-                    {"name": "特殊字符", "data": {"text": "!@#$%^&*()_+{}|:<>?"}},
-                    {"name": "NULL值", "data": {"text": None}}
+                    {"name": "Empty Output", "data": {"text": ""}},
+                    {"name": "Error Message", "data": {"text": "ERROR: Camera not found"}},
+                    {"name": "Long Output", "data": {"text": "a" * 1000}},
+                    {"name": "Special Characters", "data": {"text": "!@#$%^&*()_+{}|:<>?"}},
+                    {"name": "NULL Value", "data": {"text": None}}
                 ]
                 
                 fault_results = []
                 
                 for i, scenario in enumerate(fault_scenarios):
-                    print(f"🛡️ 測試場景 {i+1}: {scenario['name']}")
+                    print(f"🛡️ Test scenario {i+1}: {scenario['name']}")
                     
                     try:
-                        # 發送異常數據到後端
+                        # Send abnormal data to backend
                         response = requests.post(
                             f"http://localhost:{self.backend_port}/api/v1/state/process",
                             json=scenario["data"],
                             timeout=10
                         )
                         
-                        # 容錯測試：系統應該優雅處理異常，不崩潰
+                        # Fault tolerance test: system should handle exceptions gracefully, not crash
                         handled_gracefully = response.status_code in [200, 400, 422, 500]
                         fault_results.append(handled_gracefully)
                         
-                        print(f"   {'✅ 優雅處理' if handled_gracefully else '❌ 處理失敗'} (狀態碼: {response.status_code})")
+                        print(f"   {'✅ Gracefully handled' if handled_gracefully else '❌ Handling failed'} (Status: {response.status_code})")
                         
                     except Exception as e:
                         fault_results.append(False)
-                        print(f"   ❌ 異常: {e}")
+                        print(f"   ❌ Exception: {e}")
                     
-                    time.sleep(1)  # 間隔
+                    time.sleep(1)  # Interval
                 
-                # 檢查後端服務是否仍然正常運行
-                print("🔍 檢查後端服務是否仍然正常運行...")
+                # Check if backend service is still running normally
+                print("🔍 Checking if backend service is still running normally...")
                 try:
                     health_response = requests.get(f"http://localhost:{self.backend_port}/health", timeout=5)
                     service_still_running = health_response.status_code == 200
-                    print(f"🔧 後端服務狀態: {'✅ 正常運行' if service_still_running else '❌ 異常'}")
+                    print(f"🔧 Backend service status: {'✅ Running normally' if service_still_running else '❌ Abnormal'}")
                 except:
                     service_still_running = False
-                    print("🔧 後端服務狀態: ❌ 無法連接")
+                    print("🔧 Backend service status: ❌ Cannot connect")
                 
-                # 計算容錯率
+                # Calculate fault tolerance rate
                 graceful_handling = sum(fault_results)
                 fault_tolerance_rate = (graceful_handling / len(fault_scenarios)) * 100
                 
-                print(f"📊 容錯處理成功率: {fault_tolerance_rate:.1f}% ({graceful_handling}/{len(fault_scenarios)})")
+                print(f"📊 Fault tolerance handling success rate: {fault_tolerance_rate:.1f}% ({graceful_handling}/{len(fault_scenarios)})")
                 
-                # VLM容錯測試成功標準：80%以上優雅處理 + 服務仍正常運行
+                # VLM fault tolerance test success criteria: 80% or more graceful handling + service still running normally
                 fault_tolerance_success = fault_tolerance_rate >= 80 and service_still_running
                 
                 if fault_tolerance_success:
-                    print("✅ VLM容錯能力測試成功")
+                    print("✅ VLM fault tolerance test successful")
                     self.test_results['vlm_fault_tolerance'] = True
                     return True
                 else:
-                    print("❌ VLM容錯能力測試失敗")
+                    print("❌ VLM fault tolerance test failed")
                     return False
                     
             except Exception as e:
-                print(f"❌ VLM容錯能力測試異常: {e}")
+                print(f"❌ VLM fault tolerance test exception: {e}")
                 return False    
 
     def test_memory_management(self):
-            """測試：後端服務滑動窗格記憶體管控測試"""
-            print("\n🧪 測試：後端服務滑動窗格記憶體管控測試")
+            """Test: Backend service sliding window memory management test"""
+            print("\n🧪 Test: Backend Service Sliding Window Memory Management Test")
             
             try:
-                print("💾 開始記憶體使用監控...")
+                print("💾 Starting memory usage monitoring...")
                 
-                # 獲取初始記憶體使用
+                # Get initial memory usage
                 initial_memory = self.get_memory_usage()
-                print(f"💾 初始記憶體使用: {initial_memory['memory_mb']:.2f} MB")
+                print(f"💾 Initial memory usage: {initial_memory['memory_mb']:.2f} MB")
                 
-                # 執行大量操作來測試記憶體管理
+                # Execute many operations to test memory management
                 operations_count = 30
-                print(f"🔄 執行 {operations_count} 次操作來測試記憶體管理...")
+                print(f"🔄 Executing {operations_count} operations to test memory management...")
                 
                 for i in range(operations_count):
                     try:
-                        # 模擬VLM處理請求
+                        # Simulate VLM processing request
                         test_data = {
-                            "text": f"測試記憶體管理 {i+1} - " + "x" * 50,
+                            "text": f"Test memory management {i+1} - " + "x" * 50,
                             "timestamp": datetime.now().isoformat(),
                             "iteration": i + 1
                         }
@@ -417,45 +417,45 @@ class Stage33FinalTester:
                         
                         if (i + 1) % 10 == 0:
                             memory_usage = self.get_memory_usage()
-                            print(f"💾 操作 {i+1}: {memory_usage['memory_mb']:.2f} MB")
+                            print(f"💾 Operation {i+1}: {memory_usage['memory_mb']:.2f} MB")
                         
-                        time.sleep(0.1)  # 短暫間隔
+                        time.sleep(0.1)  # Short interval
                         
                     except Exception as e:
-                        print(f"⚠️ 操作 {i+1} 失敗: {e}")
+                        print(f"⚠️ Operation {i+1} failed: {e}")
                 
-                # 等待垃圾回收
-                print("🗑️ 等待垃圾回收...")
+                # Wait for garbage collection
+                print("🗑️ Waiting for garbage collection...")
                 time.sleep(5)
                 
-                # 獲取最終記憶體使用
+                # Get final memory usage
                 final_memory = self.get_memory_usage()
                 
                 memory_growth = final_memory['memory_mb'] - initial_memory['memory_mb']
                 
-                print(f"💾 初始記憶體: {initial_memory['memory_mb']:.2f} MB")
-                print(f"💾 最終記憶體: {final_memory['memory_mb']:.2f} MB")
-                print(f"💾 記憶體增長: {memory_growth:.2f} MB")
+                print(f"💾 Initial memory: {initial_memory['memory_mb']:.2f} MB")
+                print(f"💾 Final memory: {final_memory['memory_mb']:.2f} MB")
+                print(f"💾 Memory growth: {memory_growth:.2f} MB")
                 
-                # 檢查滑動窗格記憶體管控
-                # 標準：記憶體增長不超過10MB
-                memory_controlled = abs(memory_growth) <= 10  # 10MB限制
+                # Check sliding window memory management
+                # Standard: memory growth not exceeding 10MB
+                memory_controlled = abs(memory_growth) <= 10  # 10MB limit
                 
                 if memory_controlled:
-                    print("✅ 滑動窗格記憶體管控測試成功")
+                    print("✅ Sliding window memory management test successful")
                     self.test_results['memory_management'] = True
                     return True
                 else:
-                    print("❌ 滑動窗格記憶體管控測試失敗")
-                    print(f"   原因: 記憶體增長{memory_growth:.2f}MB 超過10MB限制")
+                    print("❌ Sliding window memory management test failed")
+                    print(f"   Reason: Memory growth {memory_growth:.2f}MB exceeds 10MB limit")
                     return False
                     
             except Exception as e:
-                print(f"❌ 記憶體管控測試異常: {e}")
+                print(f"❌ Memory management test exception: {e}")
                 return False
         
     def get_memory_usage(self):
-            """獲取當前記憶體使用情況"""
+            """Get current memory usage"""
             try:
                 process = psutil.Process()
                 memory_info = process.memory_info()
@@ -473,27 +473,27 @@ class Stage33FinalTester:
                 }
         
     def test_performance_verification(self):
-            """測試：跨服務性能驗證測試"""
-            print("\n🧪 測試：跨服務性能驗證測試")
+            """Test: Cross-service performance verification test"""
+            print("\n🧪 Test: Cross-Service Performance Verification Test")
             
             try:
-                print("⚡ 執行端到端響應時間測試...")
+                print("⚡ Executing end-to-end response time test...")
                 
                 performance_tests = []
                 test_queries = [
-                    "當前狀態是什麼？",
-                    "我在做什麼任務？",
-                    "下一步應該怎麼做？"
+                    "What is the current status?",
+                    "What task am I doing?",
+                    "What should I do next?"
                 ]
                 
                 for round_num in range(3):
-                    print(f"🔄 執行第 {round_num + 1} 輪性能測試...")
+                    print(f"🔄 Executing round {round_num + 1} performance test...")
                     
                     for i, query in enumerate(test_queries):
                         test_start = time.time()
                         
                         try:
-                            # API直接測試
+                            # API direct test
                             response = requests.post(
                                 f"http://localhost:{self.backend_port}/api/v1/state/query",
                                 json={"query": query},
@@ -521,7 +521,7 @@ class Stage33FinalTester:
                             
                             performance_tests.append(performance_test)
                             
-                            print(f"   查詢 {i+1}: {response_time_ms:.1f}ms {'✅' if performance_test['success'] else '❌'}")
+                            print(f"   Query {i+1}: {response_time_ms:.1f}ms {'✅' if performance_test['success'] else '❌'}")
                             
                         except Exception as e:
                             performance_tests.append({
@@ -531,11 +531,11 @@ class Stage33FinalTester:
                                 "error": str(e),
                                 "success": False
                             })
-                            print(f"   查詢 {i+1}: ❌ 異常 - {e}")
+                            print(f"   Query {i+1}: ❌ Exception - {e}")
                         
-                        time.sleep(0.5)  # 間隔
+                        time.sleep(0.5)  # Interval
                 
-                # 分析性能結果
+                # Analyze performance results
                 valid_tests = [test for test in performance_tests if test.get("response_time_ms", float('inf')) != float('inf')]
                 
                 if valid_tests:
@@ -546,44 +546,44 @@ class Stage33FinalTester:
                 successful_tests = sum(1 for test in performance_tests if test.get("success", False))
                 success_rate = (successful_tests / len(performance_tests)) * 100
                 
-                print(f"📊 性能測試結果:")
-                print(f"   平均響應時間: {avg_response_time:.1f}ms")
-                print(f"   成功率: {success_rate:.1f}% ({successful_tests}/{len(performance_tests)})")
+                print(f"📊 Performance test results:")
+                print(f"   Average response time: {avg_response_time:.1f}ms")
+                print(f"   Success rate: {success_rate:.1f}% ({successful_tests}/{len(performance_tests)})")
                 
-                # 性能驗證成功標準
+                # Performance verification success criteria
                 performance_good = avg_response_time < 1000 and success_rate >= 70
                 
                 if performance_good:
-                    print("✅ 跨服務性能驗證測試成功")
+                    print("✅ Cross-service performance verification test successful")
                     self.test_results['performance_verification'] = True
                     return True
                 else:
-                    print("❌ 跨服務性能驗證測試失敗")
+                    print("❌ Cross-service performance verification test failed")
                     return False
                     
             except Exception as e:
-                print(f"❌ 性能驗證測試異常: {e}")
+                print(f"❌ Performance verification test exception: {e}")
                 return False    
 
     def test_service_recovery(self):
-            """測試：服務恢復機制測試"""
-            print("\n🧪 測試：服務恢復機制測試")
+            """Test: Service recovery mechanism test"""
+            print("\n🧪 Test: Service Recovery Mechanism Test")
             
             try:
-                print("🔄 測試服務恢復機制...")
+                print("🔄 Testing service recovery mechanism...")
                 
-                # 檢查初始服務狀態
+                # Check initial service status
                 initial_model_ok = self.check_model_service()
                 initial_backend_ok = self.check_backend_service()
                 
-                print(f"🔧 初始服務狀態: Model={initial_model_ok}, Backend={initial_backend_ok}")
+                print(f"🔧 Initial service status: Model={initial_model_ok}, Backend={initial_backend_ok}")
                 
                 if not (initial_model_ok and initial_backend_ok):
-                    print("⚠️ 初始服務狀態異常，無法測試恢復機制")
+                    print("⚠️ Initial service status abnormal, cannot test recovery mechanism")
                     return False
                 
-                # 模擬服務壓力測試
-                print("💪 執行服務壓力測試...")
+                # Simulate service stress test
+                print("💪 Executing service stress test...")
                 stress_requests = 20
                 stress_results = []
                 
@@ -592,7 +592,7 @@ class Stage33FinalTester:
                         start_time = time.time()
                         response = requests.post(
                             f"http://localhost:{self.backend_port}/api/v1/state/process",
-                            json={"text": f"壓力測試 {i+1}", "stress_test": True},
+                            json={"text": f"Stress test {i+1}", "stress_test": True},
                             timeout=5
                         )
                         end_time = time.time()
@@ -605,7 +605,7 @@ class Stage33FinalTester:
                         })
                         
                         if i % 5 == 0:
-                            print(f"   壓力測試進度: {i+1}/{stress_requests}")
+                            print(f"   Stress test progress: {i+1}/{stress_requests}")
                         
                     except Exception as e:
                         stress_results.append({
@@ -614,32 +614,32 @@ class Stage33FinalTester:
                             "error": str(e)
                         })
                     
-                    time.sleep(0.1)  # 短間隔
+                    time.sleep(0.1)  # Short interval
                 
-                # 計算壓力測試結果
+                # Calculate stress test results
                 successful_requests = sum(1 for result in stress_results if result.get("success", False))
                 stress_success_rate = (successful_requests / stress_requests) * 100
                 
-                print(f"💪 壓力測試成功率: {stress_success_rate:.1f}% ({successful_requests}/{stress_requests})")
+                print(f"💪 Stress test success rate: {stress_success_rate:.1f}% ({successful_requests}/{stress_requests})")
                 
-                # 等待服務穩定
-                print("⏳ 等待服務穩定...")
+                # Wait for service stabilization
+                print("⏳ Waiting for service stabilization...")
                 time.sleep(5)
                 
-                # 檢查服務恢復狀態
+                # Check service recovery status
                 recovery_checks = []
-                for i in range(3):  # 檢查3次
+                for i in range(3):  # Check 3 times
                     time.sleep(2)
                     
                     try:
-                        # 檢查服務健康狀態
+                        # Check service health status
                         health_response = requests.get(f"http://localhost:{self.backend_port}/health", timeout=5)
                         service_healthy = health_response.status_code == 200
                         
-                        # 測試功能是否正常
+                        # Test if functionality is normal
                         test_response = requests.post(
                             f"http://localhost:{self.backend_port}/api/v1/state/process",
-                            json={"text": f"恢復測試 {i+1}"},
+                            json={"text": f"Recovery test {i+1}"},
                             timeout=5
                         )
                         function_working = test_response.status_code == 200
@@ -651,7 +651,7 @@ class Stage33FinalTester:
                             "fully_recovered": service_healthy and function_working
                         })
                         
-                        print(f"🔍 恢復檢查 {i+1}: {'✅ 正常' if service_healthy and function_working else '❌ 異常'}")
+                        print(f"🔍 Recovery check {i+1}: {'✅ Normal' if service_healthy and function_working else '❌ Abnormal'}")
                         
                     except Exception as e:
                         recovery_checks.append({
@@ -661,56 +661,56 @@ class Stage33FinalTester:
                             "fully_recovered": False,
                             "error": str(e)
                         })
-                        print(f"🔍 恢復檢查 {i+1}: ❌ 異常 - {e}")
+                        print(f"🔍 Recovery check {i+1}: ❌ Exception - {e}")
                 
-                # 分析恢復結果
+                # Analyze recovery results
                 fully_recovered_checks = sum(1 for check in recovery_checks if check.get("fully_recovered", False))
                 recovery_rate = (fully_recovered_checks / len(recovery_checks)) * 100
                 
-                print(f"🔄 服務恢復率: {recovery_rate:.1f}% ({fully_recovered_checks}/{len(recovery_checks)})")
+                print(f"🔄 Service recovery rate: {recovery_rate:.1f}% ({fully_recovered_checks}/{len(recovery_checks)})")
                 
-                # 服務恢復成功標準：壓力測試後至少80%恢復率
+                # Service recovery success criteria: at least 80% recovery rate after stress test
                 recovery_success = stress_success_rate >= 50 and recovery_rate >= 70
                 
                 if recovery_success:
-                    print("✅ 服務恢復機制測試成功")
+                    print("✅ Service recovery mechanism test successful")
                     self.test_results['service_recovery'] = True
                     return True
                 else:
-                    print("❌ 服務恢復機制測試失敗")
+                    print("❌ Service recovery mechanism test failed")
                     return False
                     
             except Exception as e:
-                print(f"❌ 服務恢復機制測試異常: {e}")
+                print(f"❌ Service recovery mechanism test exception: {e}")
                 return False
         
     def cleanup(self):
-            """清理資源（完全複製3.2邏輯）"""
-            print("\n🧹 清理資源...")
+            """Clean up resources (completely copy 3.2 logic)"""
+            print("\n🧹 Cleaning up resources...")
             
             if self.backend_process:
                 self.backend_process.terminate()
                 try:
                     self.backend_process.wait(timeout=5)
-                    print("   ✅ 後端服務已停止")
+                    print("   ✅ Backend service stopped")
                 except subprocess.TimeoutExpired:
                     self.backend_process.kill()
-                    print("   ⚠️ 後端服務強制停止")
+                    print("   ⚠️ Backend service force stopped")
             
             if self.model_process:
                 self.model_process.terminate()
                 try:
                     self.model_process.wait(timeout=5)
-                    print("   ✅ 模型服務已停止")
+                    print("   ✅ Model service stopped")
                 except subprocess.TimeoutExpired:
                     self.model_process.kill()
-                    print("   ⚠️ 模型服務強制停止")
+                    print("   ⚠️ Model service force stopped")
             
-            print("✅ 清理完成")
+            print("✅ Cleanup completed")
         
     def verify_all_services_ready(self):
-            """確認所有服務都已正式啟動並可用（完全複製3.2邏輯）"""
-            print("\n🔍 確認所有服務狀態")
+            """Confirm all services have officially started and are available (completely copy 3.2 logic)"""
+            print("\n🔍 Confirming all service status")
             print("=" * 50)
             
             services_status = {
@@ -718,26 +718,26 @@ class Stage33FinalTester:
                 'backend_service': False
             }
             
-            # 檢查模型服務
-            print("📋 檢查模型服務狀態...")
+            # Check model service
+            print("📋 Checking model service status...")
             if self.check_model_service():
                 services_status['model_service'] = True
-                print("   ✅ 模型服務正常運行")
+                print("   ✅ Model service running normally")
             else:
-                print("   ❌ 模型服務未正常運行")
+                print("   ❌ Model service not running normally")
             
-            # 檢查後端服務
-            print("📋 檢查後端服務狀態...")
+            # Check backend service
+            print("📋 Checking backend service status...")
             if self.check_backend_service():
                 services_status['backend_service'] = True
-                print("   ✅ 後端服務正常運行")
+                print("   ✅ Backend service running normally")
             else:
-                print("   ❌ 後端服務未正常運行")
+                print("   ❌ Backend service not running normally")
             
-            # 額外的API端點檢查
-            print("📋 檢查關鍵API端點...")
+            # Additional API endpoint checks
+            print("📋 Checking key API endpoints...")
             api_endpoints = [
-                ("/health", "健康檢查"),
+                ("/health", "Health Check"),
                 ("/api/v1/state", "State Tracker"),
             ]
             
@@ -746,38 +746,38 @@ class Stage33FinalTester:
                 try:
                     response = requests.get(f"http://localhost:{self.backend_port}{endpoint}", timeout=5)
                     if response.status_code == 200:
-                        print(f"   ✅ {name} 正常")
+                        print(f"   ✅ {name} normal")
                         api_success += 1
                     else:
-                        print(f"   ❌ {name} 失敗: HTTP {response.status_code}")
+                        print(f"   ❌ {name} failed: HTTP {response.status_code}")
                 except Exception as e:
-                    print(f"   ❌ {name} 連接失敗: {e}")
+                    print(f"   ❌ {name} connection failed: {e}")
             
-            # 總體狀態評估
+            # Overall status assessment
             all_services_ready = (
                 services_status['model_service'] and 
                 services_status['backend_service'] and 
-                api_success >= 1  # 至少1個API端點正常
+                api_success >= 1  # At least 1 API endpoint normal
             )
             
             if all_services_ready:
-                print("\n✅ 所有服務已正式啟動並可用")
+                print("\n✅ All services have officially started and are available")
                 return True
             else:
-                print("\n❌ 部分服務未正常啟動")
-                print(f"   - 模型服務: {'✅' if services_status['model_service'] else '❌'}")
-                print(f"   - 後端服務: {'✅' if services_status['backend_service'] else '❌'}")
-                print(f"   - API端點: {api_success}/2 正常")
+                print("\n❌ Some services not started normally")
+                print(f"   - Model service: {'✅' if services_status['model_service'] else '❌'}")
+                print(f"   - Backend service: {'✅' if services_status['backend_service'] else '❌'}")
+                print(f"   - API endpoints: {api_success}/2 normal")
                 return False
 
 def main():
-    """主函數"""
-    print("🎯 階段3.3：跨服務基礎功能測試（最終版）")
-    print("📋 測試重點：")
-    print("   1. 後端服務VLM容錯能力：模擬模型服務VLM失敗和異常輸出")
-    print("   2. 後端服務滑動窗格記憶體管控：固定記憶體使用 < 1MB")
-    print("   3. 跨服務性能驗證：端到端響應時間和準確率達標測試")
-    print("   4. 服務恢復機制：單一服務異常後的自動恢復能力")
+    """Main function"""
+    print("🎯 Stage 3.3: Cross-Service Basic Functionality Test (Final Version)")
+    print("📋 Test Focus:")
+    print("   1. Backend service VLM fault tolerance: Simulate model service VLM failures and abnormal outputs")
+    print("   2. Backend service sliding window memory management: Fixed memory usage < 1MB")
+    print("   3. Cross-service performance verification: End-to-end response time and accuracy compliance testing")
+    print("   4. Service recovery mechanism: Automatic recovery capability after single service failure")
     print()
     
     tester = Stage33FinalTester()
