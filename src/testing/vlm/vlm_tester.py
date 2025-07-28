@@ -255,35 +255,30 @@ class VLMTester:
             "models": {}
         }
         
-        # Model configuration for testing
+        # Model configuration for testing (reordered as requested)
         self.models_config = {
-            "SmolVLM2-500M-Video-Instruct": {
-                "loader": VLMModelLoader.load_smolvlm2_video,
-                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
-            },
-            "SmolVLM2-500M-Video-Instruct-MLX": {
-                "loader": VLMModelLoader.load_smolvlm2_video_mlx,
-                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX-VLM not available or incompatible"
-            },
-            "SmolVLM-500M-Instruct": {
-                "loader": VLMModelLoader.load_smolvlm_instruct,
-                "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct"
-            },
-            "Moondream2": {
-                "loader": VLMModelLoader.load_moondream2,
-                "model_id": "vikhyatk/moondream2"
+            "Phi-3.5-Vision-Instruct": {
+                "loader": VLMModelLoader.load_phi3_vision,
+                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
             },
             "LLaVA-v1.6-Mistral-7B-MLX": {
                 "loader": VLMModelLoader.load_llava_mlx,
                 "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
                 "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
             },
-            "Phi-3.5-Vision-Instruct": {
-                "loader": VLMModelLoader.load_phi3_vision,
-                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
-                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
+            "Moondream2": {
+                "loader": VLMModelLoader.load_moondream2,
+                "model_id": "vikhyatk/moondream2"
+            },
+            "SmolVLM2-500M-Video-Instruct": {
+                "loader": VLMModelLoader.load_smolvlm2_video,
+                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
+            },
+            "SmolVLM-500M-Instruct": {
+                "loader": VLMModelLoader.load_smolvlm_instruct,
+                "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct"
             }
         }
         

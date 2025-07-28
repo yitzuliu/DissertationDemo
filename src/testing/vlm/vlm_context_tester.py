@@ -24,6 +24,9 @@ import gc
 import psutil
 import traceback
 import torch
+import subprocess
+import socket
+import requests
 from datetime import datetime
 from pathlib import Path
 from PIL import Image
@@ -78,6 +81,113 @@ def run_with_timeout(func, timeout_seconds=120):
     
     return result[0] if result else None
 
+# SmolVLM GGUF Server Management (統一與 run_smolvlm.py 的啟動方式)
+def ensure_smolvlm_server():
+    """確保 SmolVLM 服務器運行 - 使用與 run_smolvlm.py 相同的邏輯"""
+    print("🔄 Checking SmolVLM server status...")
+    
+    # 首先檢查服務器是否已經運行
+    try:
+        response = requests.get("http://localhost:8080/health", timeout=5)
+        if response.status_code == 200:
+            print("✅ SmolVLM server is already running")
+            return True
+    except requests.exceptions.RequestException:
+        pass
+    
+    # 檢查端口 8080 是否被占用
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('localhost', 8080))
+        sock.close()
+        if result == 0:
+            print("⚠️ Port 8080 is occupied, attempting to close existing process...")
+            # 嘗試殺死端口 8080 上的進程
+            try:
+                result = subprocess.run(
+                    ["lsof", "-ti", ":8080"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    pids = result.stdout.strip().split('\n')
+                    for pid in pids:
+                        if pid.strip():
+                            print(f"🔄 Killing process {pid} on port 8080...")
+                            subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                            time.sleep(2)  # 等待進程終止
+            except Exception as e:
+                print(f"⚠️ Failed to kill process on port 8080: {e}")
+    except Exception as e:
+        print(f"⚠️ Error checking port 8080: {e}")
+    
+    # 嘗試啟動服務器（最多 3 次嘗試）
+    for attempt in range(1, 4):
+        print(f"🔄 Attempt {attempt}/3: Starting SmolVLM server...")
+        try:
+            # 使用與 run_smolvlm.py 相同的命令
+            cmd = [
+                "llama-server",
+                "-hf", "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                "-ngl", "99",
+                "--port", "8080"
+            ]
+            
+            # 在後台啟動服務器
+            server_process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            
+            # 等待服務器啟動（最多 30 秒）
+            for i in range(30):
+                time.sleep(2)
+                try:
+                    response = requests.get("http://localhost:8080/health", timeout=5)
+                    if response.status_code == 200:
+                        print(f"✅ SmolVLM server started successfully on attempt {attempt}")
+                        return True
+                except requests.exceptions.RequestException:
+                    continue
+            
+            # 如果到這裡，服務器沒有啟動
+            print(f"❌ SmolVLM server failed to start on attempt {attempt}")
+            try:
+                server_process.terminate()
+                server_process.wait(timeout=5)
+            except:
+                pass
+                
+        except Exception as e:
+            print(f"❌ Error starting SmolVLM server on attempt {attempt}: {e}")
+    
+    print("❌ Failed to start SmolVLM server after 3 attempts")
+    return False
+
+def cleanup_smolvlm_server():
+    """清理 SmolVLM 服務器進程"""
+    try:
+        # 殺死端口 8080 上的任何進程
+        result = subprocess.run(
+            ["lsof", "-ti", ":8080"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            pids = result.stdout.strip().split('\n')
+            for pid in pids:
+                if pid.strip():
+                    print(f"🔄 Cleaning up SmolVLM server process {pid}...")
+                    try:
+                        subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                    except Exception as e:
+                        print(f"⚠️ Failed to kill process {pid}: {e}")
+    except Exception as e:
+        print(f"⚠️ Error during server cleanup: {e}")
+
 # --- Model loader copied from vlm_tester.py ---
 
 class VLMModelLoader:
@@ -112,12 +222,27 @@ class VLMModelLoader:
             return model, processor
     
     @staticmethod
-    def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
-        from transformers import AutoProcessor, AutoModelForVision2Seq
-        print(f"Loading {model_id}...")
-        processor = AutoProcessor.from_pretrained(model_id)
-        model = AutoModelForVision2Seq.from_pretrained(model_id)
-        return model, processor
+    def load_smolvlm_instruct(model_id="ggml-org/SmolVLM-500M-Instruct-GGUF"):
+        """Load SmolVLM-500M-Instruct GGUF version via HTTP API (統一方式)"""
+        print(f"Loading SmolVLM GGUF version via HTTP API...")
+        
+        # 確保服務器運行
+        if not ensure_smolvlm_server():
+            raise RuntimeError("SmolVLM server is not available")
+        
+        print("✅ SmolVLM GGUF server is ready")
+        
+        # 返回特殊標記，表示這是 HTTP API 模式
+        class SmolVLMGGUFModel:
+            def __init__(self):
+                self.api_endpoint = "http://localhost:8080/v1/chat/completions"
+                self.model_type = "smolvlm_gguf"
+        
+        class SmolVLMGGUFProcessor:
+            def __init__(self):
+                self.tokenizer = None  # GGUF 不需要本地 tokenizer
+        
+        return SmolVLMGGUFModel(), SmolVLMGGUFProcessor()
     
     @staticmethod
     def load_moondream2(model_id="vikhyatk/moondream2"):
@@ -206,7 +331,11 @@ class VLMContextTester:
                 "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
                 "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
             },
-            "SmolVLM-500M-Instruct": { "loader": VLMModelLoader.load_smolvlm_instruct, "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct" },
+            "SmolVLM-500M-Instruct": { 
+                "loader": VLMModelLoader.load_smolvlm_instruct, 
+                "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                "note": "GGUF version via HTTP API (與 run_smolvlm.py 一致)"
+            },
             "Moondream2": { "loader": VLMModelLoader.load_moondream2, "model_id": "vikhyatk/moondream2" },
             "LLaVA-v1.6-Mistral-7B-MLX": { "loader": VLMModelLoader.load_llava_mlx, "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit" },
             "Phi-3.5-Vision-Instruct": { "loader": VLMModelLoader.load_phi3_vision, "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit" }
@@ -444,8 +573,91 @@ class VLMContextTester:
                 # Branch 1: Standard Transformers models (e.g., SmolVLM) - IMPROVED
                 # --------------------------------------------------------------------------
                 if "SmolVLM" in model_name:
+                    # Check if this is GGUF version
+                    if hasattr(model, 'model_type') and model.model_type == "smolvlm_gguf":
+                        # GGUF version via HTTP API (統一與 run_smolvlm.py 的方式)
+                        print("  🚀 Using SmolVLM GGUF HTTP API...")
+                        
+                        import base64
+                        import io
+                        
+                        # 構建 OpenAI 兼容的請求
+                        if image is not None:
+                            # 將圖片轉換為 base64
+                            buffer = io.BytesIO()
+                            image.save(buffer, format='JPEG')
+                            image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                            
+                            payload = {
+                                "model": "gpt-4-vision-preview",  # llama-server 兼容格式
+                                "messages": [
+                                    {
+                                        "role": "user",
+                                        "content": [
+                                            {
+                                                "type": "text",
+                                                "text": prompt
+                                            },
+                                            {
+                                                "type": "image_url",
+                                                "image_url": {
+                                                    "url": f"data:image/jpeg;base64,{image_base64}"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "max_tokens": self.unified_max_tokens,
+                                "temperature": 0.0
+                            }
+                        else:
+                            # 純文本請求（上下文問題）
+                            # 構建包含歷史的消息
+                            messages = []
+                            for hist_entry in history:
+                                if hist_entry["role"] == "user":
+                                    # 提取文本內容
+                                    if isinstance(hist_entry["content"], list):
+                                        text_parts = [item["text"] for item in hist_entry["content"] if item["type"] == "text"]
+                                        if text_parts:
+                                            messages.append({"role": "user", "content": " ".join(text_parts)})
+                                    else:
+                                        messages.append({"role": "user", "content": hist_entry["content"]})
+                                elif hist_entry["role"] == "assistant":
+                                    messages.append({"role": "assistant", "content": hist_entry["content"]})
+                            
+                            # 添加當前問題
+                            messages.append({"role": "user", "content": prompt})
+                            
+                            payload = {
+                                "model": "gpt-4",  # llama-server 兼容格式
+                                "messages": messages,
+                                "max_tokens": self.unified_max_tokens,
+                                "temperature": 0.0
+                            }
+                        
+                        try:
+                            api_response = requests.post(
+                                model.api_endpoint,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=timeout_seconds
+                            )
+                            
+                            if api_response.status_code == 200:
+                                result = api_response.json()
+                                if 'choices' in result and len(result['choices']) > 0:
+                                    response = result['choices'][0]['message']['content']
+                                else:
+                                    response = f"GGUF API response format error: {result}"
+                            else:
+                                response = f"GGUF API request failed: {api_response.status_code} - {api_response.text}"
+                                
+                        except Exception as e:
+                            response = f"GGUF API inference failed: {str(e)}"
+                    
                     # Check if it is an MLX model
-                    if hasattr(model, '_is_mlx_model'):
+                    elif hasattr(model, '_is_mlx_model'):
                         # MLX version of SmolVLM2 inference
                         try:
                             import subprocess
@@ -877,35 +1089,46 @@ def main():
     """Main function"""
     tester = VLMContextTester()
     
-    # Check for command-line argument to test a single model
-    import sys
-    if len(sys.argv) > 1:
-        model_name = sys.argv[1]
-        if model_name in tester.models_config:
-            print(f"🔬 Testing single model: {model_name}")
-            config = tester.models_config[model_name]
-            
-            # Prepare test images
-            test_images = tester.get_test_images()
-            if not test_images:
-                print("❌ Error: No test images found.")
+    try:
+        # Check for command-line argument to test a single model
+        import sys
+        if len(sys.argv) > 1:
+            model_name = sys.argv[1]
+            if model_name in tester.models_config:
+                print(f"🔬 Testing single model: {model_name}")
+                config = tester.models_config[model_name]
+                
+                # Prepare test images
+                test_images = tester.get_test_images()
+                if not test_images:
+                    print("❌ Error: No test images found.")
+                    return
+                
+                # Run test for the specified model
+                tester.test_single_model(model_name, config, test_images)
+                tester.save_results(f"single_{model_name}")
+            else:
+                print(f"❌ Error: Model '{model_name}' not found.")
+                print("Available models:")
+                for name in tester.models_config.keys():
+                    print(f"  - {name}")
                 return
-            
-            # Run test for the specified model
-            tester.test_single_model(model_name, config, test_images)
-            tester.save_results(f"single_{model_name}")
         else:
-            print(f"❌ Error: Model '{model_name}' not found.")
-            print("Available models:")
-            for name in tester.models_config.keys():
-                print(f"  - {name}")
-            return
-    else:
-        # If no argument, run all tests
-        print("🤖 Running context understanding tests for all configured models.")
-        tester.run_all_tests()
+            # If no argument, run all tests
+            print("🤖 Running context understanding tests for all configured models.")
+            tester.run_all_tests()
 
-    print("\nContext understanding capability testing complete!")
+        print("\nContext understanding capability testing complete!")
+        
+    except KeyboardInterrupt:
+        print("\n🛑 Testing interrupted by user")
+    except Exception as e:
+        print(f"\n❌ Testing failed: {str(e)}")
+    finally:
+        # 清理 SmolVLM 服務器進程
+        print("\n🔄 Cleaning up...")
+        cleanup_smolvlm_server()
+        print("👋 Goodbye!")
 
 if __name__ == "__main__":
     main() 
