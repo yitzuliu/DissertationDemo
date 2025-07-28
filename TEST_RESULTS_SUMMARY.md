@@ -10,11 +10,11 @@ This document summarizes the comprehensive performance testing of all Vision-Lan
 
 | **Model** | **VQA Accuracy** | **Avg Inference Time** | **Memory Usage** | **Status** | **Recommendation** |
 |-----------|:----------------:|:----------------------:|:----------------:|:----------:|:------------------:|
-| **SmolVLM2-500M-Video-Instruct** | 🥇 **66.0%** | 6.61s | 2.08GB | ✅ Active | **Best Overall** |
-| **SmolVLM-500M-Instruct** | 🥈 **64.0%** | 5.98s | 1.58GB | ✅ Active | **Excellent Alternative** |
-| **Phi-3.5-Vision (MLX)** | 🥉 **60.0%** | 13.61s | 1.53GB | ✅ Active | **High Accuracy** |
-| **Moondream2** | **56.0%** | 🏆 **4.06s** | 🏆 **0.10GB** | ✅ Active | **Speed Champion** |
-| **LLaVA-v1.6 (MLX)** | ⚠️ **34.0%** | 17.86s | 1.16GB | 🔧 Issues | **Not Recommended** |
+| **Moondream2** | 🥇 **52.5%** | 7.16s | 🏆 **0.10GB** | ✅ Active | **Best Overall** |
+| **SmolVLM2-500M-Video-Instruct** | 🥈 **51.5%** | 5.48s | 2.08GB | ✅ Active | **Fast & Accurate** |
+| **SmolVLM-500M-Instruct** | **39.5%** | 🏆 **1.17s** | 1.58GB | ✅ Active | **Fastest** |
+| **Phi-3.5-Vision (MLX)** | **42.5%** | 6.86s | 1.53GB | ✅ Active | **Balanced** |
+| **LLaVA-v1.6 (MLX)** | ⚠️ **27.0%** | 9.79s | 1.16GB | 🔧 Issues | **Not Recommended** |
 
 ## 📊 Detailed Test Results
 
@@ -26,49 +26,49 @@ This document summarizes the comprehensive performance testing of all Vision-Lan
 
 ### Model Performance Analysis
 
-#### 🥇 SmolVLM2-500M-Video-Instruct (Best Overall)
-- **VQA Accuracy**: 66.0% (highest among all models)
-- **Simple Accuracy**: 70.0% (7/10 correct responses)
-- **Avg Inference Time**: 6.61s (balanced performance)
-- **Memory Usage**: 2.08GB
-- **Load Time**: ~2.32s
-- **Strengths**: Best accuracy/speed balance, video capabilities, stable performance
+#### 🥇 Moondream2 (Best Overall)
+- **VQA Accuracy**: 52.5% (highest among all models)
+- **Simple Accuracy**: 60.0% (12/20 correct responses)
+- **Avg Inference Time**: 7.16s (balanced performance)
+- **Memory Usage**: 0.10GB (lowest)
+- **Load Time**: ~5.34s
+- **Strengths**: Best accuracy, lowest memory usage, stable performance
 - **Use Cases**: Production environments, tasks requiring high accuracy
 
-#### 🥈 SmolVLM-500M-Instruct (Excellent Alternative)
-- **VQA Accuracy**: 64.0% (second highest)
-- **Simple Accuracy**: 60.0% (6/10 correct responses)
-- **Avg Inference Time**: 5.98s (fast and stable)
-- **Memory Usage**: 1.58GB (efficient)
-- **Load Time**: ~4.40s
-- **Strengths**: Reliable, low memory usage, consistent performance
-- **Use Cases**: General-purpose analysis, resource-constrained environments
+#### 🥈 SmolVLM2-500M-Video-Instruct (Fast & Accurate)
+- **VQA Accuracy**: 51.5% (second highest)
+- **Simple Accuracy**: 60.0% (12/20 correct responses)
+- **Avg Inference Time**: 5.48s (fast and accurate)
+- **Memory Usage**: 2.08GB
+- **Load Time**: ~1.02s
+- **Strengths**: Good accuracy/speed balance, video capabilities, stable performance
+- **Use Cases**: General-purpose analysis, video processing
 
-#### 🏆 Moondream2 (Speed Champion)
-- **VQA Accuracy**: 56.0% (good for lightweight model)
-- **Simple Accuracy**: 60.0% (6/10 correct responses)
-- **Avg Inference Time**: 4.06s (fastest among all models)
-- **Memory Usage**: 0.10GB (lowest resource usage)
-- **Load Time**: ~5.15s
-- **Strengths**: Fastest inference, minimal memory usage, highly stable
+#### 🏆 SmolVLM-500M-Instruct (Fastest)
+- **VQA Accuracy**: 39.5%
+- **Simple Accuracy**: 40.0% (8/20 correct responses)
+- **Avg Inference Time**: 1.17s (fastest among all models)
+- **Memory Usage**: 1.58GB (efficient)
+- **Load Time**: ~2.04s
+- **Strengths**: Fastest inference, reliable, low memory usage
 - **Use Cases**: Speed-critical applications, real-time processing
 
-#### 🥉 Phi-3.5-Vision (MLX) (High Accuracy)
-- **VQA Accuracy**: 60.0% (good accuracy)
-- **Simple Accuracy**: 60.0% (6/10 correct responses)
-- **Avg Inference Time**: 13.61s (slower but detailed)
+#### 🥉 Phi-3.5-Vision (MLX) (Balanced)
+- **VQA Accuracy**: 42.5% (good accuracy)
+- **Simple Accuracy**: 40.0% (8/20 correct responses)
+- **Avg Inference Time**: 6.86s (balanced)
 - **Memory Usage**: 1.53GB
-- **Load Time**: ~1.94s (fastest loading)
-- **Strengths**: Detailed analysis, strong reasoning, MLX optimization
-- **Use Cases**: Detailed analysis tasks, offline processing
+- **Load Time**: ~1.52s (fast loading)
+- **Strengths**: Balanced performance, MLX optimization
+- **Use Cases**: General analysis tasks, balanced workloads
 
 #### ⚠️ LLaVA-v1.6 (MLX) (Underperforming)
-- **VQA Accuracy**: 34.0% (significant performance degradation)
-- **Simple Accuracy**: 30.0% (3/10 correct responses)
-- **Avg Inference Time**: 17.86s (slow due to reloading overhead)
+- **VQA Accuracy**: 27.0% (significant performance degradation)
+- **Simple Accuracy**: 25.0% (5/20 correct responses)
+- **Avg Inference Time**: 9.79s (slow)
 - **Memory Usage**: 1.16GB
-- **Load Time**: ~2.77s
-- **Issues**: Model reloading required for each image, state management problems
+- **Load Time**: ~2.17s
+- **Issues**: Batch inference issues, poor performance, unreliable
 - **Status**: Functional but not recommended due to performance issues
 
 ## 📈 Performance Trends and Analysis
@@ -99,21 +99,21 @@ This document summarizes the comprehensive performance testing of all Vision-Lan
 ## 🎯 Recommendations by Use Case
 
 ### Production Deployment
-1. **Primary**: SmolVLM2-500M-Video-Instruct (best overall performance)
-2. **Backup**: SmolVLM-500M-Instruct (excellent reliability)
+1. **Primary**: Moondream2 (best overall performance)
+2. **Backup**: SmolVLM2-500M-Video-Instruct (fast & accurate)
 3. **Avoid**: LLaVA-MLX (performance issues)
 
 ### Speed-Critical Applications
-1. **Primary**: Moondream2 (4.06s inference, minimal resources)
-2. **Alternative**: SmolVLM (5.98s inference, good accuracy)
+1. **Primary**: SmolVLM-500M-Instruct (1.17s inference, fastest)
+2. **Alternative**: SmolVLM2-500M-Video-Instruct (5.48s inference, good accuracy)
 
 ### Resource-Constrained Environments
 1. **Primary**: Moondream2 (0.10GB memory usage)
 2. **Alternative**: SmolVLM (1.58GB memory usage)
 
 ### High-Accuracy Requirements
-1. **Primary**: SmolVLM2 (66.0% VQA accuracy)
-2. **Alternative**: SmolVLM (64.0% VQA accuracy)
+1. **Primary**: Moondream2 (52.5% VQA accuracy)
+2. **Alternative**: SmolVLM2-500M-Video-Instruct (51.5% VQA accuracy)
 
 ## 🔧 Testing Infrastructure
 
@@ -141,8 +141,8 @@ python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm2 smolvlm moon
 ## 📋 Key Takeaways
 
 ### Performance Insights
-- **SmolVLM2** provides the best balance of accuracy and speed
-- **Moondream2** excels in speed-critical scenarios
+- **Moondream2** provides the best balance of accuracy and speed
+- **SmolVLM** excels in speed-critical scenarios (fastest inference)
 - **MLX optimization** is essential for Apple Silicon performance
 - **Model reloading** significantly impacts performance (LLaVA issue)
 

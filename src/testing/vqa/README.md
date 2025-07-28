@@ -1,15 +1,15 @@
 # VQA (Visual Question Answering) Testing Framework
 
-## 📊 **Quick Summary** (2025-07-22)
+## 📊 **Quick Summary** (2025-07-28)
 
 ### 🏆 **VQA 2.0 COCO Results (20 Questions)**
 | Rank | Model | Correct | Simple Accuracy | VQA Accuracy | Avg Time | Status |
 |------|-------|---------|-----------------|--------------|----------|--------|
-| 🥇 | **SmolVLM2-MLX** | 12/20 | **60.0%** | 51.5% | 4.23s | ✅ **Best Overall** |
-| 🥈 | **Moondream2** | 12/20 | **60.0%** | 53.0% | 3.89s | ✅ **Best Vision** |
-| 🥉 | **SmolVLM** | 11/20 | 55.0% | **52.5%** | 6.09s | ✅ **Best VQA** |
-| 4️⃣ | **Phi-3.5-MLX** | 10/20 | 50.0% | 52.0% | 9.64s | ✅ **Balanced** |
-| 5️⃣ | **LLaVA-MLX** | 5/20 | 25.0% | 27.0% | 15.09s | ⚠️ **Poor** |
+| 🥇 | **Moondream2** | 12/20 | **60.0%** | **52.5%** | 7.16s | ✅ **Best Overall** |
+| 🥈 | **SmolVLM2-MLX** | 12/20 | **60.0%** | 51.5% | 5.48s | ✅ **Fast & Accurate** |
+| 🥉 | **SmolVLM** | 8/20 | 40.0% | 39.5% | 🏆 **1.17s** | ✅ **Fastest** |
+| 4️⃣ | **Phi-3.5-MLX** | 8/20 | 40.0% | 42.5% | 6.86s | ✅ **Balanced** |
+| 5️⃣ | **LLaVA-MLX** | 5/20 | 25.0% | 27.0% | 9.79s | ⚠️ **Poor** |
 
 ---
 
@@ -39,7 +39,7 @@ pip install transformers pillow
 pip install mlx-vlm  # For MLX models
 ```
 
-### **Directory Structure (Updated 2025-07-22)**
+### **Directory Structure (Updated 2025-07-28)**
 ```
 src/testing/
 ├── vqa/
@@ -87,11 +87,11 @@ Options:
 ```
 
 ### **Available Models**
-- `smolvlm_instruct` - SmolVLM-500M-Instruct (Best VQA: 52.5%)
-- `smolvlm_v2_instruct` - SmolVLM2-500M-Video-MLX (Best Overall: 60.0%)
-- `moondream2` - Moondream2 (Best Vision: 60.0%)
+- `moondream2` - Moondream2 (Best Overall: 60.0%)
+- `smolvlm_v2_instruct` - SmolVLM2-500M-Video-MLX (Fast & Accurate: 60.0%)
+- `smolvlm_instruct` - SmolVLM-500M-Instruct (Fastest: 1.17s)
+- `phi35_vision` - Phi-3.5-Vision-Instruct-MLX (Balanced: 42.5%)
 - `llava_mlx` - LLaVA-v1.6-Mistral-7B-MLX (Poor: 27.0%)
-- `phi35_vision` - Phi-3.5-Vision-Instruct-MLX (Balanced: 52.0%)
 
 ---
 
@@ -118,50 +118,50 @@ Options:
 
 ### **Model Performance Breakdown**
 
-#### **1. SmolVLM2-500M-Video-MLX** 🥇 **Best Overall**
+#### **1. Moondream2** 🥇 **Best Overall**
+- **Simple Accuracy:** 60.0% (12/20 correct)
+- **VQA Accuracy:** 52.5%
+- **Avg Inference:** 7.16s
+- **Strengths:** Best overall accuracy, good VQA performance
+- **Weaknesses:** Slower inference than some competitors
+
+#### **2. SmolVLM2-500M-Video-MLX** 🥈 **Fast & Accurate**
 - **Simple Accuracy:** 60.0% (12/20 correct)
 - **VQA Accuracy:** 51.5%
-- **Avg Inference:** 4.23s (fastest)
-- **Strengths:** Fastest inference, good overall accuracy
-- **Weaknesses:** Lower VQA accuracy than some competitors
+- **Avg Inference:** 6.61s
+- **Strengths:** Fast inference, good overall accuracy, MLX optimized
+- **Weaknesses:** Lower VQA accuracy than Moondream2
 
-#### **2. Moondream2** 🥈 **Best Vision**
-- **Simple Accuracy:** 60.0% (12/20 correct)
-- **VQA Accuracy:** 53.0%
-- **Avg Inference:** 3.89s
-- **Strengths:** Best VQA accuracy, fast inference
-- **Weaknesses:** No text-only capability
-
-#### **3. SmolVLM-500M-Instruct** 🥉 **Best VQA**
-- **Simple Accuracy:** 55.0% (11/20 correct)
-- **VQA Accuracy:** 52.5% (best among all models)
-- **Avg Inference:** 6.09s
-- **Strengths:** Best VQA accuracy, reliable text support
-- **Weaknesses:** Slower inference than MLX models
+#### **3. SmolVLM-500M-Instruct** 🥉 **Fastest**
+- **Simple Accuracy:** 40.0% (8/20 correct)
+- **VQA Accuracy:** 39.5%
+- **Avg Inference:** 1.17s (fastest)
+- **Strengths:** Fastest inference, reliable text support, stable
+- **Weaknesses:** Lower accuracy than top performers
 
 #### **4. Phi-3.5-Vision-Instruct-MLX** ✅ **Balanced**
-- **Simple Accuracy:** 50.0% (10/20 correct)
-- **VQA Accuracy:** 52.0%
-- **Avg Inference:** 9.64s
+- **Simple Accuracy:** 40.0% (8/20 correct)
+- **VQA Accuracy:** 42.5%
+- **Avg Inference:** 6.86s
 - **Strengths:** Balanced performance, good MLX optimization
-- **Weaknesses:** Slower inference, moderate accuracy
+- **Weaknesses:** Lower accuracy than top performers
 
 #### **5. LLaVA-v1.6-Mistral-7B-MLX** ⚠️ **Poor Performance**
 - **Simple Accuracy:** 25.0% (5/20 correct)
 - **VQA Accuracy:** 27.0%
-- **Avg Inference:** 15.09s (slowest)
+- **Avg Inference:** 19.17s (slowest)
 - **Strengths:** Large model capacity
-- **Weaknesses:** Poor accuracy, slow inference, state issues
+- **Weaknesses:** Poor accuracy, slow inference, batch inference issues
 
 ### **Question Type Analysis**
 
 #### **Yes/No Questions (7 questions)**
-- **Best:** SmolVLM2-MLX and Moondream2 (tied)
+- **Best:** Moondream2 (excellent performance)
 - **Performance:** Generally good across all models
 - **Example:** "Is it daytime?" → Ground truth: "no"
 
 #### **Color Questions (6 questions)**
-- **Best:** SmolVLM2-MLX
+- **Best:** Moondream2 and SmolVLM2-MLX
 - **Performance:** Variable, some models struggle with color accuracy
 - **Example:** "What color is her dress?" → Ground truth: "gray"
 
@@ -171,7 +171,7 @@ Options:
 - **Example:** "How many kites have legs?" → Ground truth: "3"
 
 #### **What Questions (3 questions)**
-- **Best:** SmolVLM
+- **Best:** SmolVLM and Moondream2
 - **Performance:** Good across most models
 - **Example:** "What holiday is the dog's hat for?" → Ground truth: "christmas"
 
@@ -183,7 +183,7 @@ Options:
 ```json
 {
   "experiment_metadata": {
-    "test_date": "2025-07-20 12:33:25",
+    "test_date": "2025-07-28 21:48:39",
     "test_mode": "coco",
     "num_questions": 20,
     "framework_version": "vqa2_enhanced_v1.2"
@@ -192,10 +192,10 @@ Options:
     "model_name": {
       "model_id": "model_identifier",
       "total_questions": 20,
-      "correct_answers": 12,
-      "accuracy": 0.6,
-      "vqa_accuracy": 0.515,
-      "avg_inference_time": 4.23,
+      "correct_answers": 13,
+      "accuracy": 0.65,
+      "vqa_accuracy": 0.65,
+      "avg_inference_time": 3.89,
       "question_results": [...]
     }
   }
@@ -256,8 +256,9 @@ Options:
 ## **🎯 Best Practices**
 
 ### **Model Selection**
-- **VQA-Critical Tasks:** Use SmolVLM (52.5% VQA accuracy)
-- **Speed-Critical Tasks:** Use SmolVLM2-MLX (4.23s avg inference)
+- **Best Overall Performance:** Use Moondream2 (60.0% accuracy)
+- **Speed-Critical Tasks:** Use SmolVLM (1.17s avg inference)
+- **VQA-Critical Tasks:** Use Moondream2 (52.5% VQA accuracy)
 - **Vision-Only Tasks:** Use Moondream2 (60.0% simple accuracy)
 - **Avoid:** LLaVA-MLX for accuracy-critical applications
 
@@ -278,23 +279,23 @@ Options:
 ## **📈 Performance Comparison**
 
 ### **Speed Rankings**
-1. **SmolVLM2-MLX:** 4.23s avg inference
-2. **Moondream2:** 3.89s avg inference
-3. **SmolVLM:** 6.09s avg inference
-4. **Phi-3.5-MLX:** 9.64s avg inference
-5. **LLaVA-MLX:** 15.09s avg inference
+1. **SmolVLM:** 1.17s avg inference
+2. **SmolVLM2-MLX:** 5.48s avg inference
+3. **Phi-3.5-MLX:** 6.86s avg inference
+4. **Moondream2:** 7.16s avg inference
+5. **LLaVA-MLX:** 9.79s avg inference
 
 ### **Accuracy Rankings**
-1. **SmolVLM:** 52.5% VQA accuracy
-2. **Moondream2:** 53.0% VQA accuracy
-3. **Phi-3.5-MLX:** 52.0% VQA accuracy
-4. **SmolVLM2-MLX:** 51.5% VQA accuracy
-5. **LLaVA-MLX:** 27.0% VQA accuracy
+1. **Moondream2:** 60.0% simple accuracy
+2. **SmolVLM2-MLX:** 60.0% simple accuracy
+3. **Phi-3.5-MLX:** 42.5% VQA accuracy
+4. **SmolVLM:** 40.0% simple accuracy, 39.5% VQA accuracy
+5. **LLaVA-MLX:** 25.0% simple accuracy
 
 ### **Overall Rankings**
-1. **SmolVLM2-MLX:** Best overall (fast + accurate)
-2. **Moondream2:** Best vision performance
-3. **SmolVLM:** Best VQA accuracy
+1. **Moondream2:** Best overall (accurate + balanced speed)
+2. **SmolVLM2-MLX:** Fast & accurate
+3. **SmolVLM:** Fastest inference
 4. **Phi-3.5-MLX:** Balanced performance
 5. **LLaVA-MLX:** Poor performance
 
@@ -329,7 +330,7 @@ Options:
 
 ---
 
-**Last Updated:** 2025-07-20  
+**Last Updated:** 2025-07-28  
 **Framework Version:** vqa2_enhanced_v1.2  
 **Test Environment:** MacBook Air M3 (16GB RAM)
 
@@ -337,4 +338,4 @@ Options:
 - All references to `testing_material/` have been updated to `materials/`.
 - All references to result files are now in `results/`.
 - All scripts are now in the `vqa/` subfolder.
-- This README is up to date as of 2025-07-22.
+- This README is up to date as of 2025-07-28.

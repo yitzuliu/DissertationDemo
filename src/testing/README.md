@@ -59,17 +59,17 @@ python src/testing/vqa/vqa_test.py --questions 20 --models smolvlm2
 python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm2 smolvlm moondream2
 ```
 
-### Latest Test Results Summary
+### Latest Test Results Summary (Updated: 2025-07-28)
 
-**VQA 2.0 Results (10 Questions):**
+**VQA 2.0 Results (20 Questions):**
 
-| Model | VQA Accuracy | Avg Time | Memory | Status |
-|-------|:------------:|:--------:|:------:|:------:|
-| **SmolVLM2** | 🥇 66.0% | 6.61s | 2.08GB | ✅ Best |
-| **SmolVLM** | 🥈 64.0% | 5.98s | 1.58GB | ✅ Excellent |
-| **Moondream2** | 56.0% | 🏆 4.06s | 🏆 0.10GB | ✅ Fastest |
-| **Phi-3.5-Vision** | 60.0% | 13.61s | 1.53GB | ✅ Detailed |
-| **LLaVA-MLX** | ⚠️ 34.0% | 17.86s | 1.16GB | 🔧 Issues |
+| Model | VQA Accuracy | Simple Accuracy | Avg Time | Memory | Status |
+|-------|:------------:|:---------------:|:--------:|:------:|:------:|
+| **Moondream2** | 🥇 52.5% | 🥇 60.0% | 7.16s | 🏆 0.10GB | ✅ **Best Overall** |
+| **SmolVLM2** | 🥈 51.5% | 🥈 60.0% | 5.48s | 2.08GB | ✅ **Fast & Accurate** |
+| **SmolVLM** | 🥉 39.5% | 40.0% | 🏆 **1.17s** | 1.58GB | ✅ **Fastest** |
+| **Phi-3.5-Vision** | 42.5% | 40.0% | 6.86s | 1.53GB | ✅ **Balanced** |
+| **LLaVA-MLX** | ⚠️ 27.0% | ⚠️ 25.0% | 9.79s | 1.16GB | 🔧 **Issues** |
 
 ## 🔧 VLM Performance Testing
 
@@ -174,6 +174,6 @@ python src/testing/vlm/vlm_context_tester.py --model smolvlm2 --frames 10
 
 **For specific testing procedures, see the README files in each subdirectory.**
 
-**Last Updated**: January 2025  
+**Last Updated**: July 28, 2025  
 **Test Framework**: VQA 2.0 Standard Evaluation  
 **Hardware**: MacBook Air M3, 16GB RAM 

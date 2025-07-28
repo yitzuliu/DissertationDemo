@@ -1,0 +1,962 @@
+{
+  "test_timestamp": "2025-07-28 20:29:35",
+  "system_info": {
+    "device": "MacBook Air M3",
+    "memory": "16GB",
+    "mps_available": true
+  },
+  "test_type": "context_understanding",
+  "models": {
+    "Phi-3.5-Vision-Instruct": {
+      "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "('You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.', {'input_tokens': 805, 'output_tokens': 39, 'total_tokens': 844, 'prompt_tps': 202.1949771846627, 'generation_tps': 17.82706411068798, 'peak_memory': 4.39340466})",
+            "inference_time": 6.237112045288086
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "('\\n\\nThe most prominent colors in the image were red, white, and blue.', {'input_tokens': 11, 'output_tokens': 18, 'total_tokens': 29, 'prompt_tps': 60.546598186834146, 'generation_tps': 16.97792734751941, 'peak_memory': 4.39340466})",
+              "inference_time": 1.2667489051818848
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "('', {'input_tokens': 26, 'output_tokens': 1, 'total_tokens': 27, 'prompt_tps': 136.34995940584642, 'generation_tps': 10914.04847195805, 'peak_memory': 4.39340466})",
+              "inference_time": 0.2043168544769287
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "('', {'input_tokens': 16, 'output_tokens': 1, 'total_tokens': 17, 'prompt_tps': 88.25366698592532, 'generation_tps': 12036.16564916622, 'peak_memory': 4.39340466})",
+              "inference_time": 0.19448089599609375
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "('You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.', {'input_tokens': 805, 'output_tokens': 39, 'total_tokens': 844, 'prompt_tps': 202.1949771846627, 'generation_tps': 17.82706411068798, 'peak_memory': 4.39340466})",
+              "inference_time": 6.237112045288086
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "('\\n\\nThe most prominent colors in the image were red, white, and blue.', {'input_tokens': 11, 'output_tokens': 18, 'total_tokens': 29, 'prompt_tps': 60.546598186834146, 'generation_tps': 16.97792734751941, 'peak_memory': 4.39340466})",
+              "inference_time": 1.2667489051818848
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "('', {'input_tokens': 26, 'output_tokens': 1, 'total_tokens': 27, 'prompt_tps': 136.34995940584642, 'generation_tps': 10914.04847195805, 'peak_memory': 4.39340466})",
+              "inference_time": 0.2043168544769287
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "('', {'input_tokens': 16, 'output_tokens': 1, 'total_tokens': 17, 'prompt_tps': 88.25366698592532, 'generation_tps': 12036.16564916622, 'peak_memory': 4.39340466})",
+              "inference_time": 0.19448089599609375
+            }
+          ]
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "('', {'input_tokens': 805, 'output_tokens': 1, 'total_tokens': 806, 'prompt_tps': 206.2568330585977, 'generation_tps': 15267.167860145279, 'peak_memory': 4.39340466})",
+            "inference_time": 3.97472882270813
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "('\\n\\nThe most prominent colors in the image were red, white, and blue.', {'input_tokens': 11, 'output_tokens': 18, 'total_tokens': 29, 'prompt_tps': 60.63467982224425, 'generation_tps': 20.3780015587139, 'peak_memory': 4.39340466})",
+              "inference_time": 1.0767910480499268
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "('', {'input_tokens': 26, 'output_tokens': 1, 'total_tokens': 27, 'prompt_tps': 139.90714609611217, 'generation_tps': 13165.155127782673, 'peak_memory': 4.39340466})",
+              "inference_time": 0.19817614555358887
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "('', {'input_tokens': 16, 'output_tokens': 1, 'total_tokens': 17, 'prompt_tps': 88.43366040477416, 'generation_tps': 13121.97663995405, 'peak_memory': 4.39340466})",
+              "inference_time": 0.19446301460266113
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "('', {'input_tokens': 805, 'output_tokens': 1, 'total_tokens': 806, 'prompt_tps': 206.2568330585977, 'generation_tps': 15267.167860145279, 'peak_memory': 4.39340466})",
+              "inference_time": 3.97472882270813
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "('\\n\\nThe most prominent colors in the image were red, white, and blue.', {'input_tokens': 11, 'output_tokens': 18, 'total_tokens': 29, 'prompt_tps': 60.63467982224425, 'generation_tps': 20.3780015587139, 'peak_memory': 4.39340466})",
+              "inference_time": 1.0767910480499268
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "('', {'input_tokens': 26, 'output_tokens': 1, 'total_tokens': 27, 'prompt_tps': 139.90714609611217, 'generation_tps': 13165.155127782673, 'peak_memory': 4.39340466})",
+              "inference_time": 0.19817614555358887
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "('', {'input_tokens': 16, 'output_tokens': 1, 'total_tokens': 17, 'prompt_tps': 88.43366040477416, 'generation_tps': 13121.97663995405, 'peak_memory': 4.39340466})",
+              "inference_time": 0.19446301460266113
+            }
+          ]
+        },
+        {
+          "image_name": "test_image.jpg",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "('You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.', {'input_tokens': 805, 'output_tokens': 39, 'total_tokens': 844, 'prompt_tps': 202.9363460913643, 'generation_tps': 17.85790908712332, 'peak_memory': 4.39340466})",
+            "inference_time": 6.181394100189209
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "('\\n\\nThe most prominent colors in the image were red, white, and blue.', {'input_tokens': 11, 'output_tokens': 18, 'total_tokens': 29, 'prompt_tps': 60.816979267022376, 'generation_tps': 19.66182839378919, 'peak_memory': 4.39340466})",
+              "inference_time": 1.1086809635162354
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "('', {'input_tokens': 26, 'output_tokens': 1, 'total_tokens': 27, 'prompt_tps': 139.1470639159055, 'generation_tps': 12618.302394998473, 'peak_memory': 4.39340466})",
+              "inference_time": 0.2000288963317871
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "('', {'input_tokens': 16, 'output_tokens': 1, 'total_tokens': 17, 'prompt_tps': 87.5219462980085, 'generation_tps': 11684.553544636286, 'peak_memory': 4.39340466})",
+              "inference_time": 0.1954936981201172
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "('You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.', {'input_tokens': 805, 'output_tokens': 39, 'total_tokens': 844, 'prompt_tps': 202.9363460913643, 'generation_tps': 17.85790908712332, 'peak_memory': 4.39340466})",
+              "inference_time": 6.181394100189209
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "('\\n\\nThe most prominent colors in the image were red, white, and blue.', {'input_tokens': 11, 'output_tokens': 18, 'total_tokens': 29, 'prompt_tps': 60.816979267022376, 'generation_tps': 19.66182839378919, 'peak_memory': 4.39340466})",
+              "inference_time": 1.1086809635162354
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "('', {'input_tokens': 26, 'output_tokens': 1, 'total_tokens': 27, 'prompt_tps': 139.1470639159055, 'generation_tps': 12618.302394998473, 'peak_memory': 4.39340466})",
+              "inference_time": 0.2000288963317871
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "('', {'input_tokens': 16, 'output_tokens': 1, 'total_tokens': 17, 'prompt_tps': 87.5219462980085, 'generation_tps': 11684.553544636286, 'peak_memory': 4.39340466})",
+              "inference_time": 0.1954936981201172
+            }
+          ]
+        }
+      ],
+      "load_time": 3.8365280628204346,
+      "memory_before": 0.1850433349609375,
+      "memory_after": 2.7793121337890625,
+      "memory_diff": 2.594268798828125,
+      "memory_after_cleanup": 2.661163330078125
+    },
+    "LLaVA-v1.6-Mistral-7B-MLX": {
+      "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+            "inference_time": 27.456459999084473
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Answer: The most prominent colors in the image are white and black. The room has a white wall and a wooden floor, while the forensic expert is wearing a white lab coat and a black hat.",
+              "inference_time": 3.406080961227417
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "",
+              "inference_time": 1.0327880382537842
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Answer: The main subject of the image is a forensic expert conducting an investigation in a room with a white wall and a wooden floor.",
+              "inference_time": 2.714064836502075
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+              "inference_time": 27.456459999084473
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Answer: The most prominent colors in the image are white and black. The room has a white wall and a wooden floor, while the forensic expert is wearing a white lab coat and a black hat.",
+              "inference_time": 3.406080961227417
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 1.0327880382537842
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Answer: The main subject of the image is a forensic expert conducting an investigation in a room with a white wall and a wooden floor.",
+              "inference_time": 2.714064836502075
+            }
+          ]
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+            "inference_time": 19.520416021347046
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Answer: The most prominent colors in the image are white and black. The room has a white wall and a wooden floor, while the forensic expert is wearing a white lab coat and a black hat.",
+              "inference_time": 3.1600561141967773
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "",
+              "inference_time": 0.9817569255828857
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Answer: The main subject of the image is a forensic expert conducting an investigation in a room with a white wall and a wooden floor.",
+              "inference_time": 2.4001190662384033
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+              "inference_time": 19.520416021347046
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Answer: The most prominent colors in the image are white and black. The room has a white wall and a wooden floor, while the forensic expert is wearing a white lab coat and a black hat.",
+              "inference_time": 3.1600561141967773
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 0.9817569255828857
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Answer: The main subject of the image is a forensic expert conducting an investigation in a room with a white wall and a wooden floor.",
+              "inference_time": 2.4001190662384033
+            }
+          ]
+        },
+        {
+          "image_name": "test_image.jpg",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+            "inference_time": 10.99083399772644
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Answer: The most prominent colors in the image are white and black. The room has a white wall and a wooden floor, while the forensic expert is wearing a white lab coat and a black hat.",
+              "inference_time": 3.33339524269104
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "",
+              "inference_time": 1.054887056350708
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Answer: The main subject of the image is a forensic expert conducting an investigation in a room with a white wall and a wooden floor.",
+              "inference_time": 2.6647040843963623
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "In the image, a forensic expert is conducting an investigation in a room with a white wall and a wooden floor. The expert is wearing a white lab coat and a black hat, indicating a professional setting. The room contains several objects, including a white desk with a black chair, a whiteboard with some writing on it, and a white door. The desk and chair are positioned in the corner of the room, while the whiteboard is located on the wall opposite the",
+              "inference_time": 10.99083399772644
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Answer: The most prominent colors in the image are white and black. The room has a white wall and a wooden floor, while the forensic expert is wearing a white lab coat and a black hat.",
+              "inference_time": 3.33339524269104
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 1.054887056350708
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Answer: The main subject of the image is a forensic expert conducting an investigation in a room with a white wall and a wooden floor.",
+              "inference_time": 2.6647040843963623
+            }
+          ]
+        }
+      ],
+      "load_time": 6.551484107971191,
+      "memory_before": 2.602996826171875,
+      "memory_after": 0.042694091796875,
+      "memory_diff": -2.560302734375,
+      "memory_after_cleanup": 0.1666259765625
+    },
+    "Moondream2": {
+      "model_id": "vikhyatk/moondream2",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "A Shiba Inu dog is sitting indoors, looking up at the camera with a curious expression. The dog has light brown fur with white markings on its chest and face. The dog is positioned in front of a wooden dresser and a white fan. A pair of green clogs is visible on the floor to the left of the dog. The image appears to be taken in a domestic setting, possibly a living room.",
+            "inference_time": 10.005321979522705
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Based on the previously described image: What were the most prominent colors in the image? - The model cannot provide context-based answers without the image.",
+              "inference_time": 0.00015401840209960938
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Based on the previously described image: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details. - The model cannot provide context-based answers without the image.",
+              "inference_time": 4.076957702636719e-05
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Based on the previously described image: Summarize the main subject or scene of the image in one sentence. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.2928924560546875e-05
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "A Shiba Inu dog is sitting indoors, looking up at the camera with a curious expression. The dog has light brown fur with white markings on its chest and face. The dog is positioned in front of a wooden dresser and a white fan. A pair of green clogs is visible on the floor to the left of the dog. The image appears to be taken in a domestic setting, possibly a living room.",
+              "inference_time": 10.005321979522705
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Based on the previously described image: What were the most prominent colors in the image? - The model cannot provide context-based answers without the image.",
+              "inference_time": 0.00015401840209960938
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Based on the previously described image: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details. - The model cannot provide context-based answers without the image.",
+              "inference_time": 4.076957702636719e-05
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Based on the previously described image: Summarize the main subject or scene of the image in one sentence. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.2928924560546875e-05
+            }
+          ]
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "The image shows a young Asian man wearing black glasses and a white t-shirt with the letters \"FKOONS\" printed on it. He is holding a Chinese passport in his right hand. The passport is open, displaying a photo of a woman and text indicating the passport holder's nationality, date of birth, and place of issue. The passport also shows stamps and markings suggesting it was issued by a government agency. The man appears to be posing for the photograph. The background is a plain, light-colored wall.",
+            "inference_time": 9.259299993515015
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Based on the previously described image: What were the most prominent colors in the image? - The model cannot provide context-based answers without the image.",
+              "inference_time": 0.00014472007751464844
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Based on the previously described image: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.1975250244140625e-05
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Based on the previously described image: Summarize the main subject or scene of the image in one sentence. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.5789947509765625e-05
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "The image shows a young Asian man wearing black glasses and a white t-shirt with the letters \"FKOONS\" printed on it. He is holding a Chinese passport in his right hand. The passport is open, displaying a photo of a woman and text indicating the passport holder's nationality, date of birth, and place of issue. The passport also shows stamps and markings suggesting it was issued by a government agency. The man appears to be posing for the photograph. The background is a plain, light-colored wall.",
+              "inference_time": 9.259299993515015
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Based on the previously described image: What were the most prominent colors in the image? - The model cannot provide context-based answers without the image.",
+              "inference_time": 0.00014472007751464844
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Based on the previously described image: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.1975250244140625e-05
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Based on the previously described image: Summarize the main subject or scene of the image in one sentence. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.5789947509765625e-05
+            }
+          ]
+        },
+        {
+          "image_name": "test_image.jpg",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "The image depicts a diagram of a circular area enclosed within a square border. The circle is filled with a reddish-pink color and contains the text \"PHI-3\" written in a dark blue font. The square border is painted in a dark blue color, providing a stark contrast to the lighter background of the circle. The overall composition suggests a systematic and organized approach to analyzing data, likely related to a critical investigation.",
+            "inference_time": 4.974043130874634
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Based on the previously described image: What were the most prominent colors in the image? - The model cannot provide context-based answers without the image.",
+              "inference_time": 7.772445678710938e-05
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Based on the previously described image: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.030632019042969e-05
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Based on the previously described image: Summarize the main subject or scene of the image in one sentence. - The model cannot provide context-based answers without the image.",
+              "inference_time": 4.982948303222656e-05
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "The image depicts a diagram of a circular area enclosed within a square border. The circle is filled with a reddish-pink color and contains the text \"PHI-3\" written in a dark blue font. The square border is painted in a dark blue color, providing a stark contrast to the lighter background of the circle. The overall composition suggests a systematic and organized approach to analyzing data, likely related to a critical investigation.",
+              "inference_time": 4.974043130874634
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Based on the previously described image: What were the most prominent colors in the image? - The model cannot provide context-based answers without the image.",
+              "inference_time": 7.772445678710938e-05
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Based on the previously described image: Were there any people visible in the image? If so, describe their general appearance or clothing without making up details. - The model cannot provide context-based answers without the image.",
+              "inference_time": 5.030632019042969e-05
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Based on the previously described image: Summarize the main subject or scene of the image in one sentence. - The model cannot provide context-based answers without the image.",
+              "inference_time": 4.982948303222656e-05
+            }
+          ]
+        }
+      ],
+      "load_time": 19.342407941818237,
+      "memory_before": 0.15924072265625,
+      "memory_after": 0.016326904296875,
+      "memory_diff": -0.142913818359375,
+      "memory_after_cleanup": 0.416229248046875
+    },
+    "SmolVLM2-500M-Video-Instruct": {
+      "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "Assistant: A Shiba Inu dog is sitting on a tiled floor, looking directly at the camera. The dog has a light tan coat with darker tan markings on its face and paws. The dog's nose is black, and its eyes are dark brown. The dog is wearing a collar, but the collar is not visible in the image. The dog is sitting on a tiled floor, which is light beige in color. There is a green shoe on the floor to the left of the dog",
+            "inference_time": 9.918982028961182
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 6.208310127258301
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 6.030332803726196
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.940122842788696
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "Assistant: A Shiba Inu dog is sitting on a tiled floor, looking directly at the camera. The dog has a light tan coat with darker tan markings on its face and paws. The dog's nose is black, and its eyes are dark brown. The dog is wearing a collar, but the collar is not visible in the image. The dog is sitting on a tiled floor, which is light beige in color. There is a green shoe on the floor to the left of the dog",
+              "inference_time": 9.918982028961182
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 6.208310127258301
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 6.030332803726196
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.940122842788696
+            }
+          ]
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "Assistant: A person is holding a passport in their hand. The passport has a photo of a person on the front. The person is wearing a white shirt with the text \"FKONs\" on it.",
+            "inference_time": 8.255484819412231
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 6.349679946899414
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 6.262842178344727
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.962550163269043
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "Assistant: A person is holding a passport in their hand. The passport has a photo of a person on the front. The person is wearing a white shirt with the text \"FKONs\" on it.",
+              "inference_time": 8.255484819412231
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 6.349679946899414
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 6.262842178344727
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.962550163269043
+            }
+          ]
+        },
+        {
+          "image_name": "test_image.jpg",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "Assistant: The image depicts a square frame with a red circle in the center. The circle is positioned centrally within the frame, and the frame itself is a solid light blue color. The image does not contain any text or additional objects. The relative positions of the objects are as follows:",
+            "inference_time": 6.852428674697876
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 5.857882976531982
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.908277988433838
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.791466951370239
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "Assistant: The image depicts a square frame with a red circle in the center. The circle is positioned centrally within the frame, and the frame itself is a solid light blue color. The image does not contain any text or additional objects. The relative positions of the objects are as follows:",
+              "inference_time": 6.852428674697876
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "Assistant: The most prominent colors in the image are white and black.",
+              "inference_time": 5.857882976531982
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "Assistant: There was a person wearing a white shirt and a black hat.",
+              "inference_time": 5.908277988433838
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "Assistant: A white background with a black and white image of a person.",
+              "inference_time": 5.791466951370239
+            }
+          ]
+        }
+      ],
+      "load_time": 1.4275929927825928,
+      "memory_before": 0.426300048828125,
+      "memory_after": 0.72039794921875,
+      "memory_diff": 0.294097900390625,
+      "memory_after_cleanup": 0.27825927734375
+    },
+    "SmolVLM-500M-Instruct": {
+      "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": " A close-up shot of a dog's face and paws, taken indoors in a bathroom. The dog is a mutt with a short, tan coat and a black nose. Its ears are perked up and its mouth is closed, with its tongue hanging slightly out of its mouth. The dog is looking directly at the camera, with its head slightly tilted to the left. The dog's nose is black and its eyes are dark. The dog's fur is short and smooth, and it is",
+            "inference_time": 0.9256529808044434
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": " The most prominent colors in the image are black, white, and tan.",
+              "inference_time": 0.1564626693725586
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": " Yes, there is a person in the image. The person is wearing a black shirt and has short hair.",
+              "inference_time": 0.1849069595336914
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": " The image shows a close-up of a dog's face and paws, taken indoors in a bathroom.",
+              "inference_time": 0.18111491203308105
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": " A close-up shot of a dog's face and paws, taken indoors in a bathroom. The dog is a mutt with a short, tan coat and a black nose. Its ears are perked up and its mouth is closed, with its tongue hanging slightly out of its mouth. The dog is looking directly at the camera, with its head slightly tilted to the left. The dog's nose is black and its eyes are dark. The dog's fur is short and smooth, and it is",
+              "inference_time": 0.9256529808044434
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": " The most prominent colors in the image are black, white, and tan.",
+              "inference_time": 0.1564626693725586
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": " Yes, there is a person in the image. The person is wearing a black shirt and has short hair.",
+              "inference_time": 0.1849069595336914
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": " The image shows a close-up of a dog's face and paws, taken indoors in a bathroom.",
+              "inference_time": 0.18111491203308105
+            }
+          ]
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": " The image is a critical investigation scene. The focal point is a man in the foreground, wearing a white T-shirt with the text \"FKON\" on the front. He is also wearing glasses and has a serious expression. The man is holding a large document in his left hand, which appears to be a passport or a similar document. The document has a blue background with white text, and it is partially visible.\n\nIn the background, there is a person wearing a white T",
+            "inference_time": 0.9765467643737793
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": " The most prominent colors in the image are white and blue.",
+              "inference_time": 0.16396403312683105
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": " Yes, there is a person in the background wearing a white T-shirt.",
+              "inference_time": 0.17534184455871582
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": " The main subject of the image is a man in a white T-shirt holding a large document.",
+              "inference_time": 0.20427703857421875
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": " The image is a critical investigation scene. The focal point is a man in the foreground, wearing a white T-shirt with the text \"FKON\" on the front. He is also wearing glasses and has a serious expression. The man is holding a large document in his left hand, which appears to be a passport or a similar document. The document has a blue background with white text, and it is partially visible.\n\nIn the background, there is a person wearing a white T",
+              "inference_time": 0.9765467643737793
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": " The most prominent colors in the image are white and blue.",
+              "inference_time": 0.16396403312683105
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": " Yes, there is a person in the background wearing a white T-shirt.",
+              "inference_time": 0.17534184455871582
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": " The main subject of the image is a man in a white T-shirt holding a large document.",
+              "inference_time": 0.20427703857421875
+            }
+          ]
+        },
+        {
+          "image_name": "test_image.jpg",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": " The image is a critical investigation scene. The central object in the image is a red circle, which is the focus of the image. The circle is perfectly centered within the frame and is surrounded by a blue background. The circle is a solid color, with no gradients or patterns, and it is perfectly round. The circle is also perfectly symmetrical, with no visible imperfections or asymmetries.\n\nThe background of the image is a solid blue color, which provides a stark contrast to the red circle.",
+            "inference_time": 0.9010188579559326
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": " The most prominent colors in the image are red and blue.",
+              "inference_time": 0.1367650032043457
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": " Yes, there are people visible in the image. They are wearing blue and red clothing.",
+              "inference_time": 0.18578815460205078
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": " The image is a critical investigation scene, featuring a red circle in the center of the frame and a blue background.",
+              "inference_time": 0.24254488945007324
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": " The image is a critical investigation scene. The central object in the image is a red circle, which is the focus of the image. The circle is perfectly centered within the frame and is surrounded by a blue background. The circle is a solid color, with no gradients or patterns, and it is perfectly round. The circle is also perfectly symmetrical, with no visible imperfections or asymmetries.\n\nThe background of the image is a solid blue color, which provides a stark contrast to the red circle.",
+              "inference_time": 0.9010188579559326
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": " The most prominent colors in the image are red and blue.",
+              "inference_time": 0.1367650032043457
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": " Yes, there are people visible in the image. They are wearing blue and red clothing.",
+              "inference_time": 0.18578815460205078
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": " The image is a critical investigation scene, featuring a red circle in the center of the frame and a blue background.",
+              "inference_time": 0.24254488945007324
+            }
+          ]
+        }
+      ],
+      "load_time": 4.045290946960449,
+      "memory_before": 0.2855224609375,
+      "memory_after": 0.2864837646484375,
+      "memory_diff": 0.0009613037109375,
+      "memory_after_cleanup": 0.3870391845703125
+    }
+  },
+  "total_test_time": 274.6681909561157
+}

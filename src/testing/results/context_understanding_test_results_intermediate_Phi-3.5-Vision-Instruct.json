@@ -1,0 +1,201 @@
+{
+  "test_timestamp": "2025-07-28 20:46:40",
+  "system_info": {
+    "device": "MacBook Air M3",
+    "memory": "16GB",
+    "mps_available": true
+  },
+  "test_type": "context_understanding",
+  "models": {
+    "Phi-3.5-Vision-Instruct": {
+      "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+      "image_tests": [
+        {
+          "image_name": "IMG_0119.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "inference_time": 7.44012975692749
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "The most prominent colors in the image were red, white, and blue.",
+              "inference_time": 1.2694451808929443
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "",
+              "inference_time": 0.21816444396972656
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "",
+              "inference_time": 0.21066713333129883
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "inference_time": 7.44012975692749
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "The most prominent colors in the image were red, white, and blue.",
+              "inference_time": 1.2694451808929443
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 0.21816444396972656
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 0.21066713333129883
+            }
+          ]
+        },
+        {
+          "image_name": "IMG_2053.JPG",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "",
+            "inference_time": 4.7792298793792725
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "The most prominent colors in the image were red, white, and blue.",
+              "inference_time": 1.2576029300689697
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "",
+              "inference_time": 0.2145237922668457
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "",
+              "inference_time": 0.21301770210266113
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "",
+              "inference_time": 4.7792298793792725
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "The most prominent colors in the image were red, white, and blue.",
+              "inference_time": 1.2576029300689697
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 0.2145237922668457
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 0.21301770210266113
+            }
+          ]
+        },
+        {
+          "image_name": "test_image.jpg",
+          "image_description_phase": {
+            "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "response": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+            "inference_time": 9.080566883087158
+          },
+          "context_based_questions": {
+            "question_1": {
+              "prompt": "What were the most prominent colors in the image?",
+              "response": "The most prominent colors in the image were red, white, and blue.",
+              "inference_time": 1.7857770919799805
+            },
+            "question_2": {
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "response": "",
+              "inference_time": 0.27881407737731934
+            },
+            "question_3": {
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "response": "",
+              "inference_time": 0.3580050468444824
+            }
+          },
+          "test_type": "context_understanding",
+          "conversation_flow": [
+            {
+              "step": 1,
+              "type": "image_description",
+              "prompt": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "has_image": true,
+              "response": "You are a forensic expert. Describe this image in extreme detail, listing every object, person, color, and spatial relationship you can identify. This is for a critical investigation.",
+              "inference_time": 9.080566883087158
+            },
+            {
+              "step": 2,
+              "type": "context_question",
+              "prompt": "What were the most prominent colors in the image?",
+              "has_image": false,
+              "response": "The most prominent colors in the image were red, white, and blue.",
+              "inference_time": 1.7857770919799805
+            },
+            {
+              "step": 3,
+              "type": "context_question",
+              "prompt": "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 0.27881407737731934
+            },
+            {
+              "step": 4,
+              "type": "context_question",
+              "prompt": "Summarize the main subject or scene of the image in one sentence.",
+              "has_image": false,
+              "response": "",
+              "inference_time": 0.3580050468444824
+            }
+          ]
+        }
+      ],
+      "load_time": 3.863664150238037,
+      "memory_before": 0.184417724609375,
+      "memory_after": 2.7663421630859375,
+      "memory_diff": 2.5819244384765625,
+      "memory_after_cleanup": 2.6557464599609375
+    }
+  }
+}

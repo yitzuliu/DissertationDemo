@@ -61,6 +61,30 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
 
 ---
 
+## Latest Test Results Summary (Updated: 2025-07-28)
+
+### **Performance Rankings**
+
+| Model | Avg Inference (s) | Load Time (s) | Memory Diff (GB) | Status |
+|-------|------------------|---------------|------------------|--------|
+| **SmolVLM GGUF** | 🏆 **0.93** | 2.04 | 0.07 | ✅ **Fastest** |
+| **SmolVLM2-MLX** | 9.80 | 1.02 | 0.06 | ✅ **Fast & Accurate** |
+| **Phi-3.5-MLX** | 10.54 | 1.52 | 0.28 | ✅ **Balanced** |
+| **Moondream2** | 11.58 | 5.34 | -1.15 | ✅ **Best Overall** |
+| **LLaVA-MLX** | 21.93 | 2.17 | 0.46 | ⚠️ **Issues** |
+
+### **Context Understanding Results**
+
+| Model | Context Success Rate | Avg Context Time (s) | Notes |
+|-------|-------------------|---------------------|-------|
+| **SmolVLM GGUF** | 100% | ~0.9 | Best context retention, fastest |
+| **SmolVLM2-MLX** | 100% | ~6.2 | Consistent but generic answers |
+| **Moondream2** | 0% | ~5.9 | Vision-only, no context |
+| **LLaVA-MLX** | ~66% | ~19.5 | Incomplete, batch inference issues |
+| **Phi-3.5-MLX** | ~66% | ~6.9 | Incomplete answers |
+
+---
+
 ## How to Interpret Results
 - **test_results_*.json:**
   - Contains detailed timing, memory, and accuracy metrics for each model and test case on general image and text tasks (not VQA 2.0).
@@ -70,6 +94,26 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
   - Contains VQA accuracy and answer breakdowns for the COCO dataset (from the `../vqa/` folder).
 - **Intermediate files:**
   - Useful for debugging or tracking progress during long batch runs.
+
+---
+
+## Model Recommendations
+
+### **Best Overall Performance**
+- **Moondream2**: Best accuracy, balanced speed
+- **Use case**: General vision tasks, accuracy-critical applications
+
+### **Fastest Inference**
+- **SmolVLM GGUF**: Fastest inference (0.93s), stable, unified API
+- **Use case**: Speed-critical applications, production deployments
+
+### **Context Understanding**
+- **SmolVLM GGUF**: Best context retention, fastest context inference (~0.9s)
+- **Use case**: Multi-turn conversations, context-dependent tasks
+
+### **Avoid for Production**
+- **LLaVA-MLX**: Batch inference issues, poor performance, slow inference
+- **Use case**: Research only, not recommended for production
 
 ---
 
@@ -96,4 +140,4 @@ For questions, bug reports, or contributions, please refer to the main project R
 
 ---
 
-_Last updated: 2025-07-22_
+_Last updated: 2025-07-28_

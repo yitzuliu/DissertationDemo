@@ -1,0 +1,119 @@
+{
+  "test_timestamp": "2025-07-28 22:51:55",
+  "system_info": {
+    "device": "MacBook Air M3",
+    "memory": "16GB",
+    "mps_available": true
+  },
+  "models": {
+    "LLaVA-v1.6-Mistral-7B-MLX": {
+      "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+      "load_time": 1.8990209102630615,
+      "memory_before": 0.43896484375,
+      "memory_after": 1.3241729736328125,
+      "memory_diff": 0.8852081298828125,
+      "images": {
+        "IMG_0119.JPG": {
+          "inference_time": 5.988421201705933,
+          "response": "The image shows a person standing in front of a building. The person is wearing a dark-colored top and light-colored pants. They appear to be looking towards the building, which has a large, rectangular structure with a flat roof. The building has a prominent facade with a series of windows and a central entrance. The person is the only individual visible in the image. The style of the image is a straightforward, candid photograph, likely taken during the daytime given the natural lighting.",
+          "image_info": {
+            "original_size": [
+              960,
+              1707
+            ],
+            "processed_size": [
+              575,
+              1024
+            ],
+            "mode": "RGB",
+            "file_size": 222091
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        },
+        "IMG_2053.JPG": {
+          "inference_time": 7.05492377281189,
+          "response": "The image shows a person standing in front of a building. The person is wearing a dark-colored top and light-colored pants. They appear to be looking towards the building, which has a large, rectangular structure with a flat roof. The building has a prominent facade with a series of windows and a central entrance. The person is the only individual visible in the image. The style of the image is a straightforward, candid photograph, likely taken during the daytime given the natural lighting.",
+          "image_info": {
+            "original_size": [
+              3088,
+              2316
+            ],
+            "processed_size": [
+              1024,
+              768
+            ],
+            "mode": "RGB",
+            "file_size": 1834456
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        },
+        "test_image.jpg": {
+          "inference_time": 25.376718044281006,
+          "response": "The image shows a person standing in front of a building. The person is wearing a dark-colored top and light-colored pants. They appear to be looking towards the building, which has a large, rectangular structure with a flat roof. The building has a prominent facade with a series of windows and a central entrance. The person is the only individual visible in the image. The style of the image is a straightforward, candid photograph, likely taken during the daytime given the natural lighting.",
+          "image_info": {
+            "original_size": [
+              336,
+              336
+            ],
+            "processed_size": [
+              336,
+              336
+            ],
+            "mode": "RGB",
+            "file_size": 11823
+          },
+          "error": null,
+          "unified_test": true,
+          "generation_params": {
+            "max_new_tokens": 100,
+            "do_sample": false
+          },
+          "timeout_used": 180
+        }
+      },
+      "total_inference_time": 38.42006301879883,
+      "successful_inferences": 3,
+      "failed_inferences": 0,
+      "avg_inference_time": 12.806687672932943,
+      "text_only_capability": {
+        "text_only_supported": true,
+        "success_rate": 1.0,
+        "total_tests": 3,
+        "successful_tests": 3,
+        "results": {
+          "prompt_1": {
+            "prompt": "What is the capital of France?",
+            "response": "The capital of France is Paris.",
+            "inference_time": 0.972296953201294,
+            "success": true
+          },
+          "prompt_2": {
+            "prompt": "Explain the concept of machine learning in simple terms.",
+            "response": "Machine learning is a type of artificial intelligence that allows computer systems to automatically improve their performance based on data. Instead of being explicitly programmed, the system learns from the data it is given. This can include anything from recognizing patterns in images to predicting stock prices. The more data the system has, the better it can learn and make predictions or decisions.",
+            "inference_time": 4.143365144729614,
+            "success": true
+          },
+          "prompt_3": {
+            "prompt": "Write a short poem about technology.",
+            "response": "In the realm where the digital meets, Where the world is at our feet, Technology, oh technology, A world of wonder, a world of beauty. From the screens that light our way, To the devices that keep us at play, The world is at our fingertips, A world of knowledge, a world of tips. Through the lens of a camera's eye, We can see the world, both",
+            "inference_time": 5.442704916000366,
+            "success": true
+          }
+        }
+      },
+      "memory_after_cleanup": 0.310516357421875
+    }
+  }
+}
