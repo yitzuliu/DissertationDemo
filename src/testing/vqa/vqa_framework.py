@@ -37,6 +37,15 @@ except (ImportError, ValueError):
     # For direct script execution: python vqa_test.py
     from vlm.vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage
 
+# Add imports for SmolVLM GGUF support
+import requests
+import subprocess
+import base64
+import io
+import atexit
+import signal
+import psutil
+
 if __name__ == "__main__":
     print("[WARNING] vqa_framework.py is a library module and should not be run directly.\nPlease run vqa_test.py or use this module as an import.")
     import sys
@@ -101,8 +110,10 @@ class VQAFramework:
         # Model configuration (same as vlm_tester.py)
         self.models_config = {
             "smolvlm_instruct": {
-                "loader": VLMModelLoader.load_smolvlm_instruct,
-                "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct"
+                "loader": VLMModelLoader.load_smolvlm_gguf,
+                "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                "api_endpoint": "http://localhost:8080/v1/chat/completions",
+                "note": "GGUF version via HTTP API (consistent with production deployment)"
             },
             "smolvlm_v2_instruct": {
                 "loader": VLMModelLoader.load_smolvlm2_video,
@@ -127,9 +138,145 @@ class VQAFramework:
         # Image cache
         self.image_cache = {}
         
+        # Server process tracking for cleanup
+        self.server_process = None
+        
+        # Register cleanup handlers
+        atexit.register(self._cleanup_on_exit)
+        signal.signal(signal.SIGINT, self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
+        
         print(f"✅ VQA Framework initialized")
         print(f"   📁 Data directory: {self.data_dir}")
         print(f"   📊 Results directory: {self.results_dir}")
+    
+    def ensure_smolvlm_server(self):
+        """Ensure SmolVLM server is running (consistent with vlm_tester.py and vlm_context_tester.py)"""
+        print("🔄 Checking SmolVLM server status...")
+        
+        # Check if server is already running
+        try:
+            response = requests.get("http://localhost:8080/health", timeout=5)
+            if response.status_code == 200:
+                print("✅ SmolVLM server is already running")
+                return True
+        except requests.exceptions.RequestException:
+            pass
+        
+        # Check if port 8080 is occupied
+        try:
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('localhost', 8080))
+            sock.close()
+            
+            if result == 0:
+                print("⚠️ Port 8080 is occupied, attempting to close existing process...")
+                # Try to kill process on port 8080
+                try:
+                    result = subprocess.run(
+                        ["lsof", "-ti", ":8080"],
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+                    if result.returncode == 0 and result.stdout.strip():
+                        pids = result.stdout.strip().split('\n')
+                        for pid in pids:
+                            if pid.strip():
+                                print(f"🔄 Killing process {pid} on port 8080...")
+                                subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                                time.sleep(2)  # Wait for process to terminate
+                except Exception as e:
+                    print(f"⚠️ Failed to kill process on port 8080: {e}")
+        except Exception as e:
+            print(f"⚠️ Error checking port 8080: {e}")
+        
+        # Try to start server (up to 3 attempts) - consistent with vlm_tester.py
+        for attempt in range(1, 4):
+            print(f"🔄 Attempt {attempt}/3: Starting SmolVLM server...")
+            try:
+                # Start server in background
+                server_process = subprocess.Popen([
+                    sys.executable, "src/models/smolvlm/run_smolvlm.py"
+                ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                
+                # Track server process for cleanup
+                self.server_process = server_process
+                
+                # Wait for server to start (up to 30 seconds)
+                for i in range(30):
+                    time.sleep(2)
+                    try:
+                        response = requests.get("http://localhost:8080/health", timeout=5)
+                        if response.status_code == 200:
+                            print(f"✅ SmolVLM server started successfully on attempt {attempt}")
+                            return True
+                    except requests.exceptions.RequestException:
+                        continue
+                
+                # If we get here, server didn't start
+                print(f"❌ SmolVLM server failed to start on attempt {attempt}")
+                try:
+                    server_process.terminate()
+                    server_process.wait(timeout=5)
+                except:
+                    pass
+                    
+            except Exception as e:
+                print(f"❌ Error starting SmolVLM server on attempt {attempt}: {e}")
+        
+        print("❌ Failed to start SmolVLM server after 3 attempts")
+        return False
+    
+    def _cleanup_on_exit(self):
+        """Cleanup function called on program exit"""
+        print("\n🧹 Cleaning up VQA Framework resources...")
+        self._cleanup_smolvlm_server()
+        print("✅ VQA Framework cleanup completed")
+    
+    def _signal_handler(self, signum, frame):
+        """Handle interrupt signals (Ctrl+C)"""
+        print(f"\n⚠️ Received signal {signum}, cleaning up...")
+        self._cleanup_smolvlm_server()
+        sys.exit(0)
+    
+    def _cleanup_smolvlm_server(self):
+        """Clean up SmolVLM server process"""
+        try:
+            # Kill any process on port 8080
+            result = subprocess.run(
+                ["lsof", "-ti", ":8080"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                pids = result.stdout.strip().split('\n')
+                for pid in pids:
+                    if pid.strip():
+                        print(f"🔄 Killing SmolVLM server process {pid}...")
+                        try:
+                            subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                            time.sleep(1)
+                        except Exception as e:
+                            print(f"⚠️ Failed to kill process {pid}: {e}")
+                
+                # Verify cleanup
+                time.sleep(2)
+                try:
+                    response = requests.get("http://localhost:8080/health", timeout=2)
+                    if response.status_code == 200:
+                        print("⚠️ SmolVLM server still running, attempting force kill...")
+                        subprocess.run(["pkill", "-f", "run_smolvlm.py"], timeout=10)
+                except requests.exceptions.RequestException:
+                    print("✅ SmolVLM server successfully stopped")
+        except Exception as e:
+            print(f"⚠️ Error during server cleanup: {e}")
+    
+    def cleanup(self):
+        """Manual cleanup method"""
+        self._cleanup_smolvlm_server()
     
     def download_vqa_data(self):
         """Download VQA 2.0 dataset"""
@@ -483,9 +630,24 @@ class VQAFramework:
             print("📥 Loading model...")
             model_loader = self.models_config[model_name]["loader"]
             load_start = time.time()
-            model, processor = model_loader()
+            load_result = model_loader()
             load_time = time.time() - load_start
-            print(f"✅ Model loaded in {load_time:.2f}s")
+            
+            # Handle different return types
+            if isinstance(load_result, tuple) and len(load_result) == 2:
+                if load_result[0] == "smolvlm_gguf":
+                    # GGUF model via HTTP API
+                    model = {"type": "smolvlm_gguf", "api_endpoint": load_result[1]}
+                    processor = None
+                    print(f"✅ SmolVLM GGUF model ready via HTTP API in {load_time:.2f}s")
+                else:
+                    # Standard model
+                    model, processor = load_result
+                    print(f"✅ Model loaded in {load_time:.2f}s")
+            else:
+                # Fallback for other return types
+                model, processor = load_result, None
+                print(f"✅ Model loaded in {load_time:.2f}s")
             
             # Record memory usage
             memory_info = get_memory_usage()
@@ -500,7 +662,11 @@ class VQAFramework:
             
             # Clean up model memory
             print("Cleaning up model memory...")
-            clear_model_memory(model, processor)
+            if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
+                # GGUF model doesn't need memory cleanup
+                print("  ℹ️ SmolVLM GGUF model (HTTP API) - no memory cleanup needed")
+            else:
+                clear_model_memory(model, processor)
             
             return results
             
@@ -831,115 +997,155 @@ class VQAFramework:
                     return f"MLX-VLM inference failed: {str(e)}"
                     
             elif "smolvlm" in model_name.lower():
-                # SmolVLM processing
-                # 檢查是否為 MLX 模型
-                if hasattr(model, '_is_mlx_model'):
-                    # MLX 版本的 SmolVLM2 推理 - 使用 subprocess 方式（與 vlm_tester.py 和 vlm_context_tester.py 一致）
+                # SmolVLM processing - unified GGUF HTTP API approach
+                if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
+                    # GGUF model via HTTP API (consistent with vlm_tester.py and vlm_context_tester.py)
                     try:
-                        import subprocess
-                        import tempfile
+                        print("  🚀 Using SmolVLM GGUF via HTTP API...")
                         
-                        print("  🚀 Using MLX-VLM command line for SmolVLM2...")
+                        # Convert image to base64
+                        img_buffer = io.BytesIO()
+                        image.save(img_buffer, format='JPEG')
+                        img_str = base64.b64encode(img_buffer.getvalue()).decode()
                         
-                        # 創建臨時圖像文件
-                        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
-                            temp_image_path = tmp_file.name
-                            image.save(temp_image_path)
-                        
-                        try:
-                            # 使用 MLX-VLM 命令行工具
-                            cmd = [
-                                sys.executable, '-m', 'mlx_vlm.generate',
-                                '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
-                                '--image', temp_image_path,
-                                '--prompt', question,
-                                '--max-tokens', str(unified_generation_params["max_new_tokens"]),
-                                '--temperature', '0.0'
-                            ]
-                            
-                            result = subprocess.run(
-                                cmd,
-                                capture_output=True,
-                                text=True,
-                                timeout=60
-                            )
-                            
-                            if result.returncode == 0:
-                                # 解析輸出，提取生成的文本
-                                output_lines = result.stdout.split('\n')
-                                generated_text = ""
-                                
-                                # 保留完整的 Assistant 回覆
-                                for i, line in enumerate(output_lines):
-                                    line = line.strip()
-                                    if line.startswith('Assistant:'):
-                                        # 找到 Assistant 行
-                                        generated_text = line
-                                        # 檢查下一行是否有內容
-                                        if i + 1 < len(output_lines):
-                                            next_line = output_lines[i + 1].strip()
-                                            if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
-                                                # 下一行有內容，組合兩行
-                                                generated_text = f"{line} {next_line}"
-                                        break
-                                    elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
-                                        # 找到其他非系統信息的內容行
-                                        if not generated_text:
-                                            generated_text = line
-                                
-                                return generated_text
-                            else:
-                                print(f"  ⚠️ MLX-VLM command failed: {result.stderr}")
-                                raise Exception(f"MLX-VLM command failed: {result.stderr}")
-                                
-                        finally:
-                            # 清理臨時文件
-                            if os.path.exists(temp_image_path):
-                                os.remove(temp_image_path)
-                        
-                    except Exception as e:
-                        print(f"  ⚠️ MLX-VLM SmolVLM2 inference failed: {e}")
-                        # Fallback to standard SmolVLM method
-                        print("  📥 Falling back to standard SmolVLM method...")
-                        messages = [
-                            {
-                                "role": "user", 
-                                "content": [
-                                    {"type": "image", "image": image},
-                                    {"type": "text", "text": question}
-                                ]
-                            }
-                        ]
-                        input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                        inputs = processor(text=input_text, images=image, return_tensors="pt")
-                        with torch.no_grad():
-                            generated_ids = model.generate(**inputs, **unified_generation_params)
-                        response = processor.decode(generated_ids[0], skip_special_tokens=True)
-                        
-                        # Extract answer - remove input text
-                        answer = response.replace(input_text, "").strip()
-                        return self._extract_answer(answer, model_name, question)
-                else:
-                    # 標準 SmolVLM 推理方式
-                    messages = [
-                        {
-                            "role": "user", 
-                            "content": [
-                                {"type": "image", "image": image},
-                                {"type": "text", "text": question}
-                            ]
+                        # Prepare OpenAI-compatible payload
+                        payload = {
+                            "model": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {
+                                            "type": "image_url",
+                                            "image_url": {
+                                                "url": f"data:image/jpeg;base64,{img_str}"
+                                            }
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": question
+                                        }
+                                    ]
+                                }
+                            ],
+                            "max_tokens": unified_generation_params["max_new_tokens"],
+                            "temperature": 0.0
                         }
-                    ]
-                    input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                    inputs = processor(text=input_text, images=image, return_tensors="pt")
-                    
-                    with torch.no_grad():
-                        generated_ids = model.generate(**inputs, **unified_generation_params)
-                        response = processor.decode(generated_ids[0], skip_special_tokens=True)
-                    
-                    # Extract answer - remove input text
-                    answer = response.replace(input_text, "").strip()
-                    return self._extract_answer(answer, model_name, question)
+                        
+                        # Send request to SmolVLM server
+                        response = requests.post(
+                            model["api_endpoint"],
+                            json=payload,
+                            timeout=60
+                        )
+                        
+                        if response.status_code == 200:
+                            result = response.json()
+                            if "choices" in result and len(result["choices"]) > 0:
+                                content = result["choices"][0]["message"]["content"]
+                                return content.strip()
+                            else:
+                                return "No response content received"
+                        else:
+                            return f"HTTP error: {response.status_code}"
+                            
+                    except Exception as e:
+                        print(f"  ⚠️ SmolVLM GGUF inference failed: {e}")
+                        return f"SmolVLM GGUF inference error: {str(e)}"
+                else:
+                    # Fallback for other SmolVLM versions (SmolVLM2, etc.)
+                    if hasattr(model, '_is_mlx_model'):
+                        # MLX 版本的 SmolVLM2 推理 - 使用 subprocess 方式
+                        try:
+                            import subprocess
+                            import tempfile
+                            
+                            print("  🚀 Using MLX-VLM command line for SmolVLM2...")
+                            
+                            # 創建臨時圖像文件
+                            with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                                temp_image_path = tmp_file.name
+                                image.save(temp_image_path)
+                            
+                            try:
+                                # 使用 MLX-VLM 命令行工具
+                                cmd = [
+                                    sys.executable, '-m', 'mlx_vlm.generate',
+                                    '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
+                                    '--image', temp_image_path,
+                                    '--prompt', question,
+                                    '--max-tokens', str(unified_generation_params["max_new_tokens"]),
+                                    '--temperature', '0.0'
+                                ]
+                                
+                                result = subprocess.run(
+                                    cmd,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=60
+                                )
+                                
+                                if result.returncode == 0:
+                                    # 解析輸出，提取生成的文本
+                                    output_lines = result.stdout.split('\n')
+                                    generated_text = ""
+                                    
+                                    # 保留完整的 Assistant 回覆
+                                    for i, line in enumerate(output_lines):
+                                        line = line.strip()
+                                        if line.startswith('Assistant:'):
+                                            # 找到 Assistant 行
+                                            generated_text = line
+                                            # 檢查下一行是否有內容
+                                            if i + 1 < len(output_lines):
+                                                next_line = output_lines[i + 1].strip()
+                                                if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                                    # 下一行有內容，組合兩行
+                                                    generated_text = f"{line} {next_line}"
+                                            break
+                                        elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
+                                            # 找到其他非系統信息的內容行
+                                            if not generated_text:
+                                                generated_text = line
+                                    
+                                    return generated_text
+                                else:
+                                    print(f"  ⚠️ MLX-VLM command failed: {result.stderr}")
+                                    raise Exception(f"MLX-VLM command failed: {result.stderr}")
+                                    
+                            finally:
+                                # 清理臨時文件
+                                if os.path.exists(temp_image_path):
+                                    os.remove(temp_image_path)
+                            
+                        except Exception as e:
+                            print(f"  ⚠️ MLX-VLM SmolVLM2 inference failed: {e}")
+                            return f"MLX-VLM SmolVLM2 inference error: {str(e)}"
+                    else:
+                        # 標準 SmolVLM 推理方式
+                        try:
+                            messages = [
+                                {
+                                    "role": "user", 
+                                    "content": [
+                                        {"type": "image", "image": image},
+                                        {"type": "text", "text": question}
+                                    ]
+                                }
+                            ]
+                            input_text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                            inputs = processor(text=input_text, images=image, return_tensors="pt")
+                            
+                            with torch.no_grad():
+                                generated_ids = model.generate(**inputs, **unified_generation_params)
+                                response = processor.decode(generated_ids[0], skip_special_tokens=True)
+                            
+                            # Extract answer - remove input text
+                            answer = response.replace(input_text, "").strip()
+                            return self._extract_answer(answer, model_name, question)
+                        except Exception as e:
+                            print(f"  ⚠️ Standard SmolVLM inference failed: {e}")
+                            return f"Standard SmolVLM inference error: {str(e)}"
                 
             else:
                 # Generic processing for other models

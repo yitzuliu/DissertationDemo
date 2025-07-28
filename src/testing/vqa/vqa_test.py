@@ -171,10 +171,21 @@ def main():
         print(f"\n⏱️ Total test time: {total_time:.1f}s")
         print(f"\n✅ VQA 2.0 testing completed successfully!")
         
+        # Cleanup before exit
+        try:
+            framework.cleanup()
+        except Exception as e:
+            print(f"⚠️ Cleanup warning: {e}")
+        
         return 0
         
     except KeyboardInterrupt:
         print(f"\n\n⏹️ Testing interrupted by user")
+        # Cleanup on interrupt
+        try:
+            framework.cleanup()
+        except Exception as e:
+            print(f"⚠️ Cleanup warning: {e}")
         return 1
     except Exception as e:
         print(f"\n❌ Testing failed: {str(e)}")
@@ -186,6 +197,13 @@ def main():
         print("2. Verify model file integrity")
         print("3. Check data directory permissions")
         print("4. Use --verbose to see detailed error information")
+        
+        # Cleanup on error
+        try:
+            framework.cleanup()
+        except Exception as cleanup_error:
+            print(f"⚠️ Cleanup warning: {cleanup_error}")
+        
         return 1
 
 if __name__ == "__main__":

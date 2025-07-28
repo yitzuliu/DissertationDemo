@@ -40,7 +40,7 @@ class Stage31TestRunner:
             "tests": {},
             "summary": {}
         }
-        
+    
     async def run_startup_tests(self) -> Dict[str, Any]:
         """Run service startup tests"""
         logger.info("🚀 Running service startup tests...")
@@ -82,10 +82,10 @@ class Stage31TestRunner:
             "stage": "3.1",
             "title": "Stage 3.1: Service Communication Verification and Startup Testing",
             "summary": {
-                "total_tests": total_tests,
-                "passed_tests": passed_tests,
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
                 "failed_tests": total_tests - passed_tests,
-                "success_rate": f"{(passed_tests/total_tests*100):.1f}%" if total_tests > 0 else "0%",
+            "success_rate": f"{(passed_tests/total_tests*100):.1f}%" if total_tests > 0 else "0%",
                 "overall_status": "PASS" if passed_tests == total_tests else "FAIL"
             },
             "test_details": all_tests,
@@ -97,7 +97,7 @@ class Stage31TestRunner:
                 "python_version": sys.version,
                 "platform": sys.platform,
                 "working_directory": str(Path.cwd())
-            }
+        }
         }
         
         return comprehensive_report
@@ -218,11 +218,11 @@ class Stage31TestRunner:
         
         logger.info("\n⚠️ Issues Identified:")
         for issue in report["issues"]:
-            logger.info(f"   {issue}")
+                logger.info(f"   {issue}")
         
         logger.info("\n🎯 Next Steps:")
         for step in report["next_steps"][:3]:  # Show first 3
-            logger.info(f"   {step}")
+                logger.info(f"   {step}")
         
         if len(report["next_steps"]) > 3:
             logger.info(f"   ... and {len(report['next_steps']) - 3} more steps")

@@ -23,6 +23,11 @@ import json
 import gc
 import psutil
 import traceback
+import requests
+import subprocess
+import base64
+import io
+import atexit
 import torch
 from datetime import datetime
 from pathlib import Path
@@ -51,6 +56,107 @@ def clear_model_memory(model, processor):
     if torch.backends.mps.is_available():
         torch.mps.empty_cache()
     time.sleep(2)
+
+def ensure_smolvlm_server():
+    """Ensure SmolVLM server is running"""
+    print("🔄 Checking SmolVLM server status...")
+    
+    # First check if server is already running
+    try:
+        response = requests.get("http://localhost:8080/health", timeout=5)
+        if response.status_code == 200:
+            print("✅ SmolVLM server is already running")
+            return True
+    except requests.exceptions.RequestException:
+        pass
+    
+    # Check if port 8080 is occupied
+    try:
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('localhost', 8080))
+        sock.close()
+        
+        if result == 0:
+            print("⚠️ Port 8080 is occupied, attempting to close existing process...")
+            # Try to kill process on port 8080
+            try:
+                result = subprocess.run(
+                    ["lsof", "-ti", ":8080"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    pids = result.stdout.strip().split('\n')
+                    for pid in pids:
+                        if pid.strip():
+                            print(f"🔄 Killing process {pid} on port 8080...")
+                            subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                            time.sleep(2)  # Wait for process to terminate
+            except Exception as e:
+                print(f"⚠️ Failed to kill process on port 8080: {e}")
+    except Exception as e:
+        print(f"⚠️ Error checking port 8080: {e}")
+    
+    # Try to start server (up to 3 attempts)
+    for attempt in range(1, 4):
+        print(f"🔄 Attempt {attempt}/3: Starting SmolVLM server...")
+        try:
+            # Start server in background
+            server_process = subprocess.Popen([
+                sys.executable, "src/models/smolvlm/run_smolvlm.py"
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            # Wait for server to start (up to 30 seconds)
+            for i in range(30):
+                time.sleep(2)
+                try:
+                    response = requests.get("http://localhost:8080/health", timeout=5)
+                    if response.status_code == 200:
+                        print(f"✅ SmolVLM server started successfully on attempt {attempt}")
+                        return True
+                except requests.exceptions.RequestException:
+                    continue
+            
+            # If we get here, server didn't start
+            print(f"❌ SmolVLM server failed to start on attempt {attempt}")
+            try:
+                server_process.terminate()
+                server_process.wait(timeout=5)
+            except:
+                pass
+                
+        except Exception as e:
+            print(f"❌ Error starting SmolVLM server on attempt {attempt}: {e}")
+    
+    print("❌ Failed to start SmolVLM server after 3 attempts")
+    return False
+
+def cleanup_smolvlm_server():
+    """Clean up SmolVLM server process on exit"""
+    try:
+        # Kill any process on port 8080
+        result = subprocess.run(
+            ["lsof", "-ti", ":8080"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            pids = result.stdout.strip().split('\n')
+            for pid in pids:
+                if pid.strip():
+                    print(f"🔄 Cleaning up SmolVLM server process {pid}...")
+                    try:
+                        subprocess.run(["kill", "-9", pid.strip()], timeout=10)
+                    except Exception as e:
+                        print(f"⚠️ Failed to kill process {pid}: {e}")
+    except Exception as e:
+        print(f"⚠️ Error during server cleanup: {e}")
+
+# Register cleanup function
+atexit.register(cleanup_smolvlm_server)
 
 class TimeoutError(Exception):
     """Custom timeout exception"""
@@ -86,6 +192,18 @@ class VLMModelLoader:
     """VLM Model Loader - Consistent with vlm_tester.py"""
     
     @staticmethod
+    def load_smolvlm_gguf(model_id="ggml-org/SmolVLM-500M-Instruct-GGUF"):
+        """Load SmolVLM GGUF version via HTTP API"""
+        print(f"Loading SmolVLM GGUF version via HTTP API...")
+        
+        # Ensure server is running
+        if not ensure_smolvlm_server():
+            raise RuntimeError("SmolVLM server is not available")
+        
+        print("✅ SmolVLM GGUF server is ready")
+        return "smolvlm_gguf", "http://localhost:8080/v1/chat/completions"
+    
+    @staticmethod
     def load_smolvlm2_video(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
         """Load SmolVLM2-500M-Video-Instruct (prefer MLX version)"""
         print(f"Loading SmolVLM2-500M-Video-Instruct (prefer MLX version)...")
@@ -99,27 +217,28 @@ class VLMModelLoader:
         except ImportError as e:
             print("MLX-VLM not installed, using original SmolVLM2 model...")
             print("Please run: pip install mlx-vlm")
-            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            # Fallback to original SmolVLM2 model
             from transformers import AutoProcessor, AutoModelForImageTextToText
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
             processor = AutoProcessor.from_pretrained(fallback_model_id)
             model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
             return model, processor
         except Exception as e:
             print(f"MLX-VLM loading failed: {str(e)}")
             print("Using original SmolVLM2 model as fallback...")
-            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+            # Fallback to original SmolVLM2 model
             from transformers import AutoProcessor, AutoModelForImageTextToText
+            fallback_model_id = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
             processor = AutoProcessor.from_pretrained(fallback_model_id)
             model = AutoModelForImageTextToText.from_pretrained(fallback_model_id)
             return model, processor
     
     @staticmethod
     def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
-        from transformers import AutoProcessor, AutoModelForVision2Seq
-        print(f"Loading {model_id}...")
-        processor = AutoProcessor.from_pretrained(model_id)
-        model = AutoModelForVision2Seq.from_pretrained(model_id)
-        return model, processor
+        """Load SmolVLM-500M-Instruct (DEPRECATED - Use GGUF version instead)"""
+        print(f"⚠️ DEPRECATED: {model_id} - Use SmolVLM GGUF version instead")
+        print("🔄 Redirecting to SmolVLM GGUF version...")
+        return VLMModelLoader.load_smolvlm_gguf()
     
     @staticmethod
     def load_moondream2(model_id="vikhyatk/moondream2"):
@@ -212,7 +331,13 @@ class VLMContextTester:
         
         # Model configuration for context understanding tests (same as vlm_tester.py)
         self.models_config = {
-            "SmolVLM2-500M-Video-Instruct": { 
+            "SmolVLM-500M-Instruct": {
+                "loader": VLMModelLoader.load_smolvlm_gguf,  # Changed to GGUF version
+                "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                "api_endpoint": "http://localhost:8080/v1/chat/completions",
+                "note": "GGUF version via HTTP API (consistent with production deployment)"
+            },
+            "SmolVLM2-500M-Video-Instruct": {
                 "loader": VLMModelLoader.load_smolvlm2_video, 
                 "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
                 "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
@@ -294,7 +419,18 @@ class VLMContextTester:
         
         try:
             start_time = time.time()
-            model, processor = config["loader"]()
+            load_result = config["loader"]()
+            
+            # Handle different return types
+            if len(load_result) == 2 and isinstance(load_result[0], str) and load_result[0] == "smolvlm_gguf":
+                # SmolVLM GGUF returns (model_type, api_endpoint)
+                model_type, api_endpoint = load_result
+                model = {"type": model_type, "api_endpoint": api_endpoint}
+                processor = None
+            else:
+                # Other models return (model, processor)
+                model, processor = load_result
+            
             load_time = time.time() - start_time
             
             memory_after = get_memory_usage()
@@ -326,7 +462,11 @@ class VLMContextTester:
         
         finally:
             if 'model' in locals():
-                clear_model_memory(model, processor)
+                if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
+                    # GGUF model doesn't need memory cleanup
+                    print("  💾 GGUF model - no memory cleanup needed")
+                else:
+                    clear_model_memory(model, processor)
                 memory_after_cleanup = get_memory_usage()
                 print(f"Memory after cleanup: {memory_after_cleanup:.2f} GB")
                 model_results["memory_after_cleanup"] = memory_after_cleanup
@@ -455,8 +595,64 @@ class VLMContextTester:
                 # Branch 1: Standard Transformers models (e.g., SmolVLM) - IMPROVED
                 # --------------------------------------------------------------------------
                 if "SmolVLM" in model_name:
+                    # Check if it is a GGUF model
+                    if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
+                        # SmolVLM GGUF via HTTP API
+                        print("  🚀 Using SmolVLM GGUF HTTP API...")
+                        
+                        if image is not None:
+                            # Preprocess image to base64
+                            buffer = io.BytesIO()
+                            image.save(buffer, format='JPEG', quality=95)
+                            image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+                            
+                            # Create API request payload with image
+                            payload = {
+                                "model": "SmolVLM",
+                                "messages": [
+                                    {
+                                        "role": "user",
+                                        "content": [
+                                            {"type": "text", "text": prompt},
+                                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                                        ]
+                                    }
+                                ],
+                                "temperature": 0.0,
+                                "max_tokens": self.unified_max_tokens,
+                            }
+                        else:
+                            # Text-only inference
+                            payload = {
+                                "model": "SmolVLM",
+                                "messages": [
+                                    {
+                                        "role": "user",
+                                        "content": [
+                                            {"type": "text", "text": prompt}
+                                        ]
+                                    }
+                                ],
+                                "temperature": 0.0,
+                                "max_tokens": self.unified_max_tokens,
+                            }
+                        
+                        # Make API call
+                        api_response = requests.post(
+                            model["api_endpoint"],
+                            headers={"Content-Type": "application/json"},
+                            json=payload,
+                            timeout=timeout_seconds
+                        )
+                        
+                        if api_response.status_code == 200:
+                            response_json = api_response.json()
+                            response = response_json["choices"][0]["message"]["content"]
+                        else:
+                            raise Exception(f"API Error {api_response.status_code}: {api_response.text}")
+                            
                     # Check if it is an MLX model
-                    if hasattr(model, '_is_mlx_model'):
+                    elif hasattr(model, '_is_mlx_model'):
                         # MLX version of SmolVLM2 inference
                         try:
                             import subprocess
