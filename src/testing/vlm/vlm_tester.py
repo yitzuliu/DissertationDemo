@@ -12,11 +12,6 @@ import gc
 import signal
 import threading
 import psutil
-import requests
-import subprocess
-import base64
-import io
-import atexit
 from datetime import datetime
 from pathlib import Path
 from PIL import Image
@@ -35,56 +30,14 @@ def get_memory_usage():
     memory_info = process.memory_info()
     return memory_info.rss / (1024 ** 3)  # Convert to GB
 
-def clear_model_memory(model, processor, model_name=None):
-    """Clear model memory with enhanced cleanup including MLX-specific cleanup"""
+def clear_model_memory(model, processor):
+    """Clear model memory"""
     print("Clearing model memory...")
-    try:
-        # Clear model and processor
-        del model, processor
-        
-        # Force garbage collection
-        gc.collect()
-        
-        # Clear Metal GPU cache if available
-        if torch.backends.mps.is_available():
-            torch.mps.empty_cache()
-        
-        # Clear CUDA cache if available
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        
-        # 💡 NEW: MLX-specific memory cleanup
-        try:
-            import mlx.core as mx
-            # Clear MLX memory cache
-            mx.eval(mx.zeros((1, 1)))  # Force MLX to clear any cached operations
-            print("  🔧 MLX memory cache cleared")
-        except ImportError:
-            pass  # MLX not available
-        except Exception as e:
-            print(f"  ⚠️ MLX cleanup warning: {e}")
-        
-        # 💡 NEW: Additional cleanup for MLX-VLM models
-        if model_name and ("MLX" in model_name or "Phi-3.5" in model_name):
-            try:
-                # Force additional garbage collection for MLX models
-                gc.collect()
-                gc.collect()  # Double collection for MLX models
-                
-                # Additional sleep for MLX models
-                time.sleep(3)
-                print("  🔧 Enhanced cleanup for MLX model completed")
-            except Exception as e:
-                print(f"  ⚠️ Enhanced MLX cleanup warning: {e}")
-        
-        # Allow system to clean up memory
-        time.sleep(2)
-        
-        print("✅ Model memory cleared successfully")
-        
-    except Exception as e:
-        print(f"⚠️ Warning during memory cleanup: {e}")
-        # Continue anyway to avoid blocking the test
+    del model, processor
+    gc.collect()
+    if torch.backends.mps.is_available():
+        torch.mps.empty_cache()
+    time.sleep(2)  # Allow system to clean up memory
 
 class TimeoutError(Exception):
     """Timeout error"""
@@ -115,122 +68,9 @@ def run_with_timeout(func, timeout_seconds=120):
     
     return result[0] if result else None
 
-def ensure_smolvlm_server():
-    """Ensure SmolVLM server is running"""
-    print("🔄 Checking SmolVLM server status...")
-    
-    # First check if server is already running
-    try:
-        response = requests.get("http://localhost:8080/health", timeout=5)
-        if response.status_code == 200:
-            print("✅ SmolVLM server is already running")
-            return True
-    except requests.exceptions.RequestException:
-        pass
-    
-    # Check if port 8080 is occupied
-    try:
-        import socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex(('localhost', 8080))
-        sock.close()
-        
-        if result == 0:
-            print("⚠️ Port 8080 is occupied, attempting to close existing process...")
-            # Try to kill process on port 8080
-            try:
-                result = subprocess.run(
-                    ["lsof", "-ti", ":8080"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    pids = result.stdout.strip().split('\n')
-                    for pid in pids:
-                        if pid.strip():
-                            print(f"🔄 Killing process {pid} on port 8080...")
-                            subprocess.run(["kill", "-9", pid.strip()], timeout=10)
-                            time.sleep(2)  # Wait for process to terminate
-            except Exception as e:
-                print(f"⚠️ Failed to kill process on port 8080: {e}")
-    except Exception as e:
-        print(f"⚠️ Error checking port 8080: {e}")
-    
-    # Try to start server (up to 3 attempts)
-    for attempt in range(1, 4):
-        print(f"🔄 Attempt {attempt}/3: Starting SmolVLM server...")
-        try:
-            # Start server in background
-            server_process = subprocess.Popen([
-                sys.executable, "src/models/smolvlm/run_smolvlm.py"
-            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
-            # Wait for server to start (up to 30 seconds)
-            for i in range(30):
-                time.sleep(2)
-                try:
-                    response = requests.get("http://localhost:8080/health", timeout=5)
-                    if response.status_code == 200:
-                        print(f"✅ SmolVLM server started successfully on attempt {attempt}")
-                        return True
-                except requests.exceptions.RequestException:
-                    continue
-            
-            # If we get here, server didn't start
-            print(f"❌ SmolVLM server failed to start on attempt {attempt}")
-            try:
-                server_process.terminate()
-                server_process.wait(timeout=5)
-            except:
-                pass
-                
-        except Exception as e:
-            print(f"❌ Error starting SmolVLM server on attempt {attempt}: {e}")
-    
-    print("❌ Failed to start SmolVLM server after 3 attempts")
-    return False
-
-def cleanup_smolvlm_server():
-    """Clean up SmolVLM server process on exit"""
-    try:
-        # Kill any process on port 8080
-        result = subprocess.run(
-            ["lsof", "-ti", ":8080"],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            pids = result.stdout.strip().split('\n')
-            for pid in pids:
-                if pid.strip():
-                    print(f"🔄 Cleaning up SmolVLM server process {pid}...")
-                    try:
-                        subprocess.run(["kill", "-9", pid.strip()], timeout=10)
-                    except Exception as e:
-                        print(f"⚠️ Failed to kill process {pid}: {e}")
-    except Exception as e:
-        print(f"⚠️ Error during server cleanup: {e}")
-
-# Register cleanup function
-atexit.register(cleanup_smolvlm_server)
-
 # Model Loader Class
 class VLMModelLoader:
     """VLM Model Loader - Implements based on active_model.md"""
-    
-    @staticmethod
-    def load_smolvlm_gguf(model_id="ggml-org/SmolVLM-500M-Instruct-GGUF"):
-        """Load SmolVLM GGUF version via HTTP API"""
-        print(f"Loading SmolVLM GGUF version via HTTP API...")
-        
-        # Ensure server is running
-        if not ensure_smolvlm_server():
-            raise RuntimeError("SmolVLM server is not available")
-        
-        print("✅ SmolVLM GGUF server is ready")
-        return "smolvlm_gguf", "http://localhost:8080/v1/chat/completions"
     
     @staticmethod
     def load_smolvlm2_video(model_id="mlx-community/SmolVLM2-500M-Video-Instruct-mlx"):
@@ -303,10 +143,11 @@ class VLMModelLoader:
     
     @staticmethod
     def load_smolvlm_instruct(model_id="HuggingFaceTB/SmolVLM-500M-Instruct"):
-        """Load SmolVLM-500M-Instruct (DEPRECATED - Use GGUF version instead)"""
-        print(f"⚠️ DEPRECATED: {model_id} - Use SmolVLM GGUF version instead")
-        print("🔄 Redirecting to SmolVLM GGUF version...")
-        return VLMModelLoader.load_smolvlm_gguf()
+        """Load SmolVLM-500M-Instruct"""
+        print(f"Loading {model_id}...")
+        processor = AutoProcessor.from_pretrained(model_id)
+        model = AutoModelForVision2Seq.from_pretrained(model_id)
+        return model, processor
     
     @staticmethod
     def load_moondream2(model_id="vikhyatk/moondream2"):
@@ -427,10 +268,8 @@ class VLMTester:
                 "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX-VLM not available or incompatible"
             },
             "SmolVLM-500M-Instruct": {
-                "loader": VLMModelLoader.load_smolvlm_gguf,  # Changed to GGUF version
-                "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
-                "api_endpoint": "http://localhost:8080/v1/chat/completions",
-                "note": "GGUF version via HTTP API (consistent with production deployment)"
+                "loader": VLMModelLoader.load_smolvlm_instruct,
+                "model_id": "HuggingFaceTB/SmolVLM-500M-Instruct"
             },
             "Moondream2": {
                 "loader": VLMModelLoader.load_moondream2,
@@ -491,14 +330,6 @@ class VLMTester:
         memory_before = get_memory_usage()
         print(f"Memory usage before loading: {memory_before:.2f} GB")
         
-        # 💡 FIX: Memory protection for LLaVA-MLX
-        if "LLaVA-v1.6-Mistral-7B-MLX" in model_name:
-            print("⚠️ LLaVA-MLX detected - enabling memory protection mode")
-            # Force garbage collection before loading
-            gc.collect()
-            if torch.backends.mps.is_available():
-                torch.mps.empty_cache()
-        
         # Load model
         start_time = time.time()
         try:
@@ -510,11 +341,6 @@ class VLMTester:
                 model, processor, config = load_result
                 # Store config in model object for later use
                 model._mlx_config = config
-            elif len(load_result) == 2 and isinstance(load_result[0], str) and load_result[0] == "smolvlm_gguf":
-                # SmolVLM GGUF returns (model_type, api_endpoint)
-                model_type, api_endpoint = load_result
-                model = {"type": model_type, "api_endpoint": api_endpoint}
-                processor = None
             else:
                 # Other models return (model, processor) - CURRENT VERSION
                 model, processor = load_result
@@ -551,9 +377,11 @@ class VLMTester:
             # Test each image
             for image_path in test_images:
                 try:
-                    # 💡 FIX: Only reload LLaVA-MLX for the first image, not every image
-                    if "LLaVA-v1.6-Mistral-7B-MLX" in model_name and test_images.index(image_path) == 0:
-                        print("  >> LLaVA-MLX: Initial model load completed")
+                    # For LLaVA-MLX, reload the model for each image to avoid state bug
+                    if "LLaVA-v1.6-Mistral-7B-MLX" in model_name:
+                        print("  >> LLaVA-MLX: Reloading model to clear state...")
+                        clear_model_memory(model, processor)
+                        model, processor = self.models_config[model_name]["loader"]()
 
                     image_result = self.test_single_image(model, processor, image_path, model_name)
                     model_results["images"][image_path.name] = image_result
@@ -632,11 +460,7 @@ class VLMTester:
         
         # Clear model memory
         if model_name != "LLaVA-v1.6-Mistral-7B-MLX": # Already cleaned inside loop
-            if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
-                # GGUF model doesn't need memory cleanup
-                print("  💾 GGUF model - no memory cleanup needed")
-            else:
-                clear_model_memory(model, processor, model_name)
+            clear_model_memory(model, processor)
         
         # Check memory cleanup effect
         memory_after_cleanup = get_memory_usage()
@@ -846,46 +670,7 @@ class VLMTester:
                             return str(response)
                 elif "SmolVLM" in model_name:
                     # SmolVLM optimized method
-                    if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
-                        # SmolVLM GGUF via HTTP API
-                        print("  🚀 Using SmolVLM GGUF HTTP API...")
-                        
-                        # Preprocess image to base64
-                        buffer = io.BytesIO()
-                        image.save(buffer, format='JPEG', quality=95)
-                        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-                        
-                        # Create API request payload
-                        payload = {
-                            "model": "SmolVLM",
-                            "messages": [
-                                {
-                                    "role": "user",
-                                    "content": [
-                                        {"type": "text", "text": self.prompt},
-                                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
-                                    ]
-                                }
-                            ],
-                            "temperature": 0.0,
-                            "max_tokens": unified_generation_params["max_new_tokens"],
-                        }
-                        
-                        # Make API call
-                        response = requests.post(
-                            model["api_endpoint"],
-                            headers={"Content-Type": "application/json"},
-                            json=payload,
-                            timeout=timeout_seconds
-                        )
-                        
-                        if response.status_code == 200:
-                            response_json = response.json()
-                            return response_json["choices"][0]["message"]["content"]
-                        else:
-                            raise Exception(f"API Error {response.status_code}: {response.text}")
-                            
-                    elif "MLX" in model_name or hasattr(model, '_is_mlx_model'):
+                    if "MLX" in model_name or hasattr(model, '_is_mlx_model'):
                         # MLX version SmolVLM2 inference
                         try:
                             # Use MLX-VLM command line tool for inference
@@ -1072,9 +857,7 @@ class VLMTester:
                 response = ""
                 
                 # 🔧 Use specific text-only inference methods based on model type
-                if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
-                    response = self._test_smolvlm_gguf_text_only(model, prompt)
-                elif "Moondream2" in model_name:
+                if "Moondream2" in model_name:
                     response = self._test_moondream2_text_only(model, processor, prompt)
                 elif "Phi-3.5" in model_name:
                     response = self._test_phi35_text_only(model, processor, prompt)
@@ -1134,46 +917,50 @@ class VLMTester:
             "results": results
         }
     
-    def _test_smolvlm_gguf_text_only(self, model, prompt):
-        """SmolVLM GGUF text-only test"""
-        try:
-            # Create API request payload for text-only
-            payload = {
-                "model": "SmolVLM",
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt}
-                        ]
-                    }
-                ],
-                "temperature": 0.0,
-                "max_tokens": self.unified_max_tokens,
-            }
-            
-            # Make API call
-            response = requests.post(
-                model["api_endpoint"],
-                headers={"Content-Type": "application/json"},
-                json=payload,
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                response_json = response.json()
-                return response_json["choices"][0]["message"]["content"]
-            else:
-                return f"API Error {response.status_code}: {response.text}"
-                
-        except Exception as e:
-            return f"SmolVLM GGUF text-only inference failed: {str(e)}"
-    
     def _test_moondream2_text_only(self, model, processor, prompt):
-        """Moondream2 text-only test - Moondream2 is vision-only model"""
-        # Moondream2 is designed for vision tasks only, not text generation
-        # Return a clear message indicating this limitation
-        return "Moondream2 is a vision-only model and does not support text-only generation. This is expected behavior."
+        """Moondream2 text-only test"""
+        try:
+            # Method 1: Directly use tokenizer for text generation
+            inputs = processor(prompt, return_tensors="pt")
+            device = next(model.parameters()).device
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            
+            with torch.no_grad():
+                outputs = model.generate(
+                    **inputs,
+                    max_new_tokens=self.unified_max_tokens,
+                    do_sample=False,
+                    pad_token_id=processor.eos_token_id
+                )
+            
+            response = processor.decode(outputs[0], skip_special_tokens=True)
+            
+            # Remove original prompt, keep only generated part
+            if prompt in response:
+                response = response.replace(prompt, "").strip()
+            
+            return response
+            
+        except Exception as e:
+            # Method 2: Try to use the model's chat functionality (if available)
+            try:
+                # Some versions of Moondream2 may support text conversation
+                device = next(model.parameters()).device
+                inputs = processor(prompt, return_tensors="pt").to(device)
+                
+                with torch.no_grad():
+                    outputs = model.generate(
+                        inputs.input_ids,
+                        max_new_tokens=self.unified_max_tokens,
+                        do_sample=False,
+                        pad_token_id=processor.eos_token_id
+                    )
+                
+                response = processor.decode(outputs[0], skip_special_tokens=True)
+                return response.replace(prompt, "").strip()
+                
+            except Exception as e2:
+                return f"Moondream2 text-only inference failed: {str(e)} | Fallback method: {str(e2)}"
     
     def _test_phi35_text_only(self, model, processor, prompt):
         """Phi-3.5-Vision-Instruct text-only test"""
@@ -1434,60 +1221,17 @@ class VLMTester:
         # Test each model one by one
         for model_name, config in self.models_config.items():
             try:
-                print(f"\n{'='*60}")
-                print(f"🔄 Starting test for: {model_name}")
-                print(f"{'='*60}")
-                
-                # 💡 NEW: Force memory cleanup before each model test
-                print("🧹 Pre-test memory cleanup...")
-                gc.collect()
-                if torch.backends.mps.is_available():
-                    torch.mps.empty_cache()
-                
-                # Additional cleanup for MLX models
-                if "MLX" in model_name or "Phi-3.5" in model_name:
-                    try:
-                        import mlx.core as mx
-                        mx.eval(mx.zeros((1, 1)))
-                        print("  🔧 MLX pre-cleanup completed")
-                    except ImportError:
-                        pass
-                
                 model_results = self.test_single_model(model_name, config)
                 self.results["models"][model_name] = model_results
                 
                 # Save intermediate results (to prevent data loss if test is interrupted)
                 self.save_results(f"intermediate_{model_name}")
                 
-                # 💡 NEW: Post-test memory cleanup
-                print(f"🧹 Post-test memory cleanup for {model_name}...")
-                gc.collect()
-                if torch.backends.mps.is_available():
-                    torch.mps.empty_cache()
-                
-                # Additional cleanup for MLX models
-                if "MLX" in model_name or "Phi-3.5" in model_name:
-                    try:
-                        import mlx.core as mx
-                        mx.eval(mx.zeros((1, 1)))
-                        time.sleep(2)  # Extra time for MLX models
-                        print("  🔧 MLX post-cleanup completed")
-                    except ImportError:
-                        pass
-                
-                print(f"✅ Completed test for: {model_name}")
-                
             except Exception as e:
                 print(f"Severe error testing model {model_name}: {str(e)}")
                 self.results["models"][model_name] = {
                     "severe_error": str(e)
                 }
-                
-                # 💡 NEW: Emergency cleanup on error
-                print("🧹 Emergency memory cleanup after error...")
-                gc.collect()
-                if torch.backends.mps.is_available():
-                    torch.mps.empty_cache()
         
         # Record total test time
         total_time = time.time() - total_start_time

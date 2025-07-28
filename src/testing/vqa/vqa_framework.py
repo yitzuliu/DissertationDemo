@@ -23,6 +23,7 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional, Any
+from collections import OrderedDict
 import torch
 import numpy as np
 from PIL import Image
@@ -107,33 +108,50 @@ class VQAFramework:
             "do_sample": False
         }
         
-        # Model configuration (same as vlm_tester.py)
-        self.models_config = {
-            "smolvlm_instruct": {
+        # 🎯 OPTIMIZED MODEL CONFIGURATION: Same order as vlm_tester.py
+        # Memory-intensive models first to avoid accumulation issues
+        self.models_config = OrderedDict([
+            # 1️⃣ Phi-3.5 first - Most memory-intensive, run when system is cleanest
+            ("phi35_vision", {
+                "loader": VLMModelLoader.load_phi3_vision,
+                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'",
+                "priority": 1,
+                "memory_intensive": True
+            }),
+            # 2️⃣ LLaVA second - Also memory-intensive MLX model
+            ("llava_mlx", {
+                "loader": VLMModelLoader.load_llava_mlx,
+                "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'",
+                "priority": 2,
+                "memory_intensive": True
+            }),
+            # 3️⃣ SmolVLM2 MLX version - Medium memory usage
+            ("smolvlm_v2_instruct", {
+                "loader": VLMModelLoader.load_smolvlm2_video,
+                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible",
+                "priority": 3,
+                "memory_intensive": False
+            }),
+            # 4️⃣ Lightweight models last - Least memory usage
+            ("smolvlm_instruct", {
                 "loader": VLMModelLoader.load_smolvlm_gguf,
                 "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
                 "api_endpoint": "http://localhost:8080/v1/chat/completions",
-                "note": "GGUF version via HTTP API (consistent with production deployment)"
-            },
-            "smolvlm_v2_instruct": {
-                "loader": VLMModelLoader.load_smolvlm2_video,
-                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
-                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), falls back to original SmolVLM2 if MLX not available or incompatible"
-            },
-            "moondream2": {
+                "note": "GGUF version via HTTP API (consistent with production deployment)",
+                "priority": 4,
+                "memory_intensive": False
+            }),
+            ("moondream2", {
                 "loader": VLMModelLoader.load_moondream2,
-                "model_id": "vikhyatk/moondream2"
-            },
-            "llava_mlx": {
-                "loader": VLMModelLoader.load_llava_mlx,
-                "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
-                "note": "MLX-optimized for Apple Silicon (M1/M2/M3), requires 'pip install mlx-vlm'"
-            },
-            "phi35_vision": {
-                "loader": VLMModelLoader.load_phi3_vision,
-                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit"
-            }
-        }
+                "model_id": "vikhyatk/moondream2",
+                "note": "Lightweight vision-only model for Apple Silicon",
+                "priority": 5,
+                "memory_intensive": False
+            })
+        ])
         
         # Image cache
         self.image_cache = {}
@@ -149,9 +167,10 @@ class VQAFramework:
         print(f"✅ VQA Framework initialized")
         print(f"   📁 Data directory: {self.data_dir}")
         print(f"   📊 Results directory: {self.results_dir}")
+        print(f"   🎯 Model order: {list(self.models_config.keys())}")
     
     def ensure_smolvlm_server(self):
-        """Ensure SmolVLM server is running (consistent with vlm_tester.py and vlm_context_tester.py)"""
+        """Ensure SmolVLM server is running (consistent with vlm_tester.py)"""
         print("🔄 Checking SmolVLM server status...")
         
         # Check if server is already running
@@ -626,6 +645,11 @@ class VQAFramework:
             questions = questions[:max_questions]
         
         try:
+            # Ensure SmolVLM server is running for GGUF models
+            if model_name == "smolvlm_instruct":
+                if not self.ensure_smolvlm_server():
+                    return {"error": "SmolVLM server is not available"}
+            
             # Load model
             print("📥 Loading model...")
             model_loader = self.models_config[model_name]["loader"]
@@ -1055,66 +1079,39 @@ class VQAFramework:
                 else:
                     # Fallback for other SmolVLM versions (SmolVLM2, etc.)
                     if hasattr(model, '_is_mlx_model'):
-                        # MLX 版本的 SmolVLM2 推理 - 使用 subprocess 方式
+                        # MLX version SmolVLM2 inference - use MLX-VLM generate (consistent with vlm_tester.py)
                         try:
-                            import subprocess
+                            from mlx_vlm import generate
+                            print("  🚀 Using MLX-VLM generate for SmolVLM2...")
+                            
+                            # Create temporary image file
                             import tempfile
-                            
-                            print("  🚀 Using MLX-VLM command line for SmolVLM2...")
-                            
-                            # 創建臨時圖像文件
                             with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
                                 temp_image_path = tmp_file.name
                                 image.save(temp_image_path)
                             
                             try:
-                                # 使用 MLX-VLM 命令行工具
-                                cmd = [
-                                    sys.executable, '-m', 'mlx_vlm.generate',
-                                    '--model', 'mlx-community/SmolVLM2-500M-Video-Instruct-mlx',
-                                    '--image', temp_image_path,
-                                    '--prompt', question,
-                                    '--max-tokens', str(unified_generation_params["max_new_tokens"]),
-                                    '--temperature', '0.0'
-                                ]
-                                
-                                result = subprocess.run(
-                                    cmd,
-                                    capture_output=True,
-                                    text=True,
-                                    timeout=60
+                                # Use MLX-VLM generate function (same as vlm_tester.py)
+                                response = generate(
+                                    model, 
+                                    processor, 
+                                    question,
+                                    image=temp_image_path,
+                                    max_tokens=unified_generation_params["max_new_tokens"],
+                                    temp=0.0,
+                                    verbose=False
                                 )
                                 
-                                if result.returncode == 0:
-                                    # 解析輸出，提取生成的文本
-                                    output_lines = result.stdout.split('\n')
-                                    generated_text = ""
-                                    
-                                    # 保留完整的 Assistant 回覆
-                                    for i, line in enumerate(output_lines):
-                                        line = line.strip()
-                                        if line.startswith('Assistant:'):
-                                            # 找到 Assistant 行
-                                            generated_text = line
-                                            # 檢查下一行是否有內容
-                                            if i + 1 < len(output_lines):
-                                                next_line = output_lines[i + 1].strip()
-                                                if next_line and not next_line.startswith('==========') and not next_line.startswith('Files:') and not next_line.startswith('Prompt:') and not next_line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
-                                                    # 下一行有內容，組合兩行
-                                                    generated_text = f"{line} {next_line}"
-                                            break
-                                        elif line and not line.startswith('==========') and not line.startswith('Files:') and not line.startswith('Prompt:') and not line.startswith('Generation:') and not next_line.startswith('Peak memory:'):
-                                            # 找到其他非系統信息的內容行
-                                            if not generated_text:
-                                                generated_text = line
-                                    
-                                    return generated_text
+                                # Handle MLX-VLM response format
+                                if isinstance(response, tuple) and len(response) >= 1:
+                                    text_response = response[0] if response[0] else ""
                                 else:
-                                    print(f"  ⚠️ MLX-VLM command failed: {result.stderr}")
-                                    raise Exception(f"MLX-VLM command failed: {result.stderr}")
-                                    
+                                    text_response = str(response) if response else ""
+                                
+                                return text_response.strip()
+                                
                             finally:
-                                # 清理臨時文件
+                                # Clean up temporary file
                                 if os.path.exists(temp_image_path):
                                     os.remove(temp_image_path)
                             

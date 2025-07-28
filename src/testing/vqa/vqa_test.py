@@ -29,9 +29,9 @@ def main():
     parser.add_argument('--questions', type=int, default=20,
                        help='Number of test questions (default: 20, max 20)')
     parser.add_argument('--models', nargs='+', 
-                       default=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
-                       choices=['smolvlm_instruct', 'smolvlm_v2_instruct', 'moondream2', 'llava_mlx', 'phi35_vision'],
-                       help='Models to test (default: all models)')
+                       default=['phi35_vision', 'llava_mlx', 'smolvlm_v2_instruct', 'smolvlm_instruct', 'moondream2'],
+                       choices=['phi35_vision', 'llava_mlx', 'smolvlm_v2_instruct', 'smolvlm_instruct', 'moondream2'],
+                       help='Models to test (default: all models in optimized order)')
     
     # Advanced options
     parser.add_argument('--verbose', action='store_true',

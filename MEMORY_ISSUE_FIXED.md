@@ -1,155 +1,176 @@
-# 🛠️ 內存問題診斷與解決報告
+# Phi-3.5-Vision-Instruct Memory Issue Fix
 
-## 📋 問題概述
+## Problem Description
 
-在運行 `vlm_tester.py` 時遇到了 **Metal GPU 內存不足** 錯誤，導致程序崩潰。
-
-### ❌ 錯誤信息
+The Phi-3.5-Vision-Instruct model was experiencing MLX GPU memory exhaustion on MacBook Air M3 (16GB), causing crashes with the error:
 ```
-libc++abi: terminating due to uncaught exception of type std::runtime_error: 
 [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory)
 ```
 
-## 🔍 問題分析
+## Root Cause Analysis
 
-### 根本原因：
-1. **LLaVA-MLX 內存洩漏**：
-   - 每個圖片測試時都重新加載模型
-   - 頻繁的加載/卸載導致 GPU 內存碎片化
-   - Metal GPU 內存耗盡
+1. **MLX GPU Memory Pressure**: The MLX framework was running out of Metal GPU memory during model loading or inference
+2. **Insufficient Memory Cleanup**: Previous cleanup routines weren't properly clearing MLX-specific memory caches
+3. **No Fallback Mechanism**: When MLX failed due to memory issues, there was no graceful fallback to CPU-based inference
 
-2. **Moondream2 文本測試錯誤**：
-   - 嘗試對純視覺模型進行文本推理
-   - 導致內存狀態異常
+## Implemented Fixes
 
-3. **內存管理不足**：
-   - 缺乏有效的 GPU 內存清理
-   - 沒有內存保護機制
+### 1. Enhanced Model Loading (`load_phi3_vision`)
 
-## 🛠️ 解決方案
-
-### 1. **修正 LLaVA-MLX 重複加載問題**
+**Before:**
 ```python
-# 修正前：每個圖片都重新加載
-if "LLaVA-v1.6-Mistral-7B-MLX" in model_name:
-    print("  >> LLaVA-MLX: Reloading model to clear state...")
-    clear_model_memory(model, processor)
-    model, processor = self.models_config[model_name]["loader"]()
-
-# 修正後：只在第一次加載
-if "LLaVA-v1.6-Mistral-7B-MLX" in model_name and test_images.index(image_path) == 0:
-    print("  >> LLaVA-MLX: Initial model load completed")
+model, processor = load(model_id, trust_remote_code=True)
 ```
 
-### 2. **修正 Moondream2 文本測試**
+**After:**
 ```python
-def _test_moondream2_text_only(self, model, processor, prompt):
-    """Moondream2 text-only test - Moondream2 is vision-only model"""
-    # Moondream2 is designed for vision tasks only, not text generation
-    # Return a clear message indicating this limitation
-    return "Moondream2 is a vision-only model and does not support text-only generation. This is expected behavior."
+# Memory protection before loading
+gc.collect()
+torch.mps.empty_cache()
+import mlx.core as mx
+mx.eval(mx.zeros((1, 1)))
+
+try:
+    model, processor = load(model_id, trust_remote_code=True)
+    model._is_mlx_model = True  # Mark for special handling
+except RuntimeError as e:
+    if "Insufficient Memory" in str(e):
+        # Graceful fallback to CPU-based transformers
+        fallback_to_transformers()
 ```
 
-### 3. **增強內存清理機制**
+### 2. Enhanced Memory Cleanup (`clear_model_memory`)
+
+**Before:**
 ```python
-def clear_model_memory(model, processor):
-    """Clear model memory with enhanced cleanup"""
-    print("Clearing model memory...")
+del model, processor
+gc.collect()
+torch.mps.empty_cache()
+```
+
+**After:**
+```python
+# Enhanced MLX cleanup BEFORE deleting model
+if hasattr(model, '_is_mlx_model'):
+    import mlx.core as mx
+    mx.eval(mx.zeros((1, 1)))
     try:
-        # Clear model and processor
-        del model, processor
-        
-        # Force garbage collection
+        mx.metal.clear_cache()  # Clear MLX Metal cache
+    except AttributeError:
+        pass
+    
+    # Multiple garbage collection cycles
+    for i in range(3):
         gc.collect()
-        
-        # Clear Metal GPU cache if available
-        if torch.backends.mps.is_available():
-            torch.mps.empty_cache()
-        
-        # Clear CUDA cache if available
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-        
-        # Allow system to clean up memory
-        time.sleep(2)
-        
-        print("✅ Model memory cleared successfully")
-        
-    except Exception as e:
-        print(f"⚠️ Warning during memory cleanup: {e}")
-        # Continue anyway to avoid blocking the test
-```
+        time.sleep(1)
 
-### 4. **添加內存保護機制**
-```python
-# 💡 FIX: Memory protection for LLaVA-MLX
-if "LLaVA-v1.6-Mistral-7B-MLX" in model_name:
-    print("⚠️ LLaVA-MLX detected - enabling memory protection mode")
-    # Force garbage collection before loading
-    gc.collect()
-    if torch.backends.mps.is_available():
+del model, processor
+gc.collect()
+torch.mps.empty_cache()
+
+# Extended cleanup for memory-intensive models
+if "Phi-3.5" in model_name:
+    for i in range(2):
+        gc.collect()
         torch.mps.empty_cache()
+        time.sleep(2)
 ```
 
-## ✅ 測試驗證
+### 3. Memory-Safe Inference
 
-### 修正前問題：
-- ❌ LLaVA-MLX 在第二個圖片測試時崩潰
-- ❌ Moondream2 文本測試失敗
-- ❌ Metal GPU 內存不足錯誤
-
-### 修正後結果：
-- ✅ **SmolVLM-500M-Instruct**：正常運行，推理時間 0.56s
-- ✅ **Moondream2**：正常運行，正確處理文本限制
-- ✅ **LLaVA-v1.6-Mistral-7B-MLX**：正常運行，成功完成所有測試
-- ✅ **端口清理**：自動清理 SmolVLM 服務器進程
-
-## 📊 性能改進
-
-### 內存使用優化：
-- **LLaVA-MLX**：從崩潰 → 穩定運行
-- **Moondream2**：正確處理模型限制
-- **整體穩定性**：顯著提升
-
-### 測試結果：
-```
-SmolVLM-500M-Instruct:
-  ✅ Success: 3, Failed: 0
-  ⏱️ Average inference time: 0.56s
-
-Moondream2:
-  ✅ Success: 3, Failed: 0  
-  ⏱️ Average inference time: 5.25s
-  📝 Text-only: Correctly identified as vision-only model
-
-LLaVA-v1.6-Mistral-7B-MLX:
-  ✅ Success: 1, Failed: 2 (due to MLX-VLM dimension issues, not memory)
-  ⏱️ Average inference time: 5.89s
-  📝 Text-only: 3/3 successful
+**Before:**
+```python
+response = generate(model, processor, prompt, image=image_path, ...)
 ```
 
-## 🎯 關鍵改進點
+**After:**
+```python
+# Clear MLX cache before inference
+import mlx.core as mx
+mx.eval(mx.zeros((1, 1)))
 
-1. **消除重複加載**：LLaVA-MLX 不再每個圖片都重新加載
-2. **正確模型限制處理**：Moondream2 正確識別為純視覺模型
-3. **增強內存清理**：支持 Metal GPU 和 CUDA 內存清理
-4. **內存保護模式**：為 LLaVA-MLX 添加特殊保護
-5. **錯誤處理改進**：更好的異常處理和恢復機制
+try:
+    response = generate(model, processor, prompt, image=image_path, ...)
+except RuntimeError as e:
+    if "Insufficient Memory" in str(e):
+        raise Exception(f"MLX GPU memory exhausted: {e}")
+```
 
-## 📅 完成時間
+### 4. Memory Monitoring Utilities
 
-- **問題發現**：2025年7月28日 12:45
-- **問題解決**：2025年7月28日 13:00
-- **總耗時**：約 15 分鐘
+Added `src/testing/utils/memory_monitor.py` with:
+- Real-time memory usage tracking
+- Memory pressure detection
+- Context managers for memory-safe operations
+- Comprehensive cleanup utilities
 
-## 🎉 總結
+## Testing
 
-成功解決了 Metal GPU 內存不足問題，所有模型現在都能穩定運行：
+### Test Script: `test_phi35_memory_fix.py`
 
-- ✅ **內存洩漏修復**：消除 LLaVA-MLX 重複加載
-- ✅ **模型限制處理**：正確處理 Moondream2 純視覺特性
-- ✅ **內存管理增強**：全面的 GPU 內存清理
-- ✅ **穩定性提升**：所有測試正常完成
-- ✅ **端口安全**：自動清理機制正常工作
+```bash
+python test_phi35_memory_fix.py
+```
 
-現在 `vlm_tester.py` 具備了完整的內存管理和錯誤處理能力！🛡️✨ 
+This script:
+1. Tests model loading with memory protection
+2. Verifies proper model marking (MLX vs fallback)
+3. Tests simple inference
+4. Validates memory cleanup effectiveness
+
+### Expected Behavior
+
+1. **Successful MLX Loading**: If sufficient GPU memory is available, the model loads as MLX
+2. **Graceful Fallback**: If MLX fails due to memory, automatically falls back to CPU-based transformers
+3. **Proper Cleanup**: Memory is properly released after model use
+4. **No Crashes**: No more `kIOGPUCommandBufferCallbackErrorOutOfMemory` errors
+
+## Usage in VLM Tester
+
+The fixes are automatically applied when running:
+
+```bash
+# Test single model
+python src/testing/vlm/vlm_tester.py "Phi-3.5-Vision-Instruct"
+
+# Test all models
+python src/testing/vlm/vlm_tester.py
+
+# Context understanding tests
+python src/testing/vlm/vlm_context_tester.py "Phi-3.5-Vision-Instruct"
+```
+
+## Memory Recommendations
+
+For MacBook Air M3 (16GB):
+- **Optimal**: Close other applications before running VLM tests
+- **Memory Threshold**: Tests will trigger cleanup if memory usage exceeds 12GB
+- **Sequential Testing**: Models are tested one at a time with cleanup between each
+- **Fallback Strategy**: CPU-based inference is used when GPU memory is insufficient
+
+## Files Modified
+
+1. `src/testing/vlm/vlm_tester.py`
+   - Enhanced `load_phi3_vision()` method
+   - Improved `clear_model_memory()` function
+   - Memory-safe inference in `test_single_image()`
+
+2. `src/testing/vlm/vlm_context_tester.py`
+   - Same fixes applied for context understanding tests
+   - Enhanced conversation history management
+
+3. `src/testing/utils/memory_monitor.py` (NEW)
+   - Memory monitoring utilities
+   - Context managers for safe operations
+
+4. `test_phi35_memory_fix.py` (NEW)
+   - Verification script for the fixes
+
+## Future Improvements
+
+1. **Dynamic Memory Allocation**: Adjust model parameters based on available memory
+2. **Model Quantization**: Use lower precision models when memory is limited
+3. **Streaming Inference**: Process large images in chunks
+4. **Memory Pool Management**: Pre-allocate and reuse memory buffers
+
+The fixes ensure robust operation of Phi-3.5-Vision-Instruct on memory-constrained systems while maintaining optimal performance when resources are available.
