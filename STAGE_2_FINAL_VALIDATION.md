@@ -21,7 +21,7 @@
 ```
 🧪 Stage 2 Integration Test - Complete System Validation
 ============================================================
-✅ State Tracker initialized with all Stage 2 features
+✅ State Tracker initialised with all Stage 2 features
 
 📋 Test 1: Basic State Tracking (Task 2.1) - ✅ PASSED
 📋 Test 2: Intelligent Matching (Task 2.2) - ✅ PASSED  
@@ -34,7 +34,7 @@
 ```
 
 ### **Performance Validation**
-- **Memory Usage**: 0.004MB / 1.0MB (0.4% utilization) ✅
+- **Memory Usage**: 0.004MB / 1.0MB (0.4% utilisation) ✅
 - **Query Response**: 0.2ms average (100x faster than 20ms target) ✅
 - **VLM Processing**: 16ms average (6x faster than 100ms target) ✅
 - **Classification Accuracy**: 91.7% query classification ✅
@@ -45,12 +45,12 @@
 
 ### **Dual-Loop System** ✅ COMPLETE
 ```
-Continuous State Awareness Loop (潛意識循環):
-A[VLM觀察] → B[回傳螢幕內容] → C[State Tracker接收] → 
-D[RAG比對匹配] → E[滑動窗格存儲] → F[更新當前狀態]
+Continuous State Awareness Loop (Unconscious Loop):
+A[VLM Observation] → B[Return Screen Content] → C[State Tracker Receives] → 
+D[RAG Matching] → E[Sliding Window Storage] → F[Update Current State]
 
-Instant Response Loop (即時響應循環):
-G[用戶查詢] → H[State Tracker直接回應] → I[回傳狀態信息]
+Instant Response Loop (Instant Response Loop):
+G[User Query] → H[State Tracker Direct Response] → I[Return State Information]
 ```
 
 ### **Core Components**
@@ -84,26 +84,26 @@ G[用戶查詢] → H[State Tracker直接回應] → I[回傳狀態信息]
 
 ### **Query Processing**
 - **Supported Query Types**: 6 categories
-  - Current Step: "我在哪個步驟？", "current step"
-  - Next Step: "下一步是什麼？", "next step"
-  - Required Tools: "需要什麼工具？", "tools needed"
-  - Completion Status: "完成了嗎？", "progress"
-  - Progress Overview: "整體進度如何？", "overall"
-  - Help: "怎麼做？", "help"
+  - Current Step: "Which step am I on?", "current step"
+  - Next Step: "What's the next step?", "next step"
+  - Required Tools: "What tools do I need?", "tools needed"
+  - Completion Status: "Am I done?", "progress"
+  - Progress Overview: "How's the overall progress?", "overall"
+  - Help: "How do I do this?", "help"
 
 ### **Fault Tolerance**
 - **VLM Input Handling**: Empty, garbled, invalid text
 - **Consecutive Failure Detection**: 5-failure threshold
-- **Memory Management**: Automatic cleanup and optimization
+- **Memory Management**: Automatic cleanup and optimisation
 - **Error Recovery**: Graceful degradation without crashes
 
 ### **Memory Management**
 - **Sliding Window**: 50 records maximum
-- **Memory Optimization**: Core data only (no VLM text)
+- **Memory Optimisation**: Core data only (no VLM text)
 - **Automatic Cleanup**: Size and memory-based triggers
 - **Usage Monitoring**: Real-time statistics and alerts
 
-## 🔧 **File Organization**
+## 🔧 **File Organisation**
 
 ### **Source Code Structure**
 ```
@@ -168,7 +168,7 @@ tests/
 ### **Stage 3 Prerequisites Met**
 - ✅ Continuous state awareness loop implemented
 - ✅ Instant response loop implemented
-- ✅ Memory management optimized
+- ✅ Memory management optimised
 - ✅ Error handling robust
 - ✅ Performance targets exceeded
 - ✅ API infrastructure complete

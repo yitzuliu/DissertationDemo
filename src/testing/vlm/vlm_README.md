@@ -63,25 +63,27 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
 
 ## Latest Test Results Summary (Updated: 2025-07-28)
 
-### **Performance Rankings**
+### **Performance Rankings (Updated: 2025-07-29)**
 
-| Model | Avg Inference (s) | Load Time (s) | Memory Diff (GB) | Status |
-|-------|------------------|---------------|------------------|--------|
-| **SmolVLM GGUF** | 🏆 **0.93** | 2.04 | 0.07 | ✅ **Fastest** |
-| **SmolVLM2-MLX** | 9.80 | 1.02 | 0.06 | ✅ **Fast & Accurate** |
-| **Phi-3.5-MLX** | 10.54 | 1.52 | 0.28 | ✅ **Balanced** |
-| **Moondream2** | 11.58 | 5.34 | -1.15 | ✅ **Best Overall** |
-| **LLaVA-MLX** | 21.93 | 2.17 | 0.46 | ⚠️ **Issues** |
+| Model | Avg Inference (s) | Load Time (s) | Memory Diff (GB) | VQA Accuracy | Simple Accuracy | Status |
+|-------|------------------|---------------|------------------|--------------|-----------------|--------|
+| **Moondream2** | 8.35 | 16.61 | -0.09 | **62.5%** | **65.0%** | 🥇 **Best Overall** |
+| **SmolVLM GGUF** | 🏆 **0.39** | 4.05 | 0.001 | 36.0% | 35.0% | ⚡ **Fastest** |
+| **SmolVLM2-MLX** | 8.41 | 1.48 | 0.13 | 52.5% | 55.0% | 🥈 **Balanced** |
+| **Phi-3.5-MLX** | 5.29 | 1.71 | 0.05 | 35.0% | 35.0% | 🥉 **Fast** |
+| **LLaVA-MLX** | 24.15 | 6.07 | -0.48 | 21.0% | 20.0% | ⚠️ **Critical Issues** |
 
-### **Context Understanding Results**
+### **Context Understanding Results (Updated: 2025-07-29)**
 
-| Model | Context Success Rate | Avg Context Time (s) | Notes |
-|-------|-------------------|---------------------|-------|
-| **SmolVLM GGUF** | 100% | ~0.9 | Best context retention, fastest |
-| **SmolVLM2-MLX** | 100% | ~6.2 | Consistent but generic answers |
-| **Moondream2** | 0% | ~5.9 | Vision-only, no context |
-| **LLaVA-MLX** | ~66% | ~19.5 | Incomplete, batch inference issues |
-| **Phi-3.5-MLX** | ~66% | ~6.9 | Incomplete answers |
+| Model | Context Understanding | Failure Type | Avg Context Time (s) | Notes |
+|-------|---------------------|--------------|---------------------|-------|
+| **SmolVLM GGUF** | **0%** | Hallucinated responses | ~0.16 | Claims incorrect colors for all images |
+| **SmolVLM2-MLX** | **0%** | Generic hallucinations | ~6.0 | Claims "white and black" for all images |
+| **Moondream2** | **0%** | Honest inability | ~0.0001 | "Cannot provide context-based answers without image" |
+| **LLaVA-MLX** | **0%** | Empty responses | ~2.1 | Returns empty strings for all context questions |
+| **Phi-3.5-MLX** | **0%** | Empty responses | ~0.2 | MLX-VLM cannot process text-only input |
+
+**🚨 CRITICAL FINDING: ALL MODELS HAVE 0% TRUE CONTEXT UNDERSTANDING CAPABILITY**
 
 ---
 
@@ -97,23 +99,32 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
 
 ---
 
-## Model Recommendations
+## Model Recommendations (Updated: 2025-07-29)
 
-### **Best Overall Performance**
-- **Moondream2**: Best accuracy, balanced speed
-- **Use case**: General vision tasks, accuracy-critical applications
+### **🥇 Best Overall Performance**
+- **Moondream2**: Highest accuracy (65.0% simple, 62.5% VQA), excellent for production VQA
+- **Use case**: Accuracy-critical applications, VQA tasks, object recognition
+- **Trade-off**: Vision-only model, cannot process text-only input
 
-### **Fastest Inference**
-- **SmolVLM GGUF**: Fastest inference (0.93s), stable, unified API
-- **Use case**: Speed-critical applications, production deployments
+### **⚡ Fastest Inference**
+- **SmolVLM GGUF**: Fastest inference (0.39s), stable, unified API, production-ready
+- **Use case**: Real-time applications, speed-critical deployments
+- **Trade-off**: Lower accuracy (35.0% simple, 36.0% VQA)
 
-### **Context Understanding**
-- **SmolVLM GGUF**: Best context retention, fastest context inference (~0.9s)
-- **Use case**: Multi-turn conversations, context-dependent tasks
+### **🥈 Balanced Performance**
+- **SmolVLM2-MLX**: Good balance of speed (8.41s) and accuracy (55.0% simple, 52.5% VQA)
+- **Use case**: General-purpose VQA, balanced performance requirements
+- **Trade-off**: Moderate speed, good accuracy
 
-### **Avoid for Production**
-- **LLaVA-MLX**: Batch inference issues, poor performance, slow inference
-- **Use case**: Research only, not recommended for production
+### **🚫 Context Understanding**
+- **ALL MODELS**: 0% true context understanding capability
+- **Issue**: No model can maintain conversation context or recall previous image information
+- **Implication**: Multi-turn conversations require external memory systems
+
+### **⚠️ Avoid for Production**
+- **LLaVA-MLX**: Critical performance issues (24.15s inference, 20.0% accuracy)
+- **Issues**: Batch inference problems, extremely slow, poor accuracy
+- **Use case**: Not recommended for any production use
 
 ---
 
@@ -140,4 +151,30 @@ For questions, bug reports, or contributions, please refer to the main project R
 
 ---
 
-_Last updated: 2025-07-28_
+---
+
+## **🚨 Critical Findings Summary**
+
+### **Universal Limitations Identified**
+- **Context Understanding:** 0% capability across all models - no model can maintain conversation context
+- **Text Reading:** Poor performance on text within images across all models
+- **Counting Tasks:** Significant challenges with numerical reasoning
+- **Color Perception:** Frequent errors (white vs. gray, blue vs. green)
+
+### **Technical Issues**
+- **LLaVA-MLX:** 24.15s inference time, batch processing failures, model reloading required
+- **MLX Models:** Cannot process text-only input for context questions
+- **SmolVLM Models:** Hallucinate responses for context questions
+- **All Models:** No true conversation memory or context retention
+
+### **Production Implications**
+- **Multi-turn VQA:** Impossible with current models - each question must include the image
+- **Conversation Systems:** Cannot maintain visual context across turns
+- **Interactive Applications:** Must re-send images for every question
+- **Memory-dependent Tasks:** Require external storage and retrieval systems
+
+---
+
+_Last updated: 2025-07-29_  
+_Test Environment: MacBook Air M3 (16GB RAM, MPS available)_  
+_Latest Results: VQA 2.0 (2025-07-29 13:12:58), Context Understanding (2025-07-28 20:29:35), Performance (2025-07-28 19:02:52)_

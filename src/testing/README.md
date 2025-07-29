@@ -71,11 +71,11 @@ python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm_instruct phi3
 
 | Model | VQA Accuracy | Simple Accuracy | Avg Time | Load Time | Memory Diff | Status |
 |-------|:------------:|:---------------:|:--------:|:---------:|:-----------:|:------:|
-| **Moondream2** | 🥇 **63.0%** | 🥇 **65.0%** | 5.82s | 16.61s | -0.09GB | 🥇 **Best Overall** |
-| **SmolVLM2** | 🥈 56.5% | 🥈 60.0% | 6.50s | 1.48s | +0.13GB | 🥈 **Balanced** |
-| **Phi-3.5-Vision** | 🥉 49.5% | 35.0% | 5.06s | 1.71s | +0.05GB | 🥉 **Fast** |
-| **SmolVLM** | 39.5% | 35.0% | ⚡ **0.27s** | 4.05s | +0.001GB | ⚡ **Fastest** |
-| **LLaVA-MLX** | ⚠️ 28.5% | ⚠️ 20.0% | 🐌 25.37s | 6.07s | -0.48GB | 🚫 **Critical Issues** |
+| **Moondream2** | 🥇 **62.5%** | 🥇 **65.0%** | 8.35s | 16.61s | -0.09GB | 🥇 **Best Overall** |
+| **SmolVLM2** | 🥈 52.5% | 🥈 55.0% | 8.41s | 1.48s | +0.13GB | 🥈 **Balanced** |
+| **Phi-3.5-Vision** | 🥉 35.0% | 35.0% | 5.29s | 1.71s | +0.05GB | 🥉 **Fast** |
+| **SmolVLM** | 36.0% | 35.0% | ⚡ **0.39s** | 4.05s | +0.001GB | ⚡ **Fastest** |
+| **LLaVA-MLX** | ⚠️ 21.0% | ⚠️ 20.0% | 🐌 24.15s | 6.07s | -0.48GB | 🚫 **Critical Issues** |
 
 **Context Understanding Results:**
 - 🚨 **ALL MODELS: 0% context understanding capability**
@@ -212,14 +212,15 @@ python src/testing/vlm/vlm_tester.py SmolVLM-500M-Instruct
 - **Multi-turn Conversations:** Require external memory systems
 
 ### **Technical Issues**
-- **LLaVA-MLX:** 25.37s inference time, batch processing failures, model reloading required
+- **LLaVA-MLX:** 24.15s inference time, batch processing failures, model reloading required
 - **MLX Models:** Cannot process text-only input for context questions
 - **SmolVLM Models:** Hallucinate responses for context questions
 - **All Models:** No true conversation memory or context retention
 
 ---
 
-**Last Updated**: July 29, 2025  
-**Test Framework**: VQA 2.0 Standard Evaluation + Context Understanding Assessment  
+**Last Updated**: July 29, 2025 13:12:58  
+**Test Framework**: VQA 2.0 Standard Evaluation + Context Understanding Assessment + Performance Benchmarking  
 **Hardware**: MacBook Air M3, 16GB RAM, MPS available  
-**Dataset**: COCO val2014 (20 questions) + Custom context test images 
+**Dataset**: COCO val2014 (20 questions) + Custom context test images + Performance test suite  
+**Latest Results**: vqa2_results_coco_20250729_131258.json, context_understanding_test_results_20250728_203410.json, test_results_20250728_190743.json 

@@ -222,7 +222,7 @@ def _preprocess_answer(self, answer: str) -> str:
 
 ### **Question Type Analysis**
 
-#### **Yes/No Questions (8 questions)**
+#### **Yes/No Questions (7 questions)**
 
 | Question ID | Question | Ground Truth | Phi-3.5 | LLaVA-MLX | SmolVLM2 | SmolVLM | Moondream2 |
 |-------------|----------|--------------|---------|-----------|----------|----------|------------|
@@ -234,7 +234,7 @@ def _preprocess_answer(self, answer: str) -> str:
 | 223174004 | Is the zebra grazing? | no | ❌ | ❌ | ✅ | ✅ | ✅ |
 | 4396000 | Is the bear wearing shoes? | no | ❌ | ✅ | ✅ | ✅ | ✅ |
 
-**Analysis:** Yes/No questions show variable performance across models. Moondream2 performs best with 6/7 correct answers, while LLaVA-MLX struggles with only 2/7 correct.
+**Analysis:** Yes/No questions show variable performance across models. Moondream2 performs best with 5/7 correct answers, while Phi-3.5-Vision and LLaVA-MLX each get 2/7 correct.
 
 #### **Color Questions (6 questions)**
 
@@ -247,7 +247,7 @@ def _preprocess_answer(self, answer: str) -> str:
 | 455506003 | What color is the disk? | green | ✅ | ❌ | ✅ | ❌ | ✅ |
 | 376667002 | What color are the stripes? | white | ❌ | ✅ | ✅ | ❌ | ❌ |
 
-**Analysis:** Color recognition is challenging for all models. SmolVLM2-Instruct and Moondream2 perform best with 4/6 correct answers each.
+**Analysis:** Color recognition is challenging for all models. SmolVLM2-Instruct performs best with 4/6 correct answers, followed by Moondream2 with 3/6 correct answers.
 
 #### **Count Questions (2 questions)**
 
@@ -258,7 +258,7 @@ def _preprocess_answer(self, answer: str) -> str:
 
 **Analysis:** Counting questions are particularly challenging. Only Moondream2 correctly answered 1/2 questions, while all other models failed on both.
 
-#### **Other Questions (4 questions)**
+#### **Other Questions (5 questions)**
 
 | Question ID | Question | Ground Truth | Phi-3.5 | LLaVA-MLX | SmolVLM2 | SmolVLM | Moondream2 |
 |-------------|----------|--------------|---------|-----------|----------|----------|------------|
@@ -268,7 +268,7 @@ def _preprocess_answer(self, answer: str) -> str:
 | 397303002 | What is the man making? | ties | ❌ | ❌ | ❌ | ❌ | ✅ |
 | 406647002 | What does the yellow sign say? | ped xing | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-**Analysis:** Object identification and text recognition questions show mixed results. Moondream2 performs best with 4/5 correct answers.
+**Analysis:** Object identification and text recognition questions show mixed results. Moondream2 performs best with 4/5 correct answers, while Phi-3.5-Vision and SmolVLM2-Instruct each get 3/5 correct.
 
 ### **Model Performance Breakdown**
 
@@ -324,12 +324,31 @@ def _preprocess_answer(self, answer: str) -> str:
     "test_mode": "coco",
     "num_questions": 20,
     "framework_version": "vqa2_enhanced_v1.2",
-    "evaluation_method": "VQA 2.0 Standard"
+    "evaluation_method": "VQA 2.0 Standard",
+    "dataset": "COCO val2014",
+    "generation_params": {
+      "max_new_tokens": 100,
+      "do_sample": false
+    }
   },
   "hardware_configuration": {
     "device": "MacBook Air M3",
     "memory": "16GB",
-    "mps_available": true
+    "mps_available": true,
+    "torch_version": "2.7.1",
+    "python_version": "3.13.3"
+  },
+  "model_configuration": {
+    "models_tested": [
+      "phi35_vision",
+      "llava_mlx",
+      "smolvlm_v2_instruct",
+      "smolvlm_instruct",
+      "moondream2"
+    ],
+    "model_loader": "VLMModelLoader from vlm_tester.py",
+    "unified_parameters": true,
+    "image_preprocessing": "Resize to max 1024px, LANCZOS"
   },
   "results": {
     "model_name": {
@@ -479,13 +498,15 @@ def _preprocess_answer(self, answer: str) -> str:
 
 ---
 
-**Last Updated:** 2025-07-29  
+**Last Updated:** 2025-07-29 13:12:58  
 **Framework Version:** vqa2_enhanced_v1.2  
-**Test Environment:** MacBook Air M3 (16GB RAM)
+**Test Environment:** MacBook Air M3 (16GB RAM, MPS available)  
+**Latest Test Results:** vqa2_results_coco_20250729_131258.json
 
 ## **Other Notes**
 - All references to `testing_material/` have been updated to `materials/`.
 - All references to result files are now in `results/`.
 - All scripts are now in the `vqa/` subfolder.
 - Enhanced VQA accuracy calculation logic implemented.
-- This README is up to date as of 2025-07-29.
+- This README reflects the latest test results from 2025-07-29 13:12:58.
+- All performance metrics verified against source JSON data.

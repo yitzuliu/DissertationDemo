@@ -89,6 +89,52 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
 
 ---
 
+## Latest Test Results Summary (Updated: 2025-07-29)
+
+### **🏆 Comprehensive Performance Rankings**
+
+| Model | VQA Acc | Simple Acc | Avg Inference (s) | Load Time (s) | Memory Diff (GB) | Status |
+|-------|---------|------------|-------------------|---------------|------------------|--------|
+| **Moondream2** | **62.5%** | **65.0%** | 8.35 | 16.61 | -0.09 | 🥇 **Best Overall** |
+| **SmolVLM2-MLX** | 52.5% | 55.0% | 8.41 | 1.48 | 0.13 | 🥈 **Balanced** |
+| **SmolVLM GGUF** | 36.0% | 35.0% | 🏆 **0.39** | 4.05 | 0.001 | ⚡ **Fastest** |
+| **Phi-3.5-MLX** | 35.0% | 35.0% | 5.29 | 1.71 | 0.05 | 🥉 **Fast** |
+| **LLaVA-MLX** | 21.0% | 20.0% | 24.15 | 6.07 | -0.48 | ⚠️ **Critical Issues** |
+
+### **🚨 Context Understanding Crisis**
+
+| Model | Context Understanding | Failure Type | Avg Context Time (s) | Critical Issues |
+|-------|---------------------|--------------|---------------------|-----------------|
+| **SmolVLM GGUF** | **0%** | Hallucinated responses | ~0.16 | Claims "black, white, tan" for dog image |
+| **SmolVLM2-MLX** | **0%** | Generic hallucinations | ~6.0 | Claims "white and black" for all images |
+| **Moondream2** | **0%** | Honest inability | ~0.0001 | "Cannot provide context-based answers without image" |
+| **LLaVA-MLX** | **0%** | Empty responses | ~2.1 | Returns empty strings for all context questions |
+| **Phi-3.5-MLX** | **0%** | Empty responses | ~0.2 | MLX-VLM cannot process text-only input |
+
+**⚠️ CRITICAL FINDING: ALL MODELS HAVE 0% TRUE CONTEXT UNDERSTANDING CAPABILITY**
+
+### **Production Recommendations**
+
+#### **🥇 Best Overall Performance**
+- **Moondream2**: Highest accuracy (65.0% simple, 62.5% VQA), excellent for production VQA
+- **Use case**: Accuracy-critical applications, VQA tasks, object recognition
+- **Trade-off**: Vision-only model, cannot process text-only input
+
+#### **⚡ Fastest Inference**
+- **SmolVLM GGUF**: Fastest inference (0.39s), stable, unified API, production-ready
+- **Use case**: Real-time applications, speed-critical deployments
+- **Trade-off**: Lower accuracy (35.0% simple, 36.0% VQA)
+
+#### **🥈 Balanced Performance**
+- **SmolVLM2-MLX**: Good balance of speed (8.41s) and accuracy (55.0% simple, 52.5% VQA)
+- **Use case**: General-purpose VQA, balanced performance requirements
+
+#### **⚠️ Avoid for Production**
+- **LLaVA-MLX**: Critical performance issues (24.15s inference, 20.0% accuracy)
+- **Issues**: Batch inference problems, extremely slow, poor accuracy
+
+---
+
 ## How to Interpret Results
 - **test_results_*.json:**
   - Contains detailed timing, memory, and accuracy metrics for each model and test case on general image and text tasks (not VQA 2.0).
@@ -147,4 +193,30 @@ For questions, bug reports, or contributions, please refer to the main project R
 
 ---
 
-_Last updated: 2025-07-28_
+---
+
+## **🚨 Critical Findings Summary**
+
+### **Universal Limitations Identified**
+- **Context Understanding:** 0% capability across all models - no model can maintain conversation context
+- **Text Reading:** Poor performance on text within images across all models
+- **Counting Tasks:** Significant challenges with numerical reasoning
+- **Color Perception:** Frequent errors (white vs. gray, blue vs. green)
+
+### **Technical Issues**
+- **LLaVA-MLX:** 24.15s inference time, batch processing failures, model reloading required
+- **MLX Models:** Cannot process text-only input for context questions
+- **SmolVLM Models:** Hallucinate responses for context questions
+- **All Models:** No true conversation memory or context retention
+
+### **Production Implications**
+- **Multi-turn VQA:** Impossible with current models - each question must include the image
+- **Conversation Systems:** Cannot maintain visual context across turns
+- **Interactive Applications:** Must re-send images for every question
+- **Memory-dependent Tasks:** Require external storage and retrieval systems
+
+---
+
+_Last updated: 2025-07-29_  
+_Test Environment: MacBook Air M3 (16GB RAM, MPS available)_  
+_Latest Results: VQA 2.0 (2025-07-29 13:12:58), Context Understanding (2025-07-28 20:29:35), Performance (2025-07-28 19:02:52)_

@@ -35,9 +35,9 @@
 
 ```
 src/memory/
-├── __init__.py                 # Memory system package initialization
+├── __init__.py                 # Memory system package initialisation
 └── rag/
-    ├── __init__.py            # RAG module initialization
+    ├── __init__.py            # RAG module initialisation
     ├── validation.py          # Task knowledge validation system
     └── task_loader.py         # Task loading and management
 

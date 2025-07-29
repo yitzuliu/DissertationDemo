@@ -3,7 +3,7 @@
 ## ✅ **Task Completed Successfully**
 
 **Date**: 2025-07-25  
-**Task**: 2.2 實現智能匹配和容錯機制  
+**Task**: 2.2 Implement Intelligent Matching and Fault Tolerance  
 **Status**: COMPLETED ✅
 
 ## 📋 **Implementation Summary**
@@ -96,7 +96,7 @@ Records for each VLM processing:
 ### **Technical Innovation**
 - Multi-tier confidence thresholds for VLM uncertainty
 - Conservative update strategy for system reliability
-- Consecutive failure detection for adaptive behavior
+- Consecutive failure detection for adaptive behaviour
 - Comprehensive metrics for performance analysis
 
 ## 📁 **Files Modified/Created**

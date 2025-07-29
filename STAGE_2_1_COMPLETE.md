@@ -3,7 +3,7 @@
 ## ✅ **Task Completed Successfully**
 
 **Date**: 2025-07-25  
-**Task**: 2.1 實現State Tracker核心系統  
+**Task**: 2.1 Implement State Tracker Core System  
 **Status**: COMPLETED ✅
 
 ## 📋 **What Was Implemented**
@@ -22,7 +22,7 @@
 - Anomaly detection (repeated chars, excessive special chars, etc.)
 
 ### 3. **Backend Integration** (`src/backend/main.py`)
-- Added State Tracker import and initialization
+- Added State Tracker import and initialisation
 - Integrated into existing `/v1/chat/completions` endpoint
 - Added one-line call to process VLM responses
 - Added new API endpoints:
@@ -38,7 +38,7 @@
 
 ### **Core Functionality**
 - ✅ Receives VLM text from existing `/v1/chat/completions` endpoint
-- ✅ Cleans and normalizes VLM text (handles errors, empty output)
+- ✅ Cleans and normalises VLM text (handles errors, empty output)
 - ✅ Matches with RAG knowledge base using semantic similarity
 - ✅ Updates state only when confidence threshold is met (0.7)
 - ✅ Maintains sliding window of state history
@@ -57,7 +57,7 @@
 ## 🧪 **Test Results**
 
 ```
-✅ State Tracker initialized successfully
+✅ State Tracker initialised successfully
 ✅ VLM text processing works correctly
 ✅ RAG matching finds appropriate task steps
 ✅ State updates when confidence > threshold
@@ -73,7 +73,7 @@
 ## 📊 **Performance Characteristics**
 
 - **Memory Usage**: Minimal (sliding window limited to 10 records)
-- **Processing Speed**: Fast (leverages existing RAG optimizations)
+- **Processing Speed**: Fast (leverages existing RAG optimisations)
 - **Error Handling**: Robust (graceful degradation on failures)
 - **Integration Impact**: Zero (doesn't affect existing VLM responses)
 

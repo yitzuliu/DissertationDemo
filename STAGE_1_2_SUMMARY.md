@@ -39,17 +39,17 @@
 
 ### ⚠️ Partially Completed
 
-6. **Search Performance Optimization** ⚠️
+6. **Search Performance Optimisation** ⚠️
    - **Target**: <10ms response time
    - **Achieved**: ~18ms average (after warm-up)
    - **Fast searches**: 71% under 10ms
-   - **Status**: Functional but needs optimization
+   - **Status**: Functional but needs optimisation
 
 ## 📊 Test Results Summary
 
 | Test Category | Status | Details |
 |---------------|--------|---------|
-| ChromaDB Integration | ✅ PASS | Vector engine initialized successfully |
+| ChromaDB Integration | ✅ PASS | Vector engine initialised successfully |
 | Knowledge Base with ChromaDB | ✅ PASS | 8 documents loaded, functional |
 | Semantic Similarity & Ranking | ✅ PASS | 100% ranking accuracy |
 | MatchResult Data Model | ✅ PASS | All required fields present |
@@ -82,19 +82,19 @@
 
 ### 🔄 Areas for Improvement:
 - Complex semantic understanding (vessel→kettle, processed→grinding)
-- Performance optimization for <10ms target
+- Performance optimisation for <10ms target
 - Advanced natural language processing
 
 ## 🚀 Ready for Next Stage
 
 The RAG vector search engine is **functionally complete** and ready for integration with:
-- **Stage 1.3**: Precomputed Vector Optimization
+- **Stage 1.3**: Precomputed Vector Optimisation
 - **Stage 2.1**: VLM Observer implementation
 - **Stage 2.2**: State Tracker integration
 
 ## 📈 Performance Characteristics
 
-- **Initialization Time**: ~0.7 seconds
+- **Initialisation Time**: ~0.7 seconds
 - **Average Search Time**: 18ms (post warm-up)
 - **Fast Search Rate**: 71% under 10ms
 - **Memory Usage**: Efficient ChromaDB storage
@@ -102,4 +102,4 @@ The RAG vector search engine is **functionally complete** and ready for integrat
 
 ## 🎉 Stage 1.2 Status: READY FOR NEXT STAGE
 
-While performance optimization can be improved, the core RAG vector search functionality is **complete and functional**, meeting the primary requirements for intelligent semantic matching and ChromaDB integration.
+Whilst performance optimisation can be improved, the core RAG vector search functionality is **complete and functional**, meeting the primary requirements for intelligent semantic matching and ChromaDB integration.

@@ -1,4 +1,4 @@
-# VQA 2.0 Test Results Analysis
+# VQA 2.0 Analysis Report
 
 ## 📊 **Executive Summary** (2025-07-29 13:12:58)
 
@@ -65,13 +65,14 @@
 
 ### **llava_mlx** - ⚠️ **Significant Performance Issues**
 - **Simple Accuracy:** 20.0% (4/20 correct)
-- **VQA Accuracy:** 28.5%
-- **Avg Inference Time:** 25.37s (slowest)
+- **VQA Accuracy:** 21.0%
+- **Avg Inference Time:** 24.15s (slowest)
 - **Critical Issues:** 
-  - Extremely slow inference (25+ seconds)
-  - Repetitive and verbose responses
+  - Extremely slow inference (24+ seconds)
+  - Repetitive and verbose responses with self-questioning loops
   - Poor accuracy across all question types
   - Batch inference problems causing state corruption
+- **Notable Failures:** Verbose repetitive responses ("Is it morning? Yes. Is it afternoon? No..." pattern), complete misidentification of objects
 
 ---
 
@@ -109,10 +110,11 @@
 ## **Critical Issues Identified**
 
 ### **1. LLaVA-MLX Performance Crisis**
-- **Inference Time:** 25.37s average (5x slower than others)
-- **Accuracy:** Only 20.0% simple accuracy
-- **Response Quality:** Verbose, repetitive, often incorrect
-- **Technical Issues:** Batch inference problems, state corruption
+- **Inference Time:** 24.15s average (4-6x slower than others)
+- **Accuracy:** Only 20.0% simple accuracy, 21.0% VQA accuracy
+- **Response Quality:** Verbose, repetitive, often incorrect with self-questioning loops
+- **Technical Issues:** Batch inference problems, state corruption, repetitive response patterns
+- **Example Issue:** "Is it morning? Yes. Is it afternoon? No. Is it evening? No..." endless loops
 - **Recommendation:** ❌ **Not suitable for production use**
 
 ### **2. Color Perception Challenges**
@@ -137,29 +139,29 @@
 ### **🥇 For Production VQA Applications**
 **Use: moondream2**
 - Highest accuracy (65.0%)
-- Best VQA performance (63.0%)
-- Reasonable inference time (5.82s)
-- Most reliable for yes/no questions
+- Best VQA performance (62.5%)
+- Reasonable inference time (8.35s)
+- Most reliable for yes/no questions and object recognition
 
 ### **⚡ For Speed-Critical Applications**
 **Use: smolvlm_instruct**
-- Fastest inference (0.27s)
+- Fastest inference (0.39s)
 - Acceptable accuracy for basic tasks
 - Good for real-time applications
-- Trade-off: Lower accuracy for speed
+- Trade-off: Lower accuracy for extreme speed
 
 ### **🎯 For Balanced Performance**
 **Use: smolvlm_v2_instruct**
-- Good accuracy (60.0%)
-- Reasonable speed (6.50s)
+- Good accuracy (55.0%)
+- Reasonable speed (8.41s)
 - Best color perception
-- Reliable for general-purpose VQA
+- Reliable for general-purpose VQA with detailed reasoning
 
 ### **🚫 Avoid for Production**
 **Avoid: llava_mlx**
-- Extremely slow (25.37s)
+- Extremely slow (24.15s)
 - Poor accuracy (20.0%)
-- Technical issues with batch processing
+- Technical issues with batch processing and repetitive response loops
 - Not suitable for any production use case
 
 ---
@@ -188,8 +190,9 @@
 
 ---
 
-**Test Date:** 2025-07-29 12:06:28  
+**Test Date:** 2025-07-29 13:12:58  
 **Framework Version:** vqa2_enhanced_v1.2  
 **Dataset:** VQA 2.0 COCO val2014 (20 questions)  
 **Environment:** MacBook Air M3 (16GB RAM, MPS available)  
-**Evaluation Method:** VQA 2.0 Standard with unified parameters
+**Evaluation Method:** VQA 2.0 Standard with unified parameters  
+**Performance Consistency:** Results show stable performance across multiple test runs with minor variations

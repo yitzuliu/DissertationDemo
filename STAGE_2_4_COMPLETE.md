@@ -3,7 +3,7 @@
 ## ✅ **Task Completed Successfully**
 
 **Date**: 2025-07-25  
-**Task**: 2.4 建立即時響應白板機制  
+**Task**: 2.4 Establish Instant Response Whiteboard Mechanism  
 **Status**: COMPLETED ✅
 
 ## 📋 **Implementation Summary**
@@ -18,10 +18,10 @@
 - **Multi-language Support**: Chinese and English query processing
 - **Query Classification**: 91.7% accuracy across 6 query types
 - **Template Categories**:
-  - Current Step: "您現在在「{task}」任務的第{step}步"
-  - Next Step: "下一步是第{next}步。建議先完成當前第{step}步"
-  - Tools Required: "第{step}步可能需要相關工具..."
-  - Progress Status: "當前進度：第{step}步 (約{percent}%完成)"
+  - Current Step: "You are currently on step {step} of the '{task}' task"
+  - Next Step: "Next step is step {next}. Recommend completing current step {step} first"
+  - Tools Required: "Step {step} may require relevant tools..."
+  - Progress Status: "Current progress: Step {step} (approximately {percent}% complete)"
   - Help: Contextual guidance based on current state
 
 ### **3. Millisecond-Level State Reading**
@@ -33,12 +33,12 @@
 ### **4. Intelligent Query Parsing and Routing**
 - **Pattern Matching**: Regex-based classification system
 - **Query Types Supported**:
-  - CURRENT_STEP: "我在哪", "current step", "現在哪步"
-  - NEXT_STEP: "下一步", "next step", "接下來"
-  - REQUIRED_TOOLS: "需要什麼", "tools needed", "工具"
-  - COMPLETION_STATUS: "完成了嗎", "progress", "進度"
-  - PROGRESS_OVERVIEW: "整體", "overall", "總進度"
-  - HELP: "怎麼做", "help", "說明"
+  - CURRENT_STEP: "Where am I", "current step", "which step"
+  - NEXT_STEP: "Next step", "next step", "what's next"
+  - REQUIRED_TOOLS: "What do I need", "tools needed", "tools"
+  - COMPLETION_STATUS: "Am I done", "progress", "status"
+  - PROGRESS_OVERVIEW: "Overall", "overall", "total progress"
+  - HELP: "How do I", "help", "instructions"
 - **Fallback Handling**: Unknown queries get helpful guidance
 
 ### **5. Complete Frontend Interface**
@@ -65,7 +65,7 @@
 ### **System Integration**
 - **API Integration**: Seamless backend endpoint integration
 - **Frontend Connectivity**: Real-time connection status monitoring
-- **State Synchronization**: Instant access to current state data
+- **State Synchronisation**: Instant access to current state data
 - **Error Recovery**: Robust handling of connection issues
 
 ## 🎯 **Key Achievements**
@@ -140,7 +140,7 @@ With Task 2.4 completion, the **complete dual-loop memory system** is now operat
 - **A→B**: VLM observes and returns screen content
 - **C**: State Tracker receives VLM text
 - **D**: Matches with RAG knowledge base
-- **E**: Stores in optimized sliding window
+- **E**: Stores in optimised sliding window
 - **F**: Updates current state
 
 ### **Instant Response Loop** (Task 2.4):
@@ -158,4 +158,4 @@ With Task 2.4 completion, the **complete dual-loop memory system** is now operat
 
 **Ready to proceed to Stage 3: Dual-Loop System Integration** 🎯
 
-The foundation is now solid for integrating both loops into a unified system that can simultaneously maintain continuous awareness while providing instant responses to user queries.
+The foundation is now solid for integrating both loops into a unified system that can simultaneously maintain continuous awareness whilst providing instant responses to user queries.
