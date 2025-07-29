@@ -787,7 +787,24 @@ class VQAFramework:
                     # Simple accuracy - check if standard answer is in model response
                     model_answer_lower = self._preprocess_answer(model_answer)
                     gt_answer_lower = self._preprocess_answer(gt_answer)
-                    is_correct = gt_answer_lower in model_answer_lower
+                    
+                    # Special handling for yes/no questions
+                    if gt_answer_lower in ['yes', 'no']:
+                        # For yes/no questions, determine model's yes/no response
+                        yes_keywords = ['yes', 'yeah', 'yep', 'correct', 'true', 'right', 'sure', 'okay']
+                        no_keywords = ['no', 'nope', 'not', 'false', 'wrong', 'incorrect', 'negative']
+                        
+                        model_yes = any(keyword in model_answer_lower for keyword in yes_keywords)
+                        model_no = any(keyword in model_answer_lower for keyword in no_keywords)
+                        
+                        if gt_answer_lower == 'yes':
+                            is_correct = model_yes and not model_no
+                        else:  # gt_answer_lower == 'no'
+                            is_correct = model_no and not model_yes
+                    else:
+                        # For non-yes/no questions, use standard logic
+                        is_correct = gt_answer_lower in model_answer_lower
+                    
                     if is_correct:
                         correct_answers += 1
                     
@@ -807,7 +824,12 @@ class VQAFramework:
                         'ground_truth': gt_answer,
                         'is_correct': is_correct,
                         'vqa_accuracy': vqa_accuracy,
-                        'inference_time': inference_time
+                        'inference_time': inference_time,
+                        'debug_info': {
+                            'model_answer_lower': self._preprocess_answer(model_answer),
+                            'gt_answer_lower': self._preprocess_answer(gt_answer),
+                            'is_yes_no_question': gt_answer.lower() in ['yes', 'no']
+                        }
                     })
                 else:
                     error_summary["annotation_errors"] += 1
@@ -1218,12 +1240,20 @@ class VQAFramework:
         # Convert to lowercase
         answer = answer.lower().strip()
         
-        # Remove common punctuation marks
+        # Remove common punctuation marks but preserve important ones
         import re
-        answer = re.sub(r'[^\w\s]', ' ', answer)
+        # Keep periods, commas, and hyphens for better matching
+        answer = re.sub(r'[^\w\s.,-]', ' ', answer)
         
         # Normalize whitespace
         answer = ' '.join(answer.split())
+        
+        # Handle common contractions and variations
+        answer = answer.replace("'t", " not")
+        answer = answer.replace("'re", " are")
+        answer = answer.replace("'s", " is")
+        answer = answer.replace("'ve", " have")
+        answer = answer.replace("'ll", " will")
         
         # Standard VQA 2.0 number normalization
         # Convert written numbers to digits (basic implementation)
@@ -1236,7 +1266,8 @@ class VQAFramework:
         }
         
         for word, digit in number_mapping.items():
-            answer = answer.replace(word, digit)
+            # Use word boundaries to avoid partial matches
+            answer = re.sub(r'\b' + word + r'\b', digit, answer)
         
         return answer
     
@@ -1247,6 +1278,47 @@ class VQAFramework:
         
         prediction_lower = self._preprocess_answer(prediction)
         
+        # Special handling for yes/no questions
+        yes_no_keywords = {
+            'yes': ['yes', 'yeah', 'yep', 'correct', 'true', 'right', 'sure', 'okay'],
+            'no': ['no', 'nope', 'not', 'false', 'wrong', 'incorrect', 'negative']
+        }
+        
+        # Check if this is a yes/no question by examining ground truth
+        gt_lower = [self._preprocess_answer(gt) for gt in ground_truth_answers]
+        is_yes_no_question = any(gt in ['yes', 'no'] for gt in gt_lower)
+        
+        if is_yes_no_question:
+            # For yes/no questions, determine model's yes/no response
+            model_yes = any(keyword in prediction_lower for keyword in yes_no_keywords['yes'])
+            model_no = any(keyword in prediction_lower for keyword in yes_no_keywords['no'])
+            
+            # Determine ground truth yes/no
+            gt_yes = any(gt == 'yes' for gt in gt_lower)
+            gt_no = any(gt == 'no' for gt in gt_lower)
+            
+            # Calculate accuracy - ensure consistency with simple accuracy
+            if gt_yes and model_yes and not model_no:
+                return 1.0  # Correct yes answer
+            elif gt_no and model_no and not model_yes:
+                return 1.0  # Correct no answer
+            elif gt_yes and model_no and not model_yes:
+                return 0.0  # Wrong no answer (should be yes)
+            elif gt_no and model_yes and not model_no:
+                return 0.0  # Wrong yes answer (should be no)
+            else:
+                # Ambiguous or unclear response - give partial credit only if there's some indication
+                if model_yes and model_no:
+                    # Both yes and no keywords present - very unclear
+                    return 0.1
+                elif not model_yes and not model_no:
+                    # No clear yes/no keywords - unclear response
+                    return 0.2
+                else:
+                    # Some indication but not clear - minimal credit
+                    return 0.3
+        
+        # For non-yes/no questions, use standard VQA 2.0 logic
         # Count how many ground truth answers appear in prediction
         matching_count = 0
         for gt_answer in ground_truth_answers:
@@ -1255,7 +1327,6 @@ class VQAFramework:
                 matching_count += 1
         
         # Standard VQA 2.0 accuracy: min(matching_count/len(ground_truth_answers), 1.0)
-        # This ensures accuracy is normalized by the number of ground truth answers
         accuracy = min(matching_count / len(ground_truth_answers), 1.0)
         return accuracy
     

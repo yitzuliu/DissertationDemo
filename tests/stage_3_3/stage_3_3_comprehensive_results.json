@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-07-27T21:03:26.464017",
+  "timestamp": "2025-07-28T23:42:47.109849",
   "total_tests": 6,
   "passed_tests": 5,
   "success_rate": 83.33333333333334,
@@ -12,7 +12,7 @@
         "valid_step_detections": 8,
         "step_consistency": true,
         "most_common_step": 0,
-        "avg_response_time_ms": 1042.8434908390045,
+        "avg_response_time_ms": 1036.699801683426,
         "success_criteria": {
           "valid_responses": true,
           "step_detection": true,
@@ -27,7 +27,7 @@
         "unconscious_success_rate": 100.0,
         "instant_response_rate": 100.0,
         "coordination_rate": 100.0,
-        "avg_response_time_ms": 1038.611650466919,
+        "avg_response_time_ms": 1041.0337713029649,
         "success_criteria": {
           "unconscious_loop": true,
           "instant_response": true,
@@ -54,35 +54,35 @@
     "memory_management": {
       "passed": true,
       "details": {
-        "initial_memory_mb": 8.703125,
-        "final_memory_mb": 8.703125,
+        "initial_memory_mb": 13.265625,
+        "final_memory_mb": 13.265625,
         "memory_growth_mb": 0.0,
         "state_count": 3,
         "memory_samples": [
           {
             "iteration": 0,
-            "total_mb": 2071.25,
-            "backend_mb": 8.703125
+            "total_mb": 3373.46875,
+            "backend_mb": 13.265625
           },
           {
             "iteration": 10,
-            "total_mb": 2071.953125,
-            "backend_mb": 8.703125
+            "total_mb": 3373.96875,
+            "backend_mb": 13.265625
           },
           {
             "iteration": 20,
-            "total_mb": 2072.8125,
-            "backend_mb": 8.703125
+            "total_mb": 3373.96875,
+            "backend_mb": 13.265625
           },
           {
             "iteration": 30,
-            "total_mb": 2073.421875,
-            "backend_mb": 8.703125
+            "total_mb": 3374.359375,
+            "backend_mb": 13.265625
           },
           {
             "iteration": 40,
-            "total_mb": 2051.0625,
-            "backend_mb": 8.703125
+            "total_mb": 3374.359375,
+            "backend_mb": 13.265625
           }
         ],
         "success_criteria": {
@@ -96,12 +96,12 @@
     "performance_verification": {
       "passed": false,
       "details": {
-        "avg_response_time_ms": 23.775450388590496,
-        "max_response_time_ms": 27.363061904907227,
-        "min_response_time_ms": 21.636962890625,
+        "avg_response_time_ms": 23.553752899169922,
+        "max_response_time_ms": 26.716947555541992,
+        "min_response_time_ms": 21.566152572631836,
         "accuracy_rate": 0.0,
         "concurrent_success_rate": 0.0,
-        "concurrent_avg_time_ms": 59.59615707397461,
+        "concurrent_avg_time_ms": 59.23118591308594,
         "total_tests": 15,
         "concurrent_tests": 5,
         "success_criteria": {
