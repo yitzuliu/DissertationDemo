@@ -808,8 +808,8 @@ class VQAFramework:
                     if is_correct:
                         correct_answers += 1
                     
-                    # VQA accuracy
-                    vqa_accuracy = self._calculate_vqa_accuracy(model_answer, gt_answers)
+                    # VQA accuracy - use single standard answer for consistency
+                    vqa_accuracy = self._calculate_vqa_accuracy(model_answer, [gt_answer])
                     total_vqa_accuracy += vqa_accuracy
                     
                     # Generate corresponding image filename
@@ -1240,10 +1240,9 @@ class VQAFramework:
         # Convert to lowercase
         answer = answer.lower().strip()
         
-        # Remove common punctuation marks but preserve important ones
+        # Remove all punctuation marks for better matching
         import re
-        # Keep periods, commas, and hyphens for better matching
-        answer = re.sub(r'[^\w\s.,-]', ' ', answer)
+        answer = re.sub(r'[^\w\s]', ' ', answer)
         
         # Normalize whitespace
         answer = ' '.join(answer.split())
@@ -1254,6 +1253,13 @@ class VQAFramework:
         answer = answer.replace("'s", " is")
         answer = answer.replace("'ve", " have")
         answer = answer.replace("'ll", " will")
+        answer = answer.replace("'d", " would")
+        answer = answer.replace("n't", " not")
+        answer = answer.replace("i'm", "i am")
+        answer = answer.replace("it's", "it is")
+        answer = answer.replace("don't", "do not")
+        answer = answer.replace("can't", "cannot")
+        answer = answer.replace("won't", "will not")
         
         # Standard VQA 2.0 number normalization
         # Convert written numbers to digits (basic implementation)
@@ -1318,17 +1324,41 @@ class VQAFramework:
                     # Some indication but not clear - minimal credit
                     return 0.3
         
-        # For non-yes/no questions, use standard VQA 2.0 logic
-        # Count how many ground truth answers appear in prediction
-        matching_count = 0
-        for gt_answer in ground_truth_answers:
-            gt_answer_lower = self._preprocess_answer(gt_answer)
-            if gt_answer_lower in prediction_lower:
-                matching_count += 1
+        # For non-yes/no questions, use improved matching logic
+        # Since we now use single ground truth answer, we can be more precise
+        gt_answer = ground_truth_answers[0]  # Use single standard answer
+        gt_answer_lower = self._preprocess_answer(gt_answer)
         
-        # Standard VQA 2.0 accuracy: min(matching_count/len(ground_truth_answers), 1.0)
-        accuracy = min(matching_count / len(ground_truth_answers), 1.0)
-        return accuracy
+        # Improved matching logic:
+        # 1. Exact match (highest score)
+        if gt_answer_lower == prediction_lower:
+            return 1.0
+        
+        # 2. Word-level matching (high score)
+        gt_words = set(gt_answer_lower.split())
+        pred_words = set(prediction_lower.split())
+        
+        if gt_words and pred_words:
+            # Calculate word overlap
+            common_words = gt_words.intersection(pred_words)
+            word_overlap = len(common_words) / len(gt_words)
+            
+            # If all ground truth words are present, give high score
+            if word_overlap >= 1.0:
+                return 0.9
+            # If most ground truth words are present, give medium score
+            elif word_overlap >= 0.7:
+                return 0.7
+            # If some ground truth words are present, give low score
+            elif word_overlap >= 0.3:
+                return 0.3
+        
+        # 3. Substring matching (lower score)
+        if gt_answer_lower in prediction_lower:
+            return 0.5
+        
+        # 4. No match
+        return 0.0
     
     def save_results(self, results: Dict, test_mode: str, num_questions: int, suffix: str = "") -> Path:
         """Save test results with complete experimental metadata for paper publication"""

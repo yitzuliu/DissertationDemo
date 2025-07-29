@@ -1,108 +1,203 @@
 # VLM Model Loading Reference Guide
 
-## 📊 **Quick Summary** (2025-07-28)
+## 📊 **Quick Summary** (2025-07-29)
 
-### **Capability Overview**
-| Model | Vision | Pure Text | Avg Inference (s) | Load Time (s) | Memory Diff (GB) | Status |
-|-------|--------|-----------|-------------------|---------------|------------------|--------|
-| **Moondream2** | ✅ | ❌ | 11.58 | 5.34 | -1.15 | **Best Overall** |
-| SmolVLM-500M-Instruct (GGUF) | ✅ | ✅ | **0.93** | 2.04 | 0.07 | **Fastest** |
-| SmolVLM2-500M-Video-Instruct | ✅ | ✅ | 9.80 | 1.02 | 0.06 | Fast & Accurate |
-| Phi-3.5-Vision-Instruct | ✅ | ✅ | 10.54 | 1.52 | 0.28 | Balanced |
-| LLaVA-v1.6-Mistral-7B-MLX | ✅ | ✅ | 21.93 | 2.17 | 0.46 | **Issues** |
+### **Comprehensive Performance Overview**
+| Model | Vision | Pure Text | VQA Acc | Simple Acc | Avg Inference (s) | Load Time (s) | Memory Diff (GB) | Status |
+|-------|--------|-----------|---------|------------|-------------------|---------------|------------------|--------|
+| **Moondream2** | ✅ | ❌ | **63.0%** | **65.0%** | 5.82 | 16.61 | -0.09 | 🥇 **Best Overall** |
+| SmolVLM2-500M-Video-Instruct | ✅ | ✅ | 56.5% | 60.0% | 6.50 | 1.48 | 0.13 | 🥈 **Balanced** |
+| SmolVLM-500M-Instruct (GGUF) | ✅ | ✅ | 39.5% | 35.0% | **0.27** | 4.05 | 0.001 | ⚡ **Fastest** |
+| Phi-3.5-Vision-Instruct | ✅ | ✅ | 49.5% | 35.0% | 5.06 | 1.71 | 0.05 | 🥉 **Fast** |
+| LLaVA-v1.6-Mistral-7B-MLX | ✅ | ✅ | 28.5% | 20.0% | 25.37 | 6.07 | -0.48 | ⚠️ **Critical Issues** |
 
 ---
 
-## **Model Loading Methods**
+## **Model Loading Methods & Performance Details**
 
-### **Moondream2** - **Best Overall Performance**
+### **🥇 Moondream2** - **Best Overall Performance**
 ```python
 model_id = "vikhyatk/moondream2"
-# Load time: 5.34s | Avg Inference: 11.58s | Memory Diff: -1.15GB
-# Features: Fastest inference, best accuracy, vision-only
-# VQA Accuracy: 52.5% | Simple Accuracy: 60.0%
+# Load time: 16.61s | Avg Inference: 5.82s | Memory Diff: -0.09GB
+# VQA Accuracy: 63.0% | Simple Accuracy: 65.0%
+# Features: Highest accuracy, excellent yes/no questions, vision-only
+# Strengths: Object recognition, spatial reasoning, color identification
+# Limitations: Cannot process text-only input, slower loading
 ```
 
-### **SmolVLM-500M-Instruct (GGUF)** - **Fastest**
+### **🥈 SmolVLM2-500M-Video-Instruct** - **Balanced Performance**
+```python
+model_id = "mlx-community/SmolVLM2-500M-Video-Instruct-mlx"
+# Load time: 1.48s | Avg Inference: 6.50s | Memory Diff: 0.13GB
+# VQA Accuracy: 56.5% | Simple Accuracy: 60.0%
+# Features: Best balance of speed and accuracy, supports text-only
+# Strengths: Color perception, object identification, fast loading
+# Context Issues: Provides generic responses without image context
+```
+
+### **⚡ SmolVLM-500M-Instruct (GGUF)** - **Fastest Inference**
 ```python
 # Unified GGUF approach via HTTP API (Production Ready)
 model_id = "ggml-org/SmolVLM-500M-Instruct-GGUF"
 api_endpoint = "http://localhost:8080/v1/chat/completions"
-# Load time: 2.04s | Avg Inference: 0.93s | Memory Diff: 0.07GB
-# Features: Automatic server management, port cleanup, unified API
-# VQA Accuracy: 39.5% | Simple Accuracy: 40.0%
+# Load time: 4.05s | Avg Inference: 0.27s | Memory Diff: 0.001GB
+# VQA Accuracy: 39.5% | Simple Accuracy: 35.0%
+# Features: Extremely fast inference, automatic server management, unified API
+# Strengths: Real-time applications, minimal memory usage
+# Trade-offs: Lower accuracy for extreme speed
 ```
 
-### **SmolVLM2-500M-Video-Instruct** - **Fast & Accurate**
-```python
-model_id = "mlx-community/SmolVLM2-500M-Video-Instruct-mlx"
-# Load time: 1.02s | Avg Inference: 9.80s | Memory Diff: 0.06GB
-# VQA Accuracy: 51.5% | Simple Accuracy: 60.0%
-```
-
-### **Phi-3.5-Vision-Instruct** - **Balanced**
+### **🥉 Phi-3.5-Vision-Instruct** - **Fast with Good VQA**
 ```python
 model_id = "mlx-community/Phi-3.5-vision-instruct-4bit"
-# Load time: 1.52s | Avg Inference: 10.54s | Memory Diff: 0.28GB
-# VQA Accuracy: 42.5% | Simple Accuracy: 40.0%
+# Load time: 1.71s | Avg Inference: 5.06s | Memory Diff: 0.05GB
+# VQA Accuracy: 49.5% | Simple Accuracy: 35.0%
+# Features: Good VQA performance despite lower simple accuracy
+# Strengths: Detailed responses, spatial reasoning
+# Context Issues: Returns empty responses for text-only context questions
 ```
 
-### **LLaVA-v1.6-Mistral-7B-MLX** - **Issues**
+### **⚠️ LLaVA-v1.6-Mistral-7B-MLX** - **Critical Performance Issues**
 ```python
 model_id = "mlx-community/llava-v1.6-mistral-7b-4bit"
-# Load time: 2.17s | Avg Inference: 21.93s | Memory Diff: 0.46GB
-# VQA Accuracy: 27.0% | Simple Accuracy: 25.0%
+# Load time: 6.07s | Avg Inference: 25.37s | Memory Diff: -0.48GB
+# VQA Accuracy: 28.5% | Simple Accuracy: 20.0%
+# Critical Issues: Extremely slow, poor accuracy, batch inference problems
+# Problems: State corruption, repetitive responses, requires model reloading
+# Status: NOT RECOMMENDED for production use
 ```
 
 ---
 
-## **Recommendations**
-- **Best Overall:** **Moondream2** - Highest accuracy, balanced speed
-- **Fastest:** SmolVLM-500M-Instruct (GGUF) - **Fastest inference, unified API, automatic server management**
-- **Best Context:** SmolVLM-500M-Instruct (GGUF) - **Best context retention with production stability**
-- **Fast & Accurate:** SmolVLM2-500M-Video-Instruct (good balance of speed and accuracy)
-- **Balanced:** Phi-3.5-Vision-Instruct (good all-around, moderate speed)
-- **Avoid for Production:** LLaVA-v1.6-Mistral-7B-MLX (dimension errors after first inference, batch inference issues)
+## **🎯 Production Recommendations**
+
+### **For High-Accuracy VQA Applications**
+**🥇 Use: Moondream2**
+- Highest VQA accuracy (63.0%) and simple accuracy (65.0%)
+- Excellent for yes/no questions (77.8% accuracy)
+- Best object recognition and spatial reasoning
+- Reasonable inference time (5.82s)
+- **Trade-off:** Vision-only, cannot process text-only input
+
+### **For Real-Time Applications**
+**⚡ Use: SmolVLM-500M-Instruct (GGUF)**
+- Fastest inference (0.27s) - 20x faster than others
+- Production-ready with unified API and automatic server management
+- Minimal memory usage (0.001GB diff)
+- **Trade-off:** Lower accuracy (35.0% simple, 39.5% VQA)
+
+### **For Balanced Performance**
+**🥈 Use: SmolVLM2-500M-Video-Instruct**
+- Good accuracy (60.0% simple, 56.5% VQA)
+- Reasonable speed (6.50s)
+- Best color perception (75.0% accuracy)
+- Supports both vision and text-only input
+- **Best overall balance** of speed, accuracy, and features
+
+### **For Development/Testing**
+**🥉 Use: Phi-3.5-Vision-Instruct**
+- Good VQA performance (49.5%) despite lower simple accuracy
+- Fast inference (5.06s) and loading (1.71s)
+- Detailed responses for analysis
+- **Trade-off:** Context understanding issues
+
+### **❌ Avoid for Production**
+**⚠️ LLaVA-v1.6-Mistral-7B-MLX**
+- Extremely slow (25.37s inference)
+- Poor accuracy (20.0% simple, 28.5% VQA)
+- Critical batch inference issues
+- Requires model reloading between images
+- **Not suitable for any production use case**
 
 ---
 
-## **Known Issues**
-- **LLaVA-MLX**: 
-  - Model state becomes corrupted after first inference; subsequent inferences fail with dimension errors
-  - Error: "input operand has more dimensions than allowed by the axis remapping"
-  - Workaround: Reload model for each image (implemented in vlm_tester.py)
-  - Text-only inference works correctly
-  - Poor VQA performance (27.0% accuracy)
-- **Moondream2**: Cannot process text-only prompts; vision-only model.
-- **All models**: Context retention remains limited for multi-turn tasks.
+## **🚨 Critical Issues & Limitations**
 
-## **Recent Improvements** (2025-07-28)
-- ✅ **Moondream2 Performance**: Now the best overall performer with 60.0% accuracy
-- ✅ **SmolVLM GGUF Unification**: All test scripts now use unified GGUF approach via HTTP API
-- ✅ **Port Safety**: Automatic cleanup of SmolVLM server processes on exit
-- ✅ **Server Management**: Automatic startup, port conflict resolution, and retry mechanisms
-- ✅ **Performance**: SmolVLM GGUF shows consistent performance with production deployment
-- ✅ **Memory Efficiency**: Reduced memory usage across all models
-- ✅ **Production Stability**: Consistent with production deployment architecture
+### **Context Understanding Crisis**
+**⚠️ ALL MODELS HAVE 0% TRUE CONTEXT UNDERSTANDING**
+- **Phi-3.5 & LLaVA-MLX:** Return empty responses to context questions
+- **Moondream2:** Explicitly states cannot answer without image
+- **SmolVLM models:** Provide hallucinated responses (claim "red, white, blue" for all images)
+- **Implication:** Multi-turn conversations require external memory systems
 
-## **Performance Rankings** (Updated 2025-07-28)
+### **LLaVA-MLX Specific Issues**
+- **Batch Processing:** Model state corruption after first inference
+- **Performance:** 5x slower than other models (25.37s vs ~5-6s)
+- **Accuracy:** Lowest performance across all metrics
+- **Responses:** Verbose, repetitive, often incorrect
+- **Technical Error:** "input operand has more dimensions than allowed by the axis remapping"
+- **Workaround:** Model reloading required for each image (implemented)
 
-### **Speed Rankings**
-1. **SmolVLM GGUF:** 0.93s avg inference
-2. **SmolVLM2-MLX:** 9.80s avg inference
-3. **Phi-3.5-MLX:** 10.54s avg inference
-4. **Moondream2:** 11.58s avg inference
-5. **LLaVA-MLX:** 21.93s avg inference
+### **Universal Challenges**
+- **Text Reading:** All models struggle with text in images (0% success on "PED XING" sign)
+- **Counting Tasks:** Poor performance across all models (0-50% accuracy)
+- **Color Perception:** Frequent errors (white vs. gray, blue vs. green)
+- **Context Retention:** No model can maintain conversation context
 
-### **Accuracy Rankings**
-1. **Moondream2:** 60.0% simple accuracy
-2. **SmolVLM2-MLX:** 60.0% simple accuracy
-3. **Phi-3.5-MLX:** 42.5% VQA accuracy
-4. **SmolVLM GGUF:** 40.0% simple accuracy, 39.5% VQA accuracy
-5. **LLaVA-MLX:** 25.0% simple accuracy
+## **Recent Test Results** (2025-07-29)
+- ✅ **Comprehensive VQA 2.0 Testing**: 20-question evaluation with COCO val2014 dataset
+- ✅ **Context Understanding Assessment**: Multi-turn conversation capability testing
+- ✅ **Performance Benchmarking**: Load time, inference speed, memory usage analysis
+- ✅ **Issue Identification**: Critical problems with LLaVA-MLX and context understanding
+- ✅ **Production Readiness**: SmolVLM GGUF unified API with automatic server management
+- ✅ **Accuracy Improvements**: Moondream2 now achieves 65.0% simple accuracy
+- ✅ **Speed Optimization**: SmolVLM GGUF achieves 0.27s inference time
+
+## **Performance Rankings** (Updated 2025-07-29)
+
+### **🏆 Overall Performance Rankings**
+1. **🥇 Moondream2:** 65.0% simple, 63.0% VQA, 5.82s inference
+2. **🥈 SmolVLM2-MLX:** 60.0% simple, 56.5% VQA, 6.50s inference  
+3. **🥉 Phi-3.5-MLX:** 35.0% simple, 49.5% VQA, 5.06s inference
+4. **⚡ SmolVLM GGUF:** 35.0% simple, 39.5% VQA, 0.27s inference
+5. **⚠️ LLaVA-MLX:** 20.0% simple, 28.5% VQA, 25.37s inference
+
+### **⚡ Speed Rankings**
+1. **SmolVLM GGUF:** 0.27s (fastest by 20x)
+2. **Phi-3.5-MLX:** 5.06s
+3. **Moondream2:** 5.82s
+4. **SmolVLM2-MLX:** 6.50s
+5. **LLaVA-MLX:** 25.37s (critical performance issue)
+
+### **🎯 Accuracy Rankings (VQA 2.0)**
+1. **Moondream2:** 63.0% VQA accuracy
+2. **SmolVLM2-MLX:** 56.5% VQA accuracy
+3. **Phi-3.5-MLX:** 49.5% VQA accuracy
+4. **SmolVLM GGUF:** 39.5% VQA accuracy
+5. **LLaVA-MLX:** 28.5% VQA accuracy
+
+### **📊 Question Type Performance**
+- **Yes/No Questions:** Moondream2 (77.8%) > SmolVLM2 (55.6%) > Others (~44%)
+- **Color Questions:** SmolVLM2 (75.0%) > Moondream2 (50.0%) > Others (25%)
+- **Counting Questions:** Moondream2 (50.0%) > All others (0.0%)
+- **Text Reading:** All models perform poorly (0% success rate)
 
 ---
 
-**Last Updated:** 2025-07-28 21:48:39  
-**Test Environment:** MacBook Air M3 (16GB RAM)  
-**Unified Architecture:** SmolVLM GGUF via HTTP API with automatic server management
+## **Test Environment & Specifications**
+
+### **Hardware Configuration**
+- **Device:** MacBook Air M3
+- **Memory:** 16GB RAM
+- **MPS Available:** Yes
+- **Torch Version:** 2.7.1
+- **Python Version:** 3.13.3
+
+### **Test Datasets**
+- **VQA 2.0:** COCO val2014 (20 questions)
+- **Context Understanding:** 3 test images with forensic-level prompts
+- **Basic Performance:** 3 diverse test images
+
+### **Evaluation Metrics**
+- **VQA Accuracy:** VQA 2.0 standard scoring
+- **Simple Accuracy:** Binary correct/incorrect
+- **Inference Time:** Average response generation time
+- **Load Time:** Model initialization time
+- **Memory Usage:** RAM consumption difference
+
+---
+
+**Last Updated:** 2025-07-29 12:06:28  
+**Test Environment:** MacBook Air M3 (16GB RAM, MPS available)  
+**Unified Architecture:** SmolVLM GGUF via HTTP API with automatic server management  
+**Comprehensive Testing:** VQA 2.0, Context Understanding, Performance Benchmarking

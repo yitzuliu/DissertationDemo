@@ -1,6 +1,6 @@
 {
   "experiment_metadata": {
-    "test_date": "2025-07-29 12:06:28",
+    "test_date": "2025-07-29 13:12:58",
     "test_mode": "coco",
     "num_questions": 20,
     "framework_version": "vqa2_enhanced_v1.2",
@@ -37,8 +37,8 @@
       "total_questions": 20,
       "correct_answers": 7,
       "accuracy": 0.35,
-      "vqa_accuracy": 0.495,
-      "avg_inference_time": 5.057469129562378,
+      "vqa_accuracy": 0.35000000000000003,
+      "avg_inference_time": 5.290249252319336,
       "performance_grade": "N/A",
       "question_results": [
         {
@@ -50,9 +50,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 4.8857972621917725,
+          "inference_time": 5.043154954910278,
           "debug_info": {
-            "model_answer_lower": "no, it appears to be evening or night time.",
+            "model_answer_lower": "no it appears to be evening or night time",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -66,9 +66,9 @@
           "ground_truth": "no",
           "is_correct": false,
           "vqa_accuracy": 0.1,
-          "inference_time": 4.458904027938843,
+          "inference_time": 4.465605974197388,
           "debug_info": {
-            "model_answer_lower": "yes, there is another bus behind this 1.",
+            "model_answer_lower": "yes there is another bus behind this 1",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -82,9 +82,9 @@
           "ground_truth": "yes",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 4.232514142990112,
+          "inference_time": 4.262556791305542,
           "debug_info": {
-            "model_answer_lower": "no, the light is off.",
+            "model_answer_lower": "no the light is off",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -97,10 +97,10 @@
           "model_answer": "The image shows a giraffe in a naturalistic setting with rocks and trees, which is typical of a zoo or wildlife park. However, without explicit signs or additional context, it cannot be determined with certainty if this is a zoo.",
           "ground_truth": "yes",
           "is_correct": false,
-          "vqa_accuracy": 0.2,
-          "inference_time": 6.939662218093872,
+          "vqa_accuracy": 0.0,
+          "inference_time": 7.056301116943359,
           "debug_info": {
-            "model_answer_lower": "the image shows a giraffe in a naturalistic setting with rocks and trees, which is typical of a zoo or wildlife park. however, without explicit signs or additional context, it cannot be determined with certainty if this is a zoo.",
+            "model_answer_lower": "the image shows a giraffe in a naturalistic setting with rocks and trees which is typical of a zoo or wildlife park however without explicit signs or additional context it cannot be determined with certainty if this is a zoo",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -114,7 +114,7 @@
           "ground_truth": "christmas",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 4.091281890869141,
+          "inference_time": 4.108007907867432,
           "debug_info": {
             "model_answer_lower": "christmas",
             "gt_answer_lower": "christmas",
@@ -129,10 +129,10 @@
           "model_answer": "There are three shrubs in the yard.",
           "ground_truth": "0",
           "is_correct": false,
-          "vqa_accuracy": 0.1,
-          "inference_time": 4.790617227554321,
+          "vqa_accuracy": 0.0,
+          "inference_time": 4.843152046203613,
           "debug_info": {
-            "model_answer_lower": "there are 3 shrubs in the yard.",
+            "model_answer_lower": "there are 3 shrubs in the yard",
             "gt_answer_lower": "0",
             "is_yes_no_question": false
           }
@@ -145,10 +145,10 @@
           "model_answer": "The dress is white.",
           "ground_truth": "gray",
           "is_correct": false,
-          "vqa_accuracy": 0.3,
-          "inference_time": 4.643596887588501,
+          "vqa_accuracy": 0.0,
+          "inference_time": 4.591287136077881,
           "debug_info": {
-            "model_answer_lower": "the dress is white.",
+            "model_answer_lower": "the dress is white",
             "gt_answer_lower": "gray",
             "is_yes_no_question": false
           }
@@ -161,10 +161,10 @@
           "model_answer": "The person on the left is wearing a blue jacket.",
           "ground_truth": "green",
           "is_correct": false,
-          "vqa_accuracy": 0.2,
-          "inference_time": 5.183634042739868,
+          "vqa_accuracy": 0.0,
+          "inference_time": 5.277254104614258,
           "debug_info": {
-            "model_answer_lower": "the person on the left is wearing a blue jacket.",
+            "model_answer_lower": "the person on the left is wearing a blue jacket",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -177,10 +177,10 @@
           "model_answer": "The girl is wearing red shoes.",
           "ground_truth": "red",
           "is_correct": true,
-          "vqa_accuracy": 0.5,
-          "inference_time": 4.886053085327148,
+          "vqa_accuracy": 0.9,
+          "inference_time": 5.055104970932007,
           "debug_info": {
-            "model_answer_lower": "the girl is wearing red shoes.",
+            "model_answer_lower": "the girl is wearing red shoes",
             "gt_answer_lower": "red",
             "is_yes_no_question": false
           }
@@ -193,10 +193,10 @@
           "model_answer": "The skier is going up the hill.",
           "ground_truth": "up",
           "is_correct": true,
-          "vqa_accuracy": 1.0,
-          "inference_time": 4.9487059116363525,
+          "vqa_accuracy": 0.9,
+          "inference_time": 5.0776190757751465,
           "debug_info": {
-            "model_answer_lower": "the skier is going up the hill.",
+            "model_answer_lower": "the skier is going up the hill",
             "gt_answer_lower": "up",
             "is_yes_no_question": false
           }
@@ -210,9 +210,9 @@
           "ground_truth": "3",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 4.769893169403076,
+          "inference_time": 4.850100994110107,
           "debug_info": {
-            "model_answer_lower": "all kites have legs.",
+            "model_answer_lower": "all kites have legs",
             "gt_answer_lower": "3",
             "is_yes_no_question": false
           }
@@ -226,9 +226,9 @@
           "ground_truth": "yes",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 5.721689939498901,
+          "inference_time": 5.721136093139648,
           "debug_info": {
-            "model_answer_lower": "yes, the pedestrians have the right of way as the traffic light for vehicles is red.",
+            "model_answer_lower": "yes the pedestrians have the right of way as the traffic light for vehicles is red",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -241,10 +241,10 @@
           "model_answer": "The seahorse is yellow with orange stripes.",
           "ground_truth": "yellow and orange",
           "is_correct": false,
-          "vqa_accuracy": 0.2,
-          "inference_time": 5.178076267242432,
+          "vqa_accuracy": 0.3,
+          "inference_time": 5.133124113082886,
           "debug_info": {
-            "model_answer_lower": "the seahorse is yellow with orange stripes.",
+            "model_answer_lower": "the seahorse is yellow with orange stripes",
             "gt_answer_lower": "yellow and orange",
             "is_yes_no_question": false
           }
@@ -257,10 +257,10 @@
           "model_answer": "An American flag.",
           "ground_truth": "flag",
           "is_correct": true,
-          "vqa_accuracy": 0.7,
-          "inference_time": 4.71602988243103,
+          "vqa_accuracy": 0.9,
+          "inference_time": 4.970293998718262,
           "debug_info": {
-            "model_answer_lower": "an american flag.",
+            "model_answer_lower": "an american flag",
             "gt_answer_lower": "flag",
             "is_yes_no_question": false
           }
@@ -274,9 +274,9 @@
           "ground_truth": "no",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 5.30666184425354,
+          "inference_time": 5.636563301086426,
           "debug_info": {
-            "model_answer_lower": "yes, the zebra appears to be grazing.",
+            "model_answer_lower": "yes the zebra appears to be grazing",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -289,10 +289,10 @@
           "model_answer": "The disk is green.",
           "ground_truth": "green",
           "is_correct": true,
-          "vqa_accuracy": 0.8,
-          "inference_time": 4.8560380935668945,
+          "vqa_accuracy": 0.9,
+          "inference_time": 4.999813079833984,
           "debug_info": {
-            "model_answer_lower": "the disk is green.",
+            "model_answer_lower": "the disk is green",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -306,9 +306,9 @@
           "ground_truth": "no",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 5.22303581237793,
+          "inference_time": 5.383402109146118,
           "debug_info": {
-            "model_answer_lower": "yes, the bear is wearing white shoes.",
+            "model_answer_lower": "yes the bear is wearing white shoes",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -322,9 +322,9 @@
           "ground_truth": "ties",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 5.903934001922607,
+          "inference_time": 6.443143129348755,
           "debug_info": {
-            "model_answer_lower": "the man is making colorful textiles, possibly for sale or as part of a craft fair.",
+            "model_answer_lower": "the man is making colorful textiles possibly for sale or as part of a craft fair",
             "gt_answer_lower": "ties",
             "is_yes_no_question": false
           }
@@ -338,9 +338,9 @@
           "ground_truth": "ped xing",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 5.175565958023071,
+          "inference_time": 5.73321795463562,
           "debug_info": {
-            "model_answer_lower": "the yellow sign says flooding.",
+            "model_answer_lower": "the yellow sign says flooding",
             "gt_answer_lower": "ped xing",
             "is_yes_no_question": false
           }
@@ -354,9 +354,9 @@
           "ground_truth": "white",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 5.2376909255981445,
+          "inference_time": 7.154146194458008,
           "debug_info": {
-            "model_answer_lower": "the stripes are black.",
+            "model_answer_lower": "the stripes are black",
             "gt_answer_lower": "white",
             "is_yes_no_question": false
           }
@@ -369,8 +369,8 @@
       "total_questions": 20,
       "correct_answers": 4,
       "accuracy": 0.2,
-      "vqa_accuracy": 0.28500000000000003,
-      "avg_inference_time": 25.374066388607027,
+      "vqa_accuracy": 0.21000000000000002,
+      "avg_inference_time": 24.1539332985878,
       "performance_grade": "N/A",
       "question_results": [
         {
@@ -381,10 +381,10 @@
           "model_answer": "Yes.\n\nIs it nighttime? No.\n\nIs it morning? Yes.\n\nIs it afternoon? No.\n\nIs it evening? No.\n\nIs it dawn? No.\n\nIs it dusk? No.\n\nIs it midday? Yes.\n\nIs it noon? Yes.\n\nIs it midmorning? No.\n\nIs it midafternoon? No.\n\nIs it early morning? No.\n\n",
           "ground_truth": "no",
           "is_correct": false,
-          "vqa_accuracy": 0.0,
-          "inference_time": 26.277961015701294,
+          "vqa_accuracy": 0.1,
+          "inference_time": 20.22487497329712,
           "debug_info": {
-            "model_answer_lower": "yes. is it nighttime no. is it morning yes. is it afternoon no. is it evening no. is it dawn no. is it dusk no. is it midday yes. is it noon yes. is it midmorning no. is it midafternoon no. is it early morning no.",
+            "model_answer_lower": "yes is it nighttime no is it morning yes is it afternoon no is it evening no is it dawn no is it dusk no is it midday yes is it noon yes is it midmorning no is it midafternoon no is it early morning no",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -398,9 +398,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 13.318479299545288,
+          "inference_time": 28.101131200790405,
           "debug_info": {
-            "model_answer_lower": "no, there is no other bus behind this 1. this is the only bus in the image.",
+            "model_answer_lower": "no there is no other bus behind this 1 this is the only bus in the image",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -414,9 +414,9 @@
           "ground_truth": "yes",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 47.705610036849976,
+          "inference_time": 28.131762981414795,
           "debug_info": {
-            "model_answer_lower": "yes, the light is on. is the light on in the room yes, the light is on in the room. is the light on in the room yes, the light is on in the room. is the light on in the room yes, the light is on in the room. is the light on in the room yes, the light is on in the room. is",
+            "model_answer_lower": "yes the light is on is the light on in the room yes the light is on in the room is the light on in the room yes the light is on in the room is the light on in the room yes the light is on in the room is the light on in the room yes the light is on in the room is",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -430,9 +430,9 @@
           "ground_truth": "yes",
           "is_correct": false,
           "vqa_accuracy": 0.1,
-          "inference_time": 30.65059185028076,
+          "inference_time": 46.44877004623413,
           "debug_info": {
-            "model_answer_lower": "no, this is a wildlife park. the main difference between a zoo and a wildlife park is the environment in which the animals are kept. zoos typically keep animals in enclosures, while wildlife parks often provide more natural habitats for the animals. additionally, wildlife parks may focus more on conservation and education, while zoos may prioritize entertainment and education.",
+            "model_answer_lower": "no this is a wildlife park the main difference between a zoo and a wildlife park is the environment in which the animals are kept zoos typically keep animals in enclosures while wildlife parks often provide more natural habitats for the animals additionally wildlife parks may focus more on conservation and education while zoos may prioritize entertainment and education",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -446,9 +446,9 @@
           "ground_truth": "christmas",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 19.03920602798462,
+          "inference_time": 27.925337076187134,
           "debug_info": {
-            "model_answer_lower": "the dog s hat is for halloween.",
+            "model_answer_lower": "the dog s hat is for halloween",
             "gt_answer_lower": "christmas",
             "is_yes_no_question": false
           }
@@ -461,10 +461,10 @@
           "model_answer": "\n\nThere are 4 shrubs in the yard.\n\nWhat is the color of the shrubs?\n\nThe color of the shrubs is green.\n\nWhat is the purpose of a shrub?\n\nA shrub is a type of plant that is typically woody and has multiple stems or branches. Shrubs serve a variety of purposes in landscaping and gardening, including:\n\n1. Ornamental: Many shrubs",
           "ground_truth": "0",
           "is_correct": false,
-          "vqa_accuracy": 0.2,
-          "inference_time": 28.353063106536865,
+          "vqa_accuracy": 0.0,
+          "inference_time": 16.229151964187622,
           "debug_info": {
-            "model_answer_lower": "there are 4 shrubs in the yard. what is the color of the shrubs the color of the shrubs is green. what is the purpose of a shrub a shrub is a type of plant that is typically woody and has multiple stems or branches. shrubs serve a variety of purposes in landscaping and gardening, including 1. ornamental many shrubs",
+            "model_answer_lower": "there are 4 shrubs in the yard what is the color of the shrubs the color of the shrubs is green what is the purpose of a shrub a shrub is a type of plant that is typically woody and has multiple stems or branches shrubs serve a variety of purposes in landscaping and gardening including 1 ornamental many shrubs",
             "gt_answer_lower": "0",
             "is_yes_no_question": false
           }
@@ -477,10 +477,10 @@
           "model_answer": "\n\nThe dress is white. ",
           "ground_truth": "gray",
           "is_correct": false,
-          "vqa_accuracy": 0.3,
-          "inference_time": 14.125379085540771,
+          "vqa_accuracy": 0.0,
+          "inference_time": 20.58216094970703,
           "debug_info": {
-            "model_answer_lower": "the dress is white.",
+            "model_answer_lower": "the dress is white",
             "gt_answer_lower": "gray",
             "is_yes_no_question": false
           }
@@ -494,9 +494,9 @@
           "ground_truth": "green",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 26.614726305007935,
+          "inference_time": 15.915233612060547,
           "debug_info": {
-            "model_answer_lower": "the person on the left is wearing a black jacket.",
+            "model_answer_lower": "the person on the left is wearing a black jacket",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -509,10 +509,10 @@
           "model_answer": "\n\nThe girl is wearing black shoes. ",
           "ground_truth": "red",
           "is_correct": false,
-          "vqa_accuracy": 0.1,
-          "inference_time": 20.359726667404175,
+          "vqa_accuracy": 0.0,
+          "inference_time": 13.746581315994263,
           "debug_info": {
-            "model_answer_lower": "the girl is wearing black shoes.",
+            "model_answer_lower": "the girl is wearing black shoes",
             "gt_answer_lower": "red",
             "is_yes_no_question": false
           }
@@ -526,9 +526,9 @@
           "ground_truth": "up",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 19.936788082122803,
+          "inference_time": 27.8052339553833,
           "debug_info": {
-            "model_answer_lower": "the skier is going down the hill.",
+            "model_answer_lower": "the skier is going down the hill",
             "gt_answer_lower": "up",
             "is_yes_no_question": false
           }
@@ -542,7 +542,7 @@
           "ground_truth": "3",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 31.14565420150757,
+          "inference_time": 26.2099289894104,
           "debug_info": {
             "model_answer_lower": "0 how many kites have legs 0 how many kites have legs 0 how many kites have legs 0 how many kites have legs 0 how many kites have legs 0 how many kites have legs 0 how many kites have legs 0 how many kites have legs 0",
             "gt_answer_lower": "3",
@@ -558,9 +558,9 @@
           "ground_truth": "yes",
           "is_correct": false,
           "vqa_accuracy": 0.1,
-          "inference_time": 16.433040142059326,
+          "inference_time": 27.39735221862793,
           "debug_info": {
-            "model_answer_lower": "no, pedestrians do not have the right of way crossing the street at the time of the photo. the traffic light is green for the vehicles, indicating that they have the right of way. pedestrians should wait for the traffic light to turn green for them before crossing the street.",
+            "model_answer_lower": "no pedestrians do not have the right of way crossing the street at the time of the photo the traffic light is green for the vehicles indicating that they have the right of way pedestrians should wait for the traffic light to turn green for them before crossing the street",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -574,9 +574,9 @@
           "ground_truth": "yellow and orange",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 16.04204297065735,
+          "inference_time": 29.23616886138916,
           "debug_info": {
-            "model_answer_lower": "the seahorse is white.",
+            "model_answer_lower": "the seahorse is white",
             "gt_answer_lower": "yellow and orange",
             "is_yes_no_question": false
           }
@@ -590,9 +590,9 @@
           "ground_truth": "flag",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 30.318172216415405,
+          "inference_time": 24.470417022705078,
           "debug_info": {
-            "model_answer_lower": "there is no cake in the image.",
+            "model_answer_lower": "there is no cake in the image",
             "gt_answer_lower": "flag",
             "is_yes_no_question": false
           }
@@ -606,9 +606,9 @@
           "ground_truth": "no",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 24.142911911010742,
+          "inference_time": 8.953464984893799,
           "debug_info": {
-            "model_answer_lower": "yes, the zebra is grazing in the image.",
+            "model_answer_lower": "yes the zebra is grazing in the image",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -622,9 +622,9 @@
           "ground_truth": "green",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 24.260339975357056,
+          "inference_time": 22.65386176109314,
           "debug_info": {
-            "model_answer_lower": "the disk is white.",
+            "model_answer_lower": "the disk is white",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -638,9 +638,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 24.084240913391113,
+          "inference_time": 27.295922994613647,
           "debug_info": {
-            "model_answer_lower": "no. is the bear wearing a shirt no. is the bear wearing pants no. is the bear wearing a tie no. is the bear wearing a hat no. is the bear wearing a belt no. is the bear wearing a watch no. is the bear wearing a ring no. is the bear wearing a necklace no. is the bear wearing a bracelet",
+            "model_answer_lower": "no is the bear wearing a shirt no is the bear wearing pants no is the bear wearing a tie no is the bear wearing a hat no is the bear wearing a belt no is the bear wearing a watch no is the bear wearing a ring no is the bear wearing a necklace no is the bear wearing a bracelet",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -654,9 +654,9 @@
           "ground_truth": "ties",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 35.25658106803894,
+          "inference_time": 25.894062995910645,
           "debug_info": {
-            "model_answer_lower": "the man is making a wooden bench. what is the material he is using the man is using wood to make the bench. what is the purpose of the bench the purpose of the bench is to provide a place for people to sit and relax. what tools are being used to make the bench the tools being used to make the bench include a saw, hammer, and screwdriver. what is the process of",
+            "model_answer_lower": "the man is making a wooden bench what is the material he is using the man is using wood to make the bench what is the purpose of the bench the purpose of the bench is to provide a place for people to sit and relax what tools are being used to make the bench the tools being used to make the bench include a saw hammer and screwdriver what is the process of",
             "gt_answer_lower": "ties",
             "is_yes_no_question": false
           }
@@ -670,9 +670,9 @@
           "ground_truth": "ped xing",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 31.93114686012268,
+          "inference_time": 19.365483045578003,
           "debug_info": {
-            "model_answer_lower": "the yellow sign says caution children at play.",
+            "model_answer_lower": "the yellow sign says caution children at play",
             "gt_answer_lower": "ped xing",
             "is_yes_no_question": false
           }
@@ -685,10 +685,10 @@
           "model_answer": "\n\nThe stripes are white. ",
           "ground_truth": "white",
           "is_correct": true,
-          "vqa_accuracy": 0.8,
-          "inference_time": 27.485666036605835,
+          "vqa_accuracy": 0.9,
+          "inference_time": 26.491765022277832,
           "debug_info": {
-            "model_answer_lower": "the stripes are white.",
+            "model_answer_lower": "the stripes are white",
             "gt_answer_lower": "white",
             "is_yes_no_question": false
           }
@@ -699,10 +699,10 @@
       "model_id": "smolvlm_v2_instruct",
       "test_time": 0,
       "total_questions": 20,
-      "correct_answers": 12,
-      "accuracy": 0.6,
-      "vqa_accuracy": 0.5650000000000001,
-      "avg_inference_time": 6.496678447723388,
+      "correct_answers": 11,
+      "accuracy": 0.55,
+      "vqa_accuracy": 0.5250000000000002,
+      "avg_inference_time": 8.406399464607238,
       "performance_grade": "N/A",
       "question_results": [
         {
@@ -712,11 +712,11 @@
           "question": "Is it daytime?",
           "model_answer": "Assistant: The image does not specify the time of day, but the presence of a lamp suggests it could be daytime.",
           "ground_truth": "no",
-          "is_correct": true,
-          "vqa_accuracy": 0.2,
-          "inference_time": 9.129036903381348,
+          "is_correct": false,
+          "vqa_accuracy": 0.0,
+          "inference_time": 9.294448852539062,
           "debug_info": {
-            "model_answer_lower": "assistant the image does not specify the time of day, but the presence of a lamp suggests it could be daytime.",
+            "model_answer_lower": "assistant the image does not specify the time of day but the presence of a lamp suggests it could be daytime",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -730,9 +730,9 @@
           "ground_truth": "no",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 6.827761888504028,
+          "inference_time": 8.71789288520813,
           "debug_info": {
-            "model_answer_lower": "assistant yes.",
+            "model_answer_lower": "assistant yes",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -745,10 +745,10 @@
           "model_answer": "Assistant: The image does not provide information about the lighting conditions.",
           "ground_truth": "yes",
           "is_correct": false,
-          "vqa_accuracy": 0.2,
-          "inference_time": 6.221579074859619,
+          "vqa_accuracy": 0.0,
+          "inference_time": 11.825602054595947,
           "debug_info": {
-            "model_answer_lower": "assistant the image does not provide information about the lighting conditions.",
+            "model_answer_lower": "assistant the image does not provide information about the lighting conditions",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -762,9 +762,9 @@
           "ground_truth": "yes",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 5.6065027713775635,
+          "inference_time": 6.668024063110352,
           "debug_info": {
-            "model_answer_lower": "assistant yes.",
+            "model_answer_lower": "assistant yes",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -777,10 +777,10 @@
           "model_answer": "Assistant: The dog's hat is for Christmas.",
           "ground_truth": "christmas",
           "is_correct": true,
-          "vqa_accuracy": 1.0,
-          "inference_time": 6.4547247886657715,
+          "vqa_accuracy": 0.9,
+          "inference_time": 6.685401916503906,
           "debug_info": {
-            "model_answer_lower": "assistant the dog s hat is for christmas.",
+            "model_answer_lower": "assistant the dog s hat is for christmas",
             "gt_answer_lower": "christmas",
             "is_yes_no_question": false
           }
@@ -794,9 +794,9 @@
           "ground_truth": "0",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 6.399088144302368,
+          "inference_time": 6.253086090087891,
           "debug_info": {
-            "model_answer_lower": "assistant there are 2 shrubs in the yard.",
+            "model_answer_lower": "assistant there are 2 shrubs in the yard",
             "gt_answer_lower": "0",
             "is_yes_no_question": false
           }
@@ -809,10 +809,10 @@
           "model_answer": "Assistant: The dress is white.",
           "ground_truth": "gray",
           "is_correct": false,
-          "vqa_accuracy": 0.3,
-          "inference_time": 5.966847896575928,
+          "vqa_accuracy": 0.0,
+          "inference_time": 6.6438679695129395,
           "debug_info": {
-            "model_answer_lower": "assistant the dress is white.",
+            "model_answer_lower": "assistant the dress is white",
             "gt_answer_lower": "gray",
             "is_yes_no_question": false
           }
@@ -825,10 +825,10 @@
           "model_answer": "Assistant: The person on the left is wearing a green jacket.",
           "ground_truth": "green",
           "is_correct": true,
-          "vqa_accuracy": 0.6,
-          "inference_time": 6.04324197769165,
+          "vqa_accuracy": 0.9,
+          "inference_time": 9.89076280593872,
           "debug_info": {
-            "model_answer_lower": "assistant the person on the left is wearing a green jacket.",
+            "model_answer_lower": "assistant the person on the left is wearing a green jacket",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -841,10 +841,10 @@
           "model_answer": "Assistant: The girl is wearing red shoes.",
           "ground_truth": "red",
           "is_correct": true,
-          "vqa_accuracy": 0.5,
-          "inference_time": 6.593445301055908,
+          "vqa_accuracy": 0.9,
+          "inference_time": 12.314159870147705,
           "debug_info": {
-            "model_answer_lower": "assistant the girl is wearing red shoes.",
+            "model_answer_lower": "assistant the girl is wearing red shoes",
             "gt_answer_lower": "red",
             "is_yes_no_question": false
           }
@@ -857,10 +857,10 @@
           "model_answer": "Assistant: The skier is going up the hill.",
           "ground_truth": "up",
           "is_correct": true,
-          "vqa_accuracy": 1.0,
-          "inference_time": 7.491588830947876,
+          "vqa_accuracy": 0.9,
+          "inference_time": 10.195939064025879,
           "debug_info": {
-            "model_answer_lower": "assistant the skier is going up the hill.",
+            "model_answer_lower": "assistant the skier is going up the hill",
             "gt_answer_lower": "up",
             "is_yes_no_question": false
           }
@@ -873,10 +873,10 @@
           "model_answer": "Assistant: Two kites have legs.",
           "ground_truth": "3",
           "is_correct": false,
-          "vqa_accuracy": 0.1,
-          "inference_time": 6.832035064697266,
+          "vqa_accuracy": 0.0,
+          "inference_time": 10.50202202796936,
           "debug_info": {
-            "model_answer_lower": "assistant 2 kites have legs.",
+            "model_answer_lower": "assistant 2 kites have legs",
             "gt_answer_lower": "3",
             "is_yes_no_question": false
           }
@@ -890,9 +890,9 @@
           "ground_truth": "yes",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 6.657296180725098,
+          "inference_time": 9.184471845626831,
           "debug_info": {
-            "model_answer_lower": "assistant the image does not provide information about the pedestrians actions or the time of day.",
+            "model_answer_lower": "assistant the image does not provide information about the pedestrians actions or the time of day",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -905,10 +905,10 @@
           "model_answer": "Assistant: The seahorse is yellow and orange.",
           "ground_truth": "yellow and orange",
           "is_correct": true,
-          "vqa_accuracy": 0.5,
-          "inference_time": 6.609930992126465,
+          "vqa_accuracy": 0.9,
+          "inference_time": 8.003417015075684,
           "debug_info": {
-            "model_answer_lower": "assistant the seahorse is yellow and orange.",
+            "model_answer_lower": "assistant the seahorse is yellow and orange",
             "gt_answer_lower": "yellow and orange",
             "is_yes_no_question": false
           }
@@ -921,10 +921,10 @@
           "model_answer": "Assistant: A small American flag is stuck in the cake.",
           "ground_truth": "flag",
           "is_correct": true,
-          "vqa_accuracy": 0.7,
-          "inference_time": 6.8021559715271,
+          "vqa_accuracy": 0.9,
+          "inference_time": 10.003697156906128,
           "debug_info": {
-            "model_answer_lower": "assistant a small american flag is stuck in the cake.",
+            "model_answer_lower": "assistant a small american flag is stuck in the cake",
             "gt_answer_lower": "flag",
             "is_yes_no_question": false
           }
@@ -938,9 +938,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 6.688704967498779,
+          "inference_time": 9.765085220336914,
           "debug_info": {
-            "model_answer_lower": "assistant the image does not provide information about the zebra s behavior, so it cannot be determined if the zebra is grazing.",
+            "model_answer_lower": "assistant the image does not provide information about the zebra s behavior so it cannot be determined if the zebra is grazing",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -953,10 +953,10 @@
           "model_answer": "Assistant: The disk is green.",
           "ground_truth": "green",
           "is_correct": true,
-          "vqa_accuracy": 0.8,
-          "inference_time": 6.09845495223999,
+          "vqa_accuracy": 0.9,
+          "inference_time": 7.62870717048645,
           "debug_info": {
-            "model_answer_lower": "assistant the disk is green.",
+            "model_answer_lower": "assistant the disk is green",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -970,9 +970,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 6.013227224349976,
+          "inference_time": 7.219528913497925,
           "debug_info": {
-            "model_answer_lower": "assistant the bear is not wearing shoes, as it is a teddy bear.",
+            "model_answer_lower": "assistant the bear is not wearing shoes as it is a teddy bear",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -986,9 +986,9 @@
           "ground_truth": "ties",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 5.680819988250732,
+          "inference_time": 5.939604997634888,
           "debug_info": {
-            "model_answer_lower": "assistant the man is making a shirt.",
+            "model_answer_lower": "assistant the man is making a shirt",
             "gt_answer_lower": "ties",
             "is_yes_no_question": false
           }
@@ -1001,10 +1001,10 @@
           "model_answer": "Assistant: The yellow sign says \"PED KING\".",
           "ground_truth": "ped xing",
           "is_correct": false,
-          "vqa_accuracy": 0.0,
-          "inference_time": 5.95703387260437,
+          "vqa_accuracy": 0.3,
+          "inference_time": 5.4789111614227295,
           "debug_info": {
-            "model_answer_lower": "assistant the yellow sign says ped king .",
+            "model_answer_lower": "assistant the yellow sign says ped king",
             "gt_answer_lower": "ped xing",
             "is_yes_no_question": false
           }
@@ -1017,10 +1017,10 @@
           "model_answer": "Assistant: The stripes are white.",
           "ground_truth": "white",
           "is_correct": true,
-          "vqa_accuracy": 0.8,
-          "inference_time": 5.8600921630859375,
+          "vqa_accuracy": 0.9,
+          "inference_time": 5.913358211517334,
           "debug_info": {
-            "model_answer_lower": "assistant the stripes are white.",
+            "model_answer_lower": "assistant the stripes are white",
             "gt_answer_lower": "white",
             "is_yes_no_question": false
           }
@@ -1033,8 +1033,8 @@
       "total_questions": 20,
       "correct_answers": 7,
       "accuracy": 0.35,
-      "vqa_accuracy": 0.39499999999999996,
-      "avg_inference_time": 0.2673004031181335,
+      "vqa_accuracy": 0.36,
+      "avg_inference_time": 0.38915127515792847,
       "performance_grade": "N/A",
       "question_results": [
         {
@@ -1046,9 +1046,9 @@
           "ground_truth": "no",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 0.3016939163208008,
+          "inference_time": 0.2875709533691406,
           "debug_info": {
-            "model_answer_lower": "yes, it is daytime.",
+            "model_answer_lower": "yes it is daytime",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -1061,10 +1061,10 @@
           "model_answer": "Yes, there is another bus behind this yellow bus.",
           "ground_truth": "no",
           "is_correct": false,
-          "vqa_accuracy": 0.0,
-          "inference_time": 0.2960798740386963,
+          "vqa_accuracy": 0.1,
+          "inference_time": 0.28356313705444336,
           "debug_info": {
-            "model_answer_lower": "yes, there is another bus behind this yellow bus.",
+            "model_answer_lower": "yes there is another bus behind this yellow bus",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -1078,9 +1078,9 @@
           "ground_truth": "yes",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 0.34545016288757324,
+          "inference_time": 0.20972108840942383,
           "debug_info": {
-            "model_answer_lower": "no.",
+            "model_answer_lower": "no",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -1094,9 +1094,9 @@
           "ground_truth": "yes",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 0.30129194259643555,
+          "inference_time": 0.250028133392334,
           "debug_info": {
-            "model_answer_lower": "yes, this is a zoo.",
+            "model_answer_lower": "yes this is a zoo",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -1110,9 +1110,9 @@
           "ground_truth": "christmas",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 0.23019814491271973,
+          "inference_time": 0.21514606475830078,
           "debug_info": {
-            "model_answer_lower": "christmas.",
+            "model_answer_lower": "christmas",
             "gt_answer_lower": "christmas",
             "is_yes_no_question": false
           }
@@ -1124,11 +1124,11 @@
           "question": "How many shrubs are in the yard?",
           "model_answer": "There are no shrubs mentioned or visible in the image.",
           "ground_truth": "0",
-          "is_correct": true,
-          "vqa_accuracy": 1.0,
-          "inference_time": 0.29724693298339844,
+          "is_correct": false,
+          "vqa_accuracy": 0.0,
+          "inference_time": 0.2764396667480469,
           "debug_info": {
-            "model_answer_lower": "there are no shrubs mentioned or visible in the image.",
+            "model_answer_lower": "there are no shrubs mentioned or visible in the image",
             "gt_answer_lower": "0",
             "is_yes_no_question": false
           }
@@ -1141,10 +1141,10 @@
           "model_answer": "White.",
           "ground_truth": "gray",
           "is_correct": false,
-          "vqa_accuracy": 0.3,
-          "inference_time": 0.22327494621276855,
+          "vqa_accuracy": 0.0,
+          "inference_time": 0.2155599594116211,
           "debug_info": {
-            "model_answer_lower": "white.",
+            "model_answer_lower": "white",
             "gt_answer_lower": "gray",
             "is_yes_no_question": false
           }
@@ -1157,10 +1157,10 @@
           "model_answer": "The person on the left is wearing a green jacket.",
           "ground_truth": "green",
           "is_correct": true,
-          "vqa_accuracy": 0.6,
-          "inference_time": 0.27405309677124023,
+          "vqa_accuracy": 0.9,
+          "inference_time": 0.38674378395080566,
           "debug_info": {
-            "model_answer_lower": "the person on the left is wearing a green jacket.",
+            "model_answer_lower": "the person on the left is wearing a green jacket",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -1173,10 +1173,10 @@
           "model_answer": "The girl is wearing black shoes.",
           "ground_truth": "red",
           "is_correct": false,
-          "vqa_accuracy": 0.1,
-          "inference_time": 0.24977898597717285,
+          "vqa_accuracy": 0.0,
+          "inference_time": 0.2461550235748291,
           "debug_info": {
-            "model_answer_lower": "the girl is wearing black shoes.",
+            "model_answer_lower": "the girl is wearing black shoes",
             "gt_answer_lower": "red",
             "is_yes_no_question": false
           }
@@ -1190,9 +1190,9 @@
           "ground_truth": "up",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 0.27233004570007324,
+          "inference_time": 0.25521421432495117,
           "debug_info": {
-            "model_answer_lower": "the skier is going down the hill.",
+            "model_answer_lower": "the skier is going down the hill",
             "gt_answer_lower": "up",
             "is_yes_no_question": false
           }
@@ -1205,8 +1205,8 @@
           "model_answer": "2",
           "ground_truth": "3",
           "is_correct": false,
-          "vqa_accuracy": 0.1,
-          "inference_time": 0.21887922286987305,
+          "vqa_accuracy": 0.0,
+          "inference_time": 0.20984220504760742,
           "debug_info": {
             "model_answer_lower": "2",
             "gt_answer_lower": "3",
@@ -1222,9 +1222,9 @@
           "ground_truth": "yes",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 0.33231115341186523,
+          "inference_time": 0.3381030559539795,
           "debug_info": {
-            "model_answer_lower": "yes, the pedestrians have the right of way crossing the street at the time of the photo.",
+            "model_answer_lower": "yes the pedestrians have the right of way crossing the street at the time of the photo",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -1237,10 +1237,10 @@
           "model_answer": "The seahorse is orange in color.",
           "ground_truth": "yellow and orange",
           "is_correct": false,
-          "vqa_accuracy": 0.2,
-          "inference_time": 0.25972890853881836,
+          "vqa_accuracy": 0.3,
+          "inference_time": 0.2711317539215088,
           "debug_info": {
-            "model_answer_lower": "the seahorse is orange in color.",
+            "model_answer_lower": "the seahorse is orange in color",
             "gt_answer_lower": "yellow and orange",
             "is_yes_no_question": false
           }
@@ -1253,10 +1253,10 @@
           "model_answer": "There is a flag in the cake.",
           "ground_truth": "flag",
           "is_correct": true,
-          "vqa_accuracy": 0.5,
-          "inference_time": 0.26030707359313965,
+          "vqa_accuracy": 0.9,
+          "inference_time": 0.2582590579986572,
           "debug_info": {
-            "model_answer_lower": "there is a flag in the cake.",
+            "model_answer_lower": "there is a flag in the cake",
             "gt_answer_lower": "flag",
             "is_yes_no_question": false
           }
@@ -1270,9 +1270,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 0.261322021484375,
+          "inference_time": 0.2653071880340576,
           "debug_info": {
-            "model_answer_lower": "no, the zebra is not grazing.",
+            "model_answer_lower": "no the zebra is not grazing",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -1286,9 +1286,9 @@
           "ground_truth": "green",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 0.2216320037841797,
+          "inference_time": 0.28102588653564453,
           "debug_info": {
-            "model_answer_lower": "black.",
+            "model_answer_lower": "black",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -1302,9 +1302,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 0.2727940082550049,
+          "inference_time": 0.5344152450561523,
           "debug_info": {
-            "model_answer_lower": "no, the bear is not wearing shoes.",
+            "model_answer_lower": "no the bear is not wearing shoes",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -1318,9 +1318,9 @@
           "ground_truth": "ties",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 0.2593052387237549,
+          "inference_time": 2.1846749782562256,
           "debug_info": {
-            "model_answer_lower": "the man is making clothes.",
+            "model_answer_lower": "the man is making clothes",
             "gt_answer_lower": "ties",
             "is_yes_no_question": false
           }
@@ -1334,9 +1334,9 @@
           "ground_truth": "ped xing",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 0.23010730743408203,
+          "inference_time": 0.4556910991668701,
           "debug_info": {
-            "model_answer_lower": "stop.",
+            "model_answer_lower": "stop",
             "gt_answer_lower": "ped xing",
             "is_yes_no_question": false
           }
@@ -1350,9 +1350,9 @@
           "ground_truth": "white",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 0.23822307586669922,
+          "inference_time": 0.3584330081939697,
           "debug_info": {
-            "model_answer_lower": "black.",
+            "model_answer_lower": "black",
             "gt_answer_lower": "white",
             "is_yes_no_question": false
           }
@@ -1365,8 +1365,8 @@
       "total_questions": 20,
       "correct_answers": 13,
       "accuracy": 0.65,
-      "vqa_accuracy": 0.63,
-      "avg_inference_time": 5.824778378009796,
+      "vqa_accuracy": 0.6250000000000001,
+      "avg_inference_time": 8.347450852394104,
       "performance_grade": "N/A",
       "question_results": [
         {
@@ -1378,7 +1378,7 @@
           "ground_truth": "no",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 4.837651252746582,
+          "inference_time": 9.008070230484009,
           "debug_info": {
             "model_answer_lower": "yes",
             "gt_answer_lower": "no",
@@ -1394,9 +1394,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 5.5390801429748535,
+          "inference_time": 9.816760063171387,
           "debug_info": {
-            "model_answer_lower": "no, there isn t another bus behind this yellow school bus in the image.",
+            "model_answer_lower": "no there isn t another bus behind this yellow school bus in the image",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -1410,9 +1410,9 @@
           "ground_truth": "yes",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 6.849815130233765,
+          "inference_time": 7.30359673500061,
           "debug_info": {
-            "model_answer_lower": "no, the light is not on in the image.",
+            "model_answer_lower": "no the light is not on in the image",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -1426,9 +1426,9 @@
           "ground_truth": "yes",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 3.778456687927246,
+          "inference_time": 7.048395156860352,
           "debug_info": {
-            "model_answer_lower": "yes, the image shows a giraffe standing near a large rock formation in a zoo enclosure.",
+            "model_answer_lower": "yes the image shows a giraffe standing near a large rock formation in a zoo enclosure",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -1441,10 +1441,10 @@
           "model_answer": "The dog's hat is for a Christmas holiday.",
           "ground_truth": "christmas",
           "is_correct": true,
-          "vqa_accuracy": 1.0,
-          "inference_time": 7.651956081390381,
+          "vqa_accuracy": 0.9,
+          "inference_time": 8.671257019042969,
           "debug_info": {
-            "model_answer_lower": "the dog s hat is for a christmas holiday.",
+            "model_answer_lower": "the dog s hat is for a christmas holiday",
             "gt_answer_lower": "christmas",
             "is_yes_no_question": false
           }
@@ -1456,11 +1456,11 @@
           "question": "How many shrubs are in the yard?",
           "model_answer": "There is no visible shrub in the yard of the building.",
           "ground_truth": "0",
-          "is_correct": true,
-          "vqa_accuracy": 1.0,
-          "inference_time": 6.29525899887085,
+          "is_correct": false,
+          "vqa_accuracy": 0.0,
+          "inference_time": 8.539287805557251,
           "debug_info": {
-            "model_answer_lower": "there is no visible shrub in the yard of the building.",
+            "model_answer_lower": "there is no visible shrub in the yard of the building",
             "gt_answer_lower": "0",
             "is_yes_no_question": false
           }
@@ -1473,10 +1473,10 @@
           "model_answer": "The woman is wearing a white dress.",
           "ground_truth": "gray",
           "is_correct": false,
-          "vqa_accuracy": 0.3,
-          "inference_time": 6.748395919799805,
+          "vqa_accuracy": 0.0,
+          "inference_time": 7.809934139251709,
           "debug_info": {
-            "model_answer_lower": "the woman is wearing a white dress.",
+            "model_answer_lower": "the woman is wearing a white dress",
             "gt_answer_lower": "gray",
             "is_yes_no_question": false
           }
@@ -1489,10 +1489,10 @@
           "model_answer": "The person on the left is wearing a green jacket.",
           "ground_truth": "green",
           "is_correct": true,
-          "vqa_accuracy": 0.6,
-          "inference_time": 6.918623924255371,
+          "vqa_accuracy": 0.9,
+          "inference_time": 7.302619934082031,
           "debug_info": {
-            "model_answer_lower": "the person on the left is wearing a green jacket.",
+            "model_answer_lower": "the person on the left is wearing a green jacket",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -1505,10 +1505,10 @@
           "model_answer": "The girl is wearing red shoes.",
           "ground_truth": "red",
           "is_correct": true,
-          "vqa_accuracy": 0.5,
-          "inference_time": 6.751713037490845,
+          "vqa_accuracy": 0.9,
+          "inference_time": 8.96619701385498,
           "debug_info": {
-            "model_answer_lower": "the girl is wearing red shoes.",
+            "model_answer_lower": "the girl is wearing red shoes",
             "gt_answer_lower": "red",
             "is_yes_no_question": false
           }
@@ -1521,10 +1521,10 @@
           "model_answer": "The skier is going up the hill.",
           "ground_truth": "up",
           "is_correct": true,
-          "vqa_accuracy": 1.0,
-          "inference_time": 7.233415842056274,
+          "vqa_accuracy": 0.9,
+          "inference_time": 8.35288405418396,
           "debug_info": {
-            "model_answer_lower": "the skier is going up the hill.",
+            "model_answer_lower": "the skier is going up the hill",
             "gt_answer_lower": "up",
             "is_yes_no_question": false
           }
@@ -1538,9 +1538,9 @@
           "ground_truth": "3",
           "is_correct": true,
           "vqa_accuracy": 0.9,
-          "inference_time": 6.615701198577881,
+          "inference_time": 7.523967981338501,
           "debug_info": {
-            "model_answer_lower": "there are 3 kites with legs visible in the image.",
+            "model_answer_lower": "there are 3 kites with legs visible in the image",
             "gt_answer_lower": "3",
             "is_yes_no_question": false
           }
@@ -1554,9 +1554,9 @@
           "ground_truth": "yes",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 3.663167953491211,
+          "inference_time": 5.033125162124634,
           "debug_info": {
-            "model_answer_lower": "yes, pedestrians have the right of way crossing the street at the moment captured in the image.",
+            "model_answer_lower": "yes pedestrians have the right of way crossing the street at the moment captured in the image",
             "gt_answer_lower": "yes",
             "is_yes_no_question": true
           }
@@ -1569,10 +1569,10 @@
           "model_answer": "The seahorse is yellow and red.",
           "ground_truth": "yellow and orange",
           "is_correct": false,
-          "vqa_accuracy": 0.1,
-          "inference_time": 3.168752908706665,
+          "vqa_accuracy": 0.3,
+          "inference_time": 4.530092716217041,
           "debug_info": {
-            "model_answer_lower": "the seahorse is yellow and red.",
+            "model_answer_lower": "the seahorse is yellow and red",
             "gt_answer_lower": "yellow and orange",
             "is_yes_no_question": false
           }
@@ -1585,10 +1585,10 @@
           "model_answer": "An American flag is stuck in the cake.",
           "ground_truth": "flag",
           "is_correct": true,
-          "vqa_accuracy": 0.7,
-          "inference_time": 5.303875207901001,
+          "vqa_accuracy": 0.9,
+          "inference_time": 9.404488801956177,
           "debug_info": {
-            "model_answer_lower": "an american flag is stuck in the cake.",
+            "model_answer_lower": "an american flag is stuck in the cake",
             "gt_answer_lower": "flag",
             "is_yes_no_question": false
           }
@@ -1602,9 +1602,9 @@
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 7.193853139877319,
+          "inference_time": 10.886643171310425,
           "debug_info": {
-            "model_answer_lower": "no, the zebra is not grazing in the image. it is standing still and looking directly at the camera.",
+            "model_answer_lower": "no the zebra is not grazing in the image it is standing still and looking directly at the camera",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -1617,10 +1617,10 @@
           "model_answer": "The disk is green.",
           "ground_truth": "green",
           "is_correct": true,
-          "vqa_accuracy": 0.8,
-          "inference_time": 5.589566946029663,
+          "vqa_accuracy": 0.9,
+          "inference_time": 9.21070384979248,
           "debug_info": {
-            "model_answer_lower": "the disk is green.",
+            "model_answer_lower": "the disk is green",
             "gt_answer_lower": "green",
             "is_yes_no_question": false
           }
@@ -1630,13 +1630,13 @@
           "image_id": 4396,
           "image_filename": "COCO_val2014_000000004396.jpg",
           "question": "Is the bear wearing shoes?",
-          "model_answer": "No, the bear in the image is not wearing shoes. It is sitting on a table or surface.",
+          "model_answer": "No, the bear in the image is not wearing shoes. It is sitting on a",
           "ground_truth": "no",
           "is_correct": true,
           "vqa_accuracy": 1.0,
-          "inference_time": 5.638737916946411,
+          "inference_time": 9.912040948867798,
           "debug_info": {
-            "model_answer_lower": "no, the bear in the image is not wearing shoes. it is sitting on a table or surface.",
+            "model_answer_lower": "no the bear in the image is not wearing shoes it is sitting on a",
             "gt_answer_lower": "no",
             "is_yes_no_question": true
           }
@@ -1649,10 +1649,10 @@
           "model_answer": "The man is making ties for sale at a market stall.",
           "ground_truth": "ties",
           "is_correct": true,
-          "vqa_accuracy": 0.7,
-          "inference_time": 5.736117124557495,
+          "vqa_accuracy": 0.9,
+          "inference_time": 10.767782211303711,
           "debug_info": {
-            "model_answer_lower": "the man is making ties for sale at a market stall.",
+            "model_answer_lower": "the man is making ties for sale at a market stall",
             "gt_answer_lower": "ties",
             "is_yes_no_question": false
           }
@@ -1666,9 +1666,9 @@
           "ground_truth": "ped xing",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 3.0243473052978516,
+          "inference_time": 6.41972017288208,
           "debug_info": {
-            "model_answer_lower": "the yellow sign says pull zone.",
+            "model_answer_lower": "the yellow sign says pull zone",
             "gt_answer_lower": "ped xing",
             "is_yes_no_question": false
           }
@@ -1682,9 +1682,9 @@
           "ground_truth": "white",
           "is_correct": false,
           "vqa_accuracy": 0.0,
-          "inference_time": 7.957080841064453,
+          "inference_time": 10.441449880599976,
           "debug_info": {
-            "model_answer_lower": "the stripes on the surfboard are pink.",
+            "model_answer_lower": "the stripes on the surfboard are pink",
             "gt_answer_lower": "white",
             "is_yes_no_question": false
           }

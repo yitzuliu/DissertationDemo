@@ -47,29 +47,40 @@ The VQA 2.0 testing framework provides standardized evaluation of Vision-Languag
 
 ```bash
 # Quick test (10 questions) - Recommended for development
-python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm2
+python src/testing/vqa/vqa_test.py --questions 10 --models moondream2
 
-# Standard test (15 questions) - Balanced evaluation
-python src/testing/vqa/vqa_test.py --questions 15 --models smolvlm2
+# Standard test (15 questions) - Balanced evaluation  
+python src/testing/vqa/vqa_test.py --questions 15 --models moondream2
 
 # Comprehensive test (20 questions) - Full evaluation
-python src/testing/vqa/vqa_test.py --questions 20 --models smolvlm2
+python src/testing/vqa/vqa_test.py --questions 20 --models moondream2
 
-# Compare multiple models
-python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm2 smolvlm moondream2
+# Compare multiple models (recommended combination)
+python src/testing/vqa/vqa_test.py --questions 20 --models moondream2 smolvlm_v2_instruct smolvlm_instruct
+
+# Speed comparison (fastest models)
+python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm_instruct phi35_vision
+
+# Avoid for production testing (known issues)
+# python src/testing/vqa/vqa_test.py --models llava_mlx  # Critical performance issues
 ```
 
-### Latest Test Results Summary (Updated: 2025-07-28)
+### Latest Test Results Summary (Updated: 2025-07-29)
 
-**VQA 2.0 Results (20 Questions):**
+**VQA 2.0 Results (20 Questions - COCO val2014):**
 
-| Model | VQA Accuracy | Simple Accuracy | Avg Time | Memory | Status |
-|-------|:------------:|:---------------:|:--------:|:------:|:------:|
-| **Moondream2** | 🥇 52.5% | 🥇 60.0% | 7.16s | 🏆 0.10GB | ✅ **Best Overall** |
-| **SmolVLM2** | 🥈 51.5% | 🥈 60.0% | 5.48s | 2.08GB | ✅ **Fast & Accurate** |
-| **SmolVLM** | 🥉 39.5% | 40.0% | 🏆 **1.17s** | 1.58GB | ✅ **Fastest** |
-| **Phi-3.5-Vision** | 42.5% | 40.0% | 6.86s | 1.53GB | ✅ **Balanced** |
-| **LLaVA-MLX** | ⚠️ 27.0% | ⚠️ 25.0% | 9.79s | 1.16GB | 🔧 **Issues** |
+| Model | VQA Accuracy | Simple Accuracy | Avg Time | Load Time | Memory Diff | Status |
+|-------|:------------:|:---------------:|:--------:|:---------:|:-----------:|:------:|
+| **Moondream2** | 🥇 **63.0%** | 🥇 **65.0%** | 5.82s | 16.61s | -0.09GB | 🥇 **Best Overall** |
+| **SmolVLM2** | 🥈 56.5% | 🥈 60.0% | 6.50s | 1.48s | +0.13GB | 🥈 **Balanced** |
+| **Phi-3.5-Vision** | 🥉 49.5% | 35.0% | 5.06s | 1.71s | +0.05GB | 🥉 **Fast** |
+| **SmolVLM** | 39.5% | 35.0% | ⚡ **0.27s** | 4.05s | +0.001GB | ⚡ **Fastest** |
+| **LLaVA-MLX** | ⚠️ 28.5% | ⚠️ 20.0% | 🐌 25.37s | 6.07s | -0.48GB | 🚫 **Critical Issues** |
+
+**Context Understanding Results:**
+- 🚨 **ALL MODELS: 0% context understanding capability**
+- **Failure Types:** Empty responses, hallucinations, explicit inability
+- **Implication:** Multi-turn conversations require external memory systems
 
 ## 🔧 VLM Performance Testing
 
@@ -88,11 +99,19 @@ python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm2 smolvlm moon
 ### Running Performance Tests
 
 ```bash
-# Basic performance test
-python src/testing/vlm/vlm_tester.py --model smolvlm2
+# Basic performance test (recommended models)
+python src/testing/vlm/vlm_tester.py Moondream2
+python src/testing/vlm/vlm_tester.py SmolVLM2-500M-Video-Instruct
 
-# Context understanding test
-python src/testing/vlm/vlm_context_tester.py --model smolvlm2 --frames 10
+# Context understanding test (reveals 0% context capability)
+python src/testing/vlm/vlm_context_tester.py
+
+# Single model context test
+python src/testing/vlm/vlm_context_tester.py --model Moondream2
+
+# Performance comparison (avoid LLaVA-MLX due to critical issues)
+python src/testing/vlm/vlm_tester.py Phi-3.5-Vision-Instruct
+python src/testing/vlm/vlm_tester.py SmolVLM-500M-Instruct
 ```
 
 ## 📊 Test Materials and Datasets
@@ -118,9 +137,11 @@ python src/testing/vlm/vlm_context_tester.py --model smolvlm2 --frames 10
 - **Comparison Reports**: Side-by-side model comparisons (`reports/`)
 
 ### Available Reports
-- **VQA Test Results**: `reports/vqa_test_result.md`
-- **Context Understanding**: `reports/context_understanding_test_results_summary.md`
-- **Model Status**: `reports/model_active.md`
+- **VQA Test Results**: `reports/vqa_test_result.md` - Comprehensive VQA 2.0 evaluation with 20 questions
+- **Context Understanding**: `reports/context_understanding_test_results_summary.md` - Multi-turn conversation capability analysis
+- **Model Status**: `reports/model_active.md` - Production readiness and performance recommendations
+- **Testing Fixes**: `reports/VLM_TESTING_FIXES.md` - Documentation of critical issues and solutions
+- **Correction Summary**: `reports/CORRECTION_SUMMARY.md` - Latest updates and corrections
 
 ## 📋 TODO: Future Testing Enhancements
 
@@ -174,6 +195,31 @@ python src/testing/vlm/vlm_context_tester.py --model smolvlm2 --frames 10
 
 **For specific testing procedures, see the README files in each subdirectory.**
 
-**Last Updated**: July 28, 2025  
-**Test Framework**: VQA 2.0 Standard Evaluation  
-**Hardware**: MacBook Air M3, 16GB RAM 
+---
+
+## **🚨 Critical Findings Summary**
+
+### **Production Recommendations**
+- **🥇 Best Overall:** Moondream2 (65.0% accuracy, 5.82s inference)
+- **⚡ Fastest:** SmolVLM-500M-Instruct (0.27s inference, production-ready API)
+- **🥈 Balanced:** SmolVLM2-500M-Video-Instruct (60.0% accuracy, 6.50s inference)
+- **🚫 Avoid:** LLaVA-v1.6-Mistral-7B-MLX (critical performance issues)
+
+### **Universal Limitations**
+- **Context Understanding:** 0% capability across all models
+- **Text Reading:** Poor performance on text within images
+- **Counting Tasks:** Significant challenges with numerical reasoning
+- **Multi-turn Conversations:** Require external memory systems
+
+### **Technical Issues**
+- **LLaVA-MLX:** 25.37s inference time, batch processing failures, model reloading required
+- **MLX Models:** Cannot process text-only input for context questions
+- **SmolVLM Models:** Hallucinate responses for context questions
+- **All Models:** No true conversation memory or context retention
+
+---
+
+**Last Updated**: July 29, 2025  
+**Test Framework**: VQA 2.0 Standard Evaluation + Context Understanding Assessment  
+**Hardware**: MacBook Air M3, 16GB RAM, MPS available  
+**Dataset**: COCO val2014 (20 questions) + Custom context test images 

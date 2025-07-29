@@ -2,14 +2,14 @@
 
 **Test Date:** July 28, 2025 20:29:35  
 **Test Duration:** 274.67 seconds (4.58 minutes)  
-**Test Environment:** MacBook Air M3 (16GB RAM)  
+**Test Environment:** MacBook Air M3 (16GB RAM, MPS available)  
 **Test Framework:** Custom VLM Context Understanding Tester  
 
 ## Executive Summary
 
-**⚠️ CRITICAL FINDING: All tested models have 0% true context understanding capability.**
+**🚨 CRITICAL FINDING: All tested models have 0% true context understanding capability.**
 
-This comprehensive test evaluated the context understanding capabilities of 5 state-of-the-art Vision-Language Models (VLMs) using a forensic-level testing methodology. The results confirm that **no model can maintain accurate context across conversations**. All models either return empty responses, explicitly state they cannot answer without the image, or provide completely incorrect/hallucinated information.
+This comprehensive forensic-level test evaluated the context understanding capabilities of 5 state-of-the-art Vision-Language Models (VLMs). The results reveal a **universal failure** in maintaining accurate context across multi-turn conversations. No model can recall or use information from previous image descriptions when asked follow-up questions without the image present.
 
 ## Test Methodology
 
@@ -30,50 +30,74 @@ This comprehensive test evaluated the context understanding capabilities of 5 st
 
 ## Results Summary
 
-### **Overall Performance Rankings**
+### **Context Understanding Failure Analysis**
 
-| **Model** | **Context Understanding** | **Response Type** | **Avg Inference (s)** | **Notes** |
-|-----------|--------------------------|-------------------|----------------------|-----------|
-| SmolVLM-500M-Instruct | **0%** | **Hallucinated responses** | ~0.9 | Claims "red, white, blue" for all images |
-| SmolVLM2-500M-Video-Instruct | **0%** | **Hallucinated responses** | ~6.2 | Claims "red, white, blue" for all images |
-| Moondream2 | **0%** | **Explicitly cannot answer** | ~5.9 | "Cannot provide context-based answers without image" |
-| LLaVA-v1.6-Mistral-7B-MLX | **0%** | **Empty responses** | ~19.5 | Returns empty strings |
-| Phi-3.5-Vision-Instruct | **0%** | **Empty responses** | ~6.9 | Returns empty strings |
+| **Model** | **Context Understanding** | **Failure Type** | **Avg Inference (s)** | **Specific Issues** |
+|-----------|--------------------------|------------------|----------------------|-------------------|
+| SmolVLM-500M-Instruct | **0%** | **Hallucinated responses** | 0.16 | Claims "black, white, tan" for dog; "white, blue" for passport; "red, blue" for diagram |
+| SmolVLM2-500M-Video-Instruct | **0%** | **Generic hallucinations** | 6.0 | Claims "white and black" for all images; "person wearing white shirt and black hat" |
+| Moondream2 | **0%** | **Honest inability** | 0.0001 | "Cannot provide context-based answers without the image" |
+| LLaVA-v1.6-Mistral-7B-MLX | **0%** | **Empty responses** | 2.1 | Returns empty strings for all context questions |
+| Phi-3.5-Vision-Instruct | **0%** | **Empty responses** | 0.2 | Returns empty strings; MLX-VLM cannot process text-only input |
 
-*Note: **All models have 0% true context understanding capability**. No model can accurately recall and use information from previous image descriptions.*
+**🔍 Key Finding:** No model demonstrates any ability to maintain or recall visual context from previous interactions.
 
 ### **Key Findings**
 
-#### **❌ Context Awareness Failures**
-- **Complete Context Failure**: All models fail to maintain any accurate context across conversations
-- **Empty Responses**: Phi-3.5 and LLaVA-MLX return empty responses to context questions
-- **Explicit Inability**: Moondream2 explicitly states it cannot answer without the image
-- **Hallucination**: SmolVLM models provide completely incorrect responses (e.g., claiming "red, white, blue" for all images)
-- **Batch Inference Issues**: LLaVA-MLX suffers from internal state corruption
+#### **🔍 Detailed Failure Analysis**
 
-#### **✅ What Works**
-- All models can answer the initial image description when the image is present
-- SmolVLM shows the fastest inference time for context questions (~0.9s)
+##### **Image Description Phase (With Image Present)**
+**✅ All models successfully describe images when visual input is provided:**
+- **Moondream2:** Detailed, accurate descriptions (e.g., "Shiba Inu dog sitting indoors, light brown fur with white markings")
+- **SmolVLM models:** Good object identification and spatial relationships
+- **Phi-3.5 & LLaVA-MLX:** Adequate descriptions with reasonable detail
 
-#### **🔍 Specific Issues by Model**
-- **SmolVLM/SmolVLM2**: Provide responses but they are completely incorrect (hallucinated)
-- **Moondream2**: Explicitly states it cannot provide context-based answers without the image
-- **LLaVA-MLX**: Returns empty responses due to batch inference issues
-- **Phi-3.5**: Returns empty responses, indicating no context processing capability
+##### **Context Question Phase (Without Image)**
+**❌ Universal failure across all models:**
 
-## **🚨 Critical Implications**
+**1. SmolVLM-500M-Instruct (GGUF)**
+- **Color Question:** Claims "black, white, and tan" for dog image
+- **People Question:** Invents "person wearing black shirt with short hair"  
+- **Summary:** "Close-up of dog's face and paws, taken indoors in bathroom"
+- **Issue:** Completely fabricated responses unrelated to actual image content
 
-### **For Developers**
-- **Do not rely on current VLMs for any context-dependent features**
-- **Implement external memory systems** for conversation history
-- **Use single-turn interactions only** for reliable results
-- **Consider hybrid approaches** combining multiple models with external memory
+**2. SmolVLM2-500M-Video-Instruct**
+- **Color Question:** Claims "white and black" for all three different images
+- **People Question:** Claims "person wearing white shirt and black hat" for all images
+- **Summary:** "White background with black and white image of person" for all
+- **Issue:** Generic, template-like responses ignoring actual image content
 
-### **For Production Systems**
-- **Context-dependent applications require external solutions**
-- **Single-turn interactions are the only reliable option**
-- **Implement conversation history** as external memory
-- **Monitor for hallucination and empty responses**
+**3. Moondream2**
+- **All Questions:** "Cannot provide context-based answers without the image"
+- **Issue:** Honest about limitations but no context retention capability
+
+**4. LLaVA-v1.6-Mistral-7B-MLX**
+- **All Questions:** Empty string responses (`""`)
+- **Issue:** MLX framework cannot process text-only input after image processing
+
+**5. Phi-3.5-Vision-Instruct**
+- **All Questions:** Empty string responses (`""`)
+- **Issue:** MLX-VLM architecture limitation for text-only context processing
+
+## **🚨 Critical Implications for Production Systems**
+
+### **❌ What This Means for Applications**
+- **Multi-turn VQA:** Impossible with current models - each question must include the image
+- **Conversation Systems:** Cannot maintain visual context across turns
+- **Interactive Applications:** Must re-send images for every question
+- **Memory-dependent Tasks:** Require external storage and retrieval systems
+
+### **⚠️ Specific Risks Identified**
+1. **Hallucination Risk (SmolVLM models):** Provide confident but completely incorrect answers
+2. **Silent Failure (MLX models):** Return empty responses without error indication  
+3. **Resource Waste:** Models process images but cannot use that information later
+4. **User Experience:** Frustrating for users expecting conversational capability
+
+### **🔧 Required Workarounds**
+- **Image Re-submission:** Include image with every question in multi-turn scenarios
+- **External Memory:** Store image descriptions and context externally
+- **Response Validation:** Check for empty responses and hallucinations
+- **Fallback Strategies:** Have backup plans when context is lost
 
 ## Recommendations
 
@@ -97,8 +121,33 @@ This comprehensive test evaluated the context understanding capabilities of 5 st
 
 ---
 
+## **Technical Test Details**
+
+### **Test Images Used**
+1. **IMG_0119.JPG:** Shiba Inu dog on tiled floor with green shoes and white fan
+2. **IMG_2053.JPG:** Person holding passport, wearing "FKONs" t-shirt and glasses  
+3. **test_image.jpg:** Geometric diagram with blue square border and red circle containing "PHI-3"
+
+### **Context Questions Asked**
+1. "What were the most prominent colors in the image?"
+2. "Were there any people visible in the image? If so, describe their general appearance or clothing without making up details."
+3. "Summarize the main subject or scene of the image in one sentence."
+
+### **Model Load Times & Memory Usage**
+| Model | Load Time (s) | Memory Before (GB) | Memory After (GB) | Memory Diff (GB) |
+|-------|---------------|-------------------|------------------|------------------|
+| Phi-3.5-Vision-Instruct | 3.84 | 0.19 | 2.78 | +2.59 |
+| LLaVA-v1.6-Mistral-7B-MLX | 6.55 | 2.60 | 0.04 | -2.56 |
+| Moondream2 | 19.34 | 0.16 | 0.02 | -0.14 |
+| SmolVLM2-500M-Video-Instruct | 1.43 | 0.43 | 0.72 | +0.29 |
+| SmolVLM-500M-Instruct | 4.05 | 0.29 | 0.29 | +0.001 |
+
+---
+
 **Test Framework:** Custom VLM Context Understanding Tester  
-**Evaluation Method:** Forensic-level detail testing with follow-up questions  
-**Data Source:** Real-world images with complex visual elements  
+**Evaluation Method:** Forensic-level image description followed by context-only questions  
+**Data Source:** Real-world images with complex visual elements and geometric test cases  
 **Critical Finding:** **All current VLMs have 0% true context understanding capability**  
-**Last Updated:** 2025-07-28 20:29:35 
+**Test Date:** 2025-07-28 20:29:35  
+**Test Duration:** 274.67 seconds (4.58 minutes)  
+**Environment:** MacBook Air M3 (16GB RAM, MPS available) 
