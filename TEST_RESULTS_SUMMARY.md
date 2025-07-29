@@ -8,13 +8,16 @@ This document summarises the comprehensive development progress and performance 
 
 ### Overall Performance Summary
 
-| **Model** | **VQA Accuracy** | **Simple Accuracy** | **Avg Inference Time** | **Memory Usage** | **Status** | **Recommendation** |
-|-----------|:----------------:|:-------------------:|:----------------------:|:----------------:|:----------:|:------------------:|
-| **Moondream2** | 🥇 **62.5%** | **65.0%** | 8.35s | 🏆 **0.10GB** | ✅ Active | **Best Overall** |
-| **SmolVLM2-Instruct** | 🥈 **52.5%** | **55.0%** | 8.41s | 2.08GB | ✅ Active | **Fast & Accurate** |
-| **Phi-3.5-Vision** | **35.0%** | **35.0%** | 5.29s | 1.53GB | ✅ Active | **Balanced** |
-| **SmolVLM-Instruct** | **36.0%** | **35.0%** | 🏆 **0.39s** | 1.58GB | ✅ Active | **Fastest** |
-| **LLaVA-MLX** | ⚠️ **21.0%** | **20.0%** | 24.15s | 1.16GB | 🔧 Issues | **Not Recommended** |
+| **Model** | **VQA Accuracy** | **Simple Accuracy** | **Avg Inference Time** | **Context Understanding** | **Status** | **Recommendation** |
+|-----------|:----------------:|:-------------------:|:----------------------:|:------------------------:|:----------:|:------------------:|
+| **Moondream2** | 🥇 **62.5%** | **65.0%** | 8.35s | ❌ **0%** | ✅ Active | **Best Overall** |
+| **SmolVLM2-Instruct** | 🥈 **52.5%** | **55.0%** | 8.41s | ❌ **0%** | ✅ Active | **Fast & Accurate** |
+| **SmolVLM-Instruct** | **36.0%** | **35.0%** | 🏆 **0.39s** | ❌ **0%** | ✅ Active | **Fastest** |
+| **Phi-3.5-Vision** | **35.0%** | **35.0%** | 5.29s | ❌ **0%** | ✅ Active | **Balanced** |
+| **LLaVA-MLX** | ⚠️ **21.0%** | **20.0%** | 24.15s | ❌ **0%** | 🔧 Issues | **Not Recommended** |
+
+### 🚨 **Critical Finding: Universal Context Understanding Failure**
+**ALL MODELS have 0% true context understanding capability** - comprehensive testing reveals no model can maintain conversation memory or recall previous image information without external memory systems.
 
 ## 📊 Detailed VQA 2.0 Test Results
 
@@ -59,13 +62,36 @@ This document summarises the comprehensive development progress and performance 
 - **Strengths**: Balanced performance, MLX optimisation
 - **Use Cases**: General analysis tasks, balanced workloads
 
-#### ⚠️ LLaVA-MLX (Underperforming)
+#### ⚠️ LLaVA-MLX (Critical Performance Issues)
 - **VQA Accuracy**: 21.0% (significant performance degradation)
 - **Simple Accuracy**: 20.0% (4/20 correct responses)
-- **Avg Inference Time**: 24.15s (slow)
-- **Memory Usage**: 1.16GB
-- **Issues**: Batch inference issues, poor performance, unreliable
-- **Status**: Functional but not recommended due to performance issues
+- **Avg Inference Time**: 24.15s (4-6x slower than others)
+- **Memory Usage**: -0.48GB (memory management issues)
+- **Critical Issues**: 
+  - Batch inference problems with state corruption
+  - Repetitive response loops ("Is it morning? Yes. Is it afternoon? No...")
+  - Requires model reloading between images
+  - Extremely slow and unreliable
+- **Status**: ❌ **Not recommended for any production use case**
+
+### 🚨 **Context Understanding Crisis Analysis**
+
+#### **Universal Failure Across All Models**
+Comprehensive testing reveals **0% context understanding capability** across all VLMs:
+
+| **Model** | **Context Understanding** | **Failure Type** | **Specific Issues** |
+|-----------|--------------------------|------------------|-------------------|
+| **SmolVLM-GGUF** | **0%** | Hallucinated responses | Claims "black, white, tan" for dog image (incorrect) |
+| **SmolVLM2-MLX** | **0%** | Generic hallucinations | Claims "white and black" for all different images |
+| **Moondream2** | **0%** | Honest inability | "Cannot provide context-based answers without image" |
+| **LLaVA-MLX** | **0%** | Empty responses | Returns empty strings for all context questions |
+| **Phi-3.5-MLX** | **0%** | Empty responses | MLX-VLM cannot process text-only input |
+
+#### **Critical Implications for Production**
+- **Multi-turn VQA**: Impossible - each question must include the image
+- **Conversation Systems**: Cannot maintain visual context across turns
+- **Interactive Applications**: Must re-send images for every question
+- **Memory-dependent Tasks**: Require external storage and retrieval systems (our dual-loop architecture addresses this)
 
 ## 🏗️ System Development Progress
 
@@ -98,6 +124,28 @@ This document summarises the comprehensive development progress and performance 
   - 28% performance improvement demonstrated
   - System startup precomputed embeddings
   - Vector cache and fast retrieval mechanisms
+
+## 🚨 **Critical Context Understanding Assessment**
+
+### **Comprehensive Context Testing Results (2025-07-28)**
+- **Test Duration**: 274.67 seconds (4.58 minutes)
+- **Models Tested**: 5 state-of-the-art VLMs
+- **Test Method**: Forensic-level image description followed by context-only questions
+- **Critical Finding**: **ALL MODELS have 0% true context understanding capability**
+
+### **Production Impact Assessment**
+- **Best Overall Performance**: Moondream2 for accuracy-critical applications (65.0% simple accuracy)
+- **Fastest Inference**: SmolVLM-GGUF for real-time applications (0.39s average)
+- **Balanced Performance**: SmolVLM2-MLX for general-purpose use (55.0% accuracy, 8.41s)
+- **Critical Issue**: LLaVA-MLX performance crisis (24.15s inference, 20.0% accuracy)
+- **Universal Limitation**: 0% context understanding requires external memory systems
+
+### **Dual-Loop Memory System Solution**
+Our implemented dual-loop memory architecture addresses the universal context understanding failure:
+- **🔄 Subconscious Loop**: Continuous VLM observation → State tracking → RAG matching
+- **⚡ Instant Response Loop**: User queries → Direct memory lookup → <50ms responses
+- **🎯 Query Classification**: 100% accuracy in intent recognition
+- **📊 Memory Management**: <1MB sliding window with automatic cleanup
   - Vector update and maintenance interfaces
   - Engineering optimisation practical value proven
 
@@ -152,10 +200,10 @@ This document summarises the comprehensive development progress and performance 
 - **Performance**: Variable across models
 - **Example**: "Is it daytime?" → Ground truth: "no"
 
-#### Color Questions (6 questions)
+#### Colour Questions (6 questions)
 - **Best**: SmolVLM2-Instruct (4/6 correct answers)
 - **Performance**: Challenging for all models
-- **Example**: "What color is her dress?" → Ground truth: "gray"
+- **Example**: "What colour is her dress?" → Ground truth: "grey"
 
 #### Count Questions (2 questions)
 - **Best**: Moondream2 (1/2 correct answers)

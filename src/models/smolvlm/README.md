@@ -116,13 +116,15 @@ curl -X PATCH http://localhost:8000/api/v1/config \
 - **Formats**: JPEG, PNG, WebP support with automatic resizing
 - **Processing**: Up to 512px with quality optimization
 
-### Performance Benchmarks
+### Performance Benchmarks (Latest VQA 2.0 Results - 2025-07-29)
 | Metric | Score | Context |
 |--------|-------|---------|
-| **VQA 2.0 Accuracy** | 64.0% | Excellent reliability |
-| **Inference Time** | 5.98s | Good performance |
-| **Memory Usage** | 1.58GB | Efficient |
-| **Startup Time** | 30-60s | Model download + loading |
+| **VQA 2.0 Accuracy** | **36.0%** | Consistent performance |
+| **Simple Accuracy** | **35.0%** | Reliable results |
+| **⚡ Inference Time** | **0.39s** | **Fastest in system** |
+| **Memory Usage** | **+0.001GB** | **Most efficient** |
+| **Loading Time** | **4.05s** | Quick startup |
+| **Context Understanding** | ❌ **0%** | **Critical limitation** |
 | **Reliability** | ✅ High | Server-based architecture |
 
 ## 🏗️ Implementation Details
@@ -169,16 +171,21 @@ SmolVLM includes comprehensive testing tools:
 - **Success/failure rates**
 - **Server status** monitoring
 
-## 📊 Performance Comparison
+## 📊 Performance Comparison (Latest VQA 2.0 Results - 2025-07-29)
 
-| Feature | SmolVLM | SmolVLM2 | Moondream2 |
-|---------|---------|----------|------------|
-| **Accuracy** | 64.0% | 66.0% | 56.0% |
-| **Speed** | 5.98s | 6.61s | 4.06s |
-| **Memory** | 1.58GB | 2.08GB | 0.10GB |
-| **Architecture** | llama-server | Direct | Direct |
-| **Reliability** | ✅ High | ✅ Good | ✅ Good |
-| **Testing** | ✅ Comprehensive | ⚡ Basic | ⚡ Basic |
+| Feature | SmolVLM-GGUF | Moondream2 | SmolVLM2-MLX | Phi-3.5-MLX |
+|---------|--------------|------------|--------------|-------------|
+| **VQA Accuracy** | **36.0%** | 🥇 **62.5%** | 🥈 **52.5%** | **35.0%** |
+| **Simple Accuracy** | **35.0%** | 🥇 **65.0%** | 🥈 **55.0%** | **35.0%** |
+| **Speed** | 🏆 **0.39s** | **8.35s** | **8.41s** | **5.29s** |
+| **Memory** | 🏆 **+0.001GB** | **-0.09GB** | **+0.13GB** | **+0.05GB** |
+| **Context Understanding** | ❌ **0%** | ❌ **0%** | ❌ **0%** | ❌ **0%** |
+| **Architecture** | llama-server | Direct | MLX | MLX |
+| **Reliability** | ✅ High | ✅ High | ✅ Good | ✅ Good |
+| **Testing** | ✅ Comprehensive | ⚡ Basic | ⚡ Basic | ⚡ Basic |
+
+### 🚨 Universal Context Understanding Crisis
+**ALL MODELS have 0% true context understanding capability** - comprehensive testing reveals no model can maintain conversation memory or recall previous image information.
 
 ## 🧪 Testing and Validation
 

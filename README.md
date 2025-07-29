@@ -48,35 +48,52 @@ This isn't just another chatbot or simple object detection system. This is **con
 - Query interface for instant responses
 
 #### **Layer 2: Backend (Port 8000)**
-- Unified API gateway
-- Image preprocessing pipeline
-- Model selection and routing
-- Configuration management
-- **State Tracker integration**
-- **RAG knowledge base**
+- **FastAPI Server**: Unified API gateway with OpenAI-compatible endpoints
+- **State Tracker**: Dual-loop memory system with subconscious monitoring
+- **RAG Knowledge Base**: ChromaDB vector search with semantic matching
+- **Image Processing**: Preprocessing pipeline for VLM optimization
+- **Configuration Management**: Dynamic model switching and routing
+- **Query Classification**: 100% accurate intent recognition system
+- **Memory Management**: Sliding window with <1MB usage optimization
 
 #### **Layer 3: Model Server (Port 8080)**
-- Vision-Language Models
-- Real-time inference
-- OpenAI-compatible API
-- Resource management
+- **Vision-Language Models**: Moondream2, SmolVLM, Phi-3.5-Vision, LLaVA-MLX
+- **Real-time Inference**: Optimized for Apple Silicon with MLX acceleration
+- **OpenAI-Compatible API**: Standard chat completions interface
+- **Resource Management**: Automatic cleanup and memory optimization
+- **Performance Monitoring**: Load balancing and health checks
 
 #### **🧠 Dual-Loop Memory System**
-- **Subconscious Loop**: Continuous VLM observation → State tracking → RAG matching → Sliding window memory
-- **Instant Response Loop**: User queries → Direct state lookup → Immediate response (< 50ms)
+- **🔄 Subconscious Loop**: VLM observations → State tracking → RAG matching → Memory updates (continuous background)
+- **⚡ Instant Response Loop**: User queries → Direct memory lookup → <50ms responses
+- **🎯 Query Classification**: Intent recognition with 100% accuracy
+- **📊 Sliding Window**: Efficient memory management with automatic cleanup
+- **🔍 Semantic Matching**: Vector search with ChromaDB for contextual understanding
 
-## 🎯 **Supported Models**
+## 🎯 **Supported Models & Latest Performance**
 
-Our system is designed to be model-agnostic, allowing for the integration of various Vision-Language Models. Each model runs in its own dedicated server process.
+Our system supports multiple Vision-Language Models with comprehensive VQA 2.0 testing. **Latest results (2025-07-29 13:12:58):**
 
-**✅ Actively Supported & Tested Models:**
-- **Moondream2**: A lightweight and very fast model, great for quick analysis.
-- **SmolVLM / SmolVLM2**: Efficient models designed for a balance of performance and capability.
-- **Phi-3.5-Vision (MLX)**: A powerful model from Microsoft, optimized for Apple Silicon via MLX for top-tier performance.
-- **LLaVA-v1.6 (MLX)**: An excellent conversational model, optimized for Apple Silicon. Note: It excels with photographic images but consistently fails on certain synthetic images (e.g., simple geometric shapes on a flat background) due to an underlying `mlx-vlm` library issue.
-- **YOLOv8**: A specialized, high-speed object detection model.
+### **🏆 Performance Rankings (VQA 2.0 - 20 Questions)**
 
-> **⚠️ One Model at a Time:** Due to memory constraints on typical development machines, only one model server should be run at a time. To switch models, stop the current server and start a different one.
+| Model | VQA Accuracy | Simple Accuracy | Avg Inference | Memory | Status |
+|-------|:------------:|:---------------:|:-------------:|:------:|:------:|
+| **🥇 Moondream2** | **62.5%** | **65.0%** | 8.35s | -0.09GB | ✅ **Best Overall** |
+| **🥈 SmolVLM2-MLX** | **52.5%** | **55.0%** | 8.41s | +0.13GB | ✅ **Balanced** |
+| **⚡ SmolVLM-GGUF** | **36.0%** | **35.0%** | **0.39s** | +0.001GB | ✅ **Fastest** |
+| **🥉 Phi-3.5-MLX** | **35.0%** | **35.0%** | 5.29s | +0.05GB | ✅ **Fast** |
+| **⚠️ LLaVA-MLX** | **21.0%** | **20.0%** | 24.15s | -0.48GB | 🚫 **Critical Issues** |
+
+### **🚨 Critical Limitation: Context Understanding**
+**ALL MODELS have 0% context understanding capability** - cannot maintain conversation memory or recall previous image information. Multi-turn conversations require external memory systems (our dual-loop architecture addresses this).
+
+### **📊 Model Recommendations**
+- **🎯 Production VQA**: Moondream2 (highest accuracy: 65.0%)
+- **⚡ Real-time Apps**: SmolVLM-GGUF (fastest: 0.39s inference)
+- **🔄 Balanced Use**: SmolVLM2-MLX (good speed/accuracy balance)
+- **🚫 Avoid**: LLaVA-MLX (critical performance issues: 24.15s inference)
+
+> **⚠️ One Model at a Time:** Due to memory constraints, run only one model server at a time. See [Model Performance Guide](src/testing/reports/model_performance_guide.md) for detailed comparisons.
 
 ## 🚀 **Quick Start**
 
@@ -120,24 +137,30 @@ Our system is designed to be model-agnostic, allowing for the integration of var
 4.  **Open the Assistant**:
     Open your web browser and navigate to `http://localhost:5500`.
 
-For more detailed instructions, see the [Developer Setup Guide](./docs/DEVELOPER_SETUP.md).
+For more detailed instructions, see the [Getting Started Guide](GETTING_STARTED.md) and [Complete Model Guide](COMPLETE_MODEL_GUIDE.md).
 
 ## 📖 **Documentation**
 
-### **Complete Documentation**
-- **[System Architecture](./docs/ARCHITECTURE.md)** - Complete system design and component overview
-- **[Developer Setup Guide](./docs/DEVELOPER_SETUP.md)** - Step-by-step development environment setup
-- **[Model Comparison Guide](./docs/MODEL_COMPARISON.md)** - Detailed comparison of all supported models
-- **[API Documentation](./docs/API.md)** - Complete API reference and examples
+### **🚀 Quick Start Guides**
+- **[Getting Started Guide](GETTING_STARTED.md)** - Quick setup and first steps
+- **[Complete Model Guide](COMPLETE_MODEL_GUIDE.md)** - Model switching and configuration
+- **[Project Structure](PROJECT_STRUCTURE.md)** - Complete system architecture overview
 
-### **Project Guides**
-- **[RAG & State Tracker Integration](./docs/RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)** - Three approaches for integrating RAG and State Tracker
-- **[VLM Enhancement Guide](./docs/VLM_ENHANCEMENT_GUIDE.md)** - Optimization guide for vision models
-- **[Test Results Summary](./TEST_RESULTS_SUMMARY.md)** - Latest VQA 2.0 performance results
+### **📊 Latest Test Results & Analysis**
+- **[Test Results Summary](TEST_RESULTS_SUMMARY.md)** - Latest VQA 2.0 performance results (2025-07-29)
+- **[VQA Analysis Report](src/testing/reports/vqa_analysis.md)** - Detailed VQA 2.0 performance analysis
+- **[Model Performance Guide](src/testing/reports/model_performance_guide.md)** - Production recommendations
+- **[Context Understanding Analysis](src/testing/reports/context_understanding_analysis.md)** - Critical context capability assessment
 
-### **Additional Resources**
-- **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[FAQ](./docs/FAQ.md)** - Frequently asked questions
+### **🧪 Testing Framework**
+- **[Testing Overview](src/testing/README.md)** - Comprehensive testing framework
+- **[VQA Testing](src/testing/vqa/README.md)** - VQA 2.0 evaluation framework
+- **[VLM Testing](src/testing/vlm/README.md)** - Vision-Language Model testing suite
+- **[Testing Reports](src/testing/reports/README.md)** - All analysis reports
+
+### **🏗️ System Architecture**
+- **[Memory System Specs](.kiro/specs/memory-system/)** - Dual-loop memory architecture
+- **[Stage Completion Reports](STAGE_*_COMPLETE.md)** - Development progress documentation
 
 ## ✨ **Key Features**
 
@@ -287,23 +310,34 @@ This system is designed to help with:
 - **🏠 Home improvement** - Installation, maintenance, decoration
 - **🎨 Creative projects** - Art, crafts, building
 
-## 📊 **Current Performance Metrics**
+## 📊 **Current System Performance**
 
-- **✅ Dual-Loop Memory System**: 100% success rate
-- **✅ Query Classification**: 100% accuracy
-- **✅ Service Communication**: All endpoints functional
-- **✅ Response Time**: < 50ms for instant queries
-- **✅ Memory Usage**: Optimized sliding window < 1MB
-- **✅ Error Handling**: Robust fault tolerance
-- **✅ System Stability**: 100% recovery rate
+### **🧠 Dual-Loop Memory System**
+- **✅ System Success Rate**: 100% (all tests passed)
+- **✅ Query Classification**: 100% accuracy (intent recognition)
+- **✅ Response Time**: <50ms for instant queries
+- **✅ Memory Usage**: <1MB sliding window optimization
+- **✅ Service Recovery**: 100% fault tolerance
+
+### **🎯 VLM Performance (Latest VQA 2.0 Results)**
+- **🥇 Best Accuracy**: Moondream2 (65.0% simple, 62.5% VQA)
+- **⚡ Fastest Inference**: SmolVLM-GGUF (0.39s average)
+- **🔄 Best Balance**: SmolVLM2-MLX (55.0% accuracy, 8.41s)
+- **🚫 Critical Issue**: LLaVA-MLX (24.15s inference, 20.0% accuracy)
+
+### **⚠️ Known Limitations**
+- **Context Understanding**: 0% capability across all VLMs
+- **Text Reading**: Poor performance on text within images
+- **Counting Tasks**: Challenges with numerical reasoning
+- **Multi-turn Conversations**: Require external memory (our dual-loop system)
 
 ## 🤝 **Contributing**
 
-We welcome contributions! Please see our [Developer Setup Guide](./docs/DEVELOPER_SETUP.md) for detailed instructions on:
-- Setting up the development environment
-- Code style guidelines
-- Testing procedures
-- Submitting pull requests
+We welcome contributions! Please see our documentation for detailed instructions on:
+- **[Getting Started](GETTING_STARTED.md)** - Development environment setup
+- **[Testing Framework](src/testing/README.md)** - Comprehensive testing procedures
+- **[Project Structure](PROJECT_STRUCTURE.md)** - System architecture and components
+- **[Latest Results](TEST_RESULTS_SUMMARY.md)** - Current performance benchmarks
 
 ## 📄 **License**
 

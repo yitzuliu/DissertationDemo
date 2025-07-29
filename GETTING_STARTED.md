@@ -5,26 +5,33 @@ This guide helps new users quickly get up and running with the AI Manual Assista
 ## 🚀 Quick Start for New Users
 
 ### 1. First Steps
-1. **Setup Development Environment**: Follow the [Developer Setup Guide](./docs/DEVELOPER_SETUP.md)
-2. **Understand the System**: Read the [System Architecture](./docs/ARCHITECTURE.md)
-3. **Choose Your Model**: Check the [Model Comparison Guide](./docs/MODEL_COMPARISON.md)
-4. **Review Latest Results**: See [Test Results Summary](./TEST_RESULTS_SUMMARY.md)
+1. **Setup Development Environment**: Follow the [Complete Model Guide](COMPLETE_MODEL_GUIDE.md)
+2. **Understand the System**: Read the [Project Structure](PROJECT_STRUCTURE.md)
+3. **Choose Your Model**: Check the [Model Performance Guide](src/testing/reports/model_performance_guide.md)
+4. **Review Latest Results**: See [Test Results Summary](TEST_RESULTS_SUMMARY.md)
 
 ### 2. Advanced Configuration
-- **Integration Planning**: Review [RAG & State Tracker Integration](./docs/RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)
-- **Model Optimization**: Follow the [VLM Enhancement Guide](./docs/VLM_ENHANCEMENT_GUIDE.md)
+- **VLM Performance Analysis**: Review [VQA Analysis Report](src/testing/reports/vqa_analysis.md)
+- **Context Understanding**: Check [Context Analysis](src/testing/reports/context_understanding_analysis.md)
+- **Testing Framework**: Explore [Testing Overview](src/testing/README.md)
 
 ## 📚 Complete Documentation
 
-### System Documentation (`/docs`)
-- **[System Architecture](./docs/ARCHITECTURE.md)** - Complete system design and component overview
-- **[Developer Setup Guide](./docs/DEVELOPER_SETUP.md)** - Step-by-step development environment setup
-- **[Model Comparison Guide](./docs/MODEL_COMPARISON.md)** - Detailed comparison of all supported models
-- **[API Documentation](./docs/API.md)** - Complete API reference and examples
-- **[Troubleshooting Guide](./docs/TROUBLESHOOTING.md)** - Common issues and solutions
-- **[FAQ](./docs/FAQ.md)** - Frequently asked questions
-- **[RAG & State Tracker Integration](./docs/RAG_STATE_TRACKER_INTEGRATION_APPROACHES.md)** - Three approaches for integrating RAG and State Tracker
-- **[VLM Enhancement Guide](./docs/VLM_ENHANCEMENT_GUIDE.md)** - Optimization guide for vision models
+### **🚀 Quick Start Guides**
+- **[Complete Model Guide](COMPLETE_MODEL_GUIDE.md)** - Model switching, configuration, and troubleshooting
+- **[Project Structure](PROJECT_STRUCTURE.md)** - Complete system architecture and component overview
+- **[Test Results Summary](TEST_RESULTS_SUMMARY.md)** - Latest VQA 2.0 performance results
+
+### **📊 Latest Performance Analysis**
+- **[VQA Analysis Report](src/testing/reports/vqa_analysis.md)** - Detailed VQA 2.0 performance analysis
+- **[Model Performance Guide](src/testing/reports/model_performance_guide.md)** - Production recommendations
+- **[Context Understanding Analysis](src/testing/reports/context_understanding_analysis.md)** - Critical context capability assessment
+
+### **🧪 Testing Framework Documentation**
+- **[Testing Overview](src/testing/README.md)** - Comprehensive testing framework
+- **[VQA Testing Guide](src/testing/vqa/README.md)** - VQA 2.0 evaluation framework
+- **[VLM Testing Guide](src/testing/vlm/README.md)** - Vision-Language Model testing suite
+- **[Testing Reports](src/testing/reports/README.md)** - All analysis reports directory
 
 ### Project Status
 - **[Test Results Summary](./TEST_RESULTS_SUMMARY.md)** - Latest VQA 2.0 performance results
@@ -41,13 +48,33 @@ This guide helps new users quickly get up and running with the AI Manual Assista
 - `TEST_RESULTS_SUMMARY.md` - Latest performance benchmarks
 
 ### Troubleshooting
-- **Issues**: Check [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
-- **Common Questions**: See [FAQ](./docs/FAQ.md)
-- **API Problems**: Refer to [API Documentation](./docs/API.md)
+- **Model Issues**: Check [Complete Model Guide](COMPLETE_MODEL_GUIDE.md) troubleshooting section
+- **Performance Questions**: See [Model Performance Guide](src/testing/reports/model_performance_guide.md)
+- **Testing Problems**: Refer to [Testing Framework](src/testing/README.md)
 
 ## 📊 Project Status
 
 The AI Manual Assistant is actively developed with:
+
+### **✅ Completed Systems**
+- **🧠 Dual-Loop Memory System**: 100% success rate with subconscious monitoring and instant responses
+- **🎯 State Tracker**: Complete VLM integration with RAG knowledge base
+- **🔍 VQA 2.0 Testing**: Comprehensive evaluation of 5 VLMs with 20-question assessment
+- **⚡ Query Classification**: 100% accuracy in intent recognition
+- **🔄 Service Communication**: All endpoints functional with robust error handling
+
+### **📊 Latest Performance Results (2025-07-29)**
+- **🥇 Best Model**: Moondream2 (65.0% simple accuracy, 62.5% VQA accuracy)
+- **⚡ Fastest Model**: SmolVLM-GGUF (0.39s average inference time)
+- **🚫 Critical Issue**: LLaVA-MLX (24.15s inference, 20.0% accuracy)
+- **⚠️ Universal Limitation**: 0% context understanding across all VLMs
+
+### **🎯 Current Capabilities**
+- Real-time VLM processing with dual-loop memory
+- Instant query responses (<50ms)
+- Comprehensive model performance analysis
+- Production-ready recommendations
+- Robust error handling and recovery
 - ✅ **Working 3-layer architecture** (Frontend, Backend, Model Server)
 - ✅ **Multiple VLM support** with hot-swapping capabilities
 - ✅ **Comprehensive testing framework** (VQA 2.0 compliant)

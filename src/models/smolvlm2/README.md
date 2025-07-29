@@ -104,15 +104,18 @@ curl -X PATCH http://localhost:8000/api/v1/config \
 - **Multi-modal**: Text + image + video combinations
 - **Formats**: MP4, JPEG, PNG, WebP, URLs, file paths
 
-### Performance Benchmarks
+### Performance Benchmarks (Latest VQA 2.0 Results - 2025-07-29)
 | Metric | Score | Context |
 |--------|-------|---------|
-| **VQA 2.0 Accuracy** | 66.0% | Best in our system |
+| **🥈 VQA 2.0 Accuracy** | **52.5%** | **Second best in system** |
+| **🥈 Simple Accuracy** | **55.0%** | **Balanced performance** |
 | **Video-MME** | 42.2 | Video understanding |
 | **MLVU** | 47.3 | Long video understanding |
 | **MVBench** | 39.73 | Multi-modal video tasks |
-| **Inference Time** | 6.61s | Average per image |
-| **Memory Usage** | 2.08GB | During inference |
+| **Inference Time** | **8.41s** | Balanced speed |
+| **Memory Usage** | **+0.13GB** | Efficient |
+| **Loading Time** | **1.48s** | Quick startup |
+| **Context Understanding** | ❌ **0%** | **Critical limitation** |
 
 ## 🏗️ Implementation Details
 
@@ -157,15 +160,20 @@ class SmolVLM2Model(BaseVisionModel):
         # Resource cleanup
 ```
 
-## 📊 Performance Comparison
+## 📊 Performance Comparison (Latest VQA 2.0 Results - 2025-07-29)
 
-| Feature | SmolVLM2-500M-Video | SmolVLM-500M | Phi-3.5-Vision |
-|---------|-------------------|--------------|----------------|
-| **VQA Accuracy** | 🥇 66.0% | 64.0% | 60.0% |
-| **Inference Speed** | 6.61s | 5.98s | 13.61s |
-| **Memory Usage** | 2.08GB | 1.58GB | 1.53GB |
-| **Video Support** | ✅ Native | ❌ No | ❌ No |
-| **Apple Silicon** | ✅ MLX Optimized | ✅ MLX | ✅ MLX |
+| Feature | SmolVLM2-MLX | Moondream2 | SmolVLM-GGUF | Phi-3.5-MLX |
+|---------|--------------|------------|--------------|-------------|
+| **VQA Accuracy** | 🥈 **52.5%** | 🥇 **62.5%** | **36.0%** | **35.0%** |
+| **Simple Accuracy** | 🥈 **55.0%** | 🥇 **65.0%** | **35.0%** | **35.0%** |
+| **Inference Speed** | **8.41s** | **8.35s** | ⚡ **0.39s** | **5.29s** |
+| **Memory Usage** | **+0.13GB** | **-0.09GB** | **+0.001GB** | **+0.05GB** |
+| **Context Understanding** | ❌ **0%** | ❌ **0%** | ❌ **0%** | ❌ **0%** |
+| **Video Support** | ✅ Native | ❌ No | ❌ No | ❌ No |
+| **Apple Silicon** | ✅ MLX Optimized | ✅ MPS | ✅ GGUF | ✅ MLX |
+
+### 🚨 Universal Context Understanding Crisis
+**ALL MODELS have 0% true context understanding capability** - comprehensive testing reveals no model can maintain conversation memory or recall previous image information.
 
 ## 🔍 Troubleshooting
 

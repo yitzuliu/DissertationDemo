@@ -55,29 +55,33 @@ src/frontend/
 - **Web APIs**: Camera API, File API, Fetch API
 - **ES6+ Features**: Async/await, modules, arrow functions
 
-## 📊 Model Performance (Latest Test Results)
+## 📊 Model Performance (Latest Test Results - 2025-07-29)
 
-### VQA 2.0 Performance (20 Questions)
-| Model | VQA Accuracy | Simple Accuracy | Avg Time | Status |
-|-------|:------------:|:---------------:|:--------:|:------:|
-| **Moondream2** | 🥇 52.5% | 🥇 60.0% | 7.16s | ✅ **Best Overall** |
-| **SmolVLM2** | 🥈 51.5% | 🥈 60.0% | 5.48s | ✅ **Fast & Accurate** |
-| **SmolVLM** | 🥉 39.5% | 40.0% | 🏆 **1.17s** | ✅ **Fastest** |
-| **Phi-3.5-Vision** | 42.5% | 40.0% | 6.86s | ✅ **Balanced** |
-| **LLaVA-MLX** | ⚠️ 27.0% | ⚠️ 25.0% | 9.79s | 🔧 **Issues** |
+### VQA 2.0 Performance (20 Questions - COCO val2014)
+| Model | VQA Accuracy | Simple Accuracy | Avg Time | Memory | Status |
+|-------|:------------:|:---------------:|:--------:|:------:|:------:|
+| **🥇 Moondream2** | **62.5%** | **65.0%** | 8.35s | -0.09GB | ✅ **Best Overall** |
+| **🥈 SmolVLM2-MLX** | **52.5%** | **55.0%** | 8.41s | +0.13GB | ✅ **Balanced** |
+| **⚡ SmolVLM-GGUF** | **36.0%** | **35.0%** | **0.39s** | +0.001GB | ✅ **Fastest** |
+| **🥉 Phi-3.5-MLX** | **35.0%** | **35.0%** | 5.29s | +0.05GB | ✅ **Fast** |
+| **⚠️ LLaVA-MLX** | **21.0%** | **20.0%** | 24.15s | -0.48GB | 🚫 **Critical Issues** |
 
-### Context Understanding Results
-**⚠️ Important Finding**: None of the current models achieve true context awareness.
+### 🚨 Context Understanding Crisis
+**CRITICAL FINDING: ALL MODELS have 0% true context understanding capability**
 
-| Model | Context Success Rate | Context Accuracy | Notes |
-|-------|-------------------|-----------------|-------|
-| **SmolVLM** | 100% | Generic/hallucinated answers | Best context retention, but not accurate |
-| **SmolVLM2** | 100% | Generic/hallucinated answers | Consistent but generic responses |
-| **Moondream2** | 0% | Cannot answer without image | Vision-only, no context retention |
-| **LLaVA-MLX** | ~66% | Missing/empty answers | Batch Inference Issues |
-| **Phi-3.5** | ~66% | Missing/empty answers | Incomplete context responses |
+| Model | Context Understanding | Failure Type | Specific Issues |
+|-------|---------------------|--------------|-----------------|
+| **SmolVLM-GGUF** | **0%** | Hallucinated responses | Claims "black, white, tan" for dog image (incorrect) |
+| **SmolVLM2-MLX** | **0%** | Generic hallucinations | Claims "white and black" for all different images |
+| **Moondream2** | **0%** | Honest inability | "Cannot provide context-based answers without image" |
+| **LLaVA-MLX** | **0%** | Empty responses | Returns empty strings for all context questions |
+| **Phi-3.5-MLX** | **0%** | Empty responses | MLX-VLM cannot process text-only input |
 
-**Key Insight**: While some models can answer context questions, they often provide generic or hallucinated responses rather than true context retention.
+### 🎯 Production Implications
+- **Multi-turn VQA**: Impossible - each question must include the image
+- **Conversation Systems**: Cannot maintain visual context across turns
+- **Interactive Applications**: Must re-send images for every question
+- **Memory-dependent Tasks**: Require external storage (our dual-loop system addresses this)
 
 ## 🚀 Getting Started
 
@@ -121,18 +125,20 @@ python -m http.server 8000
 
 ### Backend API Configuration
 The frontend automatically detects and connects to the backend API. Default configuration:
-- **Base URL**: `http://localhost:5000`
-- **Status Endpoint**: `/status`
-- **Query Endpoint**: `/query`
-- **Upload Endpoint**: `/upload`
+- **Base URL**: `http://localhost:8000` (Backend FastAPI server)
+- **Model Server**: `http://localhost:8080` (VLM model server)
+- **Status Endpoint**: `/api/v1/status`
+- **Chat Endpoint**: `/v1/chat/completions` (OpenAI-compatible)
+- **State Endpoint**: `/api/v1/state` (Dual-loop memory system)
+- **Query Interface**: `query.html` (Instant response system)
 
 ### Model Selection
-Users can switch between available models:
-- **Moondream2**: Best overall performance (52.5% VQA accuracy)
-- **SmolVLM2**: Fast and accurate (51.5% VQA accuracy)
-- **SmolVLM**: Fastest inference (1.17s avg time)
-- **Phi-3.5-Vision**: Balanced performance
-- **LLaVA-MLX**: Not recommended (performance issues)
+Users can switch between available models based on latest performance data:
+- **🥇 Moondream2**: Best overall performance (65.0% simple, 62.5% VQA accuracy)
+- **🥈 SmolVLM2-MLX**: Balanced performance (55.0% simple, 52.5% VQA accuracy)
+- **⚡ SmolVLM-GGUF**: Fastest inference (0.39s avg time, 35.0% accuracy)
+- **🥉 Phi-3.5-MLX**: Fast and consistent (35.0% accuracy, 5.29s)
+- **🚫 LLaVA-MLX**: Critical issues - not recommended (20.0% accuracy, 24.15s)
 
 ## 🐛 Known Issues
 
@@ -209,7 +215,9 @@ Users can switch between available models:
 
 ---
 
-**Last Updated**: 2025-07-28  
-**Test Environment**: MacBook Air M3 (16GB RAM)  
+**Last Updated**: 2025-07-29 13:12:58  
+**Test Environment**: MacBook Air M3 (16GB RAM, MPS available)  
 **Browser Support**: Chrome 90+, Firefox 88+, Safari 14+  
-**Backend Version**: Latest stable release
+**Backend Version**: FastAPI with dual-loop memory system  
+**Latest VQA Results**: vqa2_results_coco_20250729_131258.json  
+**Context Understanding**: 0% capability across all models (critical limitation)

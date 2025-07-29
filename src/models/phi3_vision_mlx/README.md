@@ -124,13 +124,15 @@ curl -X PATCH http://localhost:8000/api/v1/config \
 - **Formats**: JPEG, PNG, WebP support
 - **Resolution**: Up to 1024px input
 
-### Performance Benchmarks
+### Performance Benchmarks (Latest VQA 2.0 Results - 2025-07-29)
 | Metric | Score | Context |
 |--------|-------|---------|
-| **VQA 2.0 Accuracy** | 60.0% | High accuracy |
-| **Inference Time** | 13.61s | Slower but detailed |
-| **Memory Usage** | 1.53GB | Efficient |
-| **Loading Time** | ~30s | MLX optimization |
+| **VQA 2.0 Accuracy** | **35.0%** | Consistent performance |
+| **Simple Accuracy** | **35.0%** | Balanced results |
+| **Inference Time** | **5.29s** | Fast processing |
+| **Memory Usage** | **+0.05GB** | Efficient |
+| **Loading Time** | **1.71s** | Quick startup |
+| **Context Understanding** | ❌ **0%** | **Critical limitation** |
 
 ## 🏗️ Implementation Details
 
@@ -170,15 +172,19 @@ The current implementation includes:
 - Memory cleanup after each inference
 - Temporary file management for MLX
 
-## 📊 Performance Comparison
+## 📊 Performance Comparison (Latest VQA 2.0 Results - 2025-07-29)
 
-| Feature | Phi-3.5-Vision | SmolVLM2 | Moondream2 |
-|---------|----------------|----------|------------|
-| **Accuracy** | 60.0% | 66.0% | 56.0% |
-| **Speed** | 13.61s | 6.61s | 4.06s |
-| **Memory** | 1.53GB | 2.08GB | 0.10GB |
-| **Detail Level** | ✅ High | ✅ Good | ⚡ Basic |
-| **Apple Silicon** | ✅ MLX | ✅ MLX | ✅ MPS |
+| Feature | Phi-3.5-Vision | SmolVLM2-MLX | Moondream2 | SmolVLM-GGUF |
+|---------|----------------|--------------|------------|--------------|
+| **VQA Accuracy** | **35.0%** | **52.5%** | **62.5%** | **36.0%** |
+| **Simple Accuracy** | **35.0%** | **55.0%** | **65.0%** | **35.0%** |
+| **Speed** | **5.29s** | **8.41s** | **8.35s** | **0.39s** |
+| **Memory** | **+0.05GB** | **+0.13GB** | **-0.09GB** | **+0.001GB** |
+| **Context Understanding** | ❌ **0%** | ❌ **0%** | ❌ **0%** | ❌ **0%** |
+| **Apple Silicon** | ✅ MLX | ✅ MLX | ✅ MPS | ✅ GGUF |
+
+### 🚨 Universal Context Understanding Crisis
+**ALL MODELS have 0% true context understanding capability** - comprehensive testing reveals no model can maintain conversation memory or recall previous image information.
 
 ## 🔍 Troubleshooting
 

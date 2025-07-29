@@ -126,13 +126,15 @@ curl -X PATCH http://localhost:8000/api/v1/config \
 - **Formats**: JPEG, PNG, WebP support
 - **Resolution**: Optimized for 384x384 processing
 
-### Performance Benchmarks
+### Performance Benchmarks (Latest VQA 2.0 Results - 2025-07-29)
 | Metric | Score | Context |
 |--------|-------|---------|
-| **VQA 2.0 Accuracy** | 56.0% | Good for size |
-| **Inference Time** | 🏆 4.06s | Fastest in system |
-| **Memory Usage** | 🏆 0.10GB | Most efficient |
-| **Loading Time** | ~6-7s | Quick startup |
+| **🥇 VQA 2.0 Accuracy** | **62.5%** | **Best VQA performance** |
+| **🥇 Simple Accuracy** | **65.0%** | **Highest overall accuracy** |
+| **Inference Time** | 8.35s | Balanced performance |
+| **Memory Usage** | 🏆 **-0.09GB** | **Most efficient** |
+| **Loading Time** | 16.61s | Vision-only model |
+| **Context Understanding** | ❌ **0%** | **Critical limitation** |
 
 ## 🏗️ Implementation Details
 
@@ -292,4 +294,15 @@ python run_moondream2_optimized.py
 - **Throughput**: ~15 images/minute
 - **Cache Hit Benefit**: ~30% speed improvement
 
-### Comparison with Other Models
+### Comparison with Other Models (Latest Results)
+
+| Model | VQA Accuracy | Simple Accuracy | Avg Inference | Memory | Status |
+|-------|:------------:|:---------------:|:-------------:|:------:|:------:|
+| **🥇 Moondream2** | **62.5%** | **65.0%** | 8.35s | -0.09GB | ✅ **Best Overall** |
+| **🥈 SmolVLM2-MLX** | **52.5%** | **55.0%** | 8.41s | +0.13GB | ✅ **Balanced** |
+| **⚡ SmolVLM-GGUF** | **36.0%** | **35.0%** | **0.39s** | +0.001GB | ✅ **Fastest** |
+| **🥉 Phi-3.5-MLX** | **35.0%** | **35.0%** | 5.29s | +0.05GB | ✅ **Fast** |
+| **⚠️ LLaVA-MLX** | **21.0%** | **20.0%** | 24.15s | -0.48GB | 🚫 **Critical Issues** |
+
+### 🚨 Critical Context Understanding Limitation
+**ALL MODELS have 0% context understanding capability** - cannot maintain conversation memory or recall previous image information without external memory systems.

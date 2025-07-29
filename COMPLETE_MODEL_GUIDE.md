@@ -156,24 +156,46 @@ Your current configuration:
 - **RAG Knowledge Base**: ✅ Loaded
 - **State Tracker**: ✅ Operational
 
-## 🎯 **Recommended Models**
+## 🎯 **Recommended Models (Based on Latest VQA 2.0 Results)**
 
-### **For Apple Silicon (M1/M2/M3):**
-- `"phi3_vision_optimized"` - Best quality + performance
-- `"smolvlm2_500m_video_optimized"` - Fast + video support
-- `"llava_mlx"` - Good balance
+### **📊 Performance Rankings (2025-07-29 13:12:58)**
 
-### **For Universal Compatibility:**
-- `"moondream2_optimized"` - Fast + reliable
-- `"smolvlm"` - Lightweight
+| Model | VQA Accuracy | Simple Accuracy | Avg Inference | Status | Use Case |
+|-------|:------------:|:---------------:|:-------------:|:------:|:--------:|
+| **🥇 Moondream2** | **62.5%** | **65.0%** | 8.35s | ✅ | **Best Overall** |
+| **🥈 SmolVLM2** | **52.5%** | **55.0%** | 8.41s | ✅ | **Balanced** |
+| **⚡ SmolVLM** | **36.0%** | **35.0%** | **0.39s** | ✅ | **Fastest** |
+| **🥉 Phi-3.5** | **35.0%** | **35.0%** | 5.29s | ✅ | **Fast** |
+| **⚠️ LLaVA-MLX** | **21.0%** | **20.0%** | 24.15s | 🚫 | **Avoid** |
 
-### **For Video Tasks:**
-- `"smolvlm2_500m_video_optimized"` - Best for video
-- `"smolvlm2_500m_video"` - Standard video support
+### **🎯 Production Recommendations**
 
-### **For Dual-Loop Memory Testing:**
-- `"smolvlm"` - Recommended for testing (fast, reliable)
-- `"moondream2_optimized"` - Good alternative for testing
+#### **For High-Accuracy Applications:**
+- **`"moondream2"`** - Highest accuracy (65.0% simple, 62.5% VQA)
+- **Best for**: Production VQA, accuracy-critical tasks
+- **Trade-off**: Slower loading (16.61s), vision-only
+
+#### **For Real-Time Applications:**
+- **`"smolvlm"`** - Fastest inference (0.39s average)
+- **Best for**: Speed-critical applications, real-time processing
+- **Trade-off**: Lower accuracy (35.0% simple, 36.0% VQA)
+
+#### **For Balanced Performance:**
+- **`"smolvlm2_500m_video"`** - Good accuracy/speed balance (55.0%, 8.41s)
+- **Best for**: General-purpose VQA, video processing
+- **Trade-off**: Moderate speed, good accuracy
+
+#### **⚠️ Avoid for Production:**
+- **`"llava_mlx"`** - Critical performance issues (24.15s inference, 20.0% accuracy)
+- **Issues**: Extremely slow, poor accuracy, batch processing problems
+- **Status**: Not recommended for any production use case
+
+### **🚨 Critical Context Understanding Limitation**
+**ALL MODELS have 0% context understanding capability:**
+- Cannot maintain conversation memory
+- Cannot recall previous image information
+- Multi-turn conversations require external memory (our dual-loop system addresses this)
+- Each question must include the image for reliable results
 
 ## 🧠 **Dual-Loop Memory System Integration**
 
@@ -225,13 +247,27 @@ python tests/stage_3_3/test_simulated_steps.py
 - ✅ Enhanced error handling and user experience
 - ✅ Standardized system to English language
 
-## 📊 **Performance Metrics**
+## 📊 **Performance Metrics (Latest Results)**
 
-- **Model Response Time**: Varies by model (2-10 seconds)
+### **🎯 VLM Performance (VQA 2.0 - 20 Questions)**
+- **Moondream2**: 65.0% simple accuracy, 8.35s inference, 16.61s load time
+- **SmolVLM2**: 55.0% simple accuracy, 8.41s inference, 1.48s load time
+- **SmolVLM**: 35.0% simple accuracy, 0.39s inference, 4.05s load time
+- **Phi-3.5**: 35.0% simple accuracy, 5.29s inference, 1.71s load time
+- **LLaVA-MLX**: 20.0% simple accuracy, 24.15s inference, 6.07s load time
+
+### **🧠 System Performance**
 - **Backend Processing**: < 100ms for VLM integration
 - **State Tracker Response**: < 50ms for instant queries
 - **RAG Search**: < 10ms for vector matching
 - **Memory Usage**: < 1MB for sliding window
 - **System Stability**: 100% recovery rate
+- **Query Classification**: 100% accuracy
 
-Your system should now work correctly with any of the supported models and features a complete dual-loop memory system for intelligent task assistance!
+### **⚠️ Universal Limitations**
+- **Context Understanding**: 0% capability across all models
+- **Text Reading**: Poor performance on text within images
+- **Counting Tasks**: 0-50% accuracy on numerical reasoning
+- **Color Perception**: Frequent errors (white vs. gray, blue vs. green)
+
+Your system now features comprehensive VLM testing results and a complete dual-loop memory system for intelligent task assistance with full awareness of model limitations!

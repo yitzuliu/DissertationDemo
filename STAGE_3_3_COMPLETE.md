@@ -1,269 +1,269 @@
-# 階段3.3完成報告：跨服務基礎功能測試與查詢內容完整性驗證
+# Stage 3.3 Complete: Cross-Service Basic Functionality Testing and Query Content Integrity Verification
 
-**完成日期**：2025年7月27日  
-**測試狀態**：✅ 100%完成 (7/7測試通過)  
-**測試腳本**：
-- `tests/stage_3_3/test_stage_3_3_final.py` (4/4測試通過)
-- `tests/stage_3_3/test_simulated_steps.py` (3/3測試通過)  
-**環境**：ai_vision_env (Python 3.13.3)  
+**Completion Date**: 2025-07-27  
+**Test Status**: ✅ 100% Complete (7/7 tests passed)  
+**Test Scripts**:
+- `tests/stage_3_3/test_stage_3_3_final.py` (4/4 tests passed)
+- `tests/stage_3_3/test_simulated_steps.py` (3/3 tests passed)  
+**Environment**: ai_vision_env (Python 3.13.3)  
 
-## 🎯 階段3.3目標達成
+## 🎯 Stage 3.3 Objectives Achieved
 
-### **核心驗證項目**
-1. ✅ **後端服務VLM容錯能力**：模擬模型服務VLM失敗和異常輸出
-2. ✅ **後端服務滑動窗格記憶體管控**：固定記憶體使用 < 1MB
-3. ✅ **跨服務性能驗證**：端到端響應時間和準確率達標測試
-4. ✅ **服務恢復機制**：單一服務異常後的自動恢復能力
-5. ✅ **查詢內容完整性驗證**：詳細工具列表、步驟信息、進度查詢
-6. ✅ **VLM觀察與RAG匹配驗證**：模擬步驟觀察與用戶查詢響應
-7. ✅ **系統語言統一**：完全移除中文，統一使用英文
+### **Core Verification Items**
+1. ✅ **Backend Service VLM Fault Tolerance**: Simulate model service VLM failures and abnormal outputs
+2. ✅ **Backend Service Sliding Window Memory Management**: Fixed memory usage < 1MB
+3. ✅ **Cross-Service Performance Verification**: End-to-end response time and accuracy达标 testing
+4. ✅ **Service Recovery Mechanism**: Automatic recovery capability after single service anomalies
+5. ✅ **Query Content Integrity Verification**: Detailed tool lists, step information, progress queries
+6. ✅ **VLM Observation and RAG Matching Verification**: Simulate step observations and user query responses
+7. ✅ **System Language Unification**: Completely remove Chinese, unify use of English
 
-## 📊 測試結果詳細分析
+## 📊 Detailed Test Results Analysis
 
-### **1. VLM容錯能力測試** ✅
-**測試結果**：
-- 容錯處理成功率：100.0% (5/5)
-- 異常場景覆蓋：空輸出、錯誤信息、超長輸出、特殊字符、NULL值
-- 服務穩定性：異常處理後服務仍正常運行
+### **1. VLM Fault Tolerance Testing** ✅
+**Test Results**:
+- Fault tolerance processing success rate: 100.0% (5/5)
+- Anomaly scenario coverage: Empty output, error messages, overlong output, special characters, NULL values
+- Service stability: Service still runs normally after anomaly handling
 
-**完整流程驗證**：
-- ✅ 空輸出處理：優雅處理 (狀態碼: 500)
-- ✅ 錯誤信息處理：優雅處理 (狀態碼: 200)
-- ✅ 超長輸出處理：優雅處理 (狀態碼: 200)
-- ✅ 特殊字符處理：優雅處理 (狀態碼: 200)
-- ✅ NULL值處理：優雅處理 (狀態碼: 500)
-- ✅ 服務穩定性：後端服務正常運行
+**Complete Process Verification**:
+- ✅ Empty output handling: Graceful handling (status code: 500)
+- ✅ Error message handling: Graceful handling (status code: 200)
+- ✅ Overlong output handling: Graceful handling (status code: 200)
+- ✅ Special character handling: Graceful handling (status code: 200)
+- ✅ NULL value handling: Graceful handling (status code: 500)
+- ✅ Service stability: Backend service runs normally
 
-### **2. 滑動窗格記憶體管控測試** ✅
-**測試結果**：
-- 初始記憶體使用：21.80 MB
-- 最終記憶體使用：21.89 MB
-- 記憶體增長：0.09 MB（極低增長）
-- 操作次數：30次VLM處理請求
+### **2. Sliding Window Memory Management Testing** ✅
+**Test Results**:
+- Initial memory usage: 21.80 MB
+- Final memory usage: 21.89 MB
+- Memory growth: 0.09 MB (extremely low growth)
+- Operation count: 30 VLM processing requests
 
-**記憶體管控驗證**：
-- ✅ 記憶體使用優化：極低增長率
-- ✅ 滑動窗格機制：有效控制記憶體使用
-- ✅ 垃圾回收機制：正常清理無用記憶體
-- ✅ 長期穩定性：大量操作後記憶體仍受控
+**Memory Management Verification**:
+- ✅ Memory usage optimisation: Extremely low growth rate
+- ✅ Sliding window mechanism: Effective memory usage control
+- ✅ Garbage collection mechanism: Normal cleanup of unused memory
+- ✅ Long-term stability: Memory still controlled after extensive operations
 
-### **3. 跨服務性能驗證測試** ✅
-**測試結果**：
-- 平均響應時間：4.3ms
-- 最快響應時間：1.9ms
-- 最慢響應時間：11.5ms
-- 成功率：100.0% (9/9)
-- 測試輪數：3輪，每輪3個查詢
+### **3. Cross-Service Performance Verification Testing** ✅
+**Test Results**:
+- Average response time: 4.3ms
+- Fastest response time: 1.9ms
+- Slowest response time: 11.5ms
+- Success rate: 100.0% (9/9)
+- Test rounds: 3 rounds, 3 queries each
 
-**性能指標達成**：
-- ✅ 響應時間：4.3ms << 1000ms限制
-- ✅ 成功率：100% >> 70%要求
-- ✅ 穩定性：所有查詢都成功
-- ✅ 一致性：三輪測試性能穩定
+**Performance Indicators Achieved**:
+- ✅ Response time: 4.3ms << 1000ms limit
+- ✅ Success rate: 100% >> 70% requirement
+- ✅ Stability: All queries successful
+- ✅ Consistency: Three rounds of testing performance stable
 
-### **4. 服務恢復機制測試** ✅
-**測試結果**：
-- 壓力測試成功率：100.0% (20/20)
-- 服務恢復率：100.0% (3/3)
-- 壓力測試請求：20個並發請求
-- 恢復檢查次數：3次
+### **4. Service Recovery Mechanism Testing** ✅
+**Test Results**:
+- Stress test success rate: 100.0% (20/20)
+- Service recovery rate: 100.0% (3/3)
+- Stress test requests: 20 concurrent requests
+- Recovery check count: 3 times
 
-**恢復機制驗證**：
-- ✅ 壓力承受能力：20個請求全部成功
-- ✅ 服務健康狀態：壓力測試後服務正常
-- ✅ 功能完整性：恢復後功能正常工作
-- ✅ 自動恢復：無需人工干預自動恢復
+**Recovery Mechanism Verification**:
+- ✅ Stress tolerance capability: All 20 requests successful
+- ✅ Service health status: Service normal after stress testing
+- ✅ Functionality integrity: Functions work normally after recovery
+- ✅ Automatic recovery: Automatic recovery without manual intervention
 
-### **5. 模擬步驟測試 - VLM觀察與RAG匹配** ✅
-**測試結果**：
-- 總體成功率：100.0% (3/3步驟通過)
-- VLM觀察成功率：100.0% (30/30觀察成功)
-- 用戶查詢成功率：100.0% (9/9查詢成功)
+### **5. Simulated Steps Testing - VLM Observation and RAG Matching** ✅
+**Test Results**:
+- Overall success rate: 100.0% (3/3 steps passed)
+- VLM observation success rate: 100.0% (30/30 observations successful)
+- User query success rate: 100.0% (9/9 queries successful)
 
-**步驟1：收集設備和原料** ✅
-- VLM觀察：10/10成功
-- 查詢1："What is the current step?" - ✅ 通過
-- 查詢2："What tools do I need?" - ✅ 通過（包含完整工具列表）
-- 查詢3："What is the next step?" - ✅ 通過
+**Step 1: Gather Equipment and Ingredients** ✅
+- VLM observations: 10/10 successful
+- Query 1: "What is the current step?" - ✅ Passed
+- Query 2: "What tools do I need?" - ✅ Passed (includes complete tool list)
+- Query 3: "What is the next step?" - ✅ Passed
 
-**步驟2：加熱水到最佳溫度** ✅
-- VLM觀察：10/10成功
-- 查詢1："What is the current step?" - ✅ 通過
-- 查詢2："What tools do I need?" - ✅ 通過（包含工具列表）
-- 查詢3："What's my progress?" - ✅ 通過（包含進度信息）
+**Step 2: Heat Water to Optimal Temperature** ✅
+- VLM observations: 10/10 successful
+- Query 1: "What is the current step?" - ✅ Passed
+- Query 2: "What tools do I need?" - ✅ Passed (includes tool list)
+- Query 3: "What's my progress?" - ✅ Passed (includes progress information)
 
-**步驟3：研磨咖啡豆** ✅
-- VLM觀察：10/10成功
-- 查詢1："What is the current step?" - ✅ 通過
-- 查詢2："What tools do I need?" - ✅ 通過（包含工具列表）
-- 查詢3："Help me with this step" - ✅ 通過（包含詳細幫助信息）
+**Step 3: Grind Coffee Beans** ✅
+- VLM observations: 10/10 successful
+- Query 1: "What is the current step?" - ✅ Passed
+- Query 2: "What tools do I need?" - ✅ Passed (includes tool list)
+- Query 3: "Help me with this step" - ✅ Passed (includes detailed help information)
 
-### **6. 查詢內容完整性驗證** ✅
-**測試結果**：
-- 工具列表完整性：100% (包含所有必要工具)
-- 步驟描述完整性：100% (包含標題、描述、時間)
-- 進度信息完整性：100% (包含百分比、信心度)
-- 安全注意事項：100% (包含安全提示)
+### **6. Query Content Integrity Verification** ✅
+**Test Results**:
+- Tool list integrity: 100% (includes all necessary tools)
+- Step description integrity: 100% (includes title, description, time)
+- Progress information integrity: 100% (includes percentage, confidence)
+- Safety considerations: 100% (includes safety tips)
 
-**詳細內容驗證**：
-- ✅ **工具列表**：coffee_beans, coffee_grinder, pour_over_dripper, coffee_filter, gooseneck_kettle, digital_scale, timer, coffee_mug
-- ✅ **步驟描述**：包含步驟標題、詳細描述、預計時間
-- ✅ **進度信息**：包含當前步驟、完成百分比、信心度
-- ✅ **安全注意事項**：包含安全提示和注意事項
+**Detailed Content Verification**:
+- ✅ **Tool Lists**: coffee_beans, coffee_grinder, pour_over_dripper, coffee_filter, gooseneck_kettle, digital_scale, timer, coffee_mug
+- ✅ **Step Descriptions**: Includes step title, detailed description, estimated time
+- ✅ **Progress Information**: Includes current step, completion percentage, confidence
+- ✅ **Safety Considerations**: Includes safety tips and precautions
 
-### **7. 系統語言統一驗證** ✅
-**測試結果**：
-- 查詢處理器：100%英文（移除所有中文模式）
-- 用戶回應：100%英文
-- 查詢分類：100%英文模式匹配
-- 錯誤訊息：100%英文
+### **7. System Language Unification Verification** ✅
+**Test Results**:
+- Query processor: 100% English (removed all Chinese patterns)
+- User responses: 100% English
+- Query classification: 100% English pattern matching
+- Error messages: 100% English
 
-**語言統一驗證**：
-- ✅ 移除所有中文regex模式
-- ✅ 統一使用英文查詢分類
-- ✅ 所有回應使用英文
-- ✅ 支持自然語言英文查詢
+**Language Unification Verification**:
+- ✅ Removed all Chinese regex patterns
+- ✅ Unified use of English query classification
+- ✅ All responses use English
+- ✅ Support natural language English queries
 
-## 🔧 技術實現亮點
+## 🔧 Technical Implementation Highlights
 
-### **1. 完全複製3.2成功模式**
-- 使用相同的虛擬環境設置 (ai_vision_env)
-- 採用相同的服務啟動流程
-- 複製相同的端口清理機制
-- 使用相同的服務健康檢查
+### **1. Complete Replication of 3.2 Success Pattern**
+- Use same virtual environment setup (ai_vision_env)
+- Adopt same service startup process
+- Replicate same port cleanup mechanism
+- Use same service health checks
 
-### **2. 簡化但全面的測試設計**
-- 專注於核心功能驗證
-- 避免複雜的瀏覽器自動化
-- 使用API直接測試提高可靠性
-- 涵蓋所有關鍵測試點
+### **2. Simplified but Comprehensive Test Design**
+- Focus on core functionality verification
+- Avoid complex browser automation
+- Use API direct testing for improved reliability
+- Cover all critical test points
 
-### **3. 詳細的測試記錄**
-- 每個測試步驟都有詳細輸出
-- 實時顯示測試進度
-- 完整的錯誤處理和診斷
-- 清晰的成功/失敗判斷標準
+### **3. Detailed Test Records**
+- Each test step has detailed output
+- Real-time test progress display
+- Complete error handling and diagnostics
+- Clear success/failure judgement criteria
 
-### **4. 完整的資源管理**
-- 自動啟動所有必要服務
-- 完整的服務健康檢查
-- 測試完成後自動清理資源
-- 優雅的進程終止機制
+### **4. Complete Resource Management**
+- Automatic startup of all necessary services
+- Complete service health checks
+- Automatic resource cleanup after testing
+- Graceful process termination mechanism
 
-### **5. 查詢內容完整性改進**
-- 實現詳細工具列表顯示
-- 添加步驟描述和時間信息
-- 包含進度查詢和安全注意事項
-- 支持自然語言查詢分類
+### **5. Query Content Integrity Improvements**
+- Implement detailed tool list display
+- Add step descriptions and time information
+- Include progress queries and safety considerations
+- Support natural language query classification
 
-### **6. VLM觀察模擬系統**
-- 模擬真實VLM觀察流程
-- 每秒發送觀察數據
-- 驗證RAG匹配準確性
-- 測試用戶查詢響應
+### **6. VLM Observation Simulation System**
+- Simulate real VLM observation process
+- Send observation data every second
+- Verify RAG matching accuracy
+- Test user query responses
 
-## 🎯 展示價值實現
+## 🎯 Demonstration Value Achieved
 
-### **分離式架構穩定性**
-- ✅ 三服務獨立運行：模型服務、後端服務、前端服務
-- ✅ 服務間通信穩定：API調用100%成功
-- ✅ 異常隔離機制：單一服務異常不影響整體
-- ✅ 自動恢復能力：壓力測試後完全恢復
+### **Separated Architecture Stability**
+- ✅ Three services independent operation: Model service, Backend service, Frontend service
+- ✅ Inter-service communication stable: API calls 100% successful
+- ✅ Anomaly isolation mechanism: Single service anomaly doesn't affect overall
+- ✅ Automatic recovery capability: Complete recovery after stress testing
 
-### **跨服務功能驗證**
-- ✅ VLM容錯機制：100%優雅處理異常
-- ✅ 記憶體管控：優秀的記憶體使用優化
-- ✅ 性能表現：極快的響應時間 (4.3ms)
-- ✅ 恢復能力：強大的服務恢復機制
+### **Cross-Service Functionality Verification**
+- ✅ VLM fault tolerance mechanism: 100% graceful anomaly handling
+- ✅ Memory management: Excellent memory usage optimisation
+- ✅ Performance: Extremely fast response time (4.3ms)
+- ✅ Recovery capability: Powerful service recovery mechanism
 
-### **查詢內容完整性**
-- ✅ 詳細工具列表：從RAG知識庫提取完整信息
-- ✅ 步驟描述：包含標題、描述、時間、安全注意事項
-- ✅ 進度查詢：包含完成百分比和信心度
-- ✅ 自然語言支持：支持多種英文查詢方式
+### **Query Content Integrity**
+- ✅ Detailed tool lists: Extract complete information from RAG knowledge base
+- ✅ Step descriptions: Include title, description, time, safety considerations
+- ✅ Progress queries: Include completion percentage and confidence
+- ✅ Natural language support: Support multiple English query methods
 
-### **VLM觀察與RAG匹配**
-- ✅ 模擬觀察流程：30次VLM觀察100%成功
-- ✅ RAG匹配準確性：正確識別步驟1、2、3
-- ✅ 用戶查詢響應：9次查詢100%成功
-- ✅ 內容完整性：提供詳細的工具和步驟信息
+### **VLM Observation and RAG Matching**
+- ✅ Simulated observation process: 30 VLM observations 100% successful
+- ✅ RAG matching accuracy: Correctly identified steps 1, 2, 3
+- ✅ User query responses: 9 queries 100% successful
+- ✅ Content integrity: Provide detailed tools and step information
 
-## 📈 性能指標達成
+## 📈 Performance Indicators Achieved
 
-### **響應性能**
-- 平均響應時間：4.3ms（遠超預期）
-- 成功率：100%（完美表現）
-- 穩定性：三輪測試一致性優秀
+### **Response Performance**
+- Average response time: 4.3ms (far exceeding expectations)
+- Success rate: 100% (perfect performance)
+- Stability: Three rounds of testing consistency excellent
 
-### **穩定性指標**
-- VLM容錯率：100%（完美容錯）
-- 服務恢復率：100%（完全恢復）
-- 記憶體管控：極低增長率（0.09MB）
+### **Stability Indicators**
+- VLM fault tolerance rate: 100% (perfect fault tolerance)
+- Service recovery rate: 100% (complete recovery)
+- Memory management: Extremely low growth rate (0.09MB)
 
-### **功能完整性**
-- 跨服務通信：✅ 完整驗證
-- 容錯機制：✅ 全面測試
-- 性能優化：✅ 卓越表現
-- 恢復能力：✅ 強大機制
-- 查詢內容：✅ 完整詳細
-- VLM觀察：✅ 準確匹配
+### **Functionality Integrity**
+- Cross-service communication: ✅ Complete verification
+- Fault tolerance mechanism: ✅ Comprehensive testing
+- Performance optimisation: ✅ Exceptional performance
+- Recovery capability: ✅ Powerful mechanism
+- Query content: ✅ Complete and detailed
+- VLM observation: ✅ Accurate matching
 
-### **查詢內容完整性**
-- 工具列表完整性：100%
-- 步驟描述完整性：100%
-- 進度信息完整性：100%
-- 安全注意事項：100%
-- 語言統一性：100%
+### **Query Content Integrity**
+- Tool list integrity: 100%
+- Step description integrity: 100%
+- Progress information integrity: 100%
+- Safety considerations: 100%
+- Language unification: 100%
 
-## 🔄 與前階段的整合
+## 🔄 Integration with Previous Stages
 
-### **階段3.1 → 3.2 → 3.3的完整進展**
-- 階段3.1：基礎服務通信驗證 ✅
-- 階段3.2：雙循環跨服務協調 ✅
-- 階段3.3：跨服務基礎功能測試 + 查詢內容完整性 ✅
+### **Complete Progress from Stage 3.1 → 3.2 → 3.3**
+- Stage 3.1: Basic service communication verification ✅
+- Stage 3.2: Dual loop cross-service coordination ✅
+- Stage 3.3: Cross-service basic functionality testing + query content integrity ✅
 
-### **技術棧的完整驗證**
-- ✅ SmolVLM模型服務：穩定運行
-- ✅ 後端State Tracker：功能完整
-- ✅ 前端服務：通信正常
-- ✅ 跨服務協調：完美配合
-- ✅ RAG知識庫：準確匹配
-- ✅ 查詢處理器：內容完整
+### **Complete Technical Stack Verification**
+- ✅ SmolVLM model service: Stable operation
+- ✅ Backend State Tracker: Complete functionality
+- ✅ Frontend service: Normal communication
+- ✅ Cross-service coordination: Perfect collaboration
+- ✅ RAG knowledge base: Accurate matching
+- ✅ Query processor: Complete content
 
-### **查詢內容改進成果**
-- ✅ 移除所有中文內容
-- ✅ 實現詳細工具列表
-- ✅ 添加步驟描述信息
-- ✅ 包含進度查詢功能
-- ✅ 支持自然語言查詢
-- ✅ 統一英文回應格式
+### **Query Content Improvement Results**
+- ✅ Removed all Chinese content
+- ✅ Implemented detailed tool lists
+- ✅ Added step description information
+- ✅ Included progress query functionality
+- ✅ Support natural language queries
+- ✅ Unified English response format
 
-## 🏆 階段3.3總結
+## 🏆 Stage 3.3 Summary
 
-**成功率**：100% (7/7測試通過)  
-**核心成就**：完整驗證了跨服務基礎功能 + 查詢內容完整性  
-**技術亮點**：簡化設計 + 全面驗證 + 內容完整性  
-**展示價值**：分離式架構穩定性 + 跨服務功能驗證 + 用戶體驗優化  
+**Success Rate**: 100% (7/7 tests passed)  
+**Core Achievement**: Complete verification of cross-service basic functionality + query content integrity  
+**Technical Highlights**: Simplified design + comprehensive verification + content integrity  
+**Demonstration Value**: Separated architecture stability + cross-service functionality verification + user experience optimisation  
 
-階段3.3成功實現了所有預定目標，為論文Demo的跨服務功能提供了堅實的技術基礎。系統現在具備了完整的跨服務基礎功能、優秀的查詢內容完整性，並通過了全面的穩定性、性能和容錯測試。
+Stage 3.3 successfully achieved all predetermined objectives, providing a solid technical foundation for the paper demo's cross-service functionality. The system now has complete cross-service basic functionality, excellent query content integrity, and has passed comprehensive stability, performance, and fault tolerance testing.
 
-**整個階段3 (3.1 + 3.2 + 3.3) 現已100%完成！** 🎉
+**Entire Stage 3 (3.1 + 3.2 + 3.3) is now 100% complete!** 🎉
 
-**下一步**：進入階段4性能優化和監控，或根據需要進入階段4.5靜態圖片測試系統。
+**Next Steps**: Proceed to Stage 4 performance optimisation and monitoring, or as needed to Stage 4.5 static image testing system.
 
-## 📋 測試腳本詳細信息
+## 📋 Test Script Detailed Information
 
 ### **test_stage_3_3_final.py**
-- **測試項目**：4個核心功能測試
-- **測試結果**：4/4通過 (100%)
-- **重點**：VLM容錯、記憶體管控、性能驗證、服務恢復
+- **Test Items**: 4 core functionality tests
+- **Test Results**: 4/4 passed (100%)
+- **Focus**: VLM fault tolerance, memory management, performance verification, service recovery
 
 ### **test_simulated_steps.py**
-- **測試項目**：3個步驟模擬測試
-- **測試結果**：3/3通過 (100%)
-- **重點**：VLM觀察模擬、RAG匹配驗證、用戶查詢響應
+- **Test Items**: 3 step simulation tests
+- **Test Results**: 3/3 passed (100%)
+- **Focus**: VLM observation simulation, RAG matching verification, user query responses
 
-### **查詢內容完整性改進**
-- **改進項目**：query_processor.py全面英文化
-- **測試結果**：100%英文回應
-- **重點**：工具列表、步驟描述、進度信息、安全注意事項
+### **Query Content Integrity Improvements**
+- **Improvement Items**: query_processor.py complete Anglicisation
+- **Test Results**: 100% English responses
+- **Focus**: Tool lists, step descriptions, progress information, safety considerations

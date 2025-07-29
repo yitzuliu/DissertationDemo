@@ -123,13 +123,15 @@ curl -X PATCH http://localhost:8000/api/v1/config \
 - **High Resolution**: Supports up to 1024px images efficiently
 - **Fast Inference**: Optimized for Apple Silicon performance
 
-### Performance Characteristics
+### Performance Characteristics (Latest VQA 2.0 Results - 2025-07-29)
 | Metric | Value | Context |
 |--------|-------|---------|
-| **Model Size** | ~4GB (quantized) | INT4 quantization |
-| **Memory Usage** | 6-8GB peak | During inference |
-| **Inference Speed** | ~2-4s per image | On Apple M3 |
-| **Supported Formats** | JPEG, PNG, WebP | Auto-conversion to RGB |
+| **⚠️ VQA Accuracy** | **21.0%** | **Critical performance degradation** |
+| **⚠️ Simple Accuracy** | **20.0%** | **Lowest among all models** |
+| **⚠️ Inference Speed** | **24.15s** | **4-6x slower than others** |
+| **Memory Usage** | **-0.48GB** | Memory management issues |
+| **Loading Time** | **6.07s** | Standard |
+| **Context Understanding** | ❌ **0%** | **Universal limitation** |
 
 ## 🏗️ Implementation Details
 
@@ -169,16 +171,24 @@ Provides OpenAI-compatible chat completions endpoint:
 - Proper error handling and status codes
 - Streaming response support (planned)
 
-## 📊 Performance Comparison
+## 📊 Performance Comparison (Latest VQA 2.0 Results - 2025-07-29)
 
-| Feature | LLaVA MLX | Phi-3.5-Vision | SmolVLM2 |
-|---------|-----------|----------------|----------|
-| **Model Size** | ~4GB | ~3GB | ~2GB |
-| **Accuracy** | ✅ High | ✅ High | ✅ Good |
-| **Speed** | ⚡ Fast | ⚡ Fast | 🏆 Fastest |
-| **Memory** | 6-8GB | 4-6GB | 2-4GB |
-| **Apple Silicon** | 🏆 Native MLX | ✅ MLX | ✅ MPS |
-| **Image Quality** | 🏆 Excellent | ✅ Good | ✅ Good |
+| Feature | LLaVA-MLX | Moondream2 | SmolVLM2-MLX | SmolVLM-GGUF |
+|---------|-----------|------------|--------------|--------------|
+| **VQA Accuracy** | ⚠️ **21.0%** | 🥇 **62.5%** | 🥈 **52.5%** | **36.0%** |
+| **Simple Accuracy** | ⚠️ **20.0%** | 🥇 **65.0%** | 🥈 **55.0%** | **35.0%** |
+| **Speed** | 🐌 **24.15s** | **8.35s** | **8.41s** | ⚡ **0.39s** |
+| **Memory** | **-0.48GB** | **-0.09GB** | **+0.13GB** | **+0.001GB** |
+| **Context Understanding** | ❌ **0%** | ❌ **0%** | ❌ **0%** | ❌ **0%** |
+| **Status** | 🚫 **Critical Issues** | ✅ **Best Overall** | ✅ **Balanced** | ✅ **Fastest** |
+
+### 🚨 Critical Performance Crisis
+**LLaVA-MLX has severe performance issues:**
+- **24.15s inference time** (4-6x slower than other models)
+- **20.0% accuracy** (lowest among all tested models)
+- **Batch inference problems** with state corruption
+- **Repetitive response loops** ("Is it morning? Yes. Is it afternoon? No...")
+- **❌ NOT RECOMMENDED for any production use case**
 
 ## 🎯 Use Cases
 
@@ -291,6 +301,6 @@ Based on comprehensive testing (see `../../logs/` for detailed results):
 
 ---
 
-**Status**: ✅ **Production Ready** | **Recommended**: ✅ **For High-Accuracy Tasks** | **Last Updated**: January 2025
+**Status**: 🚫 **Critical Issues** | **Recommended**: ❌ **NOT for Production** | **Last Updated**: 2025-07-29
 
-**🏆 Accuracy Champion**: Choose LLaVA MLX when maximum accuracy and detail are required for image analysis tasks.
+**⚠️ Performance Crisis**: LLaVA-MLX has critical performance issues (24.15s inference, 20.0% accuracy) and is NOT recommended for any use case. Use Moondream2 for best accuracy or SmolVLM-GGUF for fastest inference.
