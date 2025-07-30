@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>端到端日誌記錄測試</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .log-output { 
+            background: #f8f9fa; 
+            border: 1px solid #dee2e6; 
+            padding: 10px; 
+            margin: 10px 0; 
+            max-height: 400px; 
+            overflow-y: auto; 
+            font-family: monospace; 
+            font-size: 11px; 
+        }
+        .log-entry { margin: 2px 0; padding: 3px 5px; border-radius: 2px; }
+        .log-eyes-capture { background-color: #e3f2fd; border-left: 3px solid #2196f3; }
+        .log-eyes-prompt { background-color: #f3e5f5; border-left: 3px solid #9c27b0; }
+        .log-eyes-transfer { background-color: #e8f5e8; border-left: 3px solid #4caf50; }
+        .log-user-action { background-color: #fff3e0; border-left: 3px solid #ff9800; }
+        .log-frontend-error { background-color: #ffebee; border-left: 3px solid #f44336; }
+        button { 
+            background: #007bff; color: white; border: none; padding: 10px 15px; 
+            border-radius: 4px; cursor: pointer; margin: 5px; 
+        }
+        button:hover { background: #0056b3; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        input, select { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        .flow-step { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .flow-step.active { background: #e7f3ff; border-left: 4px solid #007bff; }
+        .flow-step.completed { background: #e8f5e8; border-left: 4px solid #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>端到端日誌記錄測試</h1>
+        <p>模擬完整的視覺處理流程，驗證所有日誌記錄功能是否正常工作。</p>
+        
+        <div class="test-section">
+            <h3>📊 實時日誌輸出</h3>
+            <div id="logOutput" class="log-output">
+                <div class="log-entry">等待測試開始...</div>
+            </div>
+            <button onclick="clearLogs()">清除日誌</button>
+            <button onclick="exportLogs()">導出日誌</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔄 完整流程測試</h3>
+            <div id="flowStatus" class="status info">準備執行完整的視覺處理流程測試</div>
+            
+            <div class="flow-step" id="step1">
+                <strong>步驟 1:</strong> 用戶開始處理 (USER_ACTION)
+            </div>
+            <div class="flow-step" id="step2">
+                <strong>步驟 2:</strong> 圖像捕獲 (EYES_CAPTURE)
+            </div>
+            <div class="flow-step" id="step3">
+                <strong>步驟 3:</strong> 視覺提示詞 (EYES_PROMPT)
+            </div>
+            <div class="flow-step" id="step4">
+                <strong>步驟 4:</strong> 後端傳輸 (EYES_TRANSFER)
+            </div>
+            <div class="flow-step" id="step5">
+                <strong>步驟 5:</strong> 用戶停止處理 (USER_ACTION)
+            </div>
+            
+            <button onclick="runCompleteFlow()" id="runFlowBtn">執行完整流程測試</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>⚙️ 測試配置</h3>
+            <label>攝像頭設備:</label>
+            <select id="testCamera">
+                <option value="📱 iPhone 15 Pro Camera">📱 iPhone 15 Pro Camera</option>
+                <option value="💻 MacBook Pro FaceTime HD Camera">💻 MacBook Pro FaceTime HD Camera</option>
+                <option value="🎥 Logitech C920 HD Pro Webcam">🎥 Logitech C920 HD Pro Webcam</option>
+            </select>
+            <br>
+            <label>圖像品質:</label>
+            <input type="range" id="testQuality" min="0.5" max="1.0" step="0.1" value="0.9">
+            <span id="qualityDisplay">0.9</span>
+            <br>
+            <label>提示詞:</label>
+            <input type="text" id="testPrompt" value="Describe the coffee brewing process step by step" style="width: 300px;">
+            <br>
+            <label>Max Tokens:</label>
+            <input type="number" id="testTokens" value="150" min="50" max="500">
+        </div>
+        
+        <div class="test-section">
+            <h3>📈 測試統計</h3>
+            <div id="testStats">
+                <div>總日誌條目: <span id="totalLogs">0</span></div>
+                <div>EYES_CAPTURE: <span id="captureCount">0</span></div>
+                <div>EYES_PROMPT: <span id="promptCount">0</span></div>
+                <div>EYES_TRANSFER: <span id="transferCount">0</span></div>
+                <div>USER_ACTION: <span id="actionCount">0</span></div>
+                <div>錯誤: <span id="errorCount">0</span></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🧪 個別功能測試</h3>
+            <button onclick="testIndividualCapture()">測試圖像捕獲</button>
+            <button onclick="testIndividualPrompt()">測試提示詞</button>
+            <button onclick="testIndividualTransfer()">測試後端傳輸</button>
+            <button onclick="testUserActions()">測試用戶操作</button>
+            <button onclick="testErrorHandling()">測試錯誤處理</button>
+        </div>
+    </div>
+
+    <script>
+        // 從主文件中提取的完整日誌記錄器
+        class FrontendVisualLogger {
+            constructor() {
+                this.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                this.logToConsole = true;
+                this.logToServer = false;
+                this.observationId = null;
+                this.logCount = {
+                    total: 0,
+                    EYES_CAPTURE: 0,
+                    EYES_PROMPT: 0,
+                    EYES_TRANSFER: 0,
+                    USER_ACTION: 0,
+                    FRONTEND_ERROR: 0
+                };
+            }
+            
+            generateObservationId() {
+                const timestamp = Date.now();
+                this.observationId = `obs_${timestamp}_${Math.random().toString(36).substr(2, 8)}`;
+                return this.observationId;
+            }
+            
+            log(eventType, data) {
+                const logEntry = {
+                    timestamp: new Date().toISOString(),
+                    sessionId: this.sessionId,
+                    eventType: eventType,
+                    data: data
+                };
+                
+                if (this.logToConsole) {
+                    console.log(`[FrontendVisualLog] ${eventType}:`, data);
+                }
+                
+                // 更新統計
+                this.logCount.total++;
+                if (this.logCount[eventType] !== undefined) {
+                    this.logCount[eventType]++;
+                }
+                this.updateStats();
+                
+                // 顯示在頁面上
+                this.displayLog(eventType, logEntry);
+            }
+            
+            displayLog(eventType, logEntry) {
+                const logOutput = document.getElementById('logOutput');
+                const logDiv = document.createElement('div');
+                logDiv.className = `log-entry log-${eventType.toLowerCase().replace('_', '-')}`;
+                
+                const timeStr = new Date(logEntry.timestamp).toLocaleTimeString();
+                const dataStr = JSON.stringify(logEntry.data, null, 2);
+                
+                logDiv.innerHTML = `
+                    <strong>[${timeStr}] ${eventType}:</strong><br>
+                    <pre style="margin: 5px 0; white-space: pre-wrap;">${dataStr}</pre>
+                `;
+                
+                logOutput.appendChild(logDiv);
+                logOutput.scrollTop = logOutput.scrollHeight;
+            }
+            
+            updateStats() {
+                document.getElementById('totalLogs').textContent = this.logCount.total;
+                document.getElementById('captureCount').textContent = this.logCount.EYES_CAPTURE;
+                document.getElementById('promptCount').textContent = this.logCount.EYES_PROMPT;
+                document.getElementById('transferCount').textContent = this.logCount.EYES_TRANSFER;
+                document.getElementById('actionCount').textContent = this.logCount.USER_ACTION;
+                document.getElementById('errorCount').textContent = this.logCount.FRONTEND_ERROR;
+            }
+            
+            logEyesCapture(observationId, requestId, deviceInfo, imageData) {
+                this.log('EYES_CAPTURE', {
+                    observation_id: observationId,
+                    request_id: requestId,
+                    device: deviceInfo.device,
+                    resolution: imageData.resolution,
+                    quality: imageData.quality,
+                    format: imageData.format,
+                    size: imageData.size,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logEyesPrompt(observationId, prompt) {
+                this.log('EYES_PROMPT', {
+                    observation_id: observationId,
+                    prompt: prompt,
+                    length: prompt.length,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logEyesTransfer(observationId, transferData) {
+                this.log('EYES_TRANSFER', {
+                    observation_id: observationId,
+                    sent_to_backend: transferData,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logUserAction(action, details) {
+                this.log('USER_ACTION', {
+                    action: action,
+                    details: details,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logError(error, context) {
+                this.log('FRONTEND_ERROR', {
+                    error: error.toString(),
+                    context: context,
+                    stack: error.stack,
+                    timestamp: Date.now()
+                });
+            }
+        }
+        
+        // 初始化日誌記錄器
+        const frontendLogger = new FrontendVisualLogger();
+        
+        // 更新品質顯示
+        document.getElementById('testQuality').addEventListener('input', function() {
+            document.getElementById('qualityDisplay').textContent = this.value;
+        });
+        
+        // 完整流程測試
+        async function runCompleteFlow() {
+            const btn = document.getElementById('runFlowBtn');
+            btn.disabled = true;
+            btn.textContent = '執行中...';
+            
+            const flowStatus = document.getElementById('flowStatus');
+            flowStatus.className = 'status info';
+            flowStatus.textContent = '正在執行完整流程測試...';
+            
+            try {
+                // 步驟 1: 用戶開始處理
+                await executeStep('step1', async () => {
+                    const instruction = document.getElementById('testPrompt').value;
+                    const quality = document.getElementById('testQuality').value;
+                    const maxTokens = document.getElementById('testTokens').value;
+                    
+                    frontendLogger.logUserAction('start_processing', {
+                        instruction: instruction,
+                        capture_interval: 2000,
+                        quality: parseFloat(quality),
+                        max_tokens: parseInt(maxTokens)
+                    });
+                });
+                
+                // 步驟 2: 圖像捕獲
+                await executeStep('step2', async () => {
+                    const observationId = frontendLogger.generateObservationId();
+                    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+                    const device = document.getElementById('testCamera').value;
+                    const quality = parseFloat(document.getElementById('testQuality').value);
+                    
+                    // 模擬圖像數據
+                    const imageSize = Math.floor(Math.random() * 500 + 100); // 100-600KB
+                    
+                    frontendLogger.logEyesCapture(observationId, requestId, 
+                        { device: device },
+                        {
+                            resolution: '1024x768',
+                            quality: quality,
+                            format: 'jpeg',
+                            size: `${imageSize}KB`
+                        }
+                    );
+                });
+                
+                // 步驟 3: 視覺提示詞
+                await executeStep('step3', async () => {
+                    const observationId = frontendLogger.observationId;
+                    const prompt = document.getElementById('testPrompt').value;
+                    
+                    frontendLogger.logEyesPrompt(observationId, prompt);
+                });
+                
+                // 步驟 4: 後端傳輸
+                await executeStep('step4', async () => {
+                    const observationId = frontendLogger.observationId;
+                    const instruction = document.getElementById('testPrompt').value;
+                    const maxTokens = parseInt(document.getElementById('testTokens').value);
+                    const quality = document.getElementById('testQuality').value;
+                    
+                    const transferData = {
+                        instruction: instruction,
+                        image_data: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ...[truncated]',
+                        max_tokens: maxTokens,
+                        quality: quality,
+                        observation_id: observationId,
+                        request_id: `req_${Date.now()}`
+                    };
+                    
+                    frontendLogger.logEyesTransfer(observationId, transferData);
+                });
+                
+                // 步驟 5: 用戶停止處理
+                await executeStep('step5', async () => {
+                    frontendLogger.logUserAction('stop_processing', {
+                        reason: 'user_initiated'
+                    });
+                });
+                
+                flowStatus.className = 'status success';
+                flowStatus.textContent = '✅ 完整流程測試成功完成！所有日誌事件都已正確記錄。';
+                
+            } catch (error) {
+                flowStatus.className = 'status error';
+                flowStatus.textContent = `❌ 測試失敗: ${error.message}`;
+                frontendLogger.logError(error, 'complete_flow_test');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '執行完整流程測試';
+            }
+        }
+        
+        async function executeStep(stepId, stepFunction) {
+            const stepElement = document.getElementById(stepId);
+            stepElement.className = 'flow-step active';
+            
+            await new Promise(resolve => setTimeout(resolve, 500)); // 模擬處理時間
+            await stepFunction();
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            stepElement.className = 'flow-step completed';
+        }
+        
+        // 個別功能測試
+        function testIndividualCapture() {
+            const observationId = frontendLogger.generateObservationId();
+            const requestId = `req_${Date.now()}_test`;
+            const device = document.getElementById('testCamera').value;
+            const quality = parseFloat(document.getElementById('testQuality').value);
+            
+            frontendLogger.logEyesCapture(observationId, requestId,
+                { device: device },
+                {
+                    resolution: '1920x1080',
+                    quality: quality,
+                    format: 'jpeg',
+                    size: '234.5KB'
+                }
+            );
+        }
+        
+        function testIndividualPrompt() {
+            const observationId = frontendLogger.observationId || frontendLogger.generateObservationId();
+            const prompt = document.getElementById('testPrompt').value;
+            
+            frontendLogger.logEyesPrompt(observationId, prompt);
+        }
+        
+        function testIndividualTransfer() {
+            const observationId = frontendLogger.observationId || frontendLogger.generateObservationId();
+            const transferData = {
+                instruction: document.getElementById('testPrompt').value,
+                max_tokens: parseInt(document.getElementById('testTokens').value),
+                quality: document.getElementById('testQuality').value
+            };
+            
+            frontendLogger.logEyesTransfer(observationId, transferData);
+        }
+        
+        function testUserActions() {
+            frontendLogger.logUserAction('camera_change', {
+                device_id: 'test_device_123',
+                device_name: document.getElementById('testCamera').value
+            });
+            
+            setTimeout(() => {
+                frontendLogger.logUserAction('settings_change', {
+                    setting: 'quality',
+                    old_value: '0.8',
+                    new_value: document.getElementById('testQuality').value
+                });
+            }, 500);
+        }
+        
+        function testErrorHandling() {
+            const errors = [
+                { error: new Error('Camera access denied'), context: 'camera_initialization' },
+                { error: new Error('Network connection failed'), context: 'api_request' },
+                { error: new Error('Invalid image format'), context: 'image_processing' }
+            ];
+            
+            errors.forEach((errorInfo, index) => {
+                setTimeout(() => {
+                    frontendLogger.logError(errorInfo.error, errorInfo.context);
+                }, index * 300);
+            });
+        }
+        
+        function clearLogs() {
+            const logOutput = document.getElementById('logOutput');
+            logOutput.innerHTML = '<div class="log-entry">日誌已清除，等待新的測試...</div>';
+            
+            // 重置統計
+            frontendLogger.logCount = {
+                total: 0,
+                EYES_CAPTURE: 0,
+                EYES_PROMPT: 0,
+                EYES_TRANSFER: 0,
+                USER_ACTION: 0,
+                FRONTEND_ERROR: 0
+            };
+            frontendLogger.updateStats();
+            
+            // 重置流程步驟
+            ['step1', 'step2', 'step3', 'step4', 'step5'].forEach(stepId => {
+                document.getElementById(stepId).className = 'flow-step';
+            });
+        }
+        
+        function exportLogs() {
+            const logOutput = document.getElementById('logOutput');
+            const logText = logOutput.innerText;
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `frontend_logs_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+        }
+        
+        // 頁面載入時記錄
+        window.addEventListener('load', () => {
+            frontendLogger.log('PAGE_LOAD', {
+                url: window.location.href,
+                userAgent: navigator.userAgent,
+                timestamp: Date.now()
+            });
+        });
+        
+        // 記錄未捕獲的錯誤
+        window.addEventListener('error', (event) => {
+            frontendLogger.logError(event.error, 'uncaught_error');
+        });
+    </script>
+</body>
+</html>

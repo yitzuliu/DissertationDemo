@@ -857,6 +857,108 @@
 
     <!-- JavaScript Modules - Fix the import structure -->
     <script type="module">
+        // Frontend Visual Logging System
+        class FrontendVisualLogger {
+            constructor() {
+                this.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                this.logToConsole = true;
+                this.logToServer = false; // 可以後續啟用發送到後端
+                this.observationId = null;
+            }
+            
+            generateObservationId() {
+                const timestamp = Date.now();
+                this.observationId = `obs_${timestamp}_${Math.random().toString(36).substr(2, 8)}`;
+                return this.observationId;
+            }
+            
+            log(eventType, data) {
+                const logEntry = {
+                    timestamp: new Date().toISOString(),
+                    sessionId: this.sessionId,
+                    eventType: eventType,
+                    data: data
+                };
+                
+                if (this.logToConsole) {
+                    console.log(`[FrontendVisualLog] ${eventType}:`, data);
+                }
+                
+                // 未來可以發送到後端
+                // if (this.logToServer) {
+                //     this.sendToServer(logEntry);
+                // }
+            }
+            
+            logEyesCapture(observationId, requestId, deviceInfo, imageData) {
+                this.log('EYES_CAPTURE', {
+                    observation_id: observationId,
+                    request_id: requestId,
+                    device: deviceInfo.device,
+                    resolution: imageData.resolution,
+                    quality: imageData.quality,
+                    format: imageData.format,
+                    size: imageData.size,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logEyesPrompt(observationId, prompt) {
+                this.log('EYES_PROMPT', {
+                    observation_id: observationId,
+                    prompt: prompt,
+                    length: prompt.length,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logEyesTransfer(observationId, transferData) {
+                this.log('EYES_TRANSFER', {
+                    observation_id: observationId,
+                    sent_to_backend: transferData,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logPageLoad() {
+                this.log('PAGE_LOAD', {
+                    url: window.location.href,
+                    userAgent: navigator.userAgent,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logUserAction(action, details) {
+                this.log('USER_ACTION', {
+                    action: action,
+                    details: details,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logError(error, context) {
+                this.log('FRONTEND_ERROR', {
+                    error: error.toString(),
+                    context: context,
+                    stack: error.stack,
+                    timestamp: Date.now()
+                });
+            }
+        }
+        
+        // 初始化前端視覺日誌記錄器
+        const frontendLogger = new FrontendVisualLogger();
+        
+        // 記錄頁面載入
+        window.addEventListener('load', () => {
+            frontendLogger.logPageLoad();
+        });
+        
+        // 記錄未捕獲的錯誤
+        window.addEventListener('error', (event) => {
+            frontendLogger.logError(event.error, 'uncaught_error');
+        });
+
         // Create a simplified modular structure that works
         class ConfigManager {
             constructor() {
@@ -907,30 +1009,59 @@
             }
 
             async sendChatCompletion(instruction, imageBase64URL, maxTokens = 100) {
+                // 獲取觀察ID（從圖像數據中提取或生成新的）
+                const observationId = imageBase64URL.observationId || frontendLogger.generateObservationId();
+                
+                // 記錄視覺提示詞
+                frontendLogger.logEyesPrompt(observationId, instruction);
+                
+                const requestBody = {
+                    max_tokens: maxTokens,
+                    messages: [
+                        { 
+                            role: 'user', 
+                            content: [
+                                { type: 'text', text: instruction },
+                                { type: 'image_url', image_url: { url: imageBase64URL } }
+                            ]
+                        }
+                    ]
+                };
+                
+                // 記錄後端傳輸（不包含實際圖像數據以避免日誌過大）
+                frontendLogger.logEyesTransfer(observationId, {
+                    max_tokens: maxTokens,
+                    instruction_length: instruction.length,
+                    has_image: true,
+                    image_format: imageBase64URL.split(';')[0].replace('data:image/', ''),
+                    request_size_estimate: `${Math.round(JSON.stringify(requestBody).length / 1024)}KB`
+                });
+                
                 const response = await fetch(`${this.baseURL}/v1/chat/completions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        max_tokens: maxTokens,
-                        messages: [
-                            { 
-                                role: 'user', 
-                                content: [
-                                    { type: 'text', text: instruction },
-                                    { type: 'image_url', image_url: { url: imageBase64URL } }
-                                ]
-                            }
-                        ]
-                    }),
+                    body: JSON.stringify(requestBody),
                     signal: AbortSignal.timeout(30000)
                 });
                 
                 if (!response.ok) {
                     const errorText = await response.text();
+                    // 記錄API錯誤
+                    frontendLogger.logError(new Error(`Server error: ${response.status} - ${errorText}`), 'api_request');
                     throw new Error(`Server error: ${response.status} - ${errorText}`);
                 }
                 
                 const data = await response.json();
+                
+                // 記錄API回應（不包含完整內容以避免日誌過大）
+                frontendLogger.log('API_RESPONSE', {
+                    observation_id: observationId,
+                    status: response.status,
+                    response_length: data.choices[0].message.content.length,
+                    has_content: !!data.choices[0].message.content,
+                    timestamp: Date.now()
+                });
+                
                 return data.choices[0].message.content;
             }
         }
@@ -1019,6 +1150,10 @@
                 if (!this.stream || !this.video.videoWidth) return null;
                 
                 try {
+                    // 生成觀察ID和請求ID
+                    const observationId = frontendLogger.generateObservationId();
+                    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+                    
                     const targetWidth = 1024;
                     const aspectRatio = this.video.videoHeight / this.video.videoWidth;
                     const targetHeight = Math.round(targetWidth * aspectRatio);
@@ -1032,9 +1167,33 @@
                     ctx.drawImage(this.video, 0, 0, targetWidth, targetHeight);
                     
                     const imageQuality = Math.max(0.92, parseFloat(quality) || 0.9);
-                    return this.canvas.toDataURL('image/jpeg', imageQuality);
+                    const imageDataURL = this.canvas.toDataURL('image/jpeg', imageQuality);
+                    
+                    // 獲取設備資訊
+                    const selectedOption = this.cameraSelect.options[this.cameraSelect.selectedIndex];
+                    const deviceInfo = {
+                        device: selectedOption ? selectedOption.text : 'Unknown Camera'
+                    };
+                    
+                    // 計算圖像大小
+                    const imageSizeBytes = Math.round((imageDataURL.length - 'data:image/jpeg;base64,'.length) * 3/4);
+                    
+                    // 記錄圖像捕獲事件
+                    frontendLogger.logEyesCapture(observationId, requestId, deviceInfo, {
+                        resolution: `${targetWidth}x${targetHeight}`,
+                        quality: imageQuality,
+                        format: 'jpeg',
+                        size: `${(imageSizeBytes / 1024).toFixed(1)}KB`
+                    });
+                    
+                    // 將觀察ID附加到圖像數據中，供後續使用
+                    imageDataURL.observationId = observationId;
+                    imageDataURL.requestId = requestId;
+                    
+                    return imageDataURL;
                 } catch (err) {
                     console.error("Error capturing image:", err);
+                    frontendLogger.logError(err, 'image_capture');
                     return null;
                 }
             }
@@ -1317,12 +1476,48 @@
 
                 this.managers.ui.elements.cameraSelect.addEventListener('change', async () => {
                     const selectedDeviceId = this.managers.ui.elements.cameraSelect.value;
+                    const selectedOption = this.managers.ui.elements.cameraSelect.options[this.managers.ui.elements.cameraSelect.selectedIndex];
+                    
+                    // 記錄攝像頭切換
+                    frontendLogger.logUserAction('camera_change', {
+                        device_id: selectedDeviceId,
+                        device_name: selectedOption ? selectedOption.text : 'Unknown'
+                    });
+                    
                     await this.managers.camera.startCamera(selectedDeviceId);
                 });
 
                 navigator.mediaDevices.addEventListener('devicechange', async () => {
                     console.log('Camera devices changed');
+                    
+                    // 記錄設備變更
+                    frontendLogger.logUserAction('device_change', {
+                        event: 'camera_devices_changed'
+                    });
+                    
                     await this.managers.camera.populateCameraList();
+                });
+
+                // 記錄設置變更
+                this.managers.ui.elements.intervalSelect.addEventListener('change', () => {
+                    frontendLogger.logUserAction('setting_change', {
+                        setting: 'capture_interval',
+                        value: this.managers.ui.elements.intervalSelect.value
+                    });
+                });
+
+                this.managers.ui.elements.qualitySelect.addEventListener('change', () => {
+                    frontendLogger.logUserAction('setting_change', {
+                        setting: 'image_quality',
+                        value: this.managers.ui.elements.qualitySelect.value
+                    });
+                });
+
+                this.managers.ui.elements.tokensSelect.addEventListener('change', () => {
+                    frontendLogger.logUserAction('setting_change', {
+                        setting: 'max_tokens',
+                        value: this.managers.ui.elements.tokensSelect.value
+                    });
                 });
             }
 
@@ -1332,12 +1527,21 @@
                     return;
                 }
                 
+                // 記錄用戶開始操作
+                const intervalTime = this.getValidCaptureInterval();
+                const instruction = this.managers.ui.elements.instructionText.value.trim();
+                frontendLogger.logUserAction('start_processing', {
+                    instruction: instruction,
+                    capture_interval: intervalTime,
+                    quality: this.managers.ui.elements.qualitySelect.value,
+                    max_tokens: this.managers.ui.elements.tokensSelect.value
+                });
+                
                 this.isProcessing = true;
                 this.managers.ui.updateProcessingState(true);
                 
                 this.sendData();
                 
-                const intervalTime = this.getValidCaptureInterval();
                 if (this.managers.ui.elements.captureLabel) {
                     this.managers.ui.elements.captureLabel.innerHTML = `Processing starts<br>Capture every ${intervalTime/1000}s`;
                 }
@@ -1346,6 +1550,11 @@
             }
             
             handleStop() {
+                // 記錄用戶停止操作
+                frontendLogger.logUserAction('stop_processing', {
+                    reason: 'user_initiated'
+                });
+                
                 this.isProcessing = false;
                 if (this.intervalId) {
                     clearInterval(this.intervalId);
@@ -1385,18 +1594,24 @@
                     return;
                 }
                 
+                // 獲取觀察ID（從圖像捕獲中獲得）
+                const observationId = imageBase64URL.observationId;
+                const requestId = imageBase64URL.requestId;
+                
                 window.currentRequestProcessing = true;
                 
                 try {
                     this.managers.ui.updateImagePreview(imageBase64URL);
                     
                     const maxTokens = parseInt(this.managers.ui.elements.tokensSelect.value) || 100;
+                    
                     const response = await this.managers.api.sendChatCompletion(instruction, imageBase64URL, maxTokens);
                     
                     this.managers.ui.elements.responseText.value = response || "No response received";
                     
                 } catch (error) {
                     this.managers.ui.showError(error.message);
+                    frontendLogger.logError(error, 'vlm_request');
                 } finally {
                     window.currentRequestProcessing = false;
                 }

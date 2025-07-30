@@ -24,10 +24,13 @@ from utils.image_processing import (
 )
 import time
 import sys
+import uuid
 
-# Import State Tracker
+# Import State Tracker and Loggers
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from state_tracker import get_state_tracker
+from logging.system_logger import get_system_logger, initialize_system_logger
+from logging.visual_logger import get_visual_logger
 
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -108,6 +111,9 @@ ACTIVE_MODEL = config_manager.get_active_model()
 logger.info(f"Using active model: {ACTIVE_MODEL}")
 
 app = FastAPI(title="Vision Models Unified API")
+
+# Initialize system logger
+system_logger = initialize_system_logger()
 
 # Configure CORS
 app.add_middleware(
@@ -248,8 +254,22 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
     request_start_time = time.time()
     request_id = f"req_{int(request_start_time * 1000)}"  # Unique request ID
     
+    # 生成觀察ID用於追蹤整個視覺處理流程
+    observation_id = f"obs_{int(request_start_time * 1000)}_{uuid.uuid4().hex[:8]}"
+    
+    # 獲取視覺日誌記錄器
+    visual_logger = get_visual_logger()
+    
     try:
         logger.info(f"[{request_id}] Processing request with model: {ACTIVE_MODEL}")
+        
+        # 記錄後端接收VLM請求
+        visual_logger.log_backend_receive(observation_id, request_id, {
+            "model": ACTIVE_MODEL,
+            "messages": request.messages,
+            "max_tokens": getattr(request, 'max_tokens', None),
+            "temperature": getattr(request, 'temperature', None)
+        })
         
         # 更新支援的模型清單，確保包含所有配置的模型
         supported_models = [
@@ -268,6 +288,9 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
         if ACTIVE_MODEL in supported_models:
             image_count = 0
             image_processing_start = time.time()
+            
+            # 記錄圖像處理開始
+            visual_logger.log_image_processing_start(observation_id, request_id, 0, ACTIVE_MODEL)
             
             # Create a sanitized copy of messages for logging
             sanitized_messages = []
@@ -308,6 +331,12 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             logger.info(f"[{request_id}] Image processing completed in {image_processing_time:.2f}s")
             logger.info(f"[{request_id}] Processed {image_count} images for {ACTIVE_MODEL}")
             
+            # 記錄圖像處理結果
+            visual_logger.log_image_processing_result(
+                observation_id, request_id, image_processing_time, True,
+                {"image_count": image_count, "model": ACTIVE_MODEL}
+            )
+            
             # Format messages
             format_start = time.time()
             for message in request.messages:
@@ -319,15 +348,58 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             request_data = request.dict()
             logger.info(f"[{request_id}] Sending request to model server")
             
+            # 計算提示詞長度用於日誌記錄
+            prompt_length = 0
+            for message in request.messages:
+                if isinstance(message.get('content'), str):
+                    prompt_length += len(message['content'])
+                elif isinstance(message.get('content'), list):
+                    for item in message['content']:
+                        if item.get('type') == 'text':
+                            prompt_length += len(item.get('text', ''))
+            
+            # 記錄VLM請求
+            visual_logger.log_vlm_request(observation_id, request_id, ACTIVE_MODEL, prompt_length, image_count)
+            
             # Send to model and measure time
             model_request_start = time.time()
-            async with httpx.AsyncClient(timeout=90.0) as client:
-                response = await client.post(
-                    f"{MODEL_SERVER_URL}/v1/chat/completions",
-                    json=request_data
-                )
-                model_response = response.json()
+            vlm_success = False
+            response_length = 0
+            
+            try:
+                async with httpx.AsyncClient(timeout=90.0) as client:
+                    response = await client.post(
+                        f"{MODEL_SERVER_URL}/v1/chat/completions",
+                        json=request_data
+                    )
+                    model_response = response.json()
+                    model_request_time = time.time() - model_request_start
+                    vlm_success = True
+                    
+                    # 計算回應長度
+                    if 'choices' in model_response and len(model_response['choices']) > 0:
+                        content = model_response['choices'][0]['message']['content']
+                        if isinstance(content, str):
+                            response_length = len(content)
+                        elif isinstance(content, list):
+                            response_length = sum(len(str(item)) for item in content)
+                        else:
+                            response_length = len(str(content))
+                    
+                    # 記錄VLM回應
+                    visual_logger.log_vlm_response(
+                        observation_id, request_id, response_length, 
+                        model_request_time, vlm_success, ACTIVE_MODEL
+                    )
+                    
+            except Exception as e:
                 model_request_time = time.time() - model_request_start
+                visual_logger.log_vlm_response(
+                    observation_id, request_id, 0, 
+                    model_request_time, False, ACTIVE_MODEL
+                )
+                visual_logger.log_error(observation_id, request_id, type(e).__name__, str(e), "vlm_request")
+                raise
                 
                 # Sanitize model response for logging
                 sanitized_response = model_response.copy()
@@ -388,14 +460,31 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                         
                         # Process with State Tracker if we have valid text
                         if vlm_text and len(vlm_text.strip()) > 0:
+                            # 記錄RAG資料傳遞
+                            visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
+                            
+                            # 處理狀態追蹤器整合
+                            state_tracker_start = time.time()
                             state_tracker = get_state_tracker()
-                            state_updated = await state_tracker.process_vlm_response(vlm_text)
+                            state_updated = await state_tracker.process_vlm_response(vlm_text, observation_id)
+                            state_tracker_time = time.time() - state_tracker_start
+                            
+                            # 記錄狀態追蹤器整合結果
+                            visual_logger.log_state_tracker_integration(
+                                observation_id, state_updated, state_tracker_time
+                            )
+                            
                             logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}")
                             logger.info(f"[{request_id}] State Tracker full response: {vlm_text}")
                         else:
+                            # 記錄RAG資料傳遞失敗
+                            visual_logger.log_rag_data_transfer(observation_id, "", False)
+                            visual_logger.log_state_tracker_integration(observation_id, False)
                             logger.warning(f"[{request_id}] No valid text extracted from VLM response")
                             
                 except Exception as e:
+                    # 記錄狀態追蹤器處理錯誤
+                    visual_logger.log_error(observation_id, request_id, type(e).__name__, str(e), "state_tracker_integration")
                     logger.warning(f"[{request_id}] State Tracker processing failed: {e}")
                 
                 # Calculate total processing time
@@ -406,6 +495,11 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                 logger.info(f"  - Message formatting: {format_time:.2f}s")
                 logger.info(f"  - Model inference: {model_request_time:.2f}s")
                 
+                # 記錄性能指標
+                visual_logger.log_performance_metric(observation_id, "total_processing_time", total_time, "s")
+                visual_logger.log_performance_metric(observation_id, "image_processing_time", image_processing_time, "s")
+                visual_logger.log_performance_metric(observation_id, "model_inference_time", model_request_time, "s")
+                
                 return model_response
                 
         else:
@@ -414,10 +508,20 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
     except httpx.RequestError as e:
         error_time = time.time() - request_start_time
         logger.error(f"[{request_id}] Error communicating with model server after {error_time:.2f}s: {e}", exc_info=True)
+        
+        # 記錄視覺處理錯誤
+        visual_logger.log_error(observation_id, request_id, "RequestError", str(e), "model_server_communication")
+        visual_logger.log_performance_metric(observation_id, "error_time", error_time, "s")
+        
         raise HTTPException(status_code=500, detail=f"Error communicating with model server: {str(e)}")
     except Exception as e:
         error_time = time.time() - request_start_time
         logger.error(f"[{request_id}] An unexpected error occurred after {error_time:.2f}s: {e}", exc_info=True)
+        
+        # 記錄視覺處理錯誤
+        visual_logger.log_error(observation_id, request_id, type(e).__name__, str(e), "unexpected_error")
+        visual_logger.log_performance_metric(observation_id, "error_time", error_time, "s")
+        
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 @app.get("/")
@@ -502,14 +606,31 @@ async def get_memory_stats():
 @app.post("/api/v1/state/process")
 async def process_vlm_text(request: dict):
     """Manually process VLM text for testing"""
+    request_start_time = time.time()
+    request_id = f"req_manual_{int(request_start_time * 1000)}"
+    observation_id = f"obs_manual_{int(request_start_time * 1000)}_{uuid.uuid4().hex[:8]}"
+    
+    visual_logger = get_visual_logger()
+    
     try:
         vlm_text = request.get("text", "")
         if not vlm_text:
             raise HTTPException(status_code=400, detail="Text is required")
         
+        # 記錄手動VLM文本處理
+        visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
+        
+        state_tracker_start = time.time()
         state_tracker = get_state_tracker()
-        result = await state_tracker.process_vlm_response(vlm_text)
+        result = await state_tracker.process_vlm_response(vlm_text, observation_id)
+        state_tracker_time = time.time() - state_tracker_start
         current_state = state_tracker.get_current_state()
+        
+        # 記錄狀態追蹤器處理結果
+        visual_logger.log_state_tracker_integration(observation_id, result, state_tracker_time)
+        
+        total_time = time.time() - request_start_time
+        visual_logger.log_performance_metric(observation_id, "manual_processing_time", total_time, "s")
         
         return {
             "status": "success",
@@ -517,7 +638,13 @@ async def process_vlm_text(request: dict):
             "current_state": current_state
         }
     except Exception as e:
+        error_time = time.time() - request_start_time
         logger.error(f"Error processing VLM text: {e}")
+        
+        # 記錄錯誤
+        visual_logger.log_error(observation_id, request_id, type(e).__name__, str(e), "manual_vlm_processing")
+        visual_logger.log_performance_metric(observation_id, "error_time", error_time, "s")
+        
         raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")
 
 @app.post("/api/v1/state/query")
@@ -759,16 +886,26 @@ def format_message_for_model(message, image_count, model_name):
     
     return message
 
-# Start frontend separately: cd ../frontend && python -m http.server 5500
-# ...existing code...
-if __name__ == "__main__":
-# Start frontend separately: cd ../frontend && python -m http.server 5500
-    logger.info(f"Starting backend server with model: {ACTIVE_MODEL}")
 if __name__ == "__main__":
     # 確保在啟動時正確配置
+    host = config_manager.get_config("server.host", "localhost")
+    port = config_manager.get_config("server.port", 8000)
+    
     logger.info(f"Starting backend server with model: {ACTIVE_MODEL}")
-    uvicorn.run(
-        app,
-        host=config_manager.get_config("server.host", "localhost"),
-        port=config_manager.get_config("server.port", 8000)
+    
+    # 記錄系統啟動
+    system_logger.log_system_startup(
+        host=host,
+        port=port,
+        model=ACTIVE_MODEL,
+        server_url=MODEL_SERVER_URL
     )
+    
+    try:
+        uvicorn.run(app, host=host, port=port)
+    except KeyboardInterrupt:
+        logger.info("Server shutdown requested")
+        system_logger.log_system_shutdown()
+    except Exception as e:
+        system_logger.log_error("server_startup", str(e))
+        raise

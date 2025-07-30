@@ -25,6 +25,9 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from memory.rag.knowledge_base import RAGKnowledgeBase
 
+# Import logging system
+from logging.log_manager import get_log_manager
+
 logger = logging.getLogger(__name__)
 
 class ConfidenceLevel(Enum):
@@ -126,6 +129,9 @@ class StateTracker:
         # Query processor for instant response
         from .query_processor import QueryProcessor
         self.query_processor = QueryProcessor()
+        
+        # Initialize logging system
+        self.log_manager = get_log_manager()
         
         logger.info("Enhanced State Tracker initialized with sliding window memory management and instant response")
     
@@ -283,12 +289,34 @@ class StateTracker:
         if len(self.processing_metrics) > self.max_metrics_size:
             self.processing_metrics.pop(0)
     
-    async def process_vlm_response(self, vlm_text: str) -> bool:
+    def _get_previous_state_summary(self) -> Dict[str, Any]:
+        """Get summary of previous state for comparison logging"""
+        if not self.current_state:
+            return {"state": "NO_PREVIOUS_STATE"}
+        
+        return {
+            "task_id": self.current_state.task_id,
+            "step_index": self.current_state.step_index,
+            "confidence": self.current_state.confidence,
+            "timestamp": self.current_state.timestamp.isoformat()
+        }
+    
+    def _get_new_state_summary(self, state_record: StateRecord) -> Dict[str, Any]:
+        """Get summary of new state for comparison logging"""
+        return {
+            "task_id": state_record.task_id,
+            "step_index": state_record.step_index,
+            "confidence": state_record.confidence,
+            "timestamp": state_record.timestamp.isoformat()
+        }
+    
+    async def process_vlm_response(self, vlm_text: str, observation_id: str = None) -> bool:
         """
         Enhanced VLM response processing with intelligent matching and fault tolerance.
         
         Args:
             vlm_text: Raw VLM text output from /v1/chat/completions
+            observation_id: Optional observation ID for logging
             
         Returns:
             True if state was updated, False otherwise
@@ -302,15 +330,39 @@ class StateTracker:
                 self._record_vlm_failure("Empty text after cleaning")
                 processing_time = (time.time() - start_time) * 1000
                 self._record_metrics(vlm_text, 0.0, processing_time, ConfidenceLevel.LOW, ActionType.IGNORE, None, None)
+                
+                # Log empty text scenario
+                state_update_id = self.log_manager.generate_state_update_id()
+                previous_state = self._get_previous_state_summary()
+                self.log_manager.log_state_tracker(
+                    observation_id=observation_id or "unknown",
+                    state_update_id=state_update_id,
+                    confidence=0.0,
+                    action=ActionType.IGNORE.value,
+                    state={"reason": "empty_text_after_cleaning", "original_text": vlm_text[:100], "current_state": previous_state}
+                )
+                
                 return False
             
-            # Step 2: Match with RAG knowledge base
-            match_result = self.rag_kb.find_matching_step(cleaned_text)
+            # Step 2: Match with RAG knowledge base (with observation_id for logging)
+            match_result = self.rag_kb.find_matching_step(cleaned_text, observation_id=observation_id)
             
             if not match_result:
                 self._record_vlm_failure("No RAG match found")
                 processing_time = (time.time() - start_time) * 1000
                 self._record_metrics(vlm_text, 0.0, processing_time, ConfidenceLevel.LOW, ActionType.IGNORE, None, None)
+                
+                # Log no match scenario
+                state_update_id = self.log_manager.generate_state_update_id()
+                previous_state = self._get_previous_state_summary()
+                self.log_manager.log_state_tracker(
+                    observation_id=observation_id or "unknown",
+                    state_update_id=state_update_id,
+                    confidence=0.0,
+                    action=ActionType.IGNORE.value,
+                    state={"reason": "no_rag_match", "vlm_text": cleaned_text[:100], "current_state": previous_state}
+                )
+                
                 logger.info(f"RAG match result: NO_MATCH - no matching step found for text: '{cleaned_text[:100]}...'")
                 return False
             
@@ -331,8 +383,15 @@ class StateTracker:
             action_taken = ActionType.IGNORE
             state_updated = False
             decision_reason = ""
+            state_update_id = None
+            
+            # Capture previous state for comparison logging
+            previous_state = self._get_previous_state_summary()
             
             if should_update:
+                # Generate state update ID for logging
+                state_update_id = self.log_manager.generate_state_update_id()
+                
                 # Check state consistency before update
                 consistency_ok = self._check_state_consistency(match_result.task_name, match_result.step_id)
                 
@@ -364,6 +423,10 @@ class StateTracker:
                         step_index=match_result.step_id
                     )
                     
+                    # Get new state summary for logging
+                    new_state = self._get_new_state_summary(state_record)
+                    
+                    # Update current state
                     self.current_state = state_record
                     
                     # Add to legacy history (for compatibility)
@@ -379,30 +442,74 @@ class StateTracker:
                     self.consecutive_low_count = 0  # Reset on successful update
                     decision_reason = f"High confidence match ({confidence:.3f}) - state updated to step {match_result.step_id}"
                     
+                    # Log state update with before/after comparison
+                    self.log_manager.log_state_tracker(
+                        observation_id=observation_id or "unknown",
+                        state_update_id=state_update_id,
+                        confidence=confidence,
+                        action=action_taken.value,
+                        state=new_state
+                    )
+                    
+                    # Log state comparison for detailed tracking
+                    logger.info(f"State comparison - Previous: {previous_state}, New: {new_state}")
                     logger.info(f"State updated: task={state_record.task_id}, step={state_record.step_index}, confidence={confidence:.2f}, level={confidence_level.value}")
                 else:
                     # Consistency check failed
                     action_taken = ActionType.OBSERVE
                     decision_reason = f"Consistency check failed - observing instead of updating"
+                    
+                    # Log failed consistency check
+                    self.log_manager.log_state_tracker(
+                        observation_id=observation_id or "unknown",
+                        state_update_id=state_update_id,
+                        confidence=confidence,
+                        action=action_taken.value,
+                        state={"reason": "consistency_check_failed", "previous_state": previous_state}
+                    )
+                    
                     logger.warning(f"State consistency check failed - observing instead of updating")
                 
             elif confidence_level == ConfidenceLevel.MEDIUM:
+                # Generate state update ID for medium confidence logging
+                state_update_id = self.log_manager.generate_state_update_id()
                 action_taken = ActionType.OBSERVE
                 decision_reason = f"Medium confidence ({confidence:.3f}) - observing without update"
+                
+                # Log medium confidence decision
+                self.log_manager.log_state_tracker(
+                    observation_id=observation_id or "unknown",
+                    state_update_id=state_update_id,
+                    confidence=confidence,
+                    action=action_taken.value,
+                    state={"reason": "medium_confidence", "current_state": previous_state}
+                )
+                
                 logger.info(f"Medium confidence ({confidence:.2f}) - observing without update")
                 
             else:
                 # Low confidence
+                state_update_id = self.log_manager.generate_state_update_id()
                 action_taken = ActionType.IGNORE
                 self.consecutive_low_count += 1
                 decision_reason = f"Low confidence ({confidence:.3f}) - ignoring (consecutive: {self.consecutive_low_count})"
+                
+                # Log low confidence decision
+                self.log_manager.log_state_tracker(
+                    observation_id=observation_id or "unknown",
+                    state_update_id=state_update_id,
+                    confidence=confidence,
+                    action=action_taken.value,
+                    state={"reason": "low_confidence", "consecutive_count": self.consecutive_low_count, "current_state": previous_state}
+                )
+                
                 logger.info(f"Low confidence ({confidence:.2f}) - ignoring (consecutive: {self.consecutive_low_count})")
                 
                 # Handle consecutive low matches
                 self._handle_consecutive_low_matches()
             
-            # Log final decision
-            logger.info(f"State Tracker decision: action={action_taken.value}, reason='{decision_reason}'")
+            # Log final decision with detailed reasoning
+            logger.info(f"State Tracker decision: action={action_taken.value}, reason='{decision_reason}', state_update_id={state_update_id}")
             
             # Step 5: Record metrics
             processing_time = (time.time() - start_time) * 1000
@@ -417,6 +524,18 @@ class StateTracker:
             logger.error(f"Error processing VLM response: {e}")
             processing_time = (time.time() - start_time) * 1000
             self._record_metrics(vlm_text, 0.0, processing_time, ConfidenceLevel.LOW, ActionType.IGNORE, None, None)
+            
+            # Log exception scenario
+            state_update_id = self.log_manager.generate_state_update_id()
+            previous_state = self._get_previous_state_summary()
+            self.log_manager.log_state_tracker(
+                observation_id=observation_id or "unknown",
+                state_update_id=state_update_id,
+                confidence=0.0,
+                action=ActionType.IGNORE.value,
+                state={"reason": "processing_exception", "error": str(e), "current_state": previous_state}
+            )
+            
             return False
     
     def get_current_state(self) -> Optional[Dict[str, Any]]:
@@ -575,7 +694,7 @@ class StateTracker:
             }
         }
     
-    def process_instant_query(self, query: str):
+    def process_instant_query(self, query: str, query_id: str = None, request_id: str = None):
         """
         Process user query for instant response (< 20ms target).
         
@@ -584,19 +703,38 @@ class StateTracker:
         
         Args:
             query: User's natural language query
+            query_id: Optional query ID for logging
+            request_id: Optional request ID for logging
             
         Returns:
             QueryResult with formatted response
         """
         from .query_processor import QueryResult
         
+        # Generate IDs if not provided
+        if not query_id:
+            query_id = self.log_manager.generate_query_id()
+        if not request_id:
+            request_id = self.log_manager.generate_request_id()
+        
         # Get current state (fast memory read)
         current_state = self.get_current_state()
+        
+        # Log query processing start
+        start_time = time.time()
         
         # Process query with query processor
         result = self.query_processor.process_query(query, current_state)
         
-        logger.info(f"Instant query processed: '{query}' -> {result.query_type.value} in {result.processing_time_ms:.1f}ms")
+        # Calculate processing time
+        processing_time_ms = (time.time() - start_time) * 1000
+        
+        # Log query processing details
+        self.log_manager.log_query_classify(query_id, result.query_type.value, result.confidence)
+        self.log_manager.log_query_process(query_id, current_state or {})
+        self.log_manager.log_query_response(query_id, result.response, processing_time_ms)
+        
+        logger.info(f"Instant query processed: '{query}' -> {result.query_type.value} in {processing_time_ms:.1f}ms")
         
         return result
     

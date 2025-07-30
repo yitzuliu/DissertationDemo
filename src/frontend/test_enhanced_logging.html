@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>前端日誌系統增強測試</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .test-section h3 {
+            color: #34495e;
+            margin-top: 0;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .log-output {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .success {
+            color: #27ae60;
+        }
+        .error {
+            color: #e74c3c;
+        }
+        .info {
+            color: #3498db;
+        }
+        input, select, textarea {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        textarea {
+            width: 300px;
+            height: 60px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 前端視覺日誌系統增強測試</h1>
+        
+        <div class="test-section">
+            <h3>📸 EYES_CAPTURE 日誌測試</h3>
+            <p>測試圖像捕獲日誌記錄功能</p>
+            <button onclick="testEyesCapture()">測試圖像捕獲日誌</button>
+            <button onclick="testMultipleCaptures()">測試多次捕獲</button>
+        </div>
+
+        <div class="test-section">
+            <h3>💬 EYES_PROMPT 日誌測試</h3>
+            <p>測試視覺提示詞日誌記錄功能</p>
+            <textarea id="testPrompt" placeholder="輸入測試提示詞...">描述這張圖片中的內容</textarea><br>
+            <button onclick="testEyesPrompt()">測試提示詞日誌</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📤 EYES_TRANSFER 日誌測試</h3>
+            <p>測試後端傳輸日誌記錄功能</p>
+            <select id="testQuality">
+                <option value="0.7">快速 (0.7)</option>
+                <option value="0.8">中等 (0.8)</option>
+                <option value="0.9" selected>高品質 (0.9)</option>
+            </select>
+            <select id="testTokens">
+                <option value="100" selected>100 tokens</option>
+                <option value="200">200 tokens</option>
+                <option value="300">300 tokens</option>
+            </select>
+            <button onclick="testEyesTransfer()">測試傳輸日誌</button>
+        </div>
+
+        <div class="test-section">
+            <h3>👤 用戶操作日誌測試</h3>
+            <p>測試用戶操作日誌記錄功能</p>
+            <button onclick="testUserActions()">測試用戶操作</button>
+            <button onclick="testSettingChanges()">測試設置變更</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 完整流程測試</h3>
+            <p>測試完整的視覺處理流程日誌</p>
+            <button onclick="testCompleteFlow()">測試完整流程</button>
+            <button onclick="testErrorScenarios()">測試錯誤場景</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 日誌統計與驗證</h3>
+            <p>檢查日誌記錄的完整性和一致性</p>
+            <button onclick="validateLogs()">驗證日誌完整性</button>
+            <button onclick="showLogStats()">顯示日誌統計</button>
+            <button onclick="clearLogs()">清除日誌</button>
+        </div>
+
+        <div class="log-output" id="logOutput">
+            <div class="info">📋 日誌輸出將顯示在這裡...</div>
+        </div>
+    </div>
+
+    <script>
+        // 從主文件中提取的增強版前端視覺日誌記錄器
+        class FrontendVisualLogger {
+            constructor() {
+                this.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                this.logToConsole = true;
+                this.logToServer = false;
+                this.observationId = null;
+                this.logs = []; // 存儲日誌用於測試
+            }
+            
+            generateObservationId() {
+                const timestamp = Date.now();
+                this.observationId = `obs_${timestamp}_${Math.random().toString(36).substr(2, 8)}`;
+                return this.observationId;
+            }
+            
+            log(eventType, data) {
+                const logEntry = {
+                    timestamp: new Date().toISOString(),
+                    sessionId: this.sessionId,
+                    eventType: eventType,
+                    data: data
+                };
+                
+                // 存儲日誌用於測試
+                this.logs.push(logEntry);
+                
+                if (this.logToConsole) {
+                    console.log(`[FrontendVisualLog] ${eventType}:`, data);
+                }
+                
+                // 顯示在頁面上
+                this.displayLog(eventType, data);
+            }
+            
+            displayLog(eventType, data) {
+                const output = document.getElementById('logOutput');
+                const timestamp = new Date().toLocaleTimeString();
+                const logHtml = `
+                    <div class="success">
+                        [${timestamp}] ${eventType}: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                output.innerHTML += logHtml;
+                output.scrollTop = output.scrollHeight;
+            }
+            
+            logEyesCapture(observationId, requestId, deviceInfo, imageData) {
+                this.log('EYES_CAPTURE', {
+                    observation_id: observationId,
+                    request_id: requestId,
+                    device: deviceInfo.device,
+                    resolution: imageData.resolution,
+                    quality: imageData.quality,
+                    format: imageData.format,
+                    size: imageData.size,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logEyesPrompt(observationId, prompt) {
+                this.log('EYES_PROMPT', {
+                    observation_id: observationId,
+                    prompt: prompt,
+                    length: prompt.length,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logEyesTransfer(observationId, transferData) {
+                this.log('EYES_TRANSFER', {
+                    observation_id: observationId,
+                    sent_to_backend: transferData,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logUserAction(action, details) {
+                this.log('USER_ACTION', {
+                    action: action,
+                    details: details,
+                    timestamp: Date.now()
+                });
+            }
+            
+            logError(error, context) {
+                this.log('FRONTEND_ERROR', {
+                    error: error.toString(),
+                    context: context,
+                    stack: error.stack,
+                    timestamp: Date.now()
+                });
+            }
+            
+            // 測試輔助方法
+            getLogs() {
+                return this.logs;
+            }
+            
+            clearLogs() {
+                this.logs = [];
+            }
+            
+            getLogStats() {
+                const stats = {};
+                this.logs.forEach(log => {
+                    stats[log.eventType] = (stats[log.eventType] || 0) + 1;
+                });
+                return stats;
+            }
+        }
+        
+        // 初始化日誌記錄器
+        const frontendLogger = new FrontendVisualLogger();
+        
+        // 測試函數
+        function testEyesCapture() {
+            const observationId = frontendLogger.generateObservationId();
+            const requestId = `req_${Date.now()}`;
+            
+            frontendLogger.logEyesCapture(observationId, requestId, 
+                { device: 'Test Camera HD' },
+                {
+                    resolution: '1920x1080',
+                    quality: 0.9,
+                    format: 'jpeg',
+                    size: '245.6KB'
+                }
+            );
+        }
+        
+        function testMultipleCaptures() {
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const observationId = frontendLogger.generateObservationId();
+                    const requestId = `req_${Date.now()}_${i}`;
+                    
+                    frontendLogger.logEyesCapture(observationId, requestId,
+                        { device: `Camera ${i + 1}` },
+                        {
+                            resolution: ['1280x720', '1920x1080', '2560x1440'][i],
+                            quality: [0.7, 0.8, 0.9][i],
+                            format: 'jpeg',
+                            size: `${Math.floor(Math.random() * 300 + 100)}KB`
+                        }
+                    );
+                }, i * 500);
+            }
+        }
+        
+        function testEyesPrompt() {
+            const observationId = frontendLogger.generateObservationId();
+            const prompt = document.getElementById('testPrompt').value || '描述這張圖片中的內容';
+            
+            frontendLogger.logEyesPrompt(observationId, prompt);
+        }
+        
+        function testEyesTransfer() {
+            const observationId = frontendLogger.generateObservationId();
+            const quality = document.getElementById('testQuality').value;
+            const maxTokens = document.getElementById('testTokens').value;
+            
+            const transferData = {
+                max_tokens: parseInt(maxTokens),
+                instruction_length: 25,
+                has_image: true,
+                image_format: 'jpeg',
+                request_size_estimate: '156KB'
+            };
+            
+            frontendLogger.logEyesTransfer(observationId, transferData);
+        }
+        
+        function testUserActions() {
+            const actions = [
+                { action: 'start_processing', details: { instruction: '測試指令', capture_interval: 2000 } },
+                { action: 'stop_processing', details: { reason: 'user_initiated' } },
+                { action: 'camera_change', details: { device_id: 'camera_1', device_name: 'HD Camera' } }
+            ];
+            
+            actions.forEach((actionData, index) => {
+                setTimeout(() => {
+                    frontendLogger.logUserAction(actionData.action, actionData.details);
+                }, index * 300);
+            });
+        }
+        
+        function testSettingChanges() {
+            const settings = [
+                { setting: 'capture_interval', value: '3000' },
+                { setting: 'image_quality', value: '0.8' },
+                { setting: 'max_tokens', value: '200' }
+            ];
+            
+            settings.forEach((setting, index) => {
+                setTimeout(() => {
+                    frontendLogger.logUserAction('setting_change', setting);
+                }, index * 200);
+            });
+        }
+        
+        function testCompleteFlow() {
+            const observationId = frontendLogger.generateObservationId();
+            const requestId = `req_${Date.now()}`;
+            
+            // 模擬完整流程
+            setTimeout(() => {
+                frontendLogger.logUserAction('start_processing', { instruction: '完整流程測試' });
+            }, 0);
+            
+            setTimeout(() => {
+                frontendLogger.logEyesCapture(observationId, requestId,
+                    { device: 'MacBook Pro Camera' },
+                    { resolution: '1280x720', quality: 0.9, format: 'jpeg', size: '189KB' }
+                );
+            }, 500);
+            
+            setTimeout(() => {
+                frontendLogger.logEyesPrompt(observationId, '請描述圖片中的物體和場景');
+            }, 1000);
+            
+            setTimeout(() => {
+                frontendLogger.logEyesTransfer(observationId, {
+                    max_tokens: 150,
+                    instruction_length: 15,
+                    has_image: true,
+                    image_format: 'jpeg',
+                    request_size_estimate: '201KB'
+                });
+            }, 1500);
+            
+            setTimeout(() => {
+                frontendLogger.log('API_RESPONSE', {
+                    observation_id: observationId,
+                    status: 200,
+                    response_length: 87,
+                    has_content: true
+                });
+            }, 2000);
+        }
+        
+        function testErrorScenarios() {
+            const errors = [
+                new Error('Camera permission denied'),
+                new Error('Network connection failed'),
+                new Error('Invalid image format')
+            ];
+            
+            errors.forEach((error, index) => {
+                setTimeout(() => {
+                    frontendLogger.logError(error, `error_scenario_${index + 1}`);
+                }, index * 400);
+            });
+        }
+        
+        function validateLogs() {
+            const logs = frontendLogger.getLogs();
+            const output = document.getElementById('logOutput');
+            
+            output.innerHTML += `<div class="info">📊 日誌驗證結果:</div>`;
+            output.innerHTML += `<div class="success">✓ 總日誌數量: ${logs.length}</div>`;
+            
+            // 檢查必要的字段
+            const requiredFields = ['timestamp', 'sessionId', 'eventType', 'data'];
+            let validLogs = 0;
+            
+            logs.forEach(log => {
+                const hasAllFields = requiredFields.every(field => log.hasOwnProperty(field));
+                if (hasAllFields) validLogs++;
+            });
+            
+            output.innerHTML += `<div class="success">✓ 有效日誌數量: ${validLogs}</div>`;
+            
+            // 檢查觀察ID的一致性
+            const observationIds = new Set();
+            logs.forEach(log => {
+                if (log.data && log.data.observation_id) {
+                    observationIds.add(log.data.observation_id);
+                }
+            });
+            
+            output.innerHTML += `<div class="success">✓ 唯一觀察ID數量: ${observationIds.size}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function showLogStats() {
+            const stats = frontendLogger.getLogStats();
+            const output = document.getElementById('logOutput');
+            
+            output.innerHTML += `<div class="info">📈 日誌統計:</div>`;
+            Object.entries(stats).forEach(([eventType, count]) => {
+                output.innerHTML += `<div class="success">  ${eventType}: ${count} 條記錄</div>`;
+            });
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function clearLogs() {
+            frontendLogger.clearLogs();
+            document.getElementById('logOutput').innerHTML = '<div class="info">📋 日誌已清除，輸出將顯示在這裡...</div>';
+        }
+        
+        // 頁面載入時記錄
+        window.addEventListener('load', () => {
+            frontendLogger.log('PAGE_LOAD', {
+                url: window.location.href,
+                userAgent: navigator.userAgent.substring(0, 50) + '...',
+                timestamp: Date.now()
+            });
+        });
+        
+        // 記錄未捕獲的錯誤
+        window.addEventListener('error', (event) => {
+            frontendLogger.logError(event.error, 'uncaught_error');
+        });
+    </script>
+</body>
+</html>

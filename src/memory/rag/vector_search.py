@@ -18,6 +18,17 @@ import time
 import uuid
 from .task_loader import TaskKnowledge, TaskStep
 
+# Import logging system
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+try:
+    from logging.log_manager import get_log_manager
+except ImportError:
+    # Fallback for different import paths
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'logging'))
+    from log_manager import get_log_manager
+
 logger = logging.getLogger(__name__)
 
 
@@ -218,7 +229,8 @@ class ChromaVectorSearchEngine:
     def find_best_match(self, 
                        observation: str, 
                        task_name: str = None,
-                       top_k: int = 1) -> List[MatchResult]:
+                       top_k: int = 1,
+                       observation_id: str = None) -> List[MatchResult]:
         """
         Find the best matching task step(s) for a VLM observation using ChromaDB
         
@@ -226,43 +238,59 @@ class ChromaVectorSearchEngine:
             observation: VLM observation text
             task_name: Optional specific task to search in
             top_k: Number of top matches to return
+            observation_id: Optional observation ID for logging
             
         Returns:
             List of MatchResult objects sorted by similarity
         """
         start_time = time.time()
         self.search_count += 1
+        log_manager = get_log_manager()
         
         if not observation or not observation.strip():
             logger.warning("Empty observation provided to find_best_match")
             return []
         
         try:
+            # Log vector search start
+            logger.debug(f"Vector search starting: observation='{observation[:50]}...', task_filter={task_name}, top_k={top_k}")
+            
             # Generate embedding for the observation (optimized for single query)
+            embedding_start = time.time()
             query_embedding = self.model.encode(observation, show_progress_bar=False)
+            embedding_time = time.time() - embedding_start
+            
+            logger.debug(f"Embedding generation completed in {embedding_time*1000:.1f}ms")
             
             # Prepare query filters
             where_filter = None
             if task_name:
                 where_filter = {"task_name": task_name}
+                logger.debug(f"Applying task filter: {task_name}")
             
             # Query ChromaDB with optimized parameters
             if hasattr(query_embedding, 'tolist'):
                 query_emb = query_embedding.tolist()
             else:
                 query_emb = query_embedding
-                
+            
+            search_start = time.time()
             results = self.collection.query(
                 query_embeddings=[query_emb],
                 n_results=top_k,
                 where=where_filter,
                 include=["metadatas", "distances"]
             )
+            search_time = time.time() - search_start
+            
+            logger.debug(f"ChromaDB query completed in {search_time*1000:.1f}ms")
             
             # Convert results to MatchResult objects
             matches = []
             
             if results["metadatas"] and results["metadatas"][0]:
+                logger.debug(f"Processing {len(results['metadatas'][0])} search results")
+                
                 for i, metadata in enumerate(results["metadatas"][0]):
                     # ChromaDB returns distances, convert to similarity (1 - distance)
                     distance = results["distances"][0][i]
@@ -292,17 +320,37 @@ class ChromaVectorSearchEngine:
                     )
                     
                     matches.append(match_result)
+                    
+                    # Log individual match details
+                    logger.debug(f"Match {i+1}: task={metadata['task_name']}, step={metadata['step_id']}, "
+                               f"similarity={similarity:.3f}, confidence={match_result.confidence_level}")
+            else:
+                logger.debug("No search results returned from ChromaDB")
             
             # Track performance
-            search_time = time.time() - start_time
-            self.total_search_time += search_time
+            total_search_time = time.time() - start_time
+            self.total_search_time += total_search_time
             
-            logger.debug(f"ChromaDB search completed in {search_time*1000:.1f}ms, found {len(matches)} matches")
+            logger.debug(f"Vector search completed in {total_search_time*1000:.1f}ms, found {len(matches)} matches")
+            
+            # Log detailed performance metrics if observation_id is provided
+            if observation_id:
+                logger.info(f"Vector search performance [observation_id={observation_id}]: "
+                          f"total_time={total_search_time*1000:.1f}ms, "
+                          f"embedding_time={embedding_time*1000:.1f}ms, "
+                          f"search_time={search_time*1000:.1f}ms, "
+                          f"matches_found={len(matches)}")
             
             return matches
             
         except Exception as e:
-            logger.error(f"Error in ChromaDB search: {str(e)}")
+            search_time = time.time() - start_time
+            logger.error(f"Error in ChromaDB search: {str(e)} (search_time={search_time*1000:.1f}ms)")
+            
+            # Log search error if observation_id is provided
+            if observation_id:
+                logger.error(f"Vector search error [observation_id={observation_id}]: {str(e)}")
+            
             return []
     
     def _find_matched_cues(self, observation: str, visual_cues: List[str]) -> List[str]:

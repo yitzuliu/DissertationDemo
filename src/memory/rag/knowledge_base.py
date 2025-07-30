@@ -13,6 +13,17 @@ from .vector_search import ChromaVectorSearchEngine, MatchResult
 from .vector_optimizer import VectorOptimizer
 from .validation import validate_task_file
 
+# Import logging system
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+try:
+    from logging.log_manager import get_log_manager
+except ImportError:
+    # Fallback for different import paths
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'logging'))
+    from log_manager import get_log_manager
+
 logger = logging.getLogger(__name__)
 
 
@@ -107,17 +118,20 @@ class RAGKnowledgeBase:
             logger.error(f"Failed to initialize RAG Knowledge Base: {str(e)}")
             raise
     
-    def find_matching_step(self, observation: str, task_name: str = None) -> MatchResult:
+    def find_matching_step(self, observation: str, task_name: str = None, observation_id: str = None) -> MatchResult:
         """
         Find the best matching step for a given observation
         
         Args:
             observation: Text observation from VLM
             task_name: Optional task name to limit search
+            observation_id: Optional observation ID for logging
             
         Returns:
             MatchResult object with matching information
         """
+        log_manager = get_log_manager()
+        
         try:
             # Log the search request
             logger.info(f"RAG search: observation='{observation[:100]}...', task_filter='{task_name}'")
@@ -126,15 +140,49 @@ class RAGKnowledgeBase:
             if task_name and task_name in self.loaded_tasks:
                 # Search within specific task
                 logger.info(f"RAG search: searching within task '{task_name}'")
-                matches = self.vector_engine.find_best_match(observation, task_name, top_k=1)
+                matches = self.vector_engine.find_best_match(observation, task_name, top_k=5, observation_id=observation_id)
             else:
                 # Search across all tasks
                 logger.info(f"RAG search: searching across all {len(self.loaded_tasks)} tasks")
-                matches = self.vector_engine.find_best_match(observation, None, top_k=1)
+                matches = self.vector_engine.find_best_match(observation, None, top_k=5, observation_id=observation_id)
             
             if not matches:
                 logger.info(f"RAG search: no matches found for observation")
+                
+                # Log RAG matching process with no candidates
+                if observation_id:
+                    log_manager.log_rag_matching(
+                        observation_id=observation_id,
+                        vlm_observation=observation,
+                        candidate_steps=[],
+                        similarities=[]
+                    )
+                    
+                    # Log RAG result with no match
+                    log_manager.log_rag_result(
+                        observation_id=observation_id,
+                        selected="no_match",
+                        title="No matching step found",
+                        similarity=0.0
+                    )
+                
                 return self._create_no_match_result()
+            
+            # Prepare candidate steps and similarities for logging
+            candidate_steps = []
+            similarities = []
+            for match in matches:
+                candidate_steps.append(f"{match.task_name}:step_{match.step_id}")
+                similarities.append(match.similarity)
+            
+            # Log RAG matching process
+            if observation_id:
+                log_manager.log_rag_matching(
+                    observation_id=observation_id,
+                    vlm_observation=observation,
+                    candidate_steps=candidate_steps,
+                    similarities=similarities
+                )
             
             # Get the best match
             best_match = matches[0]
@@ -146,16 +194,43 @@ class RAGKnowledgeBase:
             if best_match.step_description:
                 logger.info(f"RAG match details: description='{best_match.step_description[:150]}...'")
             
+            # Log RAG result
+            if observation_id:
+                log_manager.log_rag_result(
+                    observation_id=observation_id,
+                    selected=f"{best_match.task_name}:step_{best_match.step_id}",
+                    title=best_match.step_title or best_match.task_description,
+                    similarity=best_match.similarity
+                )
+            
             return best_match
             
         except Exception as e:
             logger.error(f"Error in find_matching_step: {e}")
+            
+            # Log RAG matching error
+            if observation_id:
+                log_manager.log_rag_matching(
+                    observation_id=observation_id,
+                    vlm_observation=observation,
+                    candidate_steps=[f"ERROR: {str(e)}"],
+                    similarities=[0.0]
+                )
+                
+                log_manager.log_rag_result(
+                    observation_id=observation_id,
+                    selected="error",
+                    title=f"RAG matching error: {str(e)}",
+                    similarity=0.0
+                )
+            
             return self._create_no_match_result()
     
     def find_multiple_matches(self, 
                             observation: str, 
                             top_k: int = 3,
-                            task_name: str = None) -> List[MatchResult]:
+                            task_name: str = None,
+                            observation_id: str = None) -> List[MatchResult]:
         """
         Find multiple matching task steps for a VLM observation
         
@@ -163,6 +238,7 @@ class RAGKnowledgeBase:
             observation: VLM observation text
             top_k: Number of top matches to return
             task_name: Optional specific task to search in
+            observation_id: Optional observation ID for logging
             
         Returns:
             List of MatchResult objects sorted by similarity
@@ -174,7 +250,8 @@ class RAGKnowledgeBase:
             matches = self.vector_engine.find_best_match(
                 observation=observation,
                 task_name=task_name,
-                top_k=top_k
+                top_k=top_k,
+                observation_id=observation_id
             )
             
             logger.debug(f"Found {len(matches)} matches for observation")
