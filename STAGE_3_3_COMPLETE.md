@@ -12,7 +12,7 @@
 ### **Core Verification Items**
 1. ✅ **Backend Service VLM Fault Tolerance**: Simulate model service VLM failures and abnormal outputs
 2. ✅ **Backend Service Sliding Window Memory Management**: Fixed memory usage < 1MB
-3. ✅ **Cross-Service Performance Verification**: End-to-end response time and accuracy达标 testing
+3. ✅ **Cross-Service Performance Verification**: End-to-end response time and accuracy compliance testing
 4. ✅ **Service Recovery Mechanism**: Automatic recovery capability after single service anomalies
 5. ✅ **Query Content Integrity Verification**: Detailed tool lists, step information, progress queries
 6. ✅ **VLM Observation and RAG Matching Verification**: Simulate step observations and user query responses
