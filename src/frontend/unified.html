@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Intelligence Hub - Unified Interface</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <style>
+        .unified-container {
+            height: calc(100vh - var(--header-height) - 2rem);
+            margin: 1rem auto;
+            padding: 0 var(--padding-lg);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            overflow: hidden;
+        }
+
+        .vision-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .query-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        .vision-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .query-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .video-container {
+            position: relative;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.9);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 0.5rem;
+            flex-grow: 1;
+        }
+
+        .video-preview {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-md);
+            background: linear-gradient(to bottom right, #101010, #232323);
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .video-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: var(--radius-md);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .query-input-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .query-input-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .query-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .query-button {
+            padding: 0.75rem 1.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .query-button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .query-examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .example-query {
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .example-query:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .response-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .response-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .response-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .response-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 0.3rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.15rem;
+            font-weight: 600;
+            font-size: 0.65rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .settings-label {
+            margin-bottom: 0.3rem;
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        textarea,
+        input,
+        select {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            padding: 0.35rem 0.5rem;
+            width: 100%;
+            background-color: #fff;
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        textarea:focus,
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        textarea[readonly] {
+            background-color: var(--bg-secondary);
+            cursor: default;
+        }
+
+        #instructionText {
+            height: 60px;
+            resize: none;
+        }
+
+        /* Parameter grid */
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
+        }
+
+        .parameter-grid .form-group:first-child {
+            grid-column: 1 / -1;
+        }
+
+        .parameter-grid .start-button {
+            grid-column: 1 / -1;
+        }
+
+        .controls-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 0.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .control-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 0.15rem;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 0.3rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.7rem;
+            background-color: #fff;
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .start-button {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+        }
+
+        .start-button.danger {
+            background: var(--error);
+        }
+
+        .start-button.danger:hover {
+            background-color: rgba(220, 38, 38, 0.9);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            padding: 1rem;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-light);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-disconnected {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        /* Navigation links */
+        .header-status a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        .header-status a:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .unified-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .vision-panel, .query-panel {
+                height: auto;
+                min-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .unified-container {
+                padding: 0 1rem;
+                margin: 0.5rem auto;
+            }
+            
+            .query-input-group {
+                flex-direction: column;
+            }
+            
+            .query-examples {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-brain"></i>
+            <span>Vision Intelligence Hub - Unified Interface</span>
+        </div>
+        <div class="header-status">
+            <div id="connectionStatus" class="status-item status-disconnected">
+                <span class="status-dot"></span>
+                <span>Disconnected</span>
+            </div>
+            <a href="index.html" class="status-item" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-home"></i>
+                <span>Main App</span>
+            </a>
+            <a href="query.html" class="status-item" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-search"></i>
+                <span>Query Only</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="unified-container">
+            <!-- Vision Analysis Panel -->
+            <div class="vision-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-video"></i>
+                        Vision Analysis
+                    </h2>
+                </div>
+                
+                <div class="vision-content">
+                    <!-- Video Container -->
+                    <div class="video-container">
+                        <video id="videoFeed" class="video-preview" autoplay playsinline></video>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                    </div>
+                    
+                    <!-- Controls Section -->
+                    <div class="controls-section">
+                        <div class="form-group">
+                            <label for="instructionText">Ask about the image:</label>
+                            <textarea id="instructionText" rows="2" placeholder="Enter question about the image..."></textarea>
+                        </div>
+
+                        <div class="settings-label">
+                            <strong>Processing Settings:</strong>
+                        </div>
+
+                        <div class="parameter-grid">
+                            <div class="form-group">
+                                <label for="cameraSelect">Camera Selection</label>
+                                <select id="cameraSelect" class="control-input"></select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="intervalSelect">Capture Rate</label>
+                                <select id="intervalSelect" class="control-input">
+                                    <option value="2000">2 seconds</option>
+                                    <option value="3000">3 seconds</option>
+                                    <option value="5000">5 seconds</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="qualitySelect">Image Quality</label>
+                                <select id="qualitySelect" class="control-input">
+                                    <option value="0.7">Fast</option>
+                                    <option value="0.8">Medium</option>
+                                    <option value="0.9" selected>High</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="tokensSelect">Max Tokens</label>
+                                <select id="tokensSelect" class="control-input">
+                                    <option value="100" selected>100</option>
+                                    <option value="200">200</option>
+                                    <option value="300">300</option>
+                                </select>
+                            </div>
+                            
+                            <button id="startButton" class="start-button">
+                                <i class="fas fa-play"></i>
+                                <span>Start Vision Analysis</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Panel -->
+            <div class="query-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-search"></i>
+                        State Query
+                    </h2>
+                </div>
+                
+                <div class="query-content">
+                    <!-- Query Input Section -->
+                    <div class="query-input-section">
+                        <div class="query-input-group">
+                            <input 
+                                type="text" 
+                                id="queryInput" 
+                                class="query-input" 
+                                placeholder="Ask about your current state... (e.g., What step am I on?)"
+                                autocomplete="off"
+                            >
+                            <button id="queryButton" class="query-button">
+                                <i class="fas fa-search"></i>
+                                Query
+                            </button>
+                        </div>
+                        
+                        <div class="query-examples">
+                            <div class="example-query" data-query="Where am I?">Where am I?</div>
+                            <div class="example-query" data-query="What is the current step?">What is the current step?</div>
+                            <div class="example-query" data-query="What tools do I need?">What tools do I need?</div>
+                            <div class="example-query" data-query="What's my progress?">What's my progress?</div>
+                            <div class="example-query" data-query="Help me with this step">Help me with this step</div>
+                            <div class="example-query" data-query="What's next?">What's next?</div>
+                            <div class="example-query" data-query="Give me an overview">Give me an overview</div>
+                            <div class="example-query" data-query="What equipment is required?">What equipment is required?</div>
+                        </div>
+                    </div>
+
+                    <!-- Response Section -->
+                    <div class="response-section">
+                        <div class="response-content">
+                            <div id="responseLoading" class="loading" style="display: none;">
+                                <div class="spinner"></div>
+                                Processing your query...
+                            </div>
+                            
+                            <div id="responseText" class="response-text">
+                                Welcome to the unified interface! You can now see your camera feed on the left and query your current state on the right.
+                            </div>
+                            
+                            <div id="responseMeta" class="response-meta" style="display: none;">
+                                <div class="meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span id="processingTime">-</span>ms
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span id="queryType">-</span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-percentage"></i>
+                                    <span id="confidence">-</span>% confidence
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript Modules -->
+    <script type="module" src="js/unified-app.js"></script>
+</body>
+</html> 

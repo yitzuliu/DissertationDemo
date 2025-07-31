@@ -67,9 +67,13 @@ class QueryProcessor:
             ]
         }
     
-    def _classify_query(self, query: str) -> QueryType:
+    def _classify_query(self, query: str, query_id: str = None, log_manager = None) -> QueryType:
         """Classify user query based on keyword patterns with improved accuracy"""
         query_lower = query.lower().strip()
+        
+        # 記錄分類開始
+        if query_id and log_manager:
+            log_manager.log_query_classify_start(query_id, query)
         
         # Define priority order for query types (more specific first)
         priority_order = [
@@ -85,8 +89,21 @@ class QueryProcessor:
         for query_type in priority_order:
             patterns = self.query_patterns.get(query_type, [])
             for pattern in patterns:
+                # 記錄模式檢查過程
+                if query_id and log_manager:
+                    log_manager.log_query_pattern_check(query_id, pattern, query_type.value)
+                
                 if re.search(pattern, query_lower):
+                    # 記錄模式匹配成功
+                    if query_id and log_manager:
+                        log_manager.log_query_pattern_match(query_id, query_type.value, pattern)
+                        # 記錄分類最終結果
+                        log_manager.log_query_classify_result(query_id, query_type.value, 0.9)
                     return query_type
+        
+        # 記錄分類結果（未找到匹配）
+        if query_id and log_manager:
+            log_manager.log_query_classify_result(query_id, QueryType.UNKNOWN.value, 0.3)
         
         return QueryType.UNKNOWN
     
@@ -169,13 +186,36 @@ class QueryProcessor:
             # Fallback response in case of any error
             return f"Sorry, I encountered an error while processing your query. You are currently on step {step_index} of task '{task_id}'."
     
-    def process_query(self, query: str, current_state: Optional[Dict[str, Any]]) -> QueryResult:
+    def _get_response_type(self, query_type: QueryType, state_data: Optional[Dict[str, Any]]) -> str:
+        """Determine response type for logging"""
+        if not state_data:
+            return "no_state_message"
+        
+        if query_type == QueryType.CURRENT_STEP:
+            return "current_step_info"
+        elif query_type == QueryType.NEXT_STEP:
+            return "next_step_info"
+        elif query_type == QueryType.REQUIRED_TOOLS:
+            return "tools_info"
+        elif query_type == QueryType.COMPLETION_STATUS:
+            return "completion_info"
+        elif query_type == QueryType.PROGRESS_OVERVIEW:
+            return "progress_overview"
+        elif query_type == QueryType.HELP:
+            return "help_info"
+        else:
+            return "unknown_response"
+    
+    def process_query(self, query: str, current_state: Optional[Dict[str, Any]], 
+                     query_id: str = None, log_manager = None) -> QueryResult:
         """
         Process user query and generate instant response.
         
         Args:
             query: User's natural language query
             current_state: Current state data from State Tracker
+            query_id: Optional query ID for logging
+            log_manager: Optional log manager for detailed logging
             
         Returns:
             QueryResult with response and metadata
@@ -183,14 +223,38 @@ class QueryProcessor:
         try:
             start_time = time.time()
             
-            # Classify query
-            query_type = self._classify_query(query)
+            # 記錄處理開始
+            if query_id and log_manager:
+                state_keys = list(current_state.keys()) if current_state else []
+                log_manager.log_query_process_start(query_id, query, state_keys)
+            
+            # Classify query with detailed logging
+            query_type = self._classify_query(query, query_id, log_manager)
+            
+            # 記錄狀態查找
+            if query_id and log_manager:
+                state_found = bool(current_state)
+                state_info = {
+                    'has_task_id': 'task_id' in (current_state or {}),
+                    'has_step_index': 'step_index' in (current_state or {}),
+                    'state_keys': list((current_state or {}).keys())
+                }
+                log_manager.log_query_state_lookup(query_id, state_found, state_info)
             
             # Generate response
             response_text = self._generate_response(query_type, current_state)
             
+            # 記錄回應生成
+            if query_id and log_manager:
+                response_type = self._get_response_type(query_type, current_state)
+                log_manager.log_query_response_generate(query_id, response_type, len(response_text))
+            
             # Calculate processing time
             processing_time = (time.time() - start_time) * 1000
+            
+            # 記錄處理完成
+            if query_id and log_manager:
+                log_manager.log_query_process_complete(query_id, processing_time)
             
             # Simple confidence based on pattern matching
             confidence = 0.9 if query_type != QueryType.UNKNOWN else 0.3

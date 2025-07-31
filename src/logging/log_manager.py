@@ -278,6 +278,96 @@ class LogManager:
         )
         self.loggers[LogType.USER].info(message)
     
+    # Stage 3.2: 新增詳細查詢處理日誌方法
+    def log_query_classify_start(self, query_id: str, query: str):
+        """記錄查詢分類開始"""
+        message = self._format_log_message(
+            "QUERY_CLASSIFY_START",
+            query_id=query_id,
+            query=f'"{query}"'
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_pattern_check(self, query_id: str, pattern: str, query_type: str):
+        """記錄模式檢查過程"""
+        message = self._format_log_message(
+            "QUERY_PATTERN_CHECK",
+            query_id=query_id,
+            checking_pattern=f'"{pattern}"',
+            type=query_type
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_pattern_match(self, query_id: str, query_type: str, pattern: str):
+        """記錄模式匹配成功"""
+        message = self._format_log_message(
+            "QUERY_PATTERN_MATCH",
+            query_id=query_id,
+            type=query_type,
+            pattern=f'"{pattern}"'
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_classify_result(self, query_id: str, query_type: str, confidence: float):
+        """記錄分類最終結果"""
+        message = self._format_log_message(
+            "QUERY_CLASSIFY_RESULT",
+            query_id=query_id,
+            final_type=query_type,
+            confidence=confidence
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_process_start(self, query_id: str, query: str, state_keys: list):
+        """記錄查詢處理開始"""
+        message = self._format_log_message(
+            "QUERY_PROCESS_START",
+            query_id=query_id,
+            query=f'"{query}"',
+            state_keys=str(state_keys)
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_state_lookup(self, query_id: str, state_found: bool, state_info: dict):
+        """記錄狀態查找過程"""
+        message = self._format_log_message(
+            "QUERY_STATE_LOOKUP",
+            query_id=query_id,
+            state_found=state_found,
+            has_task_id=state_info.get('has_task_id', False),
+            has_step_index=state_info.get('has_step_index', False),
+            state_keys=state_info.get('state_keys', [])
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_response_generate(self, query_id: str, response_type: str, response_length: int):
+        """記錄回應生成過程"""
+        message = self._format_log_message(
+            "QUERY_RESPONSE_GENERATE",
+            query_id=query_id,
+            response_type=response_type,
+            response_length=response_length
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_process_complete(self, query_id: str, processing_time: float):
+        """記錄查詢處理完成"""
+        message = self._format_log_message(
+            "QUERY_PROCESS_COMPLETE",
+            query_id=query_id,
+            processing_time=f"{processing_time:.1f}ms"
+        )
+        self.loggers[LogType.USER].info(message)
+    
+    def log_query_received(self, query_id: str, query: str):
+        """記錄查詢接收"""
+        message = self._format_log_message(
+            "QUERY_RECEIVED",
+            query_id=query_id,
+            query=f'"{query}"'
+        )
+        self.loggers[LogType.USER].info(message)
+    
     # 流程追蹤日誌記錄方法
     def log_flow_start(self, flow_id: str, flow_type: str):
         """記錄流程開始"""
