@@ -36,6 +36,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'logging'))
 from system_logger import get_system_logger, initialize_system_logger
 from visual_logger import get_visual_logger
+from log_manager import get_log_manager
 
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -702,6 +703,40 @@ async def process_vlm_text(request: dict):
         
         raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")
 
+# 新增：日誌記錄端點
+@app.post("/api/v1/logging/user_query")
+async def log_user_query(request: dict):
+    """記錄使用者查詢"""
+    try:
+        query_id = request.get('query_id')
+        query = request.get('query')
+        language = request.get('language', 'en')
+        timestamp = request.get('timestamp')
+        user_agent = request.get('user_agent')
+        observation_id = request.get('observation_id')  # 可選的關聯ID
+        
+        if not query_id or not query:
+            raise HTTPException(status_code=400, detail="query_id and query are required")
+        
+        # 使用現有的 log_manager
+        log_manager = get_log_manager()
+        
+        # 記錄使用者查詢
+        log_manager.log_user_query(
+            query_id=query_id,
+            request_id=log_manager.generate_request_id(),
+            question=query,
+            language=language,
+            used_observation_id=observation_id  # 關聯 observation_id
+        )
+        
+        return {"status": "logged", "query_id": query_id}
+        
+    except Exception as e:
+        logger.error(f"Failed to log user query: {str(e)}")
+        # 不拋出異常，避免影響主要功能
+        return {"status": "error", "message": str(e)}
+
 @app.post("/api/v1/state/query")
 async def process_instant_query(request: dict):
     """Process instant user query for immediate response"""
@@ -717,8 +752,17 @@ async def process_instant_query(request: dict):
         if len(query) > 500:  # Reasonable limit
             raise HTTPException(status_code=400, detail="Query too long (max 500 characters)")
         
+        # 新增：獲取 query_id（向後兼容）
+        query_id = request.get("query_id")
+        
         state_tracker = get_state_tracker()
-        result = state_tracker.process_instant_query(query)
+        
+        # 修改：傳遞 query_id（如果有的話）
+        if query_id:
+            result = state_tracker.process_instant_query(query, query_id=query_id)
+        else:
+            # 向後兼容：如果沒有 query_id，使用現有邏輯
+            result = state_tracker.process_instant_query(query)
         
         # Validate result
         if not result or not hasattr(result, 'response_text'):

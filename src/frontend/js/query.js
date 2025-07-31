@@ -40,6 +40,66 @@ class StateQuerySystem {
         });
     }
 
+    // 新增：生成 query_id 的方法（與後端格式一致）
+    generateQueryId() {
+        const timestamp = Date.now(); // 毫秒級時間戳
+        const random = Math.random().toString(36).substr(2, 8); // 8位隨機字符
+        return `query_${timestamp}_${random}`;
+    }
+
+    // 新增：語言檢測
+    detectLanguage(text) {
+        const chinesePattern = /[\u4e00-\u9fff]/;
+        const englishPattern = /[a-zA-Z]/;
+        
+        if (chinesePattern.test(text)) {
+            return 'zh';
+        } else if (englishPattern.test(text)) {
+            return 'en';
+        } else {
+            return 'unknown';
+        }
+    }
+
+    // 新增：異步記錄使用者查詢（不阻塞主要流程）
+    async logUserQuery(query_id, query) {
+        try {
+            const logData = {
+                query_id: query_id,
+                query: query,
+                language: this.detectLanguage(query),
+                timestamp: new Date().toISOString(),
+                user_agent: navigator.userAgent,
+                // 新增：嘗試關聯當前的 observation_id（如果有的話）
+                observation_id: this.getCurrentObservationId()
+            };
+
+            // 使用 Promise.race 確保不會阻塞太久
+            const logPromise = fetch(`${this.apiBaseUrl}/logging/user_query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(logData)
+            });
+
+            // 設置超時，避免阻塞
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Log timeout')), 1000)
+            );
+
+            await Promise.race([logPromise, timeoutPromise]);
+        } catch (error) {
+            // 日誌記錄失敗不影響主要功能
+            console.warn('Failed to log user query:', error);
+        }
+    }
+
+    // 新增：獲取當前 observation_id（如果有的話）
+    getCurrentObservationId() {
+        // 這裡可以從全局狀態或其他地方獲取當前的 observation_id
+        // 暫時返回 null，後續可以實現關聯邏輯
+        return null;
+    }
+
     async checkConnection() {
         try {
             const response = await fetch(`${this.apiBaseUrl}/state`);
@@ -94,12 +154,22 @@ class StateQuerySystem {
         try {
             const startTime = performance.now();
             
+            // 新增：生成 query_id
+            const query_id = this.generateQueryId();
+            
+            // 新增：異步記錄使用者查詢（不等待完成）
+            this.logUserQuery(query_id, query);
+            
+            // 修改：發送查詢時包含 query_id
             const response = await fetch(`${this.apiBaseUrl}/state/query`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ query: query })
+                body: JSON.stringify({ 
+                    query: query,
+                    query_id: query_id  // 新增：傳送 query_id
+                })
             });
 
             const endTime = performance.now();
