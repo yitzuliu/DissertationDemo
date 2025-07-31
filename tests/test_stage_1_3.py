@@ -15,7 +15,7 @@ import logging
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from memory.rag.knowledge_base import RAGKnowledgeBase
 from memory.rag.performance_tester import PerformanceTester

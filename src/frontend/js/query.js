@@ -99,7 +99,6 @@ class StateQuerySystem {
         // 暫時返回 null，後續可以實現關聯邏輯
         return null;
     }
-
     async checkConnection() {
         try {
             const response = await fetch(`${this.apiBaseUrl}/state`);
@@ -148,6 +147,14 @@ class StateQuerySystem {
             this.showError('Not connected to backend. Please check if the server is running.');
             return;
         }
+
+        // 生成唯一ID
+        const queryId = this.generateQueryId();
+        const requestId = this.generateRequestId();
+        const flowId = this.generateFlowId();
+
+        // 記錄使用者查詢日誌
+        this.logUserQuery(query, queryId, requestId);
 
         this.showLoading();
         

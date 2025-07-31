@@ -34,8 +34,8 @@ async def test_backend_api():
         # Test 2: State Query
         print("\n📋 Test 2: State Query API")
         test_queries = [
-            "我在哪個步驟？",
-            "下一步是什麼？",
+            "What step am I on?",
+            "What's the next step?",
             "current step",
             "help"
         ]

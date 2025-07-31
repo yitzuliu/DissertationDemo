@@ -17,8 +17,16 @@ import pickle
 from dataclasses import dataclass, asdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
-from .task_loader import TaskKnowledge, TaskStep
-from .vector_search import ChromaVectorSearchEngine
+try:
+    from .task_loader import TaskKnowledge, TaskStep
+    from .vector_search import ChromaVectorSearchEngine
+except ImportError:
+    # Handle standalone execution
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    from src.memory.rag.task_loader import TaskKnowledge, TaskStep
+    from src.memory.rag.vector_search import ChromaVectorSearchEngine
 
 logger = logging.getLogger(__name__)
 
