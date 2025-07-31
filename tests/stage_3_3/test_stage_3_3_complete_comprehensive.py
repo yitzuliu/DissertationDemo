@@ -98,7 +98,7 @@ class Stage33ComprehensiveTester:
             print(f"⚠️ Error cleaning up port {port}: {e}")
     
     def start_model_service(self):
-        """啟動模型服務"""
+        """Start model service"""
         print("🚀 Step 1: Starting model service (SmolVLM)")
         print("=" * 50)
         
@@ -153,7 +153,7 @@ class Stage33ComprehensiveTester:
         return False
     
     def check_model_service(self):
-        """檢查模型服務是否正常運行"""
+        """Check if model service is running normally"""
         try:
             # Check process status
             if self.model_process and self.model_process.poll() is not None:
@@ -185,7 +185,7 @@ class Stage33ComprehensiveTester:
     
 
     def start_backend_service(self):
-        """啟動後端服務"""
+        """Start backend service"""
         print("\n🚀 Step 3: Starting backend service")
         print("=" * 50)
         
@@ -243,7 +243,7 @@ class Stage33ComprehensiveTester:
         return False
     
     def check_backend_service(self):
-        """檢查後端服務是否正常運行"""
+        """Check if backend service is running normally"""
         try:
             # Check process status
             if self.backend_process and self.backend_process.poll() is not None:
@@ -263,7 +263,7 @@ class Stage33ComprehensiveTester:
             return False
     
     def setup_chrome_driver(self):
-        """設置Chrome瀏覽器驅動"""
+        """Setup Chrome browser driver"""
         print("🌐 Setting up browser automation environment...")
         try:
             # Check Chrome installation
@@ -337,7 +337,7 @@ class Stage33ComprehensiveTester:
             print(f"   📄 Opening frontend page: {index_path}")
             self.driver.get(f"file://{index_path}")
             
-            # 等待頁面完全加載
+            # Wait for page to fully load
             wait = WebDriverWait(self.driver, 15)
             
             # Wait and find Start button
@@ -407,42 +407,42 @@ class Stage33ComprehensiveTester:
             self.query_driver.get(f"file://{query_path}")
             time.sleep(2)
             
-            # 讓VLM觀察運行一段時間，觀察步驟變化
+            # Let VLM observations run for a period of time, observe step changes
             print("👁️ Let VLM observation run for 120 seconds, monitoring step changes...")
             observation_start = time.time()
             step_observations = []
             step_consistency_check = []
             
-            # 每15秒檢查一次當前步驟
-            for check_round in range(8):  # 120秒 / 15秒 = 8次檢查
+            # Check current step every 15 seconds
+            for check_round in range(8):  # 120 seconds / 15 seconds = 8 checks
                 time.sleep(15)
                 elapsed_time = time.time() - observation_start
                 
                 try:
-                    # 執行查詢檢查當前步驟
+                    # Execute query to check current step
                     query_input = self.query_driver.find_element(By.ID, "queryInput")
                     query_input.clear()
-                    query_input.send_keys("我現在在第幾步？當前狀態是什麼？")
+                    query_input.send_keys("What step am I on? What is my current status?")
                     
-                    # 記錄初始響應文字
+                    # Record initial response text
                     initial_response = self.query_driver.find_element(By.ID, "responseText").text.strip()
                     
                     query_button = self.query_driver.find_element(By.ID, "queryButton")
                     query_start_time = time.time()
                     query_button.click()
                     
-                    # 修正等待邏輯：等待響應文字發生變化
+                    # Fix waiting logic: wait for response text to change
                     WebDriverWait(self.query_driver, 10).until(
                         lambda driver: driver.find_element(By.ID, "responseText").text.strip() != initial_response
                     )
                     
-                    time.sleep(1)  # 給一點時間讓響應完全更新
+                    time.sleep(1)  # Give some time for response to fully update
                     
                     response_element = self.query_driver.find_element(By.ID, "responseText")
                     response_text = response_element.text
                     query_end_time = time.time()
                     
-                    # 分析步驟信息
+                    # Analyze step information
                     step_info = self.extract_step_info(response_text)
                     
                     observation = {
@@ -468,31 +468,31 @@ class Stage33ComprehensiveTester:
                     })
                     step_consistency_check.append(-1)
             
-            # 分析端到端工作流程結果
+            # Analyze end-to-end workflow results
             print("📊 Analyzing end-to-end workflow results...")
             valid_responses = [obs for obs in step_observations if obs.get("response", "")]
             valid_step_info = [obs for obs in step_observations if obs.get("step_info", {}).get("step_number", -1) >= 0]
             
-            # 檢查步驟一致性（是否維持在步驟0或1）
+            # Check step consistency (whether it stays at step 0 or 1)
             valid_steps = [step for step in step_consistency_check if step >= 0]
-            step_consistency = len(set(valid_steps)) <= 2 if valid_steps else False  # 最多2個不同步驟
+            step_consistency = len(set(valid_steps)) <= 2 if valid_steps else False  # At most 2 different steps
             most_common_step = max(set(valid_steps), key=valid_steps.count) if valid_steps else -1
             
-            # 計算平均響應時間
+            # Calculate average response time
             response_times = [obs.get("response_time_ms", 0) for obs in step_observations if "response_time_ms" in obs]
             avg_response_time = statistics.mean(response_times) if response_times else 0
             
-            # 評估測試結果
+            # Evaluate test results
             success_criteria = {
-                "valid_responses": len(valid_responses) >= 6,  # 至少6次有效響應
-                "step_detection": len(valid_step_info) >= 4,   # 至少4次檢測到步驟
-                "step_consistency": step_consistency,          # 步驟保持一致性
-                "response_time": avg_response_time < 5000      # 平均響應時間 < 5秒
+                "valid_responses": len(valid_responses) >= 6,  # At least 6 valid responses
+                "step_detection": len(valid_step_info) >= 4,   # At least 4 step detections
+                "step_consistency": step_consistency,          # Step consistency maintained
+                "response_time": avg_response_time < 5000      # Average response time < 5 seconds
             }
             
             all_passed = all(success_criteria.values())
             
-            # 記錄詳細結果
+            # Record detailed results
             self.test_results['end_to_end_workflow']['details'] = {
                 "total_checks": len(step_observations),
                 "valid_responses": len(valid_responses),
@@ -524,18 +524,18 @@ class Stage33ComprehensiveTester:
             return False
     
     def extract_step_info(self, response_text):
-        """從響應文本中提取步驟信息"""
+        """Extract step information from response text"""
         step_info = {"step_number": -1, "step_description": ""}
         
-        # 尋找步驟數字
+        # Look for step numbers
         import re
         step_patterns = [
-            r'第(\d+)步',
-            r'步驟(\d+)',
+            r'step (\d+)',
+            r'step(\d+)',
             r'step\s*(\d+)',
             r'Step\s*(\d+)',
-            r'現在在(\d+)',
-            r'當前步驟[：:]?\s*(\d+)'
+            r'currently at (\d+)',
+            r'current step[：:]?\s*(\d+)'
         ]
         
         for pattern in step_patterns:
@@ -547,13 +547,13 @@ class Stage33ComprehensiveTester:
                 except:
                     continue
         
-        # 如果沒找到明確數字，檢查是否提到"開始"、"準備"等
+        # If no clear number found, check if it mentions "start", "prepare", etc.
         if step_info["step_number"] == -1:
-            start_keywords = ["開始", "準備", "初始", "第一", "start", "begin", "initial"]
+            start_keywords = ["start", "prepare", "initial", "first", "begin"]
             if any(keyword in response_text.lower() for keyword in start_keywords):
                 step_info["step_number"] = 0
         
-        step_info["step_description"] = response_text[:100]  # 保留前100字符作為描述
+        step_info["step_description"] = response_text[:100]  # Keep first 100 characters as description
         return step_info
     
     def test_2_dual_loop_coordination(self):
@@ -564,19 +564,19 @@ class Stage33ComprehensiveTester:
         try:
             print("🔄 Verifying dual loop coordinated operation...")
             
-            # 檢查潛意識循環和即時響應循環的協同
+            # Check coordination between subconscious loop and immediate response loop
             unconscious_loop_checks = []
             instant_response_checks = []
             coordination_checks = []
             
-            test_duration = 90  # 1.5分鐘測試
-            check_interval = 10  # 每10秒檢查一次
+            test_duration = 90  # 1.5 minute test
+            check_interval = 10  # Check every 10 seconds
             start_time = time.time()
             
             while time.time() - start_time < test_duration:
                 current_time = time.time() - start_time
                 
-                # 檢查潛意識循環狀態（通過後端API）
+                # Check subconscious loop status (via backend API)
                 try:
                     backend_response = requests.get(f"http://localhost:{self.backend_port}/api/v1/state", timeout=5)
                     unconscious_status = {
@@ -603,26 +603,26 @@ class Stage33ComprehensiveTester:
                         "error": str(e)
                     })
                 
-                # 測試即時響應循環
+                # Test immediate response loop
                 try:
-                    # 執行即時查詢
+                    # Execute immediate query
                     query_input = self.query_driver.find_element(By.ID, "queryInput")
                     query_input.clear()
-                    query_input.send_keys(f"雙循環狀態檢查 {int(current_time)}")
+                    query_input.send_keys(f"Dual loop status check {int(current_time)}")
                     
-                    # 記錄初始響應文字
+                    # Record initial response text
                     initial_response = self.query_driver.find_element(By.ID, "responseText").text.strip()
                     
                     query_button = self.query_driver.find_element(By.ID, "queryButton")
                     query_start = time.time()
                     query_button.click()
                     
-                    # 修正等待邏輯：等待響應文字發生變化
+                    # Fix waiting logic: wait for response text to change
                     WebDriverWait(self.query_driver, 10).until(
                         lambda driver: driver.find_element(By.ID, "responseText").text.strip() != initial_response
                     )
                     
-                    time.sleep(1)  # 給一點時間讓響應完全更新
+                    time.sleep(1)  # Give some time for response to fully update
                     
                     response_element = self.query_driver.find_element(By.ID, "responseText")
                     response_text = response_element.text
@@ -636,7 +636,7 @@ class Stage33ComprehensiveTester:
                         "response": response_text
                     })
                     
-                    # 檢查雙循環協同性：潛意識循環的狀態是否反映在即時響應中
+                    # Check dual loop coordination: whether subconscious loop status is reflected in immediate response
                     if unconscious_loop_checks and instant_response_checks:
                         latest_unconscious = unconscious_loop_checks[-1]
                         latest_instant = instant_response_checks[-1]
@@ -660,10 +660,10 @@ class Stage33ComprehensiveTester:
                         "error": str(e)
                     })
                 
-                print(f"🔄 雙循環檢查 {len(unconscious_loop_checks)}: {current_time:.1f}s")
+                print(f"🔄 Dual loop check {len(unconscious_loop_checks)}: {current_time:.1f}s")
                 time.sleep(check_interval)
             
-            # 分析雙循環協同結果
+            # Analyze dual loop coordination results
             unconscious_success = sum(1 for check in unconscious_loop_checks 
                                     if check.get("backend_accessible", False))
             unconscious_rate = (unconscious_success / len(unconscious_loop_checks)) * 100
@@ -676,17 +676,17 @@ class Stage33ComprehensiveTester:
                                      if check.get("coordination_success", False))
             coordination_rate = (coordination_success / len(coordination_checks)) * 100 if coordination_checks else 0
             
-            # 計算平均響應時間
+            # Calculate average response time
             response_times = [check.get("response_time_ms", 0) for check in instant_response_checks 
                             if "response_time_ms" in check]
             avg_response_time = statistics.mean(response_times) if response_times else 0
             
-            print(f"🧠 潛意識循環成功率: {unconscious_rate:.1f}% ({unconscious_success}/{len(unconscious_loop_checks)})")
-            print(f"⚡ 即時響應循環成功率: {instant_rate:.1f}% ({instant_success}/{len(instant_response_checks)})")
-            print(f"🔄 雙循環協同成功率: {coordination_rate:.1f}% ({coordination_success}/{len(coordination_checks)})")
-            print(f"⏱️ 平均響應時間: {avg_response_time:.1f}ms")
+            print(f"🧠 Subconscious loop success rate: {unconscious_rate:.1f}% ({unconscious_success}/{len(unconscious_loop_checks)})")
+            print(f"⚡ Immediate response loop success rate: {instant_rate:.1f}% ({instant_success}/{len(instant_response_checks)})")
+            print(f"🔄 Dual loop coordination success rate: {coordination_rate:.1f}% ({coordination_success}/{len(coordination_checks)})")
+            print(f"⏱️ Average response time: {avg_response_time:.1f}ms")
             
-            # 雙循環協同成功標準
+            # Dual loop coordination success criteria
             success_criteria = {
                 "unconscious_loop": unconscious_rate >= 80,
                 "instant_response": instant_rate >= 80,
@@ -696,7 +696,7 @@ class Stage33ComprehensiveTester:
             
             coordination_success = all(success_criteria.values())
             
-            # 記錄詳細結果
+            # Record detailed results
             self.test_results['dual_loop_coordination']['details'] = {
                 "unconscious_success_rate": unconscious_rate,
                 "instant_response_rate": instant_rate,
@@ -706,7 +706,7 @@ class Stage33ComprehensiveTester:
             }
             
             if coordination_success:
-                print("✅ 跨服務雙循環協同測試成功")
+                print("✅ Cross-service dual loop coordination test successful")
                 self.test_results['dual_loop_coordination']['passed'] = True
                 return True
             else:

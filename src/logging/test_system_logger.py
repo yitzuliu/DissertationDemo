@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-系統日誌記錄器測試腳本
+System Logger Test Script
 
-測試 SystemLogger 的各項功能
+Test various functionalities of SystemLogger
 """
 
 import os
@@ -11,7 +11,7 @@ import time
 import asyncio
 from datetime import datetime
 
-# 添加當前目錄到路徑
+# Add current directory to path
 sys.path.append(os.path.dirname(__file__))
 
 from system_logger import (
@@ -21,14 +21,14 @@ from system_logger import (
 
 
 def test_basic_functionality():
-    """測試基本功能"""
-    print("=== 測試基本功能 ===")
+    """Test basic functionality"""
+    print("=== Testing Basic Functionality ===")
     
-    # 初始化系統日誌記錄器
+    # Initialize system logger
     system_logger = initialize_system_logger("test_system_001")
-    print(f"系統ID: {system_logger.system_id}")
+    print(f"System ID: {system_logger.system_id}")
     
-    # 測試系統啟動日誌
+    # Test system startup logging
     system_logger.log_system_startup(
         host="localhost",
         port=8000,
@@ -37,15 +37,15 @@ def test_basic_functionality():
         debug_mode=True
     )
     
-    # 測試記憶體和CPU使用記錄
+    # Test memory and CPU usage logging
     system_logger.log_memory_usage("startup")
     system_logger.log_cpu_usage("startup")
     
-    # 測試連線狀態記錄
+    # Test connection status logging
     system_logger.log_connection_status("frontend", "CONNECTED", "WebSocket established")
     system_logger.log_connection_status("model_server", "CONNECTED", "HTTP connection ready")
     
-    # 測試端點呼叫記錄
+    # Test endpoint call logging
     system_logger.log_endpoint_call(
         method="POST",
         path="/api/process_image",
@@ -55,7 +55,7 @@ def test_basic_functionality():
         content_length=1024
     )
     
-    # 測試錯誤記錄
+    # Test error logging
     system_logger.log_error(
         error_type="ValidationError",
         error_message="Invalid image format",
@@ -63,11 +63,11 @@ def test_basic_functionality():
         request_id="req_123456"
     )
     
-    # 測試性能指標記錄
+    # Test performance metric logging
     system_logger.log_performance_metric("image_processing_time", 0.234, "s", "vlm_inference")
     system_logger.log_performance_metric("memory_peak", 512.5, "MB", "image_processing")
     
-    # 測試健康檢查記錄
+    # Test health check logging
     system_logger.log_health_check(
         component="vlm_model",
         status="HEALTHY",
@@ -75,22 +75,22 @@ def test_basic_functionality():
         details={"model_loaded": True, "gpu_available": True}
     )
     
-    # 獲取系統資訊
+    # Get system information
     system_info = system_logger.get_system_info()
-    print(f"系統資訊: {system_info}")
+    print(f"System Information: {system_info}")
     
-    # 測試系統關閉日誌
-    time.sleep(1)  # 模擬運行時間
+    # Test system shutdown logging
+    time.sleep(1)  # Simulate running time
     system_logger.log_system_shutdown()
     
-    print("基本功能測試完成")
+    print("Basic functionality test completed")
 
 
 def test_convenience_functions():
-    """測試便捷函數"""
-    print("\n=== 測試便捷函數 ===")
+    """Test convenience functions"""
+    print("\n=== Testing Convenience Functions ===")
     
-    # 使用便捷函數
+    # Use convenience functions
     log_startup(host="0.0.0.0", port=8080, model="test_model", version="1.0")
     log_memory()
     log_connection("database", "CONNECTED", "PostgreSQL ready")
@@ -98,33 +98,33 @@ def test_convenience_functions():
     log_error("TimeoutError", "Request timeout after 30s", {"timeout": 30})
     log_shutdown()
     
-    print("便捷函數測試完成")
+    print("Convenience functions test completed")
 
 
 def test_concurrent_logging():
-    """測試並發日誌記錄"""
-    print("\n=== 測試並發日誌記錄 ===")
+    """Test concurrent logging"""
+    print("\n=== Testing Concurrent Logging ===")
     
     async def simulate_request(request_id: int):
-        """模擬請求處理"""
+        """Simulate request processing"""
         system_logger = get_system_logger()
         
-        # 模擬請求開始
+        # Simulate request start
         start_time = time.time()
         
-        # 記錄請求開始
+        # Log request start
         system_logger.log_connection_status(f"client_{request_id}", "CONNECTED")
         
-        # 模擬處理時間
+        # Simulate processing time
         await asyncio.sleep(0.1)
         
-        # 記錄記憶體使用
+        # Log memory usage
         system_logger.log_memory_usage(f"request_{request_id}")
         
-        # 模擬更多處理時間
+        # Simulate more processing time
         await asyncio.sleep(0.05)
         
-        # 記錄請求完成
+        # Log request completion
         duration = time.time() - start_time
         system_logger.log_endpoint_call(
             method="POST",
@@ -137,26 +137,26 @@ def test_concurrent_logging():
         system_logger.log_connection_status(f"client_{request_id}", "DISCONNECTED")
     
     async def run_concurrent_test():
-        """運行並發測試"""
-        # 創建多個並發請求
+        """Run concurrent test"""
+        # Create multiple concurrent requests
         tasks = [simulate_request(i) for i in range(5)]
         await asyncio.gather(*tasks)
     
-    # 運行並發測試
+    # Run concurrent test
     asyncio.run(run_concurrent_test())
     
-    print("並發日誌記錄測試完成")
+    print("Concurrent logging test completed")
 
 
 def test_error_handling():
-    """測試錯誤處理"""
-    print("\n=== 測試錯誤處理 ===")
+    """Test error handling"""
+    print("\n=== Testing Error Handling ===")
     
     system_logger = get_system_logger()
     
-    # 測試各種錯誤情況
+    # Test various error scenarios
     try:
-        # 模擬網路錯誤
+        # Simulate network error
         raise ConnectionError("Failed to connect to model server")
     except Exception as e:
         system_logger.log_error(
@@ -166,7 +166,7 @@ def test_error_handling():
         )
     
     try:
-        # 模擬處理錯誤
+        # Simulate processing error
         raise ValueError("Invalid input format")
     except Exception as e:
         system_logger.log_error(
@@ -176,7 +176,7 @@ def test_error_handling():
             request_id="req_error_test"
         )
     
-    # 測試健康檢查失敗
+    # Test health check failure
     system_logger.log_health_check(
         component="external_api",
         status="UNHEALTHY",
@@ -184,16 +184,16 @@ def test_error_handling():
         details={"error": "timeout", "last_success": "2024-01-01T10:00:00Z"}
     )
     
-    print("錯誤處理測試完成")
+    print("Error handling test completed")
 
 
 def test_performance_monitoring():
-    """測試性能監控"""
-    print("\n=== 測試性能監控 ===")
+    """Test performance monitoring"""
+    print("\n=== Testing Performance Monitoring ===")
     
     system_logger = get_system_logger()
     
-    # 模擬不同的性能指標
+    # Simulate different performance metrics
     metrics = [
         ("request_latency", 0.125, "s"),
         ("throughput", 150.5, "req/s"),
@@ -210,20 +210,20 @@ def test_performance_monitoring():
             unit=unit,
             context="performance_test"
         )
-        time.sleep(0.01)  # 小延遲模擬真實情況
+        time.sleep(0.01)  # Small delay to simulate real situation
     
-    # 記錄系統資源使用
+    # Log system resource usage
     for i in range(3):
         system_logger.log_memory_usage(f"monitoring_cycle_{i}")
         system_logger.log_cpu_usage(f"monitoring_cycle_{i}")
         time.sleep(0.1)
     
-    print("性能監控測試完成")
+    print("Performance monitoring test completed")
 
 
 def main():
-    """主測試函數"""
-    print("開始系統日誌記錄器測試")
+    """Main test function"""
+    print("Starting System Logger Test")
     print("=" * 50)
     
     try:
@@ -234,15 +234,15 @@ def main():
         test_performance_monitoring()
         
         print("\n" + "=" * 50)
-        print("所有測試完成！")
+        print("All tests completed!")
         
-        # 顯示最終系統資訊
+        # Display final system information
         system_logger = get_system_logger()
         final_info = system_logger.get_system_info()
-        print(f"最終系統資訊: {final_info}")
+        print(f"Final System Information: {final_info}")
         
     except Exception as e:
-        print(f"測試過程中發生錯誤: {e}")
+        print(f"Error occurred during testing: {e}")
         import traceback
         traceback.print_exc()
 

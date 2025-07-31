@@ -939,12 +939,12 @@ class VQAFramework:
                         if os.path.exists(temp_image_path):
                             os.remove(temp_image_path)
                     
-                    # MLX-VLM 可能返回元組或字符串，需要解析
+                    # MLX-VLM may return tuple or string, need to parse
                     if isinstance(response, tuple) and len(response) >= 1:
-                        # 如果是元組，取第一個元素作為文本回覆
+                        # If it's a tuple, take the first element as text response
                         text_response = str(response[0])
                     else:
-                        # 如果是字符串，直接使用
+                        # If it's a string, use directly
                         text_response = str(response)
                     
                     # Clean up response
@@ -1189,7 +1189,7 @@ class VQAFramework:
                             print(f"  ⚠️ MLX-VLM SmolVLM2 inference failed: {e}")
                             return f"MLX-VLM SmolVLM2 inference error: {str(e)}"
                     else:
-                        # 標準 SmolVLM 推理方式
+                        # Standard SmolVLM inference method
                         try:
                             messages = [
                                 {

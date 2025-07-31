@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-RAG日誌記錄演示
+RAG Logging Demo
 
-展示RAG匹配過程的完整日誌記錄功能。
+Demonstrates complete logging functionality for RAG matching process.
 """
 
 import sys
@@ -20,60 +20,60 @@ from state_tracker.state_tracker import get_state_tracker
 
 
 async def demonstrate_rag_logging():
-    """演示RAG日誌記錄功能"""
-    print("=== RAG日誌記錄演示 ===\n")
+    """Demonstrate RAG logging functionality"""
+    print("=== RAG Logging Demo ===\n")
     
     # Get log manager
     log_manager = get_log_manager()
     
     # Generate observation ID
     observation_id = log_manager.generate_observation_id()
-    print(f"生成觀察ID: {observation_id}")
+    print(f"Generated observation ID: {observation_id}")
     
     # Initialize RAG knowledge base
-    print("\n1. 初始化RAG知識庫...")
+    print("\n1. Initializing RAG knowledge base...")
     rag_kb = RAGKnowledgeBase()
     try:
         rag_kb.initialize(precompute_embeddings=False)
-        print("✓ RAG知識庫初始化成功")
+        print("✓ RAG knowledge base initialization successful")
     except Exception as e:
-        print(f"⚠ RAG知識庫初始化失敗: {e}")
+        print(f"⚠ RAG knowledge base initialization failed: {e}")
         return
     
     # Test different VLM observations
     test_observations = [
-        "我看到咖啡機上有一個紅色的電源按鈕",
-        "用戶正在將咖啡豆倒入研磨機",
-        "水壺裡的水正在加熱，溫度計顯示85度",
-        "咖啡正在滴濾到杯子裡，顏色很深",
-        "用戶正在清潔咖啡機的濾網"
+        "I can see a red power button on the coffee machine",
+        "The user is pouring coffee beans into the grinder",
+        "Water in the kettle is heating up, thermometer shows 85 degrees",
+        "Coffee is dripping into the cup, color is very dark",
+        "The user is cleaning the coffee machine filter"
     ]
     
-    print(f"\n2. 測試 {len(test_observations)} 個VLM觀察...")
+    print(f"\n2. Testing {len(test_observations)} VLM observations...")
     
     for i, observation in enumerate(test_observations, 1):
-        print(f"\n--- 測試 {i}: {observation} ---")
+        print(f"\n--- Test {i}: {observation} ---")
         
         # Generate new observation ID for each test
         obs_id = log_manager.generate_observation_id()
         
         # Test RAG knowledge base directly
-        print("直接測試RAG知識庫匹配...")
+        print("Testing RAG knowledge base matching directly...")
         match_result = rag_kb.find_matching_step(
             observation=observation,
             observation_id=obs_id
         )
         
         if match_result and match_result.similarity > 0:
-            print(f"✓ 匹配結果: {match_result.task_name}:step_{match_result.step_id}")
-            print(f"  相似度: {match_result.similarity:.3f}")
-            print(f"  信心度: {match_result.confidence_level}")
-            print(f"  步驟描述: {match_result.task_description[:100]}...")
+            print(f"✓ Match result: {match_result.task_name}:step_{match_result.step_id}")
+            print(f"  Similarity: {match_result.similarity:.3f}")
+            print(f"  Confidence: {match_result.confidence_level}")
+            print(f"  Step description: {match_result.task_description[:100]}...")
         else:
-            print("⚠ 未找到匹配結果")
+            print("⚠ No match result found")
         
         # Test through state tracker
-        print("通過狀態追蹤器測試...")
+        print("Testing through state tracker...")
         state_tracker = get_state_tracker()
         
         try:
@@ -81,17 +81,17 @@ async def demonstrate_rag_logging():
                 vlm_text=observation,
                 observation_id=obs_id
             )
-            print(f"✓ 狀態追蹤器處理完成，狀態更新: {state_updated}")
+            print(f"✓ State tracker processing completed, state updated: {state_updated}")
         except Exception as e:
-            print(f"⚠ 狀態追蹤器處理失敗: {e}")
+            print(f"⚠ State tracker processing failed: {e}")
     
-    print(f"\n3. 檢查日誌文件...")
+    print(f"\n3. Checking log files...")
     
     # Check log files
     log_dir = Path("logs")
     if log_dir.exists():
         log_files = list(log_dir.glob("*.log"))
-        print(f"找到 {len(log_files)} 個日誌文件:")
+        print(f"Found {len(log_files)} log files:")
         
         for log_file in log_files:
             print(f"  - {log_file.name}")
@@ -105,24 +105,24 @@ async def demonstrate_rag_logging():
                 rag_result_count = content.count("RAG_RESULT")
                 
                 if rag_matching_count > 0 or rag_result_count > 0:
-                    print(f"    RAG_MATCHING: {rag_matching_count} 條記錄")
-                    print(f"    RAG_RESULT: {rag_result_count} 條記錄")
+                    print(f"    RAG_MATCHING: {rag_matching_count} entries")
+                    print(f"    RAG_RESULT: {rag_result_count} entries")
                     
                     # Show recent RAG entries
                     lines = content.split('\n')
                     rag_lines = [line for line in lines if 'RAG_' in line]
                     
                     if rag_lines:
-                        print("    最近的RAG日誌條目:")
+                        print("    Recent RAG log entries:")
                         for line in rag_lines[-3:]:  # Show last 3 entries
                             print(f"      {line}")
                             
             except Exception as e:
-                print(f"    讀取日誌文件失敗: {e}")
+                print(f"    Failed to read log file: {e}")
     else:
-        print("未找到日誌目錄")
+        print("Log directory not found")
     
-    print(f"\n=== RAG日誌記錄演示完成 ===")
+    print(f"\n=== RAG Logging Demo Completed ===")
 
 
 if __name__ == "__main__":

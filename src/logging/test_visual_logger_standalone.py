@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-視覺日誌記錄器獨立測試
+Visual Logger Standalone Test
 
-不需要實際的VLM服務器，專門測試日誌記錄功能
+No actual VLM server required, specifically tests logging functionality
 """
 
 import asyncio
@@ -13,81 +13,81 @@ import os
 from datetime import datetime
 from typing import Dict, Any
 
-# 添加路徑
+# Add path
 sys.path.append(os.path.dirname(__file__))
 
 from visual_logger import get_visual_logger
 
 
 class StandaloneVLMLoggerTest:
-    """獨立的VLM日誌記錄器測試"""
+    """Standalone VLM logger test"""
     
     def __init__(self):
         self.visual_logger = get_visual_logger()
         self.test_results = []
     
     def test_basic_logging_functions(self):
-        """測試基本日誌記錄功能"""
-        print("🧪 測試 1: 基本日誌記錄功能")
+        """Test basic logging functionality"""
+        print("🧪 Test 1: Basic Logging Functions")
         print("-" * 40)
         
         observation_id = f"obs_test_{int(time.time())}"
         request_id = f"req_test_{int(time.time())}"
         
         try:
-            # 測試後端接收日誌
+            # Test backend receive logging
             request_data = {
                 "model": "smolvlm",
                 "messages": [{"role": "user", "content": "Test message"}],
                 "max_tokens": 100
             }
             self.visual_logger.log_backend_receive(observation_id, request_id, request_data)
-            print("  ✅ 後端接收日誌記錄成功")
+            print("  ✅ Backend receive logging successful")
             
-            # 測試圖像處理日誌
+            # Test image processing logging
             self.visual_logger.log_image_processing_start(observation_id, request_id, 1, "smolvlm")
             self.visual_logger.log_image_processing_result(observation_id, request_id, 0.15, True, {"image_count": 1})
-            print("  ✅ 圖像處理日誌記錄成功")
+            print("  ✅ Image processing logging successful")
             
-            # 測試VLM請求和回應日誌
+            # Test VLM request and response logging
             self.visual_logger.log_vlm_request(observation_id, request_id, "smolvlm", 25, 1)
             self.visual_logger.log_vlm_response(observation_id, request_id, 150, 0.8, True, "smolvlm")
-            print("  ✅ VLM請求和回應日誌記錄成功")
+            print("  ✅ VLM request and response logging successful")
             
-            # 測試RAG資料傳遞日誌
+            # Test RAG data transfer logging
             vlm_text = "Test VLM response for RAG processing"
             self.visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
-            print("  ✅ RAG資料傳遞日誌記錄成功")
+            print("  ✅ RAG data transfer logging successful")
             
-            # 測試狀態追蹤器整合日誌
+            # Test state tracker integration logging
             self.visual_logger.log_state_tracker_integration(observation_id, True, 0.05)
-            print("  ✅ 狀態追蹤器整合日誌記錄成功")
+            print("  ✅ State tracker integration logging successful")
             
-            # 測試性能指標日誌
+            # Test performance metric logging
             self.visual_logger.log_performance_metric(observation_id, "total_time", 1.0, "s")
-            print("  ✅ 性能指標日誌記錄成功")
+            print("  ✅ Performance metric logging successful")
             
-            # 測試錯誤日誌
+            # Test error logging
             self.visual_logger.log_error(observation_id, request_id, "TestError", "Test error message", "test_context")
-            print("  ✅ 錯誤日誌記錄成功")
+            print("  ✅ Error logging successful")
             
-            print("✅ 測試 1 完成 - 所有基本日誌記錄功能正常")
+            print("✅ Test 1 completed - All basic logging functions working")
             return True
             
         except Exception as e:
-            print(f"❌ 測試 1 失敗: {e}")
+            print(f"❌ Test 1 failed: {e}")
             return False
     
     def test_data_sanitization(self):
-        """測試數據清理功能"""
-        print("\n🧪 測試 2: 數據清理功能")
+        """Test data sanitization functionality"""
+        print("\n🧪 Test 2: Data Sanitization")
         print("-" * 40)
         
         observation_id = f"obs_sanitize_{int(time.time())}"
         request_id = f"req_sanitize_{int(time.time())}"
         
         try:
-            # 測試包含敏感數據的請求清理
+            # Test request sanitization with sensitive data
             request_data = {
                 "model": "smolvlm",
                 "messages": [
@@ -98,7 +98,7 @@ class StandaloneVLMLoggerTest:
                             {
                                 "type": "image_url",
                                 "image_url": {
-                                    "url": "data:image/jpeg;base64," + "x" * 1000  # 長圖像數據
+                                    "url": "data:image/jpeg;base64," + "x" * 1000  # Long image data
                                 }
                             }
                         ]
@@ -108,35 +108,35 @@ class StandaloneVLMLoggerTest:
             }
             
             self.visual_logger.log_backend_receive(observation_id, request_id, request_data)
-            print("  ✅ 敏感數據清理成功")
+            print("  ✅ Sensitive data sanitization successful")
             
-            # 測試長文本清理
+            # Test long text sanitization
             long_text = "This is a very long text that should be truncated. " * 20
             self.visual_logger.log_rag_data_transfer(observation_id, long_text, True)
-            print("  ✅ 長文本清理成功")
+            print("  ✅ Long text sanitization successful")
             
-            print("✅ 測試 2 完成 - 數據清理功能正常")
+            print("✅ Test 2 completed - Data sanitization working")
             return True
             
         except Exception as e:
-            print(f"❌ 測試 2 失敗: {e}")
+            print(f"❌ Test 2 failed: {e}")
             return False
     
     def test_id_consistency(self):
-        """測試ID一致性"""
-        print("\n🧪 測試 3: ID一致性")
+        """Test ID consistency"""
+        print("\n🧪 Test 3: ID Consistency")
         print("-" * 40)
         
         try:
-            # 生成一組一致的ID
+            # Generate consistent set of IDs
             base_time = int(time.time() * 1000)
             observation_id = f"obs_{base_time}_{uuid.uuid4().hex[:8]}"
             request_id = f"req_{base_time}"
             
-            print(f"  觀察ID: {observation_id}")
-            print(f"  請求ID: {request_id}")
+            print(f"  Observation ID: {observation_id}")
+            print(f"  Request ID: {request_id}")
             
-            # 在整個流程中使用相同的ID
+            # Use same IDs throughout the flow
             self.visual_logger.log_backend_receive(observation_id, request_id, {"test": "data"})
             self.visual_logger.log_image_processing_start(observation_id, request_id, 1, "smolvlm")
             self.visual_logger.log_vlm_request(observation_id, request_id, "smolvlm", 10, 1)
@@ -144,23 +144,23 @@ class StandaloneVLMLoggerTest:
             self.visual_logger.log_rag_data_transfer(observation_id, "test response", True)
             self.visual_logger.log_state_tracker_integration(observation_id, True, 0.02)
             
-            print("  ✅ ID在整個流程中保持一致")
-            print("✅ 測試 3 完成 - ID一致性正常")
+            print("  ✅ IDs consistent throughout the flow")
+            print("✅ Test 3 completed - ID consistency working")
             return True
             
         except Exception as e:
-            print(f"❌ 測試 3 失敗: {e}")
+            print(f"❌ Test 3 failed: {e}")
             return False
     
     def test_performance_metrics(self):
-        """測試性能指標記錄"""
-        print("\n🧪 測試 4: 性能指標記錄")
+        """Test performance metric logging"""
+        print("\n🧪 Test 4: Performance Metric Logging")
         print("-" * 40)
         
         observation_id = f"obs_perf_{int(time.time())}"
         
         try:
-            # 測試各種性能指標
+            # Test various performance metrics
             metrics = [
                 ("image_processing_time", 0.125, "s"),
                 ("model_inference_time", 0.850, "s"),
@@ -173,25 +173,25 @@ class StandaloneVLMLoggerTest:
             
             for metric_name, value, unit in metrics:
                 self.visual_logger.log_performance_metric(observation_id, metric_name, value, unit)
-                print(f"  ✅ 記錄指標: {metric_name} = {value}{unit}")
+                print(f"  ✅ Logged metric: {metric_name} = {value}{unit}")
             
-            print("✅ 測試 4 完成 - 性能指標記錄正常")
+            print("✅ Test 4 completed - Performance metric logging working")
             return True
             
         except Exception as e:
-            print(f"❌ 測試 4 失敗: {e}")
+            print(f"❌ Test 4 failed: {e}")
             return False
     
     def test_error_scenarios(self):
-        """測試錯誤場景"""
-        print("\n🧪 測試 5: 錯誤場景")
+        """Test error scenarios"""
+        print("\n🧪 Test 5: Error Scenarios")
         print("-" * 40)
         
         observation_id = f"obs_error_{int(time.time())}"
         request_id = f"req_error_{int(time.time())}"
         
         try:
-            # 測試各種錯誤類型
+            # Test various error types
             error_scenarios = [
                 ("ConnectionError", "Failed to connect to model server", "model_communication"),
                 ("ValidationError", "Invalid image format", "image_processing"),
@@ -202,18 +202,18 @@ class StandaloneVLMLoggerTest:
             
             for error_type, error_message, context in error_scenarios:
                 self.visual_logger.log_error(observation_id, request_id, error_type, error_message, context)
-                print(f"  ✅ 記錄錯誤: {error_type}")
+                print(f"  ✅ Logged error: {error_type}")
             
-            print("✅ 測試 5 完成 - 錯誤場景記錄正常")
+            print("✅ Test 5 completed - Error scenario logging working")
             return True
             
         except Exception as e:
-            print(f"❌ 測試 5 失敗: {e}")
+            print(f"❌ Test 5 failed: {e}")
             return False
     
     async def test_concurrent_logging(self):
-        """測試並發日誌記錄"""
-        print("\n🧪 測試 6: 並發日誌記錄")
+        """Test concurrent logging"""
+        print("\n🧪 Test 6: Concurrent Logging")
         print("-" * 40)
         
         try:
@@ -221,9 +221,9 @@ class StandaloneVLMLoggerTest:
                 observation_id = f"obs_concurrent_{int(time.time())}_{request_num}"
                 request_id = f"req_concurrent_{int(time.time())}_{request_num}"
                 
-                # 模擬並發請求的日誌記錄
+                # Simulate concurrent request logging
                 self.visual_logger.log_backend_receive(observation_id, request_id, {"request": request_num})
-                await asyncio.sleep(0.01)  # 模擬處理時間
+                await asyncio.sleep(0.01)  # Simulate processing time
                 
                 self.visual_logger.log_image_processing_start(observation_id, request_id, 1, "smolvlm")
                 await asyncio.sleep(0.02)
@@ -236,29 +236,29 @@ class StandaloneVLMLoggerTest:
                 
                 return f"Request {request_num} completed"
             
-            # 並發執行多個請求
+            # Execute multiple requests concurrently
             tasks = [log_request(i) for i in range(5)]
             results = await asyncio.gather(*tasks)
             
-            print(f"  ✅ 並發處理了 {len(results)} 個請求")
+            print(f"  ✅ Processed {len(results)} requests concurrently")
             for result in results:
                 print(f"    - {result}")
             
-            print("✅ 測試 6 完成 - 並發日誌記錄正常")
+            print("✅ Test 6 completed - Concurrent logging working")
             return True
             
         except Exception as e:
-            print(f"❌ 測試 6 失敗: {e}")
+            print(f"❌ Test 6 failed: {e}")
             return False
     
     async def run_all_tests(self):
-        """運行所有測試"""
-        print("🧪 視覺日誌記錄器獨立測試")
+        """Run all tests"""
+        print("🧪 Visual Logger Standalone Test")
         print("=" * 60)
-        print("📝 此測試不需要實際的VLM服務器運行")
+        print("📝 This test does not require actual VLM server running")
         print("=" * 60)
         
-        # 執行所有測試
+        # Execute all tests
         test_methods = [
             self.test_basic_logging_functions,
             self.test_data_sanitization,
@@ -276,49 +276,49 @@ class StandaloneVLMLoggerTest:
                 result = test_method()
             results.append(result)
         
-        # 顯示測試結果
+        # Display test results
         print("\n" + "=" * 60)
-        print("📊 測試結果摘要")
+        print("📊 Test Results Summary")
         print("=" * 60)
         
         total_tests = len(results)
         passed_tests = sum(results)
         success_rate = (passed_tests / total_tests * 100)
         
-        print(f"總測試數量: {total_tests}")
-        print(f"通過測試: {passed_tests}")
-        print(f"成功率: {success_rate:.1f}%")
+        print(f"Total tests: {total_tests}")
+        print(f"Passed tests: {passed_tests}")
+        print(f"Success rate: {success_rate:.1f}%")
         
         if passed_tests == total_tests:
-            print("\n🎉 所有測試通過！視覺日誌記錄器功能正常。")
+            print("\n🎉 All tests passed! Visual logger functionality working.")
         else:
-            print("\n⚠️ 部分測試失敗，請檢查上述輸出。")
+            print("\n⚠️ Some tests failed, please check above output.")
         
-        # 檢查日誌文件
+        # Check log files
         self.check_log_files()
         
         return passed_tests == total_tests
     
     def check_log_files(self):
-        """檢查生成的日誌文件"""
-        print("\n📁 檢查日誌文件...")
+        """Check generated log files"""
+        print("\n📁 Checking log files...")
         
         log_dir = os.path.join(os.path.dirname(__file__), "..", "..", "logs")
         if os.path.exists(log_dir):
             visual_log_files = [f for f in os.listdir(log_dir) if f.startswith("visual_")]
             if visual_log_files:
-                print(f"✅ 找到視覺日誌文件: {visual_log_files}")
+                print(f"✅ Found visual log files: {visual_log_files}")
                 
-                # 顯示最新日誌的統計
+                # Display statistics of latest log
                 latest_log = max(visual_log_files)
                 log_path = os.path.join(log_dir, latest_log)
                 try:
                     with open(log_path, 'r', encoding='utf-8') as f:
                         lines = f.readlines()
-                        print(f"📊 日誌統計:")
-                        print(f"   - 總日誌條目: {len(lines)}")
+                        print(f"📊 Log statistics:")
+                        print(f"   - Total log entries: {len(lines)}")
                         
-                        # 統計不同類型的日誌
+                        # Count different log types
                         log_types = {}
                         for line in lines:
                             for log_type in ['BACKEND_RECEIVE', 'IMAGE_PROCESSING', 'VLM_REQUEST', 
@@ -331,15 +331,15 @@ class StandaloneVLMLoggerTest:
                             print(f"   - {log_type}: {count}")
                             
                 except Exception as e:
-                    print(f"   ⚠️ 無法讀取日誌文件: {e}")
+                    print(f"   ⚠️ Cannot read log file: {e}")
             else:
-                print("⚠️ 未找到視覺日誌文件")
+                print("⚠️ No visual log files found")
         else:
-            print("⚠️ 日誌目錄不存在")
+            print("⚠️ Log directory does not exist")
 
 
 async def main():
-    """主函數"""
+    """Main function"""
     tester = StandaloneVLMLoggerTest()
     success = await tester.run_all_tests()
     return success
@@ -350,5 +350,5 @@ if __name__ == "__main__":
         success = asyncio.run(main())
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n🛑 測試被用戶中斷")
+        print("\n🛑 Test interrupted by user")
         sys.exit(1)
