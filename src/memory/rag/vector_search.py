@@ -16,14 +16,21 @@ import logging
 from pathlib import Path
 import time
 import uuid
-from .task_loader import TaskKnowledge, TaskStep
+try:
+    from .task_loader import TaskKnowledge, TaskStep
+except ImportError:
+    # Handle standalone execution
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    from src.memory.rag.task_loader import TaskKnowledge, TaskStep
 
 # Import logging system
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 try:
-    from logging.log_manager import get_log_manager
+    from app_logging.log_manager import get_log_manager
 except ImportError:
     # Fallback for different import paths
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'logging'))

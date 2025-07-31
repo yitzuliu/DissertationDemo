@@ -29,10 +29,10 @@ import uuid
 # Import State Tracker and Loggers
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from state_tracker import get_state_tracker
-from logging.system_logger import get_system_logger, initialize_system_logger
-from logging.visual_logger import get_visual_logger
-from logging.log_manager import get_log_manager
-from logging.flow_tracker import get_flow_tracker, FlowType, FlowStep, FlowStatus
+from app_logging.system_logger import get_system_logger, initialize_system_logger
+from app_logging.visual_logger import get_visual_logger
+from app_logging.log_manager import get_log_manager
+from app_logging.flow_tracker import get_flow_tracker, FlowType, FlowStep, FlowStatus
 
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -715,11 +715,11 @@ async def process_instant_query(request: dict):
         if not flow_id:
             flow_id = flow_tracker.start_flow(FlowType.USER_QUERY)
         else:
-            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_RECEIVED, query_id=query_id, request_id=request_id)
+            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_RECEIVED, related_ids={"query_id": query_id, "request_id": request_id})
         
         # Log query processing start
         start_time = time.time()
-        flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_PROCESSING, query_id=query_id)
+        flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_CLASSIFICATION, related_ids={"query_id": query_id})
         
         state_tracker = get_state_tracker()
         result = state_tracker.process_instant_query(query, query_id, request_id)
@@ -738,7 +738,7 @@ async def process_instant_query(request: dict):
             response=result.response_text,
             duration=processing_time_ms
         )
-        flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_RESPONSE, query_id=query_id)
+        flow_tracker.add_flow_step(flow_id, FlowStep.RESPONSE_SENT, related_ids={"query_id": query_id})
         flow_tracker.end_flow(flow_id, FlowStatus.SUCCESS)
         
         return {

@@ -7,10 +7,10 @@ This document defines the unified logging and data tracking standards for the AI
 
 ## 1. Log Categories and Files
 
-- **System Technical Logs**: `logs/system_technical_YYYYMMDD.log`
-- **Visual Observation Logs**: `logs/visual_YYYYMMDD.log`
-- **User Query Logs**: `logs/user_YYYYMMDD.log`
-- **Unified Flow Tracking Logs**: `logs/flow_tracking_YYYYMMDD.log`
+- **System Technical Logs**: `src/app_logging/logs/system_YYYYMMDD.log`
+- **Visual Observation Logs**: `src/app_logging/logs/visual_YYYYMMDD.log`
+- **User Query Logs**: `src/app_logging/logs/user_YYYYMMDD.log`
+- **Unified Flow Tracking Logs**: `src/app_logging/logs/flow_tracking_YYYYMMDD.log`
 
 Each log file rotates daily, using consistent timestamp format.
 
@@ -127,11 +127,11 @@ Each log file rotates daily, using consistent timestamp format.
 ## 4. Log Management, Rotation, and Storage
 
 - **Directory Structure:**
-  - `logs/system_YYYYMMDD.log`      # System logs
-  - `logs/visual_YYYYMMDD.log`      # Visual logs
-  - `logs/user_YYYYMMDD.log`        # User logs
-  - `logs/flow_tracking_YYYYMMDD.log` # Flow logs
-  - `logs/archive/`                 # Monthly archived logs
+  - `src/app_logging/logs/system_YYYYMMDD.log`      # System logs
+  - `src/app_logging/logs/visual_YYYYMMDD.log`      # Visual logs
+  - `src/app_logging/logs/user_YYYYMMDD.log`        # User logs
+  - `src/app_logging/logs/flow_tracking_YYYYMMDD.log` # Flow logs
+  - `src/app_logging/logs/archive/`                 # Monthly archived logs
 - **Rotation:**
   - Daily log rotation
   - Compress logs after 7 days
@@ -149,18 +149,18 @@ Each log file rotates daily, using consistent timestamp format.
 - **Example Analysis Commands:**
 ```bash
 # Find user queries at specific time
-grep "09:01:15" logs/user_20250730.log
+grep "09:01:15" src/app_logging/logs/user_20250730.log
 # Find recent state updates before that time
-grep -B5 -A5 "09:01:10" logs/visual_20250730.log
+grep -B5 -A5 "09:01:10" src/app_logging/logs/visual_20250730.log
 ```
 - **Error/Performance Diagnostics:**
 ```bash
 # Check failed VLM processing
-grep "action=FAIL" logs/visual_20250730.log
+grep "action=FAIL" src/app_logging/logs/visual_20250730.log
 # Check failed user query classification
-grep "confidence<0.5" logs/user_20250730.log
+grep "confidence<0.5" src/app_logging/logs/user_20250730.log
 # Check system memory usage
-grep "MEMORY" logs/system_20250730.log
+grep "MEMORY" src/app_logging/logs/system_20250730.log
 ```
 
 ---
@@ -168,7 +168,7 @@ grep "MEMORY" logs/system_20250730.log
 ## 6. Implementation Phases and Module Responsibilities
 
 ### Phase 1: Core LogManager and System Logs (Week 1)
-- Implement LogManager class (backend)
+- Implement LogManager class (`src/app_logging/log_manager.py`)
 - System startup/shutdown, endpoint, and error logs
 - Daily rotation and archiving
 
@@ -183,7 +183,7 @@ grep "MEMORY" logs/system_20250730.log
 - State tracker: Query processing logs
 
 ### Phase 4: Unified Flow Tracking and Analysis Tools (Week 4)
-- Implement flow_id correlation across all logs
+- Implement flow_id correlation across all logs (`src/app_logging/flow_tracker.py`)
 - Develop log analysis scripts and dashboards
 - Integrate with monitoring/alerting systems
 
@@ -226,3 +226,6 @@ grep "MEMORY" logs/system_20250730.log
 
 ## 9. Change History
 - 2025-07-30: Drafted initial unified version for engineering and operations.
+- 2025-07-31: Updated file paths from `src/logging/` to `src/app_logging/` to match actual implementation.
+- 2025-07-31: Updated log file paths to reflect actual directory structure.
+- 2025-07-31: Updated analysis commands with correct file paths.

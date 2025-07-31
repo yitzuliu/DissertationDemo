@@ -26,7 +26,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from memory.rag.knowledge_base import RAGKnowledgeBase
 
 # Import logging system
-from logging.log_manager import get_log_manager
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from app_logging.log_manager import get_log_manager
 
 logger = logging.getLogger(__name__)
 
@@ -733,12 +736,12 @@ class StateTracker:
         # The backend will handle the main logging, this is for state tracker specific logs
         self.log_manager.log_query_classify(query_id, result.query_type.value, result.confidence)
         if flow_id:
-            from logging.flow_tracker import get_flow_tracker, FlowStep
+            from app_logging.flow_tracker import get_flow_tracker, FlowStep
             flow_tracker = get_flow_tracker()
-            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_CLASSIFY, query_id=query_id)
+            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_CLASSIFICATION, related_ids={"query_id": query_id})
         self.log_manager.log_query_process(query_id, current_state or {})
         if flow_id:
-            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_PROCESS, query_id=query_id)
+            flow_tracker.add_flow_step(flow_id, FlowStep.RESPONSE_GENERATION, related_ids={"query_id": query_id})
         
         logger.info(f"Instant query processed: '{query}' -> {result.query_type.value} in {processing_time_ms:.1f}ms")
         

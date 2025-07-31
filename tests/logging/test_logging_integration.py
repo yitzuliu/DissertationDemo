@@ -16,8 +16,8 @@ from typing import Dict, Any
 # 添加專案根目錄到路徑
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from src.logging.log_manager import get_log_manager, initialize_log_manager, LogType
-from src.logging.flow_tracker import get_flow_tracker, FlowType, FlowStatus, FlowStep
+from src.app_logging.log_manager import get_log_manager, initialize_log_manager, LogType
+from src.app_logging.flow_tracker import get_flow_tracker, FlowType, FlowStatus, FlowStep
 from tools.log_analyzer import LogAnalyzer
 from tools.log_diagnostics import LogDiagnostics
 

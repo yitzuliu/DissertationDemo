@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * 設計規格合規性驗證腳本
+ * Design Specification Compliance Validation Script
  * 
- * 檢查前端日誌記錄實現是否完全符合設計文檔 3.2 視覺觀察日誌的要求
+ * Check if frontend logging implementation fully complies with design document 3.2 Visual Observation Logging requirements
  */
 
 const fs = require('fs');
@@ -14,51 +14,51 @@ class DesignComplianceValidator {
         this.designRequirements = {
             EYES_CAPTURE: {
                 required_fields: ['observation_id', 'request_id', 'device', 'resolution', 'quality', 'format', 'size'],
-                description: '圖像捕獲事件'
+                description: 'Image capture event'
             },
             EYES_PROMPT: {
                 required_fields: ['observation_id', 'prompt', 'length'],
-                description: '視覺提示詞事件'
+                description: 'Visual prompt event'
             },
             EYES_TRANSFER: {
                 required_fields: ['observation_id', 'sent_to_backend'],
-                description: '後端傳輸事件'
+                description: 'Backend transfer event'
             }
         };
         this.validationResults = {};
     }
 
     async validateCompliance() {
-        console.log('🔍 驗證設計規格合規性');
+        console.log('🔍 Validating design specification compliance');
         console.log('=' * 50);
 
         try {
             const htmlContent = fs.readFileSync(this.indexHtmlPath, 'utf8');
 
-            // 檢查每個日誌事件類型
+            // Check each log event type
             for (const [eventType, requirements] of Object.entries(this.designRequirements)) {
                 this.validateEventType(htmlContent, eventType, requirements);
             }
 
-            // 檢查ID追蹤機制
+            // Check ID tracking mechanism
             this.validateIdTracking(htmlContent);
 
-            // 檢查時間戳格式
+            // Check timestamp format
             this.validateTimestampFormat(htmlContent);
 
-            // 顯示結果
+            // Display results
             this.displayResults();
 
             return this.calculateOverallCompliance();
 
         } catch (error) {
-            console.error('❌ 驗證過程中發生錯誤:', error.message);
+            console.error('❌ Error occurred during validation:', error.message);
             return false;
         }
     }
 
     validateEventType(content, eventType, requirements) {
-        console.log(`\\n📋 驗證 ${eventType} (${requirements.description})`);
+        console.log(`\n📋 Validating ${eventType} (${requirements.description})`);
 
         const results = {
             method_exists: false,
@@ -67,51 +67,51 @@ class DesignComplianceValidator {
             field_compliance: 0
         };
 
-        // 檢查方法是否存在
+        // Check if method exists
         const methodName = `log${eventType.split('_').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join('')}`;
 
         if (content.includes(`${methodName}(`)) {
             results.method_exists = true;
-            console.log(`   ✅ ${eventType} 方法存在`);
+            console.log(`   ✅ ${eventType} method exists`);
         } else {
-            console.log(`   ❌ ${eventType} 方法不存在`);
+            console.log(`   ❌ ${eventType} method does not exist`);
         }
 
-        // 檢查方法是否被調用
+        // Check if method is called
         const callPattern = `frontendLogger.${methodName}(`;
 
         if (content.includes(callPattern)) {
             results.method_called = true;
-            console.log(`   ✅ ${eventType} 方法被調用`);
+            console.log(`   ✅ ${eventType} method is called`);
         } else {
-            console.log(`   ❌ ${eventType} 方法未被調用`);
+            console.log(`   ❌ ${eventType} method is not called`);
         }
 
-        // 檢查必需字段
+        // Check required fields
         for (const field of requirements.required_fields) {
             if (content.includes(`${field}:`)) {
                 results.required_fields[field] = true;
-                console.log(`   ✅ 包含必需字段: ${field}`);
+                console.log(`   ✅ Contains required field: ${field}`);
             } else {
                 results.required_fields[field] = false;
-                console.log(`   ❌ 缺少必需字段: ${field}`);
+                console.log(`   ❌ Missing required field: ${field}`);
             }
         }
 
-        // 計算字段合規率
+        // Calculate field compliance rate
         const totalFields = requirements.required_fields.length;
         const compliantFields = Object.values(results.required_fields).filter(v => v).length;
         results.field_compliance = compliantFields / totalFields;
 
-        console.log(`   📊 字段合規率: ${compliantFields}/${totalFields} (${(results.field_compliance * 100).toFixed(1)}%)`);
+        console.log(`   📊 Field compliance rate: ${compliantFields}/${totalFields} (${(results.field_compliance * 100).toFixed(1)}%)`);
 
         this.validationResults[eventType] = results;
     }
 
     validateIdTracking(content) {
-        console.log('\\n🔗 驗證ID追蹤機制');
+        console.log('\n🔗 Validating ID tracking mechanism');
 
         const checks = {
             observation_id_generation: content.includes('generateObservationId()'),
@@ -128,7 +128,7 @@ class DesignComplianceValidator {
     }
 
     validateTimestampFormat(content) {
-        console.log('\\n⏰ 驗證時間戳格式');
+        console.log('\n⏰ Validating timestamp format');
 
         const checks = {
             iso_timestamp: content.includes('new Date().toISOString()'),
@@ -144,46 +144,46 @@ class DesignComplianceValidator {
     }
 
     displayResults() {
-        console.log('\\n' + '=' * 50);
-        console.log('📊 設計規格合規性驗證結果');
+        console.log('\n' + '=' * 50);
+        console.log('📊 Design Specification Compliance Validation Results');
         console.log('=' * 50);
 
         let totalChecks = 0;
         let passedChecks = 0;
 
-        // 事件類型合規性
+        // Event type compliance
         for (const [eventType, results] of Object.entries(this.validationResults)) {
             if (eventType.startsWith('EYES_')) {
                 const eventPassed = results.method_exists && results.method_called && results.field_compliance >= 0.8;
-                console.log(`${eventType}: ${eventPassed ? '✅ 合規' : '❌ 不合規'} (字段: ${(results.field_compliance * 100).toFixed(1)}%)`);
+                console.log(`${eventType}: ${eventPassed ? '✅ Compliant' : '❌ Non-compliant'} (fields: ${(results.field_compliance * 100).toFixed(1)}%)`);
                 totalChecks++;
                 if (eventPassed) passedChecks++;
             }
         }
 
-        // ID追蹤合規性
+        // ID tracking compliance
         if (this.validationResults.id_tracking) {
             const idTrackingPassed = Object.values(this.validationResults.id_tracking).filter(v => v).length >= 3;
-            console.log(`ID追蹤機制: ${idTrackingPassed ? '✅ 合規' : '❌ 不合規'}`);
+            console.log(`ID tracking mechanism: ${idTrackingPassed ? '✅ Compliant' : '❌ Non-compliant'}`);
             totalChecks++;
             if (idTrackingPassed) passedChecks++;
         }
 
-        // 時間戳格式合規性
+        // Timestamp format compliance
         if (this.validationResults.timestamp_format) {
             const timestampPassed = Object.values(this.validationResults.timestamp_format).filter(v => v).length >= 2;
-            console.log(`時間戳格式: ${timestampPassed ? '✅ 合規' : '❌ 不合規'}`);
+            console.log(`Timestamp format: ${timestampPassed ? '✅ Compliant' : '❌ Non-compliant'}`);
             totalChecks++;
             if (timestampPassed) passedChecks++;
         }
 
         const overallCompliance = (passedChecks / totalChecks * 100).toFixed(1);
-        console.log(`\\n總體合規率: ${passedChecks}/${totalChecks} (${overallCompliance}%)`);
+        console.log(`\nOverall compliance rate: ${passedChecks}/${totalChecks} (${overallCompliance}%)`);
 
         if (passedChecks === totalChecks) {
-            console.log('\\n🎉 完全符合設計規格要求！');
+            console.log('\n🎉 Fully compliant with design specification requirements!');
         } else {
-            console.log('\\n⚠️ 部分功能不符合設計規格，需要修正。');
+            console.log('\n⚠️ Some features do not comply with design specifications and need correction.');
         }
     }
 
@@ -191,7 +191,7 @@ class DesignComplianceValidator {
         let totalChecks = 0;
         let passedChecks = 0;
 
-        // 檢查事件類型
+        // Check event types
         for (const [eventType, results] of Object.entries(this.validationResults)) {
             if (eventType.startsWith('EYES_')) {
                 const eventPassed = results.method_exists && results.method_called && results.field_compliance >= 0.8;
@@ -200,14 +200,14 @@ class DesignComplianceValidator {
             }
         }
 
-        // 檢查ID追蹤
+        // Check ID tracking
         if (this.validationResults.id_tracking) {
             const idTrackingPassed = Object.values(this.validationResults.id_tracking).filter(v => v).length >= 3;
             totalChecks++;
             if (idTrackingPassed) passedChecks++;
         }
 
-        // 檢查時間戳
+        // Check timestamp
         if (this.validationResults.timestamp_format) {
             const timestampPassed = Object.values(this.validationResults.timestamp_format).filter(v => v).length >= 2;
             totalChecks++;
@@ -218,7 +218,7 @@ class DesignComplianceValidator {
     }
 }
 
-// 執行驗證
+// Execute validation
 async function main() {
     const validator = new DesignComplianceValidator();
     const success = await validator.validateCompliance();

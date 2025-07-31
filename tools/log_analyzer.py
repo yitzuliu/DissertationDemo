@@ -19,8 +19,8 @@ import glob
 # 添加專案根目錄到路徑
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from src.logging.log_manager import get_log_manager
-from src.logging.flow_tracker import get_flow_tracker, FlowType, FlowStatus
+from src.app_logging.log_manager import get_log_manager
+from src.app_logging.flow_tracker import get_flow_tracker, FlowType, FlowStatus
 
 class LogAnalyzer:
     """

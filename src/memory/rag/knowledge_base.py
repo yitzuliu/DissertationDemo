@@ -8,17 +8,27 @@ This serves as the primary interface for the memory system's long-term knowledge
 from typing import List, Dict, Any, Optional
 import logging
 from pathlib import Path
-from .task_loader import TaskKnowledgeLoader, TaskKnowledge
-from .vector_search import ChromaVectorSearchEngine, MatchResult
-from .vector_optimizer import VectorOptimizer
-from .validation import validate_task_file
+try:
+    from .task_loader import TaskKnowledgeLoader, TaskKnowledge
+    from .vector_search import ChromaVectorSearchEngine, MatchResult
+    from .vector_optimizer import VectorOptimizer
+    from .validation import validate_task_file
+except ImportError:
+    # Handle standalone execution
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    from src.memory.rag.task_loader import TaskKnowledgeLoader, TaskKnowledge
+    from src.memory.rag.vector_search import ChromaVectorSearchEngine, MatchResult
+    from src.memory.rag.vector_optimizer import VectorOptimizer
+    from src.memory.rag.validation import validate_task_file
 
 # Import logging system
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 try:
-    from logging.log_manager import get_log_manager
+    from app_logging.log_manager import get_log_manager
 except ImportError:
     # Fallback for different import paths
     sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'logging'))
