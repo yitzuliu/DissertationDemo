@@ -58,7 +58,7 @@ class BackendIntegrationValidator:
     def check_visual_logger_import(self, content):
         """檢查視覺日誌記錄器導入"""
         checks = [
-            'from logging.visual_logger import get_visual_logger',
+            'from visual_logger import get_visual_logger',
             'visual_logger = get_visual_logger()'
         ]
         

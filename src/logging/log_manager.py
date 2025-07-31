@@ -265,10 +265,15 @@ class LogManager:
     
     def log_query_response(self, query_id: str, response: str, duration: float):
         """記錄查詢回應"""
+        # Clean response text for logging (remove newlines and limit length)
+        clean_response = response.replace('\n', ' ').replace('\r', ' ').strip()
+        if len(clean_response) > 200:
+            clean_response = clean_response[:200] + "..."
+        
         message = self._format_log_message(
             "QUERY_RESPONSE",
             query_id=query_id,
-            response=f'"{response}"',
+            response=f'"{clean_response}"',
             duration=f"{duration:.1f}ms"
         )
         self.loggers[LogType.USER].info(message)

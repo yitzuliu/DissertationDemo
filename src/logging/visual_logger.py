@@ -267,10 +267,28 @@ class VisualLogger:
                                         "text": text[:200] + "..." if len(text) > 200 else text
                                     })
                                 elif item.get("type") == "image_url":
-                                    safe_content.append({
+                                    # Extract image metadata for confirmation
+                                    image_url = item.get("image_url", {}).get("url", "")
+                                    image_info = {
                                         "type": "image_url",
-                                        "image_url": {"url": "[IMAGE_DATA_REMOVED]"}
-                                    })
+                                        "has_image": bool(image_url),
+                                        "image_received": True if image_url else False
+                                    }
+                                    
+                                    if image_url and image_url.startswith('data:image/'):
+                                        # Extract format and size info
+                                        format_part = image_url.split(';')[0].replace('data:image/', '')
+                                        base64_part = image_url.split('base64,')[1] if 'base64,' in image_url else ''
+                                        estimated_size_kb = round(len(base64_part) * 3 / 4 / 1024, 1) if base64_part else 0
+                                        
+                                        image_info.update({
+                                            "format": format_part,
+                                            "size_estimate": f"{estimated_size_kb}KB",
+                                            "base64_length": len(base64_part),
+                                            "base64_preview": base64_part[:30] + "..." if len(base64_part) > 30 else base64_part
+                                        })
+                                    
+                                    safe_content.append(image_info)
                         safe_message["content"] = safe_content
                     
                     safe_messages.append(safe_message)

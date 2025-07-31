@@ -719,32 +719,47 @@ class StateTracker:
         """
         from .query_processor import QueryResult
         
-        # Generate IDs if not provided
-        if not query_id:
-            query_id = self.log_manager.generate_query_id()
-        if not request_id:
-            request_id = self.log_manager.generate_request_id()
-        
-        # Get current state (fast memory read)
-        current_state = self.get_current_state()
-        
-        # Log query processing start
-        start_time = time.time()
-        
-        # Process query with query processor
-        result = self.query_processor.process_query(query, current_state)
-        
-        # Calculate processing time
-        processing_time_ms = (time.time() - start_time) * 1000
-        
-        # Log query processing details
-        self.log_manager.log_query_classify(query_id, result.query_type.value, result.confidence)
-        self.log_manager.log_query_process(query_id, current_state or {})
-        self.log_manager.log_query_response(query_id, result.response, processing_time_ms)
-        
-        logger.info(f"Instant query processed: '{query}' -> {result.query_type.value} in {processing_time_ms:.1f}ms")
-        
-        return result
+        try:
+            # Generate IDs if not provided
+            if not query_id:
+                query_id = self.log_manager.generate_query_id()
+            if not request_id:
+                request_id = self.log_manager.generate_request_id()
+            
+            # Get current state (fast memory read)
+            current_state = self.get_current_state()
+            
+            # Log query processing start
+            start_time = time.time()
+            
+            # Process query with query processor
+            result = self.query_processor.process_query(query, current_state)
+            
+            # Calculate processing time
+            processing_time_ms = (time.time() - start_time) * 1000
+            
+            # Log query processing details
+            self.log_manager.log_query_classify(query_id, result.query_type.value, result.confidence)
+            self.log_manager.log_query_process(query_id, current_state or {})
+            self.log_manager.log_query_response(query_id, result.response_text, processing_time_ms)
+            
+            logger.info(f"Instant query processed: '{query}' -> {result.query_type.value} in {processing_time_ms:.1f}ms")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error processing instant query '{query}': {e}")
+            
+            # Return a fallback response
+            fallback_response = f"Sorry, I encountered an error processing your query. You are currently on step {self.current_state.step_index if self.current_state else 'unknown'} of task '{self.current_state.task_id if self.current_state else 'unknown'}'."
+            
+            return QueryResult(
+                query_type=QueryType.UNKNOWN,
+                response_text=fallback_response,
+                processing_time_ms=0.0,
+                confidence=0.0,
+                raw_query=query
+            )
     
     def get_query_capabilities(self) -> Dict[str, Any]:
         """Get information about query processing capabilities"""

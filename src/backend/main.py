@@ -297,23 +297,64 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             # 記錄圖像處理開始
             visual_logger.log_image_processing_start(observation_id, request_id, 0, ACTIVE_MODEL)
             
-            # Create a sanitized copy of messages for logging
+            # Create a sanitized copy of messages for logging (deep copy to avoid modifying original)
             sanitized_messages = []
             for message in request.messages:
-                sanitized_message = message.copy() if isinstance(message, dict) else message
-                if isinstance(sanitized_message.get('content'), list):
+                sanitized_message = {
+                    'role': message.get('role', 'unknown')
+                }
+                
+                content = message.get('content')
+                if isinstance(content, str):
+                    # Text content - truncate if too long
+                    sanitized_message['content'] = content[:200] + "..." if len(content) > 200 else content
+                elif isinstance(content, list):
+                    # Multimodal content - sanitize each item
                     sanitized_content = []
-                    for content_item in sanitized_message['content']:
+                    for content_item in content:
                         if content_item.get('type') == 'image_url':
-                            # Replace image data with placeholder
-                            sanitized_content.append({
+                            # Extract image metadata without the actual base64 data
+                            image_url = content_item.get('image_url', {}).get('url', '')
+                            image_info = {
                                 'type': 'image_url',
-                                'image_processed': True,
-                                'original_format': content_item.get('image_url', {}).get('url', '').split(';')[0].replace('data:', '') if 'image_url' in content_item else 'unknown'
+                                'has_image': bool(image_url),
+                                'format': 'unknown',
+                                'size_estimate': 'unknown'
+                            }
+                            
+                            if image_url and image_url.startswith('data:image/'):
+                                # Extract format and estimate size
+                                format_part = image_url.split(';')[0].replace('data:image/', '')
+                                base64_part = image_url.split('base64,')[1] if 'base64,' in image_url else ''
+                                estimated_size_kb = round(len(base64_part) * 3 / 4 / 1024, 1) if base64_part else 0
+                                
+                                image_info.update({
+                                    'format': format_part,
+                                    'size_estimate': f"{estimated_size_kb}KB",
+                                    'base64_length': len(base64_part),
+                                    'base64_preview': base64_part[:50] + '...' if len(base64_part) > 50 else base64_part,
+                                    'image_received': True
+                                })
+                            
+                            sanitized_content.append(image_info)
+                        elif content_item.get('type') == 'text':
+                            # Text content - truncate if too long
+                            text = content_item.get('text', '')
+                            sanitized_content.append({
+                                'type': 'text',
+                                'text': text[:200] + "..." if len(text) > 200 else text
                             })
                         else:
-                            sanitized_content.append(content_item)
+                            # Other content types - keep as is but truncate string representation
+                            sanitized_content.append({
+                                'type': content_item.get('type', 'unknown'),
+                                'data': '[CONTENT_SANITIZED]'
+                            })
                     sanitized_message['content'] = sanitized_content
+                else:
+                    # Other content types
+                    sanitized_message['content'] = '[CONTENT_SANITIZED]'
+                
                 sanitized_messages.append(sanitized_message)
             
             # Log sanitized messages
@@ -397,6 +438,116 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                         model_request_time, vlm_success, ACTIVE_MODEL
                     )
                     
+                    # Sanitize model response for logging
+                    sanitized_response = model_response.copy()
+                    if 'choices' in sanitized_response:
+                        for choice in sanitized_response['choices']:
+                            if 'message' in choice and isinstance(choice['message'].get('content'), list):
+                                sanitized_content = []
+                                for content_item in choice['message']['content']:
+                                    if content_item.get('type') == 'image_url':
+                                        sanitized_content.append({
+                                            'type': 'image_url',
+                                            'processed': True
+                                        })
+                                    else:
+                                        sanitized_content.append(content_item)
+                                choice['message']['content'] = sanitized_content
+                    
+                    logger.info(f"[{request_id}] Received response from model in {model_request_time:.2f}s")
+                    
+                    # Create a summary of the response for logging
+                    response_summary = {
+                        'choices_count': len(sanitized_response.get('choices', [])),
+                        'has_content': bool(sanitized_response.get('choices', [{}])[0].get('message', {}).get('content')),
+                        'content_length': len(str(sanitized_response.get('choices', [{}])[0].get('message', {}).get('content', ''))) if sanitized_response.get('choices') else 0,
+                        'content_preview': str(sanitized_response.get('choices', [{}])[0].get('message', {}).get('content', ''))[:100] + '...' if sanitized_response.get('choices') and len(str(sanitized_response.get('choices', [{}])[0].get('message', {}).get('content', ''))) > 100 else str(sanitized_response.get('choices', [{}])[0].get('message', {}).get('content', ''))
+                    }
+                    
+                    logger.info(f"[{request_id}] Model response summary: {json.dumps(response_summary, indent=2)}")
+                    
+                    # State Tracker Integration: Process VLM response
+                    try:
+                        if 'choices' in model_response and len(model_response['choices']) > 0:
+                            content = model_response['choices'][0]['message']['content']
+                            
+                            # Handle different VLM response formats
+                            vlm_text = None
+                            
+                            if isinstance(content, str):
+                                # Simple string response
+                                vlm_text = content
+                                logger.info(f"[{request_id}] VLM returned string content (length: {len(content)})")
+                                logger.info(f"[{request_id}] VLM full response: {vlm_text}")
+                            
+                            elif isinstance(content, list):
+                                # List format (some models return structured content)
+                                text_parts = []
+                                for item in content:
+                                    if isinstance(item, dict) and item.get('type') == 'text':
+                                        text_parts.append(item.get('text', ''))
+                                    elif isinstance(item, str):
+                                        text_parts.append(item)
+                                vlm_text = ' '.join(text_parts)
+                                logger.info(f"[{request_id}] VLM returned list content, extracted text (length: {len(vlm_text)})")
+                                logger.info(f"[{request_id}] VLM full response: {vlm_text}")
+                            
+                            elif isinstance(content, dict):
+                                # Dictionary format
+                                vlm_text = content.get('text', str(content))
+                                logger.info(f"[{request_id}] VLM returned dict content, extracted: {vlm_text[:50]}...")
+                                logger.info(f"[{request_id}] VLM full response: {vlm_text}")
+                            
+                            else:
+                                # Fallback: convert to string
+                                vlm_text = str(content)
+                                logger.warning(f"[{request_id}] VLM returned unexpected format ({type(content)}), converted to string")
+                                logger.info(f"[{request_id}] VLM full response: {vlm_text}")
+                            
+                            # Process with State Tracker if we have valid text
+                            if vlm_text and len(vlm_text.strip()) > 0:
+                                # 記錄RAG資料傳遞
+                                visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
+                                
+                                # 處理狀態追蹤器整合
+                                state_tracker_start = time.time()
+                                state_tracker = get_state_tracker()
+                                state_updated = await state_tracker.process_vlm_response(vlm_text, observation_id)
+                                state_tracker_time = time.time() - state_tracker_start
+                                
+                                # 記錄狀態追蹤器整合結果
+                                visual_logger.log_state_tracker_integration(
+                                    observation_id, state_updated, state_tracker_time
+                                )
+                                
+                                logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}")
+                                logger.info(f"[{request_id}] State Tracker full response: {vlm_text}")
+                            else:
+                                # 記錄RAG資料傳遞失敗
+                                visual_logger.log_rag_data_transfer(observation_id, "", False)
+                                visual_logger.log_state_tracker_integration(observation_id, False)
+                                logger.warning(f"[{request_id}] No valid text extracted from VLM response")
+                                
+                    except Exception as e:
+                        # 記錄狀態追蹤器處理錯誤
+                        visual_logger.log_error(observation_id, request_id, type(e).__name__, str(e), "state_tracker_integration")
+                        logger.warning(f"[{request_id}] State Tracker processing failed: {e}")
+                    
+                    # Calculate total processing time
+                    total_time = time.time() - request_start_time
+                    logger.info(f"[{request_id}] Total request processing time: {total_time:.2f}s")
+                    logger.info(f"[{request_id}] Timing breakdown:")
+                    logger.info(f"  - Image processing: {image_processing_time:.2f}s")
+                    logger.info(f"  - Message formatting: {format_time:.2f}s")
+                    logger.info(f"  - Model inference: {model_request_time:.2f}s")
+                    
+                    # 記錄性能指標
+                    visual_logger.log_performance_metric(observation_id, "total_processing_time", total_time, "s")
+                    visual_logger.log_performance_metric(observation_id, "image_processing_time", image_processing_time, "s")
+                    visual_logger.log_performance_metric(observation_id, "model_inference_time", model_request_time, "s")
+                    
+                    return model_response
+                    
             except Exception as e:
                 model_request_time = time.time() - model_request_start
                 visual_logger.log_vlm_response(
@@ -405,107 +556,6 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                 )
                 visual_logger.log_error(observation_id, request_id, type(e).__name__, str(e), "vlm_request")
                 raise
-                
-                # Sanitize model response for logging
-                sanitized_response = model_response.copy()
-                if 'choices' in sanitized_response:
-                    for choice in sanitized_response['choices']:
-                        if 'message' in choice and isinstance(choice['message'].get('content'), list):
-                            sanitized_content = []
-                            for content_item in choice['message']['content']:
-                                if content_item.get('type') == 'image_url':
-                                    sanitized_content.append({
-                                        'type': 'image_url',
-                                        'processed': True
-                                    })
-                                else:
-                                    sanitized_content.append(content_item)
-                            choice['message']['content'] = sanitized_content
-                
-                logger.info(f"[{request_id}] Received response from model in {model_request_time:.2f}s")
-                logger.info(f"[{request_id}] Model response: {json.dumps(sanitized_response, indent=2)}")
-                
-                # State Tracker Integration: Process VLM response
-                try:
-                    if 'choices' in model_response and len(model_response['choices']) > 0:
-                        content = model_response['choices'][0]['message']['content']
-                        
-                        # Handle different VLM response formats
-                        vlm_text = None
-                        
-                        if isinstance(content, str):
-                            # Simple string response
-                            vlm_text = content
-                            logger.info(f"[{request_id}] VLM returned string content (length: {len(content)})")
-                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
-                        
-                        elif isinstance(content, list):
-                            # List format (some models return structured content)
-                            text_parts = []
-                            for item in content:
-                                if isinstance(item, dict) and item.get('type') == 'text':
-                                    text_parts.append(item.get('text', ''))
-                                elif isinstance(item, str):
-                                    text_parts.append(item)
-                            vlm_text = ' '.join(text_parts)
-                            logger.info(f"[{request_id}] VLM returned list content, extracted text (length: {len(vlm_text)})")
-                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
-                        
-                        elif isinstance(content, dict):
-                            # Dictionary format
-                            vlm_text = content.get('text', str(content))
-                            logger.info(f"[{request_id}] VLM returned dict content, extracted: {vlm_text[:50]}...")
-                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
-                        
-                        else:
-                            # Fallback: convert to string
-                            vlm_text = str(content)
-                            logger.warning(f"[{request_id}] VLM returned unexpected format ({type(content)}), converted to string")
-                            logger.info(f"[{request_id}] VLM full response: {vlm_text}")
-                        
-                        # Process with State Tracker if we have valid text
-                        if vlm_text and len(vlm_text.strip()) > 0:
-                            # 記錄RAG資料傳遞
-                            visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
-                            
-                            # 處理狀態追蹤器整合
-                            state_tracker_start = time.time()
-                            state_tracker = get_state_tracker()
-                            state_updated = await state_tracker.process_vlm_response(vlm_text, observation_id)
-                            state_tracker_time = time.time() - state_tracker_start
-                            
-                            # 記錄狀態追蹤器整合結果
-                            visual_logger.log_state_tracker_integration(
-                                observation_id, state_updated, state_tracker_time
-                            )
-                            
-                            logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}")
-                            logger.info(f"[{request_id}] State Tracker full response: {vlm_text}")
-                        else:
-                            # 記錄RAG資料傳遞失敗
-                            visual_logger.log_rag_data_transfer(observation_id, "", False)
-                            visual_logger.log_state_tracker_integration(observation_id, False)
-                            logger.warning(f"[{request_id}] No valid text extracted from VLM response")
-                            
-                except Exception as e:
-                    # 記錄狀態追蹤器處理錯誤
-                    visual_logger.log_error(observation_id, request_id, type(e).__name__, str(e), "state_tracker_integration")
-                    logger.warning(f"[{request_id}] State Tracker processing failed: {e}")
-                
-                # Calculate total processing time
-                total_time = time.time() - request_start_time
-                logger.info(f"[{request_id}] Total request processing time: {total_time:.2f}s")
-                logger.info(f"[{request_id}] Timing breakdown:")
-                logger.info(f"  - Image processing: {image_processing_time:.2f}s")
-                logger.info(f"  - Message formatting: {format_time:.2f}s")
-                logger.info(f"  - Model inference: {model_request_time:.2f}s")
-                
-                # 記錄性能指標
-                visual_logger.log_performance_metric(observation_id, "total_processing_time", total_time, "s")
-                visual_logger.log_performance_metric(observation_id, "image_processing_time", image_processing_time, "s")
-                visual_logger.log_performance_metric(observation_id, "model_inference_time", model_request_time, "s")
-                
-                return model_response
                 
         else:
             raise HTTPException(status_code=400, detail=f"Unsupported model: {ACTIVE_MODEL}")
