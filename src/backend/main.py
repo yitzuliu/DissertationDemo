@@ -31,6 +31,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from state_tracker import get_state_tracker
 from logging.system_logger import get_system_logger, initialize_system_logger
 from logging.visual_logger import get_visual_logger
+from logging.log_manager import get_log_manager
+from logging.flow_tracker import get_flow_tracker, FlowType, FlowStep, FlowStatus
 
 def setup_logging():
     """Setup logging with proper path and permissions"""
@@ -114,6 +116,12 @@ app = FastAPI(title="Vision Models Unified API")
 
 # Initialize system logger
 system_logger = initialize_system_logger()
+
+# Initialize log manager
+log_manager = get_log_manager()
+
+# Initialize flow tracker
+flow_tracker = get_flow_tracker()
 
 # Configure CORS
 app.add_middleware(
@@ -647,27 +655,91 @@ async def process_vlm_text(request: dict):
         
         raise HTTPException(status_code=500, detail=f"Error processing text: {str(e)}")
 
+@app.post("/api/v1/logging/user")
+async def receive_user_log(request: dict):
+    """Receive user query logs from frontend"""
+    try:
+        # Validate request
+        if not request:
+            raise HTTPException(status_code=400, detail="Request body is required")
+        
+        event_type = request.get("event_type")
+        query_id = request.get("query_id")
+        request_id = request.get("request_id")
+        question = request.get("question")
+        language = request.get("language")
+        
+        if event_type == "USER_QUERY" and query_id and request_id and question:
+            # Log user query using log manager
+            log_manager.log_user_query(
+                query_id=query_id,
+                request_id=request_id,
+                question=question,
+                language=language or "en"
+            )
+            
+            return {"status": "success", "message": "User query logged successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid log data format")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error logging user query: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
 @app.post("/api/v1/state/query")
 async def process_instant_query(request: dict):
-    """Process instant user query for immediate response"""
+    """Process instant user query for immediate response with comprehensive logging and flow tracking"""
     try:
         # Validate request
         if not request:
             raise HTTPException(status_code=400, detail="Request body is required")
         
         query = request.get("query", "").strip()
+        query_id = request.get("query_id")
+        request_id = request.get("request_id")
+        flow_id = request.get("flow_id")
+        
         if not query:
             raise HTTPException(status_code=400, detail="Query is required")
         
         if len(query) > 500:  # Reasonable limit
             raise HTTPException(status_code=400, detail="Query too long (max 500 characters)")
         
+        # Generate IDs if not provided by frontend
+        if not query_id:
+            query_id = log_manager.generate_query_id()
+        if not request_id:
+            request_id = log_manager.generate_request_id()
+        if not flow_id:
+            flow_id = flow_tracker.start_flow(FlowType.USER_QUERY)
+        else:
+            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_RECEIVED, query_id=query_id, request_id=request_id)
+        
+        # Log query processing start
+        start_time = time.time()
+        flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_PROCESSING, query_id=query_id)
+        
         state_tracker = get_state_tracker()
-        result = state_tracker.process_instant_query(query)
+        result = state_tracker.process_instant_query(query, query_id, request_id)
+        
+        # Calculate processing time
+        processing_time_ms = (time.time() - start_time) * 1000
         
         # Validate result
         if not result or not hasattr(result, 'response_text'):
+            flow_tracker.end_flow(flow_id, FlowStatus.FAILED)
             raise HTTPException(status_code=500, detail="Invalid response from query processor")
+        
+        # Log query response
+        log_manager.log_query_response(
+            query_id=query_id,
+            response=result.response_text,
+            duration=processing_time_ms
+        )
+        flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_RESPONSE, query_id=query_id)
+        flow_tracker.end_flow(flow_id, FlowStatus.SUCCESS)
         
         return {
             "status": "success",
@@ -675,7 +747,8 @@ async def process_instant_query(request: dict):
             "query_type": result.query_type.value,
             "response": result.response_text,
             "processing_time_ms": result.processing_time_ms,
-            "confidence": result.confidence
+            "confidence": result.confidence,
+            "flow_id": flow_id
         }
     except HTTPException:
         # Re-raise HTTP exceptions as-is

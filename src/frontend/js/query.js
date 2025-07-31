@@ -40,6 +40,67 @@ class StateQuerySystem {
         });
     }
 
+    // 生成唯一ID的方法
+    generateQueryId() {
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 10);
+        return `query_${timestamp}_${random}`;
+    }
+
+    generateRequestId() {
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 10);
+        return `req_${timestamp}_${random}`;
+    }
+
+    // 生成唯一ID的方法
+    generateFlowId() {
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 10);
+        return `flow_${timestamp}_${random}`;
+    }
+
+    // 記錄使用者查詢日誌
+    logUserQuery(query, queryId, requestId) {
+        const logData = {
+            event_type: 'USER_QUERY',
+            query_id: queryId,
+            request_id: requestId,
+            question: query,
+            language: this.detectLanguage(query),
+            timestamp: new Date().toISOString()
+        };
+        
+        // 發送到後端日誌系統
+        this.sendLogToBackend(logData);
+        
+        // 也在前端console記錄（開發用）
+        console.log('[USER_QUERY]', logData);
+    }
+
+    // 檢測查詢語言
+    detectLanguage(text) {
+        // 簡單的中文檢測
+        const chinesePattern = /[\u4e00-\u9fff]/;
+        return chinesePattern.test(text) ? 'zh' : 'en';
+    }
+
+    // 發送日誌到後端
+    async sendLogToBackend(logData) {
+        try {
+            await fetch(`${this.apiBaseUrl}/logging/user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(logData)
+            });
+        } catch (error) {
+            // 日誌發送失敗不影響主要功能
+            console.warn('Failed to send log to backend:', error);
+        }
+    }
+
     async checkConnection() {
         try {
             const response = await fetch(`${this.apiBaseUrl}/state`);
@@ -89,6 +150,14 @@ class StateQuerySystem {
             return;
         }
 
+        // 生成唯一ID
+        const queryId = this.generateQueryId();
+        const requestId = this.generateRequestId();
+        const flowId = this.generateFlowId();
+
+        // 記錄使用者查詢日誌
+        this.logUserQuery(query, queryId, requestId);
+
         this.showLoading();
         
         try {
@@ -99,7 +168,12 @@ class StateQuerySystem {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ query: query })
+                body: JSON.stringify({ 
+                    query: query,
+                    query_id: queryId,
+                    request_id: requestId,
+                    flow_id: flowId
+                })
             });
 
             const endTime = performance.now();

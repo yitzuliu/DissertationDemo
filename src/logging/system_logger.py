@@ -1,8 +1,8 @@
 """
-AI Manual Assistant 系統技術日誌記錄器
+AI Manual Assistant System Technical Logger
 
-提供系統級事件的日誌記錄功能，包括系統啟動/關閉、記憶體使用、
-端點呼叫和錯誤處理等。
+Provides logging functionality for system-level events, including system startup/shutdown, memory usage,
+endpoint calls and error handling.
 """
 
 import psutil
@@ -15,21 +15,21 @@ from log_manager import get_log_manager, LogManager, LogType
 
 class SystemLogger:
     """
-    系統技術日誌記錄器
+    System Technical Logger
     
-    負責記錄系統級事件，包括：
-    - 系統啟動/關閉事件
-    - 記憶體和CPU使用情況
-    - 端點呼叫和API請求
-    - 連線狀態和錯誤處理
+    Responsible for logging system-level events, including:
+    - System startup/shutdown events
+    - Memory and CPU usage
+    - Endpoint calls and API requests
+    - Connection status and error handling
     """
     
     def __init__(self, system_id: Optional[str] = None):
         """
-        初始化系統日誌記錄器
+        Initialize system logger
         
         Args:
-            system_id: 系統唯一識別碼，如果未提供則自動生成
+            system_id: System unique identifier, auto-generated if not provided
         """
         self.log_manager = get_log_manager()
         self.system_id = system_id or f"sys_{int(time.time())}_{uuid.uuid4().hex[:8]}"
@@ -38,13 +38,13 @@ class SystemLogger:
         
     def log_system_startup(self, host: str = "localhost", port: int = 8000, model: str = "unknown", **kwargs):
         """
-        記錄系統啟動事件
+        Log system startup event
         
         Args:
-            host: 主機地址
-            port: 端口號
-            model: 使用的模型名稱
-            **kwargs: 其他啟動參數
+            host: Host address
+            port: Port number
+            model: Model name being used
+            **kwargs: Other startup parameters
         """
         self.log_manager.log_system_start(
             system_id=self.system_id,
@@ -53,10 +53,10 @@ class SystemLogger:
             model=model
         )
         
-        # 記錄啟動時的記憶體使用
+        # Log memory usage at startup
         self.log_memory_usage()
         
-        # 記錄其他啟動參數
+        # Log other startup parameters
         if kwargs:
             for key, value in kwargs.items():
                 self.log_manager.get_logger(LogType.SYSTEM).info(
@@ -64,11 +64,11 @@ class SystemLogger:
                 )
     
     def log_system_shutdown(self):
-        """記錄系統關閉事件"""
+        """Log system shutdown event"""
         uptime = time.time() - self.start_time
         uptime_str = f"{uptime:.1f}s"
         
-        # 記錄關閉時的記憶體使用
+        # Log memory usage at shutdown
         memory_info = self.process.memory_info()
         final_memory = f"{memory_info.rss / 1024 / 1024:.1f}MB"
         
@@ -80,10 +80,10 @@ class SystemLogger:
     
     def log_memory_usage(self, context: str = ""):
         """
-        記錄記憶體使用情況
+        Log memory usage
         
         Args:
-            context: 記錄上下文（如 startup, request_processing 等）
+            context: Logging context (e.g., startup, request_processing, etc.)
         """
         try:
             memory_info = self.process.memory_info()
@@ -101,10 +101,10 @@ class SystemLogger:
     
     def log_cpu_usage(self, context: str = ""):
         """
-        記錄CPU使用情況
+        Log CPU usage
         
         Args:
-            context: 記錄上下文
+            context: Logging context
         """
         try:
             cpu_percent = self.process.cpu_percent()
@@ -123,16 +123,16 @@ class SystemLogger:
                          duration: float, request_id: Optional[str] = None,
                          client_ip: Optional[str] = None, **kwargs):
         """
-        記錄端點呼叫
+        Log endpoint call
         
         Args:
-            method: HTTP方法
-            path: 請求路徑
-            status_code: 回應狀態碼
-            duration: 處理時間（秒）
-            request_id: 請求ID
-            client_ip: 客戶端IP
-            **kwargs: 其他請求參數
+            method: HTTP method
+            path: Request path
+            status_code: Response status code
+            duration: Processing time (seconds)
+            request_id: Request ID
+            client_ip: Client IP
+            **kwargs: Other request parameters
         """
         if not request_id:
             request_id = self.log_manager.generate_request_id()
@@ -145,7 +145,7 @@ class SystemLogger:
             duration=duration
         )
         
-        # 記錄額外的請求資訊
+        # Log additional request information
         if client_ip or kwargs:
             extra_info = []
             if client_ip:
@@ -161,12 +161,12 @@ class SystemLogger:
     def log_connection_status(self, service: str, status: str, 
                             details: Optional[str] = None):
         """
-        記錄連線狀態
+        Log connection status
         
         Args:
-            service: 服務名稱（如 frontend, model_server, database）
-            status: 連線狀態（CONNECTED, DISCONNECTED, ERROR）
-            details: 詳細資訊
+            service: Service name (e.g., frontend, model_server, database)
+            status: Connection status (CONNECTED, DISCONNECTED, ERROR)
+            details: Detailed information
         """
         message_parts = [f"[CONNECTION] system_id={self.system_id}",
                         f"service={service}", f"status={status}"]
@@ -181,13 +181,13 @@ class SystemLogger:
                   context: Optional[Dict[str, Any]] = None,
                   request_id: Optional[str] = None):
         """
-        記錄錯誤事件
+        Log error event
         
         Args:
-            error_type: 錯誤類型
-            error_message: 錯誤訊息
-            context: 錯誤上下文
-            request_id: 相關的請求ID
+            error_type: Error type
+            error_message: Error message
+            context: Error context
+            request_id: Related request ID
         """
         message_parts = [f"[ERROR] system_id={self.system_id}",
                         f"type={error_type}", f"message={error_message}"]
@@ -205,13 +205,13 @@ class SystemLogger:
     def log_performance_metric(self, metric_name: str, value: float, 
                               unit: str = "", context: Optional[str] = None):
         """
-        記錄性能指標
+        Log performance metric
         
         Args:
-            metric_name: 指標名稱
-            value: 指標值
-            unit: 單位
-            context: 上下文
+            metric_name: Metric name
+            value: Metric value
+            unit: Unit
+            context: Context
         """
         value_str = f"{value:.3f}{unit}" if unit else f"{value:.3f}"
         
@@ -228,13 +228,13 @@ class SystemLogger:
                         response_time: Optional[float] = None,
                         details: Optional[Dict[str, Any]] = None):
         """
-        記錄健康檢查結果
+        Log health check result
         
         Args:
-            component: 組件名稱
-            status: 健康狀態（HEALTHY, UNHEALTHY, DEGRADED）
-            response_time: 響應時間
-            details: 詳細資訊
+            component: Component name
+            status: Health status (HEALTHY, UNHEALTHY, DEGRADED)
+            response_time: Response time
+            details: Detailed information
         """
         message_parts = [f"[HEALTH_CHECK] system_id={self.system_id}",
                         f"component={component}", f"status={status}"]
@@ -251,10 +251,10 @@ class SystemLogger:
  
     def get_system_info(self) -> Dict[str, Any]:
         """
-        獲取系統資訊
+        Get system information
         
         Returns:
-            包含系統資訊的字典
+            Dictionary containing system information
         """
         try:
             memory_info = self.process.memory_info()
@@ -272,12 +272,12 @@ class SystemLogger:
             return {"system_id": self.system_id, "error": str(e)}
 
 
-# 全域系統日誌記錄器實例
+# Global system logger instance
 _system_logger_instance: Optional[SystemLogger] = None
 
 
 def get_system_logger() -> SystemLogger:
-    """獲取全域系統日誌記錄器實例"""
+    """Get global system logger instance"""
     global _system_logger_instance
     if _system_logger_instance is None:
         _system_logger_instance = SystemLogger()
@@ -286,34 +286,34 @@ def get_system_logger() -> SystemLogger:
 
 def initialize_system_logger(system_id: Optional[str] = None) -> SystemLogger:
     """
-    初始化全域系統日誌記錄器
+    Initialize global system logger
     
     Args:
-        system_id: 系統唯一識別碼
+        system_id: System unique identifier
         
     Returns:
-        系統日誌記錄器實例
+        System logger instance
     """
     global _system_logger_instance
     _system_logger_instance = SystemLogger(system_id)
     return _system_logger_instance
 
 
-# 便捷函數
+# Convenience functions
 def log_startup(host: str = "localhost", port: int = 8000, 
                 model: str = "unknown", **kwargs):
-    """便捷的系統啟動日誌記錄"""
+    """Convenient system startup logging"""
     get_system_logger().log_system_startup(host, port, model, **kwargs)
 
 
 def log_shutdown():
-    """便捷的系統關閉日誌記錄"""
+    """Convenient system shutdown logging"""
     get_system_logger().log_system_shutdown()
 
 
 def log_request(method: str, path: str, status_code: int, duration: float,
                 request_id: Optional[str] = None, **kwargs):
-    """便捷的請求日誌記錄"""
+    """Convenient request logging"""
     get_system_logger().log_endpoint_call(
         method, path, status_code, duration, request_id, **kwargs
     )
@@ -322,15 +322,15 @@ def log_request(method: str, path: str, status_code: int, duration: float,
 def log_error(error_type: str, error_message: str, 
               context: Optional[Dict[str, Any]] = None,
               request_id: Optional[str] = None):
-    """便捷的錯誤日誌記錄"""
+    """Convenient error logging"""
     get_system_logger().log_error(error_type, error_message, context, request_id)
 
 
 def log_memory():
-    """便捷的記憶體使用日誌記錄"""
+    """Convenient memory usage logging"""
     get_system_logger().log_memory_usage()
 
 
 def log_connection(service: str, status: str, details: Optional[str] = None):
-    """便捷的連線狀態日誌記錄"""
+    """Convenient connection status logging"""
     get_system_logger().log_connection_status(service, status, details)

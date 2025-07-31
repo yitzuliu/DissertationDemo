@@ -694,7 +694,7 @@ class StateTracker:
             }
         }
     
-    def process_instant_query(self, query: str, query_id: str = None, request_id: str = None):
+    def process_instant_query(self, query: str, query_id: str = None, request_id: str = None, flow_id: str = None):
         """
         Process user query for instant response (< 20ms target).
         
@@ -729,10 +729,16 @@ class StateTracker:
         # Calculate processing time
         processing_time_ms = (time.time() - start_time) * 1000
         
-        # Log query processing details
+        # Log query processing details (only if not already logged by backend)
+        # The backend will handle the main logging, this is for state tracker specific logs
         self.log_manager.log_query_classify(query_id, result.query_type.value, result.confidence)
+        if flow_id:
+            from logging.flow_tracker import get_flow_tracker, FlowStep
+            flow_tracker = get_flow_tracker()
+            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_CLASSIFY, query_id=query_id)
         self.log_manager.log_query_process(query_id, current_state or {})
-        self.log_manager.log_query_response(query_id, result.response, processing_time_ms)
+        if flow_id:
+            flow_tracker.add_flow_step(flow_id, FlowStep.QUERY_PROCESS, query_id=query_id)
         
         logger.info(f"Instant query processed: '{query}' -> {result.query_type.value} in {processing_time_ms:.1f}ms")
         

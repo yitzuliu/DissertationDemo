@@ -14,7 +14,7 @@ import uuid
 import json
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from log_manager import get_log_manager, LogManager, LogType
+from .log_manager import get_log_manager, LogManager, LogType
 
 
 class VisualLogger:
