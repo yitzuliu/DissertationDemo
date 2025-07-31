@@ -245,3 +245,4 @@ deploy/
 deployment/
 *.tar.gz
 *.zip
+cache/
