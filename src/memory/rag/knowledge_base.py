@@ -17,12 +17,20 @@ from .validation import validate_task_file
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'logging'))
 try:
-    from logging.log_manager import get_log_manager
-except ImportError:
-    # Fallback for different import paths
-    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'logging'))
     from log_manager import get_log_manager
+except ImportError:
+    # Fallback for different import contexts
+    try:
+        from logging.log_manager import get_log_manager
+    except ImportError:
+        # Create a dummy log manager if all else fails
+        class DummyLogManager:
+            def generate_observation_id(self): return "dummy_obs"
+            def log_rag_matching(self, *args, **kwargs): pass
+            def log_rag_result(self, *args, **kwargs): pass
+        def get_log_manager(): return DummyLogManager()
 
 logger = logging.getLogger(__name__)
 

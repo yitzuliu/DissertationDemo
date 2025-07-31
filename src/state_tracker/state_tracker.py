@@ -26,7 +26,15 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from memory.rag.knowledge_base import RAGKnowledgeBase
 
 # Import logging system
-from logging.log_manager import get_log_manager
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'logging'))
+try:
+    from log_manager import get_log_manager
+except ImportError:
+    # Fallback for different import contexts
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'logging'))
+    from log_manager import get_log_manager
 
 logger = logging.getLogger(__name__)
 

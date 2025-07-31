@@ -29,8 +29,13 @@ import uuid
 # Import State Tracker and Loggers
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from state_tracker import get_state_tracker
-from logging.system_logger import get_system_logger, initialize_system_logger
-from logging.visual_logger import get_visual_logger
+
+# Import custom logging modules (avoid conflict with built-in logging)
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'logging'))
+from system_logger import get_system_logger, initialize_system_logger
+from visual_logger import get_visual_logger
 
 def setup_logging():
     """Setup logging with proper path and permissions"""

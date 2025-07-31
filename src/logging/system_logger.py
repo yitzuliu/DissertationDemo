@@ -10,7 +10,10 @@ import time
 import uuid
 from datetime import datetime
 from typing import Optional, Dict, Any
-from log_manager import get_log_manager, LogManager, LogType
+try:
+    from .log_manager import get_log_manager, LogManager, LogType
+except ImportError:
+    from log_manager import get_log_manager, LogManager, LogType
 
 
 class SystemLogger:
