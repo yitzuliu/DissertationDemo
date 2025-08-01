@@ -1,9 +1,8 @@
 """
-SmolVLM Model Implementation
+SmolVLM Model Implementation (Refactored)
 
 This module implements the BaseVisionModel interface for the SmolVLM model.
-It uses a running SmolVLM server via llama-server and communicates with it
-using the OpenAI API compatibility interface.
+It uses the unified server manager for better consistency and maintainability.
 """
 
 import time
@@ -15,130 +14,44 @@ from typing import Dict, Any, Optional, Union
 from PIL import Image, ImageEnhance, ImageFilter, ImageChops, ImageOps
 import logging
 import io
-import subprocess
 import sys
 import os
-import signal
-import threading
 from pathlib import Path
 
-from ..base_model import BaseVisionModel
-from src.backend.utils.image_processing import (
-    preprocess_for_model,
-    smart_crop_and_resize,
-    reduce_noise,
-    enhance_color_balance
-)
+# Add the current directory to the path for imports
+current_dir = Path(__file__).parent
+sys.path.insert(0, str(current_dir))
+
+from server_manager import SmolVLMServerManager
+
+# Add parent directories to path for imports
+project_root = current_dir.parent.parent.parent.parent
+sys.path.append(str(project_root))
+
+try:
+    from src.models.base_model import BaseVisionModel
+    from src.backend.utils.image_processing import (
+        preprocess_for_model,
+        smart_crop_and_resize,
+        reduce_noise,
+        enhance_color_balance
+    )
+except ImportError:
+    # Fallback for direct execution
+    sys.path.append(str(current_dir.parent.parent))
+    from models.base_model import BaseVisionModel
+    from backend.utils.image_processing import (
+        preprocess_for_model,
+        smart_crop_and_resize,
+        reduce_noise,
+        enhance_color_balance
+    )
 
 logger = logging.getLogger(__name__)
 
-class SmolVLMServer:
-    """
-    Manages the SmolVLM server process using llama-server
-    """
-    
-    def __init__(self, model_name="ggml-org/SmolVLM-500M-Instruct-GGUF", port=8080):
-        self.process = None
-        self.model_name = model_name
-        self.port = port
-        self.server_url = f"http://localhost:{port}/v1/chat/completions"
-        self.server_ready = False
-        self.output_thread = None
-        
-    def start(self) -> bool:
-        """Start SmolVLM server"""
-        if self.is_running():
-            logger.info("SmolVLM server already running")
-            return True
-            
-        cmd = [
-            "llama-server",
-            "-hf", self.model_name,
-            "-ngl", "99",
-            "--port", str(self.port)
-        ]
-        
-        logger.info(f"Starting SmolVLM server with model: {self.model_name} on port: {self.port}")
-        
-        try:
-            self.process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-                bufsize=1
-            )
-            
-            # Start a thread to monitor server output
-            def monitor_output():
-                if self.process and self.process.stdout:
-                    for line in iter(self.process.stdout.readline, ''):
-                        logger.debug(f"SmolVLM server: {line.rstrip()}")
-                        if "HTTP server listening" in line or "Server listening" in line:
-                            logger.info(f"SmolVLM server running at http://localhost:{self.port}")
-                            self.server_ready = True
-            
-            self.output_thread = threading.Thread(target=monitor_output)
-            self.output_thread.daemon = True
-            self.output_thread.start()
-            
-            # Wait for server to become ready
-            start_time = time.time()
-            while time.time() - start_time < 30:  # Wait up to 30 seconds
-                if self.server_ready:
-                    return True
-                if self.process.poll() is not None:
-                    logger.error("SmolVLM server failed to start")
-                    return False
-                time.sleep(0.5)
-                
-            logger.warning("Timed out waiting for SmolVLM server to start")
-            return self.is_running()
-            
-        except FileNotFoundError:
-            logger.error("Error: 'llama-server' command not found")
-            return False
-        except Exception as e:
-            logger.error(f"Error starting SmolVLM server: {str(e)}")
-            return False
-            
-    def stop(self) -> bool:
-        """Stop server"""
-        if not self.process:
-            return True
-            
-        logger.info("Stopping SmolVLM server...")
-        try:
-            self.process.terminate()
-            try:
-                self.process.wait(timeout=5)
-                logger.info("SmolVLM server stopped")
-                return True
-            except subprocess.TimeoutExpired:
-                logger.warning("Force stopping server...")
-                self.process.kill()
-                self.process.wait()
-                logger.info("SmolVLM server force stopped")
-                return True
-        except Exception as e:
-            logger.error(f"Error stopping SmolVLM server: {str(e)}")
-            return False
-        finally:
-            self.process = None
-            self.server_ready = False
-    
-    def is_running(self) -> bool:
-        """Check if server is running by testing the endpoint"""
-        try:
-            response = requests.get(f"http://localhost:{self.port}/health")
-            return response.status_code == 200
-        except:
-            return False
-
-
 class SmolVLMModel(BaseVisionModel):
     """
-    Implementation of the SmolVLM model using llama-server with OpenAI API compatibility.
+    Implementation of the SmolVLM model using the unified server manager.
     """
     
     def __init__(self, model_name: str, config: Dict[str, Any]):
@@ -151,18 +64,23 @@ class SmolVLMModel(BaseVisionModel):
         """
         super().__init__(model_name, config)
         
+        # Get configuration with defaults
         self.smolvlm_version = config.get("smolvlm_version", "ggml-org/SmolVLM-500M-Instruct-GGUF")
         self.port = config.get("port", 8080)
-        self.server_url = f"http://localhost:{self.port}/v1/chat/completions"
         self.timeout = config.get("timeout", 60)
+        self.server_url = f"http://localhost:{self.port}/v1/chat/completions"
         self.headers = {"Content-Type": "application/json"}
         
-        # If manage_server is True, we'll start a server instance
+        # Server management
         self.manage_server = config.get("manage_server", True)
         if self.manage_server:
-            self.server = SmolVLMServer(self.smolvlm_version, self.port)
+            self.server_manager = SmolVLMServerManager(
+                model_name=self.smolvlm_version,
+                port=self.port,
+                timeout=self.timeout
+            )
         else:
-            self.server = None
+            self.server_manager = None
     
     def load_model(self) -> bool:
         """
@@ -176,13 +94,13 @@ class SmolVLMModel(BaseVisionModel):
             
             # If we're managing the server, start it if it's not running
             if self.manage_server:
-                if self.server is None:
-                    logger.error("Server instance not initialized")
+                if self.server_manager is None:
+                    logger.error("Server manager not initialized")
                     return False
                     
-                if not self.server.is_running():
+                if not self.server_manager.is_running():
                     logger.info(f"Starting SmolVLM server for model {self.model_name}...")
-                    if not self.server.start():
+                    if not self.server_manager.start(verbose=False):
                         logger.error("Failed to start SmolVLM server")
                         return False
             
@@ -290,21 +208,21 @@ class SmolVLMModel(BaseVisionModel):
             return image
     
     def edge_preserving_smooth(self, image: Image.Image, config: Dict) -> Image.Image:
-        """邊緣保持平滑"""
+        """Edge-preserving smoothing"""
         try:
             import cv2
             import numpy as np
             
-            # 獲取參數
+            # Get parameters
             bilateral = config.get("bilateral_filter", {})
             d = bilateral.get("diameter", 9)
             sigma_color = bilateral.get("sigma_color", 75)
             sigma_space = bilateral.get("sigma_space", 75)
             
-            # 轉換為 OpenCV 格式
+            # Convert to OpenCV format
             img_array = np.array(image)
             
-            # 應用雙邊濾波
+            # Apply bilateral filter
             smoothed = cv2.bilateralFilter(
                 img_array, 
                 d=d,
@@ -583,8 +501,8 @@ class SmolVLMModel(BaseVisionModel):
             True if unloading was successful, False otherwise
         """
         try:
-            if self.manage_server and self.server:
-                self.server.stop()
+            if self.manage_server and self.server_manager:
+                self.server_manager.stop()
                 
             self.loaded = False
             import gc
@@ -593,4 +511,4 @@ class SmolVLMModel(BaseVisionModel):
             return True
         except Exception as e:
             logger.error(f"Error unloading model {self.model_name}: {str(e)}")
-            return False
+            return False 
