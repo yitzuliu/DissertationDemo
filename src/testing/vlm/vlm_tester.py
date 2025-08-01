@@ -33,14 +33,52 @@ def get_memory_usage():
     memory_info = process.memory_info()
     return memory_info.rss / (1024 ** 3)  # Convert to GB
 
+def clear_mlx_memory():
+    """Clear MLX-specific memory and Metal GPU cache"""
+    print("🧹 Clearing MLX memory...")
+    try:
+        import mlx.core as mx
+        # Force garbage collection for MLX
+        mx.eval(mx.zeros((1, 1)))
+        
+        # Clear Metal GPU cache if available
+        try:
+            mx.metal.clear_cache()
+            print("  🔧 MLX Metal cache cleared")
+        except AttributeError:
+            # Older MLX versions may not have metal.clear_cache()
+            pass
+        except Exception as e:
+            print(f"  ⚠️ MLX Metal cache clearing failed: {e}")
+            
+        print("  ✅ MLX memory cleared successfully")
+        
+    except ImportError:
+        print("  ℹ️ MLX not available, skipping MLX memory cleanup")
+    except Exception as e:
+        print(f"  ⚠️ MLX memory clearing warning: {e}")
+
 def clear_model_memory(model, processor):
-    """Clear model memory"""
-    print("Clearing model memory...")
+    """Clear model memory with enhanced MLX support"""
+    print("🧹 Clearing model memory...")
+    
+    # Delete model and processor references
     del model, processor
+    
+    # Force garbage collection
     gc.collect()
+    
+    # Clear PyTorch MPS cache if available
     if torch.backends.mps.is_available():
         torch.mps.empty_cache()
-    time.sleep(2)  # Allow system to clean up memory
+        print("  🔧 PyTorch MPS cache cleared")
+    
+    # Clear MLX memory specifically
+    clear_mlx_memory()
+    
+    # Allow system time to clean up memory
+    time.sleep(2)
+    print("  ✅ Memory cleanup completed")
 
 class TimeoutError(Exception):
     """Timeout error"""
@@ -502,8 +540,20 @@ class VLMTester:
             print(f"Found {len(test_images)} test images")
             
             # Test each image
-            for image_path in test_images:
+            for i, image_path in enumerate(test_images):
                 try:
+                    # Enhanced memory management for MLX models
+                    # Clear memory every 3 images for MLX models to prevent GPU memory overflow
+                    if i > 0 and i % 3 == 0:
+                        if any(mlx_model in model_name.lower() for mlx_model in ["phi-3.5", "llava", "smolvlm"]):
+                            print(f"  🧹 Periodic memory cleanup for MLX model (image {i})...")
+                            try:
+                                clear_mlx_memory()
+                                gc.collect()
+                                print(f"  ✅ Memory cleanup completed for image {i}")
+                            except Exception as e:
+                                print(f"  ⚠️ Memory cleanup warning: {e}")
+                    
                     image_result = self.test_single_image(model, processor, image_path, model_name)
                     model_results["images"][image_path.name] = image_result
                     

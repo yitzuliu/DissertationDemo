@@ -155,10 +155,10 @@ def main():
         # Save results
         if args.save_results and all_results:
             try:
-                # Determine if this is a single model test or complete test
+                # Always save results, whether single model or complete test
                 if len(args.models) == 1:
-                    # Single model test - use fixed filename
-                    suffix = args.models[0]
+                    # Single model test - use consistent naming format
+                    suffix = f"single_{args.models[0]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                     results_file = framework.save_results(all_results, "coco", args.questions, suffix)
                 else:
                     # Complete test - use timestamp

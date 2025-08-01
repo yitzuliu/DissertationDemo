@@ -33,10 +33,10 @@ import gc # Added for fallback model cleanup
 # Import existing VLM infrastructure
 try:
     # For module execution: python -m src.testing.vqa.vqa_test
-    from ..vlm.vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage
+    from ..vlm.vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage, clear_mlx_memory
 except (ImportError, ValueError):
     # For direct script execution: python vqa_test.py
-    from vlm.vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage
+    from vlm.vlm_tester import VLMModelLoader, clear_model_memory, get_memory_usage, clear_mlx_memory
 
 # Add imports for SmolVLM GGUF support
 import requests
@@ -85,6 +85,9 @@ class VQAFramework:
         self.images_dir = self.data_dir / "images"
         self.images_dir.mkdir(parents=True, exist_ok=True)
         
+        # Initialize MLX memory monitoring
+        self._setup_mlx_memory_monitoring()
+        
         # Set up results directory
         possible_results_dirs = [
             Path("src/testing/results"),  # From project root
@@ -92,7 +95,40 @@ class VQAFramework:
             Path("./results")             # Current directory
         ]
         
+        # Initialize memory management settings
+        self.memory_cleanup_interval = 5  # Clean memory every 5 questions for MLX models
+        self.mlx_models = ["phi35_vision", "llava_mlx", "smolvlm_v2_instruct"]
+        
         self.results_dir = None
+        
+        # Set up model configurations with enhanced memory management
+        self.models_config = {
+            "phi35_vision": {
+                "model_id": "mlx-community/Phi-3.5-vision-instruct-4bit",
+                "loader": VLMModelLoader.load_phi3_vision,
+                "memory_intensive": True  # Flag for enhanced memory management
+            },
+            "llava_mlx": {
+                "model_id": "mlx-community/llava-v1.6-mistral-7b-4bit",
+                "loader": VLMModelLoader.load_llava_mlx,
+                "memory_intensive": True
+            },
+            "smolvlm_v2_instruct": {
+                "model_id": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+                "loader": VLMModelLoader.load_smolvlm2_video_mlx,
+                "memory_intensive": True
+            },
+            "smolvlm_instruct": {
+                "model_id": "ggml-org/SmolVLM-500M-Instruct-GGUF",
+                "loader": VLMModelLoader.load_smolvlm_instruct,
+                "memory_intensive": False
+            },
+            "moondream2": {
+                "model_id": "vikhyatk/moondream2",
+                "loader": VLMModelLoader.load_moondream2,
+                "memory_intensive": False
+            }
+        }
         for path in possible_results_dirs:
             if path.exists():
                 self.results_dir = path
@@ -168,6 +204,58 @@ class VQAFramework:
         print(f"   📁 Data directory: {self.data_dir}")
         print(f"   📊 Results directory: {self.results_dir}")
         print(f"   🎯 Model order: {list(self.models_config.keys())}")
+    
+    def _setup_mlx_memory_monitoring(self):
+        """Setup MLX memory monitoring and management"""
+        print("🔧 Setting up MLX memory monitoring...")
+        
+        # Check if MLX is available
+        try:
+            import mlx.core as mx
+            print("  ✅ MLX framework detected")
+            
+            # Test MLX memory operations
+            try:
+                test_array = mx.zeros((100, 100))
+                mx.eval(test_array)
+                print("  ✅ MLX memory operations working")
+            except Exception as e:
+                print(f"  ⚠️ MLX memory test failed: {e}")
+                
+        except ImportError:
+            print("  ℹ️ MLX framework not available")
+        except Exception as e:
+            print(f"  ⚠️ MLX setup warning: {e}")
+    
+    def _check_mlx_memory_pressure(self) -> bool:
+        """Check if MLX memory usage is approaching dangerous levels"""
+        try:
+            import mlx.core as mx
+            # Try to get memory info if available
+            try:
+                memory_info = mx.metal.get_memory_info()
+                # If we can get memory info, check if it's high
+                if hasattr(memory_info, 'used') and hasattr(memory_info, 'total'):
+                    usage_ratio = memory_info.used / memory_info.total
+                    if usage_ratio > 0.8:  # 80% threshold
+                        print(f"⚠️ MLX memory pressure detected: {usage_ratio:.1%} usage")
+                        return True
+            except AttributeError:
+                # Fallback: try to allocate a small array to test memory
+                try:
+                    test_array = mx.zeros((1000, 1000))
+                    mx.eval(test_array)
+                    return False  # Memory seems available
+                except Exception:
+                    print("⚠️ MLX memory pressure detected (allocation failed)")
+                    return True
+        except ImportError:
+            return False  # MLX not available
+        except Exception as e:
+            print(f"⚠️ MLX memory check warning: {e}")
+            return False
+        
+        return False
     
     def ensure_smolvlm_server(self):
         """Ensure SmolVLM server is running (consistent with vlm_tester.py)"""
@@ -694,13 +782,33 @@ class VQAFramework:
                 annotations, verbose
             )
             
-            # Clean up model memory
-            print("Cleaning up model memory...")
+            # Enhanced model memory cleanup
+            print("🧹 Cleaning up model memory...")
             if isinstance(model, dict) and model.get("type") == "smolvlm_gguf":
                 # GGUF model doesn't need memory cleanup
                 print("  ℹ️ SmolVLM GGUF model (HTTP API) - no memory cleanup needed")
             else:
+                # Use enhanced memory clearing for all models
                 clear_model_memory(model, processor)
+                
+                # Additional MLX-specific cleanup for MLX models
+                if any(mlx_model in model_name.lower() for mlx_model in self.mlx_models):
+                    print("  🔧 Additional MLX memory cleanup...")
+                    try:
+                        # Check if memory pressure is high
+                        if self._check_mlx_memory_pressure():
+                            print("  ⚠️ High memory pressure, performing intensive cleanup...")
+                            # Multiple cleanup cycles for high pressure
+                            for cleanup_cycle in range(3):
+                                clear_mlx_memory()
+                                gc.collect()
+                                time.sleep(0.5)
+                        else:
+                            # Normal cleanup
+                            clear_mlx_memory()
+                        print("  ✅ Additional MLX cleanup completed")
+                    except Exception as e:
+                        print(f"  ⚠️ Additional MLX cleanup warning: {e}")
             
             return results
             
@@ -738,6 +846,30 @@ class VQAFramework:
             question_id = question['question_id']
             question_text = question['question']
             image_id = question['image_id']
+            
+            # Enhanced memory management for MLX models
+            # Check memory pressure and perform cleanup for MLX models
+            if i > 0 and i % self.memory_cleanup_interval == 0:
+                if any(mlx_model in model_name.lower() for mlx_model in self.mlx_models):
+                    print(f"  🧹 Periodic memory management for MLX model (question {i})...")
+                    
+                    # Check memory pressure first
+                    if self._check_mlx_memory_pressure():
+                        print(f"  ⚠️ High memory pressure detected, performing aggressive cleanup...")
+                        # Force multiple cleanup cycles
+                        for cleanup_cycle in range(3):
+                            clear_mlx_memory()
+                            gc.collect()
+                            time.sleep(0.5)
+                        print(f"  ✅ Aggressive memory cleanup completed")
+                    else:
+                        # Normal periodic cleanup
+                        try:
+                            clear_mlx_memory()
+                            gc.collect()
+                            print(f"  ✅ Normal memory cleanup completed for question {i}")
+                        except Exception as e:
+                            print(f"  ⚠️ Memory cleanup warning: {e}")
             
             # For LLaVA-MLX, reload the model for each image to avoid state bug
             if "llava_mlx" in model_name.lower():
@@ -1366,10 +1498,10 @@ class VQAFramework:
         
         # Determine filename based on suffix
         if suffix:
-            # Single model test or intermediate results - use fixed name (can be overwritten)
+            # Single model test or intermediate results - use suffix with timestamp
             filename = f"vqa2_results_{suffix}.json"
         else:
-                # Complete test - use timestamp to avoid overwriting
+            # Complete test - use timestamp to avoid overwriting
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"vqa2_results_{test_mode}_{timestamp}.json"
         

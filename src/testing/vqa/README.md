@@ -1,6 +1,8 @@
 # VQA (Visual Question Answering) Testing Framework
 
-## 📊 **Quick Summary** (2025-07-29)
+*Last Updated: August 1, 2025 - Enhanced Memory Management & Results Saving*
+
+## 📊 **Quick Summary** (Latest Results)
 
 ### 🏆 **VQA 2.0 COCO Results (20 Questions)**
 | Rank | Model | Correct | Simple Accuracy | VQA Accuracy | Avg Time | Status |
@@ -40,12 +42,17 @@ pip install transformers pillow
 pip install mlx-vlm  # For MLX models
 ```
 
-### **Directory Structure (Updated 2025-07-29)**
+### **Directory Structure**
 ```
 src/testing/
 ├── vqa/
 │   ├── vqa_test.py              # Main VQA testing script
 │   ├── vqa_framework.py         # Core VQA evaluation framework
+│   ├── test_results_saving.py   # Results saving verification script
+│   ├── test_enhanced_memory.py  # Enhanced memory management test
+│   ├── ENHANCED_MEMORY_MANAGEMENT.md  # Memory management documentation
+│   ├── RESULTS_SAVING_UPDATE.md # Results saving documentation
+│   ├── __init__.py              # Python package marker
 │   └── README.md                # This documentation
 ├── materials/
 │   ├── vqa2/
@@ -54,7 +61,8 @@ src/testing/
 │   │   └── annotations.json     # Ground truth answers
 │   └── images/                  # (other test images, if any)
 ├── results/                     # Test results output (json)
-│   └── vqa2_results_coco_*.json
+│   ├── vqa2_results_coco_*.json # Complete test results
+│   └── vqa2_results_single_*.json # Single model test results
 ├── reports/                     # Human-written reports/analysis
 └── ...
 ```
@@ -66,25 +74,29 @@ src/testing/
 ### **Quick Start**
 ```bash
 # Run VQA test with all models (20 questions)
-python vqa/vqa_test.py --mode coco --num_questions 20
+python vqa_test.py --questions 20
 
 # Run with specific model
-python vqa/vqa_test.py --mode coco --model smolvlm_instruct --num_questions 20
+python vqa_test.py --questions 20 --models phi35_vision
 
-# Run with sample data (for testing)
-python vqa/vqa_test.py --mode sample --num_questions 10
+# Run with multiple specific models
+python vqa_test.py --questions 20 --models phi35_vision moondream2
+
+# Run with verbose output
+python vqa_test.py --questions 20 --models phi35_vision --verbose
 ```
 
 ### **Command Line Options**
 ```bash
-python vqa/vqa_test.py [OPTIONS]
+python vqa_test.py [OPTIONS]
 
 Options:
-  --mode TEXT              Test mode: 'coco' or 'sample' [default: coco]
-  --num_questions INTEGER  Number of questions to test [default: 20]
-  --model TEXT             Specific model to test
-  --verbose                Enable verbose output
-  --help                   Show help message
+  --questions INTEGER      Number of test questions (default: 20, max 20)
+  --models TEXT [TEXT ...] Models to test (choices: phi35_vision, llava_mlx, 
+                          smolvlm_v2_instruct, smolvlm_instruct, moondream2)
+  --verbose               Show detailed output
+  --save-results          Save test results (default: True)
+  --help                  Show help message
 ```
 
 ### **Available Models**
@@ -365,9 +377,11 @@ def _preprocess_answer(self, answer: str) -> str:
 ```
 
 ### **File Naming Convention**
-- **COCO Tests:** `results/vqa2_results_coco_YYYYMMDD_HHMMSS.json`
-- **Sample Tests:** `results/vqa2_results_sample_YYYYMMDD_HHMMSS.json`
-- **Single Model:** `results/vqa2_results_[model]_YYYYMMDD_HHMMSS.json`
+- **Complete Tests:** `results/vqa2_results_coco_YYYYMMDD_HHMMSS.json`
+- **Single Model Tests:** `results/vqa2_results_single_{model_name}_YYYYMMDD_HHMMSS.json`
+- **Examples:**
+  - `vqa2_results_coco_20250801_191939.json` (complete test)
+  - `vqa2_results_single_phi35_vision_20250801_192204.json` (single model)
 
 ---
 
@@ -380,6 +394,8 @@ def _preprocess_answer(self, answer: str) -> str:
 - **Model Evaluation:** Unified evaluation across different models
 - **Enhanced Accuracy Calculation:** Simple and improved VQA accuracy computation
 - **Result Management:** JSON output generation with detailed metadata
+- **Enhanced Memory Management:** MLX-specific memory cleanup and monitoring
+- **Results Saving:** Consistent file naming for both single model and complete tests
 
 #### **Model Integration**
 - **Unified Interface:** Consistent API across different model types
@@ -390,9 +406,10 @@ def _preprocess_answer(self, answer: str) -> str:
 ### **Evaluation Process**
 1. **Data Preparation:** Load questions and ground truth answers
 2. **Model Loading:** Initialize model with appropriate framework
-3. **Question Processing:** Generate answers for each question
+3. **Question Processing:** Generate answers for each question with periodic memory cleanup
 4. **Enhanced Accuracy Calculation:** Compare answers with ground truth using improved logic
 5. **Result Compilation:** Generate comprehensive JSON report with detailed analysis
+6. **Results Saving:** Save to `results/` directory with consistent naming convention
 
 ---
 
@@ -408,10 +425,14 @@ def _preprocess_answer(self, answer: str) -> str:
 - **Solution:** Vision-only testing (no text capability testing)
 - **Impact:** Limited to image-based questions
 
-### **Memory Management**
-- **Problem:** Large models consume significant RAM
-- **Solution:** Sequential testing with cleanup between models
-- **Impact:** Slower overall testing but stable performance
+### **Enhanced Memory Management**
+- **Problem:** MLX models can cause `[METAL] Command buffer execution failed: Insufficient Memory` errors
+- **Solution:** Enhanced MLX memory management with periodic cleanup and adaptive memory pressure detection
+- **Implementation:** 
+  - Periodic cleanup every 5 questions for MLX models
+  - Adaptive aggressive cleanup when memory pressure is high
+  - MLX-specific memory clearing with `clear_mlx_memory()` function
+- **Impact:** Stable performance without memory overflow errors
 
 ### **VQA Accuracy Calculation**
 - **Problem:** Previous logic had inconsistencies in ground truth handling
@@ -433,14 +454,16 @@ def _preprocess_answer(self, answer: str) -> str:
 ### **Testing Configuration**
 - **Question Count:** 20 questions for reliable evaluation
 - **Timeout Settings:** 60s for small models, 180s for large models
-- **Memory Management:** Test one model at a time
+- **Memory Management:** Enhanced MLX memory management with periodic cleanup
 - **Result Validation:** Always verify ground truth accuracy
+- **Results Saving:** All results automatically saved to `results/` directory
 
 ### **Performance Optimization**
-- **MLX Models:** Use for Apple Silicon optimization
+- **MLX Models:** Use for Apple Silicon optimization with enhanced memory management
 - **Batch Processing:** Not supported (sequential processing required)
 - **Caching:** Results cached in JSON format for analysis
 - **Parallel Testing:** Not recommended due to memory constraints
+- **Memory Cleanup:** Periodic cleanup every 5 questions for MLX models
 
 ---
 
@@ -493,20 +516,56 @@ def _preprocess_answer(self, answer: str) -> str:
 ### **Related Files**
 - **Model Configurations:** `src/config/model_configs/`
 - **Test Results:** `src/testing/results/`
+- **VQA Results:** `vqa2_results_*.json`
 - **Performance Data:** `test_results_*.json`
 - **Context Data:** `context_understanding_test_results_*.json`
+- **Memory Management:** `ENHANCED_MEMORY_MANAGEMENT.md`
+- **Results Saving:** `RESULTS_SAVING_UPDATE.md`
+
+### **Testing & Verification**
+- **Results Saving Test:** `test_results_saving.py` - Verifies individual model results are properly saved
+- **Memory Management Test:** `test_enhanced_memory.py` - Tests enhanced MLX memory management
+- **Test Coverage:** Single model saving, complete test saving, results directory structure validation
+
+### **Usage Examples**
+```bash
+# Test single model with results saved to results/ directory
+python vqa_test.py --questions 10 --models phi35_vision --verbose
+
+# Test multiple models with complete results
+python vqa_test.py --questions 20 --models phi35_vision moondream2
+
+# Run verification tests
+python test_results_saving.py
+python test_enhanced_memory.py
+```
 
 ---
 
-**Last Updated:** 2025-07-29 13:12:58  
 **Framework Version:** vqa2_enhanced_v1.2  
 **Test Environment:** MacBook Air M3 (16GB RAM, MPS available)  
-**Latest Test Results:** vqa2_results_coco_20250729_131258.json
+**Latest Test Results:** vqa2_results_coco_20250801_191939.json (Complete Test) + Individual Model Results
 
-## **Other Notes**
+## **Recent Updates**
+
+### **Enhanced Memory Management** (August 1, 2025)
+- ✅ Implemented enhanced MLX memory management to prevent `[METAL] Command buffer execution failed: Insufficient Memory` errors
+- ✅ Added periodic memory cleanup every 5 questions for MLX models
+- ✅ Implemented adaptive memory pressure detection and aggressive cleanup
+- ✅ Added `clear_mlx_memory()` function for MLX-specific memory clearing
+- ✅ Integrated with `vlm_tester.py` and `vlm_context_tester.py` for consistency
+
+### **Improved Results Saving** (August 1, 2025)
+- ✅ Fixed individual model results saving to `results/` directory
+- ✅ Implemented consistent file naming convention for single model tests
+- ✅ Added timestamp-based filenames to prevent overwriting
+- ✅ Enhanced save logic with proper suffix handling
+- ✅ All results now saved with format: `vqa2_results_single_{model}_{timestamp}.json`
+
+### **Other Notes**
 - All references to `testing_material/` have been updated to `materials/`.
 - All references to result files are now in `results/`.
 - All scripts are now in the `vqa/` subfolder.
 - Enhanced VQA accuracy calculation logic implemented.
-- This README reflects the latest test results from 2025-07-29 13:12:58.
+- This README reflects the latest test results and framework updates.
 - All performance metrics verified against source JSON data.
