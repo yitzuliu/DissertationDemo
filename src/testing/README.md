@@ -13,6 +13,8 @@ src/testing/
 ├── vlm/                          # Vision-Language Model Tests
 │   ├── vlm_tester.py            # Model performance testing
 │   ├── vlm_context_tester.py    # Context understanding tests
+│   ├── debug_unified_test.py    # Debug unified model testing
+│   ├── performance_comparison.py # Optimized vs original comparison
 │   └── vlm_README.md            # VLM testing documentation
 ├── rag/                          # RAG Testing (Planned)
 │   ├── rag_module.py            # RAG testing module
@@ -27,7 +29,9 @@ src/testing/
 │   └── model_active.md          # Active model status
 ├── materials/                    # Test Materials and Datasets
 │   ├── vqa2/                    # VQA 2.0 dataset
-│   └── images/                  # Additional test images
+│   ├── images/                  # Additional test images
+│   ├── debug_images/            # Debug test images
+│   └── debug_video/             # Debug video materials
 └── __pycache__/                 # Python cache (auto-generated)
 ```
 
@@ -89,6 +93,11 @@ python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm_instruct phi3
 - **Inference Speed**: Response time analysis
 - **Memory Usage**: Resource consumption tracking
 - **Accuracy Assessment**: Response quality evaluation
+
+### Debug and Development Tools
+- **Unified Model Testing**: `debug_unified_test.py` - Comprehensive model testing through backend API
+- **Performance Comparison**: `performance_comparison.py` - Original vs optimized model comparison
+- **Quick Testing**: Fast debugging and development testing tools
 
 ### Context Understanding Tests
 - **Temporal Reasoning**: Multi-frame understanding

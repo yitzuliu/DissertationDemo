@@ -86,8 +86,8 @@ class DebugModelTestSuite:
         self.session = requests.Session()
         self.timeout = 120
         
-        # Use images from same debug directory
-        self.images_dir = current_dir / "images"
+        # Use images from testing materials directory
+        self.images_dir = project_root / "src" / "testing" / "materials" / "debug_images"
         
         # Config paths
         self.config_dir = project_root / "src" / "config" / "model_configs"

@@ -32,7 +32,7 @@ class PerformanceComparison:
         }
         
         # Test images
-        self.images_dir = Path(__file__).parent / "images"
+        self.images_dir = Path(__file__).parent.parent.parent / "materials" / "debug_images"
         self.test_images = self.get_test_images()
         
         print("🔥 PERFORMANCE COMPARISON TEST")
