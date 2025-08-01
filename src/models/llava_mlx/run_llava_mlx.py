@@ -2,12 +2,24 @@
 """
 LLaVA MLX Server Runner
 
-High-performance LLaVA server with:
+⚠️ CRITICAL PERFORMANCE ISSUES - NOT RECOMMENDED FOR PRODUCTION
+
+LLaVA MLX server with:
 - MLX framework optimization for Apple Silicon
 - Flask server for OpenAI-compatible API
 - INT4 quantization for memory efficiency
+- Enhanced memory management with periodic cleanup
 - Robust error handling and fallbacks
 - Port 8080 cleanup functionality
+
+Latest Performance (2025-08-01):
+- VQA Accuracy: 21.0% (critical issue)
+- Simple Accuracy: 20.0% (critical issue)
+- Average Inference Time: 19.02s (improved from 24.15s)
+- Load Time: 2.01s
+- Memory Usage: -1.47GB
+
+Production Recommendation: AVOID - Use Moondream2 for accuracy or SmolVLM-GGUF for speed
 """
 
 import os
@@ -692,8 +704,11 @@ class LLaVAMLXServer:
     def run(self, host='0.0.0.0', port=8080):
         """Start LLaVA MLX server with port cleanup"""
         logger.info("🚀 Starting LLaVA MLX Server...")
+        logger.info(f"⚠️ WARNING: Critical performance issues detected")
         logger.info(f"🎯 Target: MLX acceleration for Apple Silicon")
         logger.info(f"🔧 Model: mlx-community/llava-v1.6-mistral-7b-4bit")
+        logger.info(f"📊 Performance: 19.02s inference, 21.0% VQA accuracy")
+        logger.info(f"🚫 NOT RECOMMENDED for production use")
         
         # Clean up port before starting
         logger.info(f"🧹 Checking port {port} availability...")
@@ -731,17 +746,19 @@ class LLaVAMLXServer:
 def main():
     print_startup_banner(
         model_name="LLaVA-MLX",
-        server_type="Standard Server",
+        server_type="⚠️ CRITICAL PERFORMANCE ISSUES",
         features=[
             "OpenAI-compatible API",
             "MLX acceleration for Apple Silicon",
-            "Transformers fallback",
-            "Robust error handling"
+            "Enhanced memory management",
+            "Robust error handling",
+            "⚠️ NOT RECOMMENDED FOR PRODUCTION"
         ],
         optimizations=[
             "Single-threaded Flask",
-            "Memory management",
-            "Port cleanup"
+            "Periodic memory cleanup",
+            "Port cleanup",
+            "Model reloading after each inference"
         ],
         port=8080
     )

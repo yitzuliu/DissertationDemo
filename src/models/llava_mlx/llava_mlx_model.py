@@ -16,6 +16,27 @@ sys.path.append(str(project_root))
 
 from src.models.base_model import BaseVisionModel
 
+def clear_mlx_memory():
+    """Enhanced MLX memory clearing function"""
+    try:
+        import mlx.core as mx
+        import mlx.metal as metal
+        
+        # Clear MLX cache
+        mx.clear_cache()
+        
+        # Clear Metal GPU cache (deprecated but still works)
+        try:
+            metal.clear_cache()
+        except:
+            pass
+            
+        print("🧹 MLX memory cleared")
+    except ImportError:
+        print("⚠️ MLX not available for memory clearing")
+    except Exception as e:
+        print(f"⚠️ MLX memory clearing error: {e}")
+
 class LlavaMlxModel(BaseVisionModel):
     def __init__(self, model_name: str, config: Dict[str, Any]):
         super().__init__(model_name=model_name, config=config)
@@ -204,6 +225,29 @@ class LlavaMlxModel(BaseVisionModel):
         # force garbage collection
         gc.collect()
 
+    def clear_model_memory(self):
+        """Enhanced model memory clearing with MLX support"""
+        try:
+            # Clear PyTorch cache if available
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            elif hasattr(torch, 'mps') and torch.mps.is_available():
+                torch.mps.empty_cache()
+            
+            # Clear MLX memory
+            clear_mlx_memory()
+            
+            # Clear model cache
+            self.clear_cache()
+            
+            # Force garbage collection
+            gc.collect()
+            
+            print("🧹 Enhanced memory clearing completed")
+            
+        except Exception as e:
+            print(f"⚠️ Memory clearing error: {e}")
+
     def unload_model(self) -> bool:
         """Enhanced model unloading"""
         try:
@@ -278,10 +322,10 @@ class LlavaMlxModel(BaseVisionModel):
         return {
             "model_name": self.model_name,
             "model_id": self.model_id,
+            "framework": "MLX",
             "loaded": self.loaded,
-            "framework": "MLX-VLM",
-            "device": "Apple Silicon (M1/M2/M3)",
-            "stats": self.stats
+            "inference_count": self.inference_count,
+            "max_inferences_before_reload": self.max_inferences_before_reload
         }
 
 if __name__ == '__main__':
