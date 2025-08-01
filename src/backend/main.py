@@ -13,15 +13,7 @@ import json
 import os
 from pathlib import Path
 from utils.config_manager import config_manager
-from utils.image_processing import (
-    preprocess_for_model, 
-    enhance_image_clahe, 
-    convert_to_pil_image,
-    convert_to_cv2_image,
-    smart_crop_and_resize,
-    reduce_noise,
-    enhance_color_balance
-)
+from utils.image_processing import preprocess_for_model
 import time
 import sys
 import uuid
@@ -141,7 +133,7 @@ def get_model_server_url():
 MODEL_SERVER_URL = get_model_server_url()
 
 def preprocess_image(image_url):
-    """Enhanced image preprocessing with quality improvements"""
+    """Enhanced image preprocessing using unified image_processing module"""
     try:
         # Extract base64 data
         base64_pattern = r'data:image\/[^;]+;base64,([^"]+)'
@@ -154,7 +146,6 @@ def preprocess_image(image_url):
             # Decode and validate image
             base64_data = match.group(1)
             image_data = base64.b64decode(base64_data)
-            image = Image.open(io.BytesIO(image_data))
             
             # Get model configuration
             model_config = config_manager.load_model_config(ACTIVE_MODEL)
@@ -164,68 +155,15 @@ def preprocess_image(image_url):
             model_identifier = model_config.get("model_path", model_config.get("model_id", ACTIVE_MODEL))
             logger.info(f"Processing image for model: {model_identifier}")
             
-            # Unified handling of different configuration formats
-            # Support both "size": [1024, 1024] and "max_size": 512 formats
-            if "size" in image_config:
-                size_config = image_config["size"]
-                if isinstance(size_config, (list, tuple)) and len(size_config) >= 2:
-                    try:
-                        # Convert each element to string first to handle various numeric types
-                        width = int(float(str(size_config[0])))
-                        height = int(float(str(size_config[1])))
-                        target_size = (width, height)
-                    except (ValueError, TypeError, AttributeError):
-                        logger.warning("Invalid size config values, using defaults")
-                        target_size = (1024, 1024)
-                else:
-                    try:
-                        # Convert to string first to handle various numeric types
-                        size_value = int(float(str(size_config)))
-                        target_size = (size_value, size_value)
-                    except (ValueError, TypeError, AttributeError):
-                        logger.warning("Invalid size config value, using defaults")
-                        target_size = (1024, 1024)
-            elif "max_size" in image_config:
-                try:
-                    # Convert to string first to handle various numeric types
-                    max_size = int(float(str(image_config["max_size"])))
-                    target_size = (max_size, max_size)
-                except (ValueError, TypeError, AttributeError):
-                    logger.warning("Invalid max_size value, using defaults")
-                    target_size = (1024, 1024)
-            else:
-                target_size = (1024, 1024)  # Default value
+            # Use unified preprocess_for_model function
+            processed_image = preprocess_for_model(
+                image=image_data,
+                model_type=ACTIVE_MODEL,
+                config=image_config,
+                return_format='pil'  # Return PIL Image for base64 conversion
+            )
             
-            min_size = image_config.get("min_size", 512)
-            
-            # Apply smart cropping
-            if image_config.get("smart_crop", True):
-                image = smart_crop_and_resize(
-                    image,
-                    target_size=target_size,
-                    min_size=min_size,
-                    preserve_aspect_ratio=True
-                )
-            
-            # Apply noise reduction (only if enabled)
-            if image_config.get("noise_reduction", {}).get("enabled", False):
-                noise_config = image_config.get("noise_reduction", {})
-                image = reduce_noise(
-                    image,
-                    method=noise_config.get("method", "bilateral"),
-                    config=noise_config
-                )
-            
-            # Apply color enhancement (only if enabled)
-            if image_config.get("color_balance", {}).get("enabled", False):
-                color_config = image_config.get("color_balance", {})
-                image = enhance_color_balance(
-                    image,
-                    method=color_config.get("method", "lab"),
-                    config=color_config
-                )
-            
-            # Save processed image
+            # Save processed image to base64
             buffer = io.BytesIO()
             
             # Unified quality parameter handling
@@ -236,7 +174,7 @@ def preprocess_image(image_url):
                 "quality": int(quality),
                 "optimize": image_config.get("optimize", True)
             }
-            image.save(buffer, **save_params)
+            processed_image.save(buffer, **save_params)
             
             # Return processed base64 image
             processed_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
