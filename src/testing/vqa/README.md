@@ -7,11 +7,11 @@
 ### 🏆 **VQA 2.0 COCO Results (20 Questions)**
 | Rank | Model | Correct | Simple Accuracy | VQA Accuracy | Avg Time | Status |
 |------|-------|---------|-----------------|--------------|----------|--------|
-| 🥇 | **Moondream2** | 13/20 | **65.0%** | **62.5%** | 8.35s | ✅ **Best Overall** |
-| 🥈 | **SmolVLM2-Instruct** | 11/20 | **55.0%** | 52.5% | 8.41s | ✅ **Fast & Accurate** |
-| 🥉 | **Phi-3.5-Vision** | 7/20 | 35.0% | 35.0% | 5.29s | ✅ **Balanced** |
-| 4️⃣ | **SmolVLM-Instruct** | 7/20 | 35.0% | 36.0% | 🏆 **0.39s** | ✅ **Fastest** |
-| 5️⃣ | **LLaVA-MLX** | 4/20 | 20.0% | 21.0% | 24.15s | ⚠️ **Poor** |
+| 🥇 | **Moondream2** | 13/20 | **65.0%** | **62.5%** | 7.80s | ✅ **Best Overall** |
+| 🥈 | **SmolVLM2-Instruct** | 12/20 | **60.0%** | 57.5% | 6.45s | ✅ **Balanced** |
+| 🥉 | **Phi-3.5-Vision** | 7/20 | 35.0% | 35.0% | 8.71s | ✅ **Detailed** |
+| 4️⃣ | **SmolVLM-Instruct** | 7/20 | 35.0% | 36.0% | 🏆 **0.34s** | ✅ **Fastest** |
+| 5️⃣ | **LLaVA-MLX** | 4/20 | 20.0% | 21.0% | 19.02s | ⚠️ **Critical Issues** |
 
 ---
 
