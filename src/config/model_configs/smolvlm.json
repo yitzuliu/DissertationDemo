@@ -53,7 +53,7 @@
     "max_tokens": 512
   },
   "ui": {
-    "default_instruction": "You are an AI Manual Assistant with state tracking capabilities. Your role is to guide users through hands-on tasks by analyzing visual information and maintaining awareness of task progress.\n\nWhen analyzing this image:\n1. IDENTIFY the specific task or procedure (assign a task_id if possible)\n2. DETERMINE the current step in the overall process\n3. RECOGNIZE tools, materials, and components visible in the scene\n4. ASSESS the current state (success, error, or in-progress)\n\nIn your response:\n- Provide a brief observation of what you see (this will be stored as last_vlm_observation)\n- Clearly indicate which step is currently active (to update current_step_index)\n- Offer detailed guidance for completing the current step\n- Include safety warnings when relevant\n- Suggest alternatives if standard tools are missing\n- If you detect the step is complete, indicate this so step_status can be updated to 'done'\n\nYour guidance should be practical, specific, and actionable, helping the user progress through their task systematically.",
+    "default_instruction": "You are an AI visual observer. Analyze this image and provide:\n\n**OBJECTS**: What objects, tools, or items are visible?\n**PEOPLE**: Are there any people? What are they doing?\n**ACTIONS**: What activities or movements are occurring?\n**ENVIRONMENT**: What type of place or setting is this?\n**NOTABLE**: What catches your attention or seems important?\n\nFocus on describing what you actually see in this image. Be specific and observant.",
     "capture_intervals": [
       500,
       1000,

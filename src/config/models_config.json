@@ -136,22 +136,7 @@
       "description": "Optimized SmolVLM2 with faster inference and lower memory usage",
       "run_script": "src/models/smolvlm2/run_smolvlm2_500m_video_optimized.py"
     },
-    "qwen2_vl": {
-      "display_name": "Qwen2-VL",
-      "model_id": "Qwen/Qwen2-VL-2B-Instruct",
-      "framework": "Transformers",
-      "capabilities": [
-        "vision",
-        "text"
-      ],
-      "requirements": [
-        "transformers"
-      ],
-      "memory_usage": "~4GB",
-      "platform": "Universal",
-      "description": "Qwen2 Vision-Language model",
-      "run_script": "src/models/qwen2_vl/run_qwen2_vl.py"
-    },
+
     "yolo8": {
       "display_name": "YOLO8 Object Detection",
       "model_id": "yolov8n.pt",
@@ -196,7 +181,7 @@
     ]
   },
   "switching_guide": {
-    "current_active_model": "moondream2_optimized",
+    "current_active_model": "smolvlm",
     "how_to_switch": "Replace the 'active_model' value in src/config/app_config.json with any key from the 'models' section above",
     "valid_keys": [
       "moondream2",
@@ -207,7 +192,7 @@
       "smolvlm",
       "smolvlm2_500m_video",
       "smolvlm2_500m_video_optimized",
-      "qwen2_vl",
+
       "yolo8"
     ],
     "examples": {
@@ -238,8 +223,7 @@
       "required_for": [
         "smolvlm",
         "moondream2",
-        "moondream2_optimized",
-        "qwen2_vl"
+        "moondream2_optimized"
       ]
     },
     "ultralytics": {

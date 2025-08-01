@@ -1,6 +1,7 @@
 {
   "model_name": "SmolVLM2-500M-Video-Instruct",
-  "model_path": "./SmolVLM2-500M-Video-Instruct",
+  "model_id": "smolvlm2_500m_video_optimized",
+  "model_path": "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
   "device": "mps",
   "max_tokens": 150,
   "timeout": 60,
@@ -29,7 +30,7 @@
   },
   
   "ui": {
-    "default_instruction": "You are an AI Manual Assistant with advanced visual understanding capabilities. Analyze this image and describe what you see, including any objects, actions, or important details.",
+    "default_instruction": "You are an AI visual observer. Analyze this image and provide:\n\n**OBJECTS**: What objects, tools, or items are visible?\n**PEOPLE**: Are there any people? What are they doing?\n**ACTIONS**: What activities or movements are occurring?\n**ENVIRONMENT**: What type of place or setting is this?\n**NOTABLE**: What catches your attention or seems important?\n\nFocus on describing what you actually see in this image. Be specific and observant.",
     "capture_intervals": [1000, 2000, 5000, 10000],
     "default_interval": 5000
   }

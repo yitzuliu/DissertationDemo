@@ -121,7 +121,7 @@
     "fallback_dtype": "float32"
   },
   "ui": {
-    "default_instruction": "You are an phi3_vision_optimized Manual Assistant with advanced visual understanding and state tracking capabilities. Your role is to analyze images.And tell me what you see in the image. You can also answer questions about the image and provide detailed explanations.",
+    "default_instruction": "You are an AI visual observer. Analyze this image and provide:\n\n**OBJECTS**: What objects, tools, or items are visible?\n**PEOPLE**: Are there any people? What are they doing?\n**ACTIONS**: What activities or movements are occurring?\n**ENVIRONMENT**: What type of place or setting is this?\n**NOTABLE**: What catches your attention or seems important?\n\nFocus on describing what you actually see in this image. Be specific and observant.",
     "capture_intervals": [1000, 2000, 5000, 10000, 15000],
     "default_interval": 5000
   }

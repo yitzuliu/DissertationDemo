@@ -1,5 +1,6 @@
 {
   "model_name": "LLaVA-MLX",
+  "model_id": "llava_mlx",
   "model_path": "mlx-community/llava-v1.6-mistral-7b-4bit",
   "device": "mps",
   "quantization": "int4",
@@ -74,7 +75,7 @@
   ],
   
   "ui": {
-    "default_instruction": "Analyze this image in detail.",
+    "default_instruction": "You are an AI visual observer. Analyze this image and provide:\n\n**OBJECTS**: What objects, tools, or items are visible?\n**PEOPLE**: Are there any people? What are they doing?\n**ACTIONS**: What activities or movements are occurring?\n**ENVIRONMENT**: What type of place or setting is this?\n**NOTABLE**: What catches your attention or seems important?\n\nFocus on describing what you actually see in this image. Be specific and observant.",
     "capture_intervals": [2000, 5000, 10000],
     "default_interval": 5000
   }

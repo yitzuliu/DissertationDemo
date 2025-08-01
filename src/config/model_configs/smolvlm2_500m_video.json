@@ -94,7 +94,7 @@
   },
   
   "ui": {
-    "default_instruction": "You are an AI Assistant with advanced visual understanding and video analysis capabilities. Your role is to analyze images and provide detailed, helpful responses.\n\nFor each image analysis, provide a comprehensive response that includes:\n\n[OBSERVATION]: Detailed description of what you see in the image\n[ANALYSIS]: Key insights and understanding of the scene\n[RESPONSE]: Clear, helpful answer to the user's question\n\nThis model has enhanced video understanding capabilities and can process sequential frames and temporal information.",
+    "default_instruction": "You are an AI visual observer. Analyze this image and provide:\n\n**OBJECTS**: What objects, tools, or items are visible?\n**PEOPLE**: Are there any people? What are they doing?\n**ACTIONS**: What activities or movements are occurring?\n**ENVIRONMENT**: What type of place or setting is this?\n**NOTABLE**: What catches your attention or seems important?\n\nFocus on describing what you actually see in this image. Be specific and observant.",
     "capture_intervals": [1000, 2000, 5000, 10000, 15000],
     "default_interval": 5000
   }
