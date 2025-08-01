@@ -9,14 +9,16 @@ src/testing/
 ├── vqa/                          # VQA 2.0 Testing Framework
 │   ├── vqa_framework.py         # Core VQA testing infrastructure
 │   ├── vqa_test.py              # Test runner and execution
-│   └── vqa_README.md            # VQA testing documentation
+│   ├── README.md                # VQA testing documentation
+│   ├── ENHANCED_MEMORY_MANAGEMENT.md  # Memory management documentation
+│   └── RESULTS_SAVING_UPDATE.md # Results saving documentation
 ├── vlm/                          # Vision-Language Model Tests
 │   ├── vlm_tester.py            # Model performance testing
 │   ├── vlm_context_tester.py    # Context understanding tests
 │   ├── debug_unified_test.py    # Debug unified model testing
-│   ├── performance_comparison.py # Optimized vs original comparison
-│   └── vlm_README.md            # VLM testing documentation
-├── rag/                          # RAG Testing (Planned)
+│   ├── README.md                # VLM testing documentation
+│   └── MEMORY_MANAGEMENT_UPDATE_SUMMARY.md  # Memory management summary
+├── rag/                          # RAG Testing
 │   ├── rag_module.py            # RAG testing module
 │   └── README.md                # RAG testing documentation
 ├── results/                      # Test Outputs and Logs
@@ -24,24 +26,29 @@ src/testing/
 │   ├── context_understanding_*.json  # Context test results
 │   └── vqa2_results_*.json      # VQA 2.0 test results
 ├── reports/                      # Test Reports and Analysis
-│   ├── vqa_test_result.md       # VQA test analysis
-│   ├── context_understanding_test_results_summary.md
-│   └── model_active.md          # Active model status
+│   ├── vqa_analysis.md          # VQA 2.0 analysis report
+│   ├── model_performance_guide.md  # Model performance guide
+│   ├── context_understanding_analysis.md  # Context understanding analysis
+│   └── README.md                # Reports directory guide
 ├── materials/                    # Test Materials and Datasets
 │   ├── vqa2/                    # VQA 2.0 dataset
 │   ├── images/                  # Additional test images
 │   ├── debug_images/            # Debug test images
 │   └── debug_video/             # Debug video materials
+├── utils/                        # Testing Utilities
+│   ├── memory_monitor.py        # Memory monitoring tools
+│   └── README.md                # Utilities documentation
 └── __pycache__/                 # Python cache (auto-generated)
 ```
 
 ## 🎯 VQA 2.0 Testing Framework
 
 ### Overview
-The VQA 2.0 testing framework provides standardized evaluation of Vision-Language Models using real COCO dataset images and questions.
+The VQA 2.0 testing framework provides standardized evaluation of Vision-Language Models using real COCO dataset images and questions with enhanced memory management.
 
 ### Key Features
 - **Standardized Evaluation**: VQA 2.0 compliant assessment
+- **Enhanced Memory Management**: MLX memory management with periodic cleanup
 - **Multiple Test Sizes**: 5, 10, 15, 20 question batches
 - **Performance Metrics**: VQA accuracy, simple accuracy, inference time, memory usage
 - **Model Comparison**: Side-by-side performance analysis
@@ -69,17 +76,17 @@ python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm_instruct phi3
 # python src/testing/vqa/vqa_test.py --models llava_mlx  # Critical performance issues
 ```
 
-### Latest Test Results Summary (Updated: 2025-07-29)
+### Latest Test Results Summary (Updated: 2025-08-01)
 
 **VQA 2.0 Results (20 Questions - COCO val2014):**
 
 | Model | VQA Accuracy | Simple Accuracy | Avg Time | Load Time | Memory Diff | Status |
 |-------|:------------:|:---------------:|:--------:|:---------:|:-----------:|:------:|
-| **Moondream2** | 🥇 **62.5%** | 🥇 **65.0%** | 8.35s | 16.61s | -0.09GB | 🥇 **Best Overall** |
-| **SmolVLM2** | 🥈 52.5% | 🥈 55.0% | 8.41s | 1.48s | +0.13GB | 🥈 **Balanced** |
-| **Phi-3.5-Vision** | 🥉 35.0% | 35.0% | 5.29s | 1.71s | +0.05GB | 🥉 **Fast** |
-| **SmolVLM** | 36.0% | 35.0% | ⚡ **0.39s** | 4.05s | +0.001GB | ⚡ **Fastest** |
-| **LLaVA-MLX** | ⚠️ 21.0% | ⚠️ 20.0% | 🐌 24.15s | 6.07s | -0.48GB | 🚫 **Critical Issues** |
+| **Moondream2** | 🥇 **62.5%** | 🥇 **65.0%** | 7.80s | 5.99s | -0.52GB | 🥇 **Best Overall** |
+| **SmolVLM2** | 🥈 57.5% | 🥈 60.0% | 6.45s | 0.69s | +1.03GB | 🥈 **Balanced** |
+| **Phi-3.5-Vision** | 🥉 35.0% | 35.0% | 8.71s | 4.16s | +2.58GB | 🥉 **Detailed** |
+| **SmolVLM** | 36.0% | 35.0% | ⚡ **0.34s** | 2.03s | +0.001GB | ⚡ **Fastest** |
+| **LLaVA-MLX** | ⚠️ 21.0% | ⚠️ 20.0% | 🐌 19.02s | 2.01s | -1.47GB | 🚫 **Critical Issues** |
 
 **Context Understanding Results:**
 - 🚨 **ALL MODELS: 0% context understanding capability**
@@ -93,49 +100,12 @@ python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm_instruct phi3
 - **Inference Speed**: Response time analysis
 - **Memory Usage**: Resource consumption tracking
 - **Accuracy Assessment**: Response quality evaluation
+- **Enhanced Memory Management**: MLX memory management with periodic cleanup
 
 ### Debug and Development Tools
 - **Unified Model Testing**: `debug_unified_test.py` - Comprehensive model testing through backend API
 - **Performance Comparison**: `performance_comparison.py` - Original vs optimized model comparison
 - **Quick Testing**: Fast debugging and development testing tools
-
-### Context Understanding Tests
-- **Temporal Reasoning**: Multi-frame understanding
-- **Object Tracking**: Consistency across frames
-- **Activity Recognition**: Task understanding capabilities
-- **Progress Monitoring**: Step-by-step guidance evaluation
-
-### Running Performance Tests
-
-```bash
-# Basic performance test (recommended models)
-python src/testing/vlm/vlm_tester.py Moondream2
-python src/testing/vlm/vlm_tester.py SmolVLM2-500M-Video-Instruct
-
-# Context understanding test (reveals 0% context capability)
-python src/testing/vlm/vlm_context_tester.py
-
-# Single model context test
-python src/testing/vlm/vlm_context_tester.py --model Moondream2
-
-# Performance comparison (avoid LLaVA-MLX due to critical issues)
-python src/testing/vlm/vlm_tester.py Phi-3.5-Vision-Instruct
-python src/testing/vlm/vlm_tester.py SmolVLM-500M-Instruct
-```
-
-## 📊 Test Materials and Datasets
-
-### VQA 2.0 Dataset
-- **Questions**: Real VQA 2.0 questions from COCO dataset
-- **Images**: Corresponding COCO images
-- **Ground Truth**: Expected answers for accuracy calculation
-- **Metadata**: Question types, difficulty levels, categories
-
-### Custom Test Images
-- **Synthetic Images**: Computer-generated test cases
-- **Real-world Scenarios**: Cooking, repair, assembly tasks
-- **Edge Cases**: Challenging scenarios for model evaluation
-- **Performance Benchmarks**: Standardized test images
 
 ## 📈 Results and Reporting
 
@@ -146,11 +116,10 @@ python src/testing/vlm/vlm_tester.py SmolVLM-500M-Instruct
 - **Comparison Reports**: Side-by-side model comparisons (`reports/`)
 
 ### Available Reports
-- **VQA Test Results**: `reports/vqa_test_result.md` - Comprehensive VQA 2.0 evaluation with 20 questions
-- **Context Understanding**: `reports/context_understanding_test_results_summary.md` - Multi-turn conversation capability analysis
-- **Model Status**: `reports/model_active.md` - Production readiness and performance recommendations
-- **Testing Fixes**: `reports/VLM_TESTING_FIXES.md` - Documentation of critical issues and solutions
-- **Correction Summary**: `reports/CORRECTION_SUMMARY.md` - Latest updates and corrections
+- **VQA Analysis**: `reports/vqa_analysis.md` - Comprehensive VQA 2.0 evaluation with 20 questions
+- **Model Performance Guide**: `reports/model_performance_guide.md` - Production recommendations and performance overview
+- **Context Understanding Analysis**: `reports/context_understanding_analysis.md` - Multi-turn conversation capability analysis
+- **Reports Directory**: `reports/README.md` - Guide to all available reports
 
 ## 📋 TODO: Future Testing Enhancements
 
@@ -194,11 +163,11 @@ python src/testing/vlm/vlm_tester.py SmolVLM-500M-Instruct
 
 ## 📚 Additional Resources
 
-- **[VQA 2.0 Documentation](./vqa/vqa_README.md)** - Detailed VQA testing guide
-- **[VLM Testing Documentation](./vlm/vlm_README.md)** - VLM testing procedures
-- **[Model Comparison Guide](../../docs/MODEL_COMPARISON.md)** - Performance analysis
-- **[Test Results Summary](../../TEST_RESULTS_SUMMARY.md)** - Latest benchmarks
-- **[System Architecture](../../docs/ARCHITECTURE.md)** - Overall system design
+- **[VQA Testing Documentation](./vqa/README.md)** - Detailed VQA testing guide
+- **[VLM Testing Documentation](./vlm/README.md)** - VLM testing procedures
+- **[Model Performance Guide](./reports/model_performance_guide.md)** - Production recommendations
+- **[VQA Analysis Report](./reports/vqa_analysis.md)** - VQA 2.0 analysis
+- **[Context Understanding Analysis](./reports/context_understanding_analysis.md)** - Multi-turn conversation analysis
 
 ---
 
@@ -209,9 +178,9 @@ python src/testing/vlm/vlm_tester.py SmolVLM-500M-Instruct
 ## **🚨 Critical Findings Summary**
 
 ### **Production Recommendations**
-- **🥇 Best Overall:** Moondream2 (65.0% accuracy, 5.82s inference)
-- **⚡ Fastest:** SmolVLM-500M-Instruct (0.27s inference, production-ready API)
-- **🥈 Balanced:** SmolVLM2-500M-Video-Instruct (60.0% accuracy, 6.50s inference)
+- **🥇 Best Overall:** Moondream2 (65.0% accuracy, 7.80s inference)
+- **⚡ Fastest:** SmolVLM-500M-Instruct (0.34s inference, production-ready API)
+- **🥈 Balanced:** SmolVLM2-500M-Video-Instruct (60.0% accuracy, 6.45s inference)
 - **🚫 Avoid:** LLaVA-v1.6-Mistral-7B-MLX (critical performance issues)
 
 ### **Universal Limitations**
@@ -221,15 +190,21 @@ python src/testing/vlm/vlm_tester.py SmolVLM-500M-Instruct
 - **Multi-turn Conversations:** Require external memory systems
 
 ### **Technical Issues**
-- **LLaVA-MLX:** 24.15s inference time, batch processing failures, model reloading required
+- **LLaVA-MLX:** 19.02s inference time, batch processing failures, model reloading required
 - **MLX Models:** Cannot process text-only input for context questions
 - **SmolVLM Models:** Hallucinate responses for context questions
 - **All Models:** No true conversation memory or context retention
 
+### **Enhanced Memory Management**
+- **✅ Successfully Implemented:** Periodic memory cleanup, adaptive pressure detection
+- **Performance Improvements:** LLaVA-MLX improved from 24.15s to 19.02s (21% improvement)
+- **Stability:** No memory errors during testing, enhanced MLX memory management prevents crashes
+
 ---
 
-**Last Updated**: July 29, 2025 13:12:58  
+**Last Updated**: August 1, 2025 19:48:55  
 **Test Framework**: VQA 2.0 Standard Evaluation + Context Understanding Assessment + Performance Benchmarking  
 **Hardware**: MacBook Air M3, 16GB RAM, MPS available  
 **Dataset**: COCO val2014 (20 questions) + Custom context test images + Performance test suite  
-**Latest Results**: vqa2_results_coco_20250729_131258.json, context_understanding_test_results_20250728_203410.json, test_results_20250728_190743.json 
+**Latest Results**: vqa2_results_coco_20250801_194855.json, context_understanding_test_results_20250801_192744.json, test_results_20250801_192315.json  
+**Enhanced Features**: MLX memory management, periodic cleanup, adaptive pressure detection 
