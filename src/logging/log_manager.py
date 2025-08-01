@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Dict, Optional, Any
 from enum import Enum
 import os
+from pathlib import Path
 
 
 class LogType(Enum):
@@ -35,10 +36,37 @@ class LogManager:
         Args:
             log_dir: 日誌目錄路徑
         """
-        self.log_dir = log_dir
+        # 動態解析日誌路徑
+        self.log_dir = self._resolve_log_path(log_dir)
         self.loggers: Dict[LogType, logging.Logger] = {}
         self._ensure_log_directory()
         self._setup_loggers()
+    
+    def _resolve_log_path(self, log_dir: str) -> Path:
+        """動態解析日誌路徑"""
+        # 如果已經是絕對路徑，直接使用
+        if os.path.isabs(log_dir):
+            return Path(log_dir)
+        
+        # 從當前文件位置開始向上查找項目根目錄
+        current = Path(__file__).resolve().parent
+        
+        # 向上查找最多5層，避免無限循環
+        for _ in range(5):
+            # 檢查是否為項目根目錄
+            if self._is_project_root(current):
+                return current / log_dir
+            current = current.parent
+        
+        # 如果找不到，使用當前目錄
+        return Path.cwd() / log_dir
+    
+    def _is_project_root(self, path: Path) -> bool:
+        """檢查是否為項目根目錄"""
+        return (
+            (path / "requirements.txt").exists() and
+            (path / "src" / "backend" / "main.py").exists()
+        )
     
     def _ensure_log_directory(self):
         """確保日誌目錄存在"""
