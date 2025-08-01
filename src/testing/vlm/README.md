@@ -18,6 +18,8 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
     - **Features**: Unified SmolVLM GGUF support, automatic port cleanup, comprehensive error handling
   - `vlm_context_tester.py` — Tests multi-turn context understanding and conversation retention.
     - **Features**: Unified SmolVLM GGUF support, automatic port cleanup, conversation flow testing
+  - `debug_unified_test.py` — Debug and unified testing suite for backend integration.
+    - **Features**: Backend health checks, model capability detection, comprehensive logging
   - `__init__.py` — Marks this directory as a Python package.
   - `README.md` — This documentation file.
   - `__pycache__/` — Python bytecode cache (auto-generated).
@@ -26,6 +28,7 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
   - Contains all output JSON files from test runs, including:
     - `test_results_*.json` — Performance and general image/text test results (not VQA 2.0).
     - `context_understanding_test_results_*.json` — Context understanding test results.
+    - `debug_unified_test_*.json` — Debug and unified testing results.
     - `vqa2_results_*.json` — VQA 2.0 COCO evaluation results (from scripts in the `../vqa/` folder).
     - `*_intermediate_*.json` — Intermediate results for each model during batch runs.
 
@@ -74,7 +77,25 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
   - Results are saved as `context_understanding_test_results_YYYYMMDD_HHMMSS.json` in `../results/`.
   - Intermediate results for each model are saved as `context_understanding_test_results_intermediate_<ModelName>.json`.
 
-### 3. VQA 2.0 COCO Evaluation (see also `../vqa/`)
+### 3. Debug and Unified Testing (`debug_unified_test.py`)
+- **Purpose:**
+  - Comprehensive debugging and unified testing suite for backend integration.
+  - Tests backend health, model capabilities, and system integration.
+  - **SmolVLM Support**: Uses unified GGUF version via HTTP API
+- **How to Run:**
+  ```bash
+  source ai_vision_env/bin/activate
+  python debug_unified_test.py
+  ```
+- **Features:**
+  - ✅ Backend health monitoring and status detection
+  - ✅ Model capability detection and validation
+  - ✅ Comprehensive logging and result sanitization
+  - ✅ System integration testing
+- **Output:**
+  - Results are saved as `debug_unified_test_YYYYMMDD_HHMMSS.json` in `../results/`.
+
+### 4. VQA 2.0 COCO Evaluation (see also `../vqa/`)
 - **Purpose:**
   - Evaluates models on the VQA 2.0 COCO dataset for standardized accuracy metrics.
   - **All VQA 2.0 testing is handled by scripts in the `../vqa/` folder, not in `vlm/`.**
@@ -142,6 +163,9 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
 - **context_understanding_test_results_*.json:**
   - Contains conversation flows, model responses, and context retention scores.
   - Includes multi-turn conversation evaluation with SmolVLM GGUF.
+- **debug_unified_test_*.json:**
+  - Contains backend health status, model capability detection, and system integration test results.
+  - Includes comprehensive logging and sanitized test data.
 - **vqa2_results_*.json:**
   - Contains VQA accuracy and answer breakdowns for the COCO dataset (from the `../vqa/` folder).
   - Includes SmolVLM GGUF VQA performance metrics.
@@ -156,6 +180,7 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
 - For SmolVLM models, use the unified GGUF approach with HTTP API support.
 - To add new test images or prompts, update the relevant materials directory (see `../materials/`).
 - All outputs will be automatically saved in the `../results/` directory.
+- For performance comparison testing, use `vlm_tester.py` to test different model configurations and compare results manually.
 
 ---
 

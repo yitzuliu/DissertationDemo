@@ -98,9 +98,11 @@ class DebugModelTestSuite:
         self.model_config = None
         self.test_results = []
         
-        # Create results file
+        # Create results file - save to unified results directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.results_file = current_dir / f"test_results_{timestamp}.json"
+        results_dir = Path("src/testing/results")  # Unified results location
+        results_dir.mkdir(exist_ok=True)
+        self.results_file = results_dir / f"debug_unified_test_{timestamp}.json"
         
         logger.info("Debug Test Suite Initialized")
         logger.info(f"Images Directory: {self.images_dir}")
