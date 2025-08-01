@@ -8,6 +8,8 @@ export class UIManager {
     constructor() {
         this.elements = {};
         this.isInitialized = false;
+        this.responseHistory = [];
+        this.maxHistoryItems = 8;
     }
 
     /**
@@ -27,12 +29,8 @@ export class UIManager {
         // Query panel elements
         this.elements.queryInput = document.getElementById('queryInput');
         this.elements.queryButton = document.getElementById('queryButton');
-        this.elements.responseText = document.getElementById('responseText');
+        this.elements.responseContainer = document.getElementById('responseContainer');
         this.elements.responseLoading = document.getElementById('responseLoading');
-        this.elements.responseMeta = document.getElementById('responseMeta');
-        this.elements.processingTime = document.getElementById('processingTime');
-        this.elements.queryType = document.getElementById('queryType');
-        this.elements.confidence = document.getElementById('confidence');
 
         // Status elements
         this.elements.connectionStatus = document.getElementById('connectionStatus');
@@ -40,7 +38,7 @@ export class UIManager {
         // Validate all required elements exist
         const requiredElements = [
             'videoFeed', 'canvas', 'cameraSelect', 'startButton',
-            'queryInput', 'queryButton', 'responseText', 'connectionStatus'
+            'queryInput', 'queryButton', 'responseContainer', 'connectionStatus'
         ];
 
         for (const elementName of requiredElements) {
@@ -93,70 +91,182 @@ export class UIManager {
     }
 
     /**
+     * Add a new response item to the unified response area
+     */
+    addResponseItem(type, title, content, metadata = {}) {
+        if (!this.elements.responseContainer) return;
+
+        const responseItem = this.createResponseItem(type, title, content, metadata);
+        
+        // Add to history
+        this.responseHistory.unshift(responseItem);
+        
+        // Limit history size
+        if (this.responseHistory.length > this.maxHistoryItems) {
+            this.responseHistory = this.responseHistory.slice(0, this.maxHistoryItems);
+        }
+        
+        // Update display
+        this.updateResponseDisplay();
+        
+        // Auto-scroll to top
+        this.scrollToTop();
+    }
+
+    /**
+     * Create a response item element
+     */
+    createResponseItem(type, title, content, metadata = {}) {
+        const timestamp = new Date().toLocaleTimeString();
+        
+        return {
+            type,
+            title,
+            content,
+            timestamp,
+            metadata,
+            id: `response_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        };
+    }
+
+    /**
+     * Update the response display with current history
+     */
+    updateResponseDisplay() {
+        if (!this.elements.responseContainer) return;
+
+        this.elements.responseContainer.innerHTML = this.responseHistory
+            .map(item => this.renderResponseItem(item))
+            .join('');
+    }
+
+    /**
+     * Render a single response item as HTML
+     */
+    renderResponseItem(item) {
+        const iconMap = {
+            'vision': 'fas fa-robot',
+            'query': 'fas fa-chart-line',
+            'system': 'fas fa-info-circle',
+            'error': 'fas fa-exclamation-triangle'
+        };
+
+        const icon = iconMap[item.type] || 'fas fa-comment';
+        
+        return `
+            <div class="response-item ${item.type}-response" data-id="${item.id}">
+                <div class="response-header">
+                    <i class="${icon}"></i>
+                    <span class="response-title">${item.title}</span>
+                    <span class="response-time">${item.timestamp}</span>
+                </div>
+                <div class="response-content-text">
+                    ${this.escapeHtml(item.content)}
+                </div>
+                ${this.renderMetadata(item.metadata)}
+            </div>
+        `;
+    }
+
+    /**
+     * Render metadata if available
+     */
+    renderMetadata(metadata) {
+        if (!metadata || Object.keys(metadata).length === 0) return '';
+
+        const metaItems = [];
+        if (metadata.processingTime) {
+            metaItems.push(`<span><i class="fas fa-clock"></i> ${metadata.processingTime}ms</span>`);
+        }
+        if (metadata.confidence) {
+            metaItems.push(`<span><i class="fas fa-percentage"></i> ${metadata.confidence}% confidence</span>`);
+        }
+        if (metadata.queryType) {
+            metaItems.push(`<span><i class="fas fa-tag"></i> ${metadata.queryType}</span>`);
+        }
+
+        if (metaItems.length === 0) return '';
+
+        return `
+            <div class="response-meta" style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-light);">
+                ${metaItems.join(' • ')}
+            </div>
+        `;
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
+     * Scroll response area to top
+     */
+    scrollToTop() {
+        const responseContent = document.querySelector('.response-content');
+        if (responseContent) {
+            responseContent.scrollTop = 0;
+        }
+    }
+
+    /**
      * Show vision analysis response
      */
     showVisionResponse(response) {
-        // Display VLM response in the query response area
-        if (this.elements.responseText) {
-            this.elements.responseText.textContent = response;
-            this.elements.responseText.style.color = 'var(--text)';
-        }
-
-        // Hide loading if it's showing
-        this.hideQueryLoading();
-
-        // Show meta information for vision analysis
-        if (this.elements.responseMeta) {
-            this.elements.responseMeta.style.display = 'flex';
-        }
-
-        // Update meta information to show it's a vision response
-        if (this.elements.queryType) {
-            this.elements.queryType.textContent = 'Vision Analysis';
-        }
-        if (this.elements.processingTime) {
-            this.elements.processingTime.textContent = 'Real-time';
-        }
-        if (this.elements.confidence) {
-            this.elements.confidence.textContent = '100';
-        }
+        this.addResponseItem(
+            'vision',
+            'Vision Analysis',
+            response,
+            { processingTime: Date.now() }
+        );
     }
 
     /**
      * Show query response
      */
     showQueryResponse(response, type = 'State Query') {
-        if (!this.elements.responseText) return;
-
-        // Hide loading
-        this.hideQueryLoading();
-
-        // Show response
-        this.elements.responseText.textContent = response;
-
-        // Show meta information if available
-        if (this.elements.responseMeta) {
-            this.elements.responseMeta.style.display = 'flex';
-        }
+        this.addResponseItem(
+            'query',
+            type,
+            response,
+            { queryType: type }
+        );
     }
 
     /**
-     * Show query loading state
+     * Show system message
+     */
+    showSystemMessage(message, title = 'System') {
+        this.addResponseItem('system', title, message);
+    }
+
+    /**
+     * Show error message
+     */
+    showError(message, type = 'general') {
+        this.addResponseItem(
+            'error',
+            'Error',
+            message,
+            { errorType: type }
+        );
+    }
+
+    /**
+     * Show loading state
      */
     showQueryLoading() {
         if (this.elements.responseLoading) {
             this.elements.responseLoading.style.display = 'flex';
         }
-        if (this.elements.responseText) {
-            this.elements.responseText.textContent = '';
-        }
-        if (this.elements.responseMeta) {
-            this.elements.responseMeta.style.display = 'none';
-        }
     }
 
     /**
-     * Hide query loading state
+     * Hide loading state
      */
     hideQueryLoading() {
         if (this.elements.responseLoading) {
@@ -165,47 +275,28 @@ export class UIManager {
     }
 
     /**
-     * Update query response meta information
+     * Clear all responses
      */
-    updateQueryMeta(processingTime, queryType, confidence) {
-        if (this.elements.processingTime) {
-            this.elements.processingTime.textContent = processingTime;
-        }
-        if (this.elements.queryType) {
-            this.elements.queryType.textContent = queryType;
-        }
-        if (this.elements.confidence) {
-            this.elements.confidence.textContent = confidence;
+    clearResponses() {
+        this.responseHistory = [];
+        if (this.elements.responseContainer) {
+            this.elements.responseContainer.innerHTML = `
+                <div class="response-item system-message">
+                    <div class="response-header">
+                        <i class="fas fa-info-circle"></i>
+                        <span class="response-title">Welcome</span>
+                        <span class="response-time">Now</span>
+                    </div>
+                    <div class="response-content-text">
+                        Welcome to the unified interface! Use the left panel for vision analysis and the right panel for queries and responses.
+                    </div>
+                </div>
+            `;
         }
     }
 
     /**
-     * Show error message
-     */
-    showError(message, type = 'general') {
-        console.error(`[${type}] Error:`, message);
-
-        // For now, show errors in the response area
-        if (this.elements.responseText) {
-            this.elements.responseText.textContent = `Error: ${message}`;
-            this.elements.responseText.style.color = 'var(--error)';
-        }
-
-        // Hide loading
-        this.hideQueryLoading();
-    }
-
-    /**
-     * Clear error state
-     */
-    clearError() {
-        if (this.elements.responseText) {
-            this.elements.responseText.style.color = '';
-        }
-    }
-
-    /**
-     * Get current query input value
+     * Get query input value
      */
     getQueryInput() {
         return this.elements.queryInput ? this.elements.queryInput.value.trim() : '';
@@ -225,9 +316,9 @@ export class UIManager {
      */
     getVisionSettings() {
         return {
-            quality: parseFloat(this.elements.qualitySelect?.value || 0.9),
-            maxTokens: parseInt(this.elements.tokensSelect?.value || 100),
-            interval: parseInt(this.elements.intervalSelect?.value || 3000)
+            interval: this.elements.intervalSelect ? this.elements.intervalSelect.value : '2000',
+            quality: this.elements.qualitySelect ? this.elements.qualitySelect.value : '0.9',
+            maxTokens: this.elements.tokensSelect ? this.elements.tokensSelect.value : '100'
         };
     }
 
@@ -235,11 +326,11 @@ export class UIManager {
      * Get instruction text
      */
     getInstructionText() {
-        return this.elements.instructionText?.value || '';
+        return this.elements.instructionText ? this.elements.instructionText.value.trim() : '';
     }
 
     /**
-     * Set up example query click handlers
+     * Setup example query click handlers
      */
     setupExampleQueries(callback) {
         const examples = document.querySelectorAll('.example-query');
@@ -248,33 +339,39 @@ export class UIManager {
                 const query = example.getAttribute('data-query');
                 if (query && this.elements.queryInput) {
                     this.elements.queryInput.value = query;
-                    if (callback) {
-                        callback(query);
-                    }
+                    if (callback) callback(query);
                 }
             });
         });
     }
 
     /**
-     * Set up keyboard shortcuts
+     * Setup keyboard shortcuts
      */
     setupKeyboardShortcuts(callbacks) {
-        // Enter key in query input
+        // Enter key for query input
         if (this.elements.queryInput) {
-            this.elements.queryInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && callbacks.onQuerySubmit) {
-                    callbacks.onQuerySubmit();
+            this.elements.queryInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (callbacks.onQuerySubmit) {
+                        callbacks.onQuerySubmit();
+                    }
                 }
             });
         }
 
         // Ctrl+Enter for vision analysis
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter' && callbacks.onVisionToggle) {
-                callbacks.onVisionToggle();
-            }
-        });
+        if (this.elements.instructionText) {
+            this.elements.instructionText.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    if (callbacks.onVisionToggle) {
+                        callbacks.onVisionToggle();
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -297,7 +394,7 @@ export class UIManager {
      * Check if UI is ready
      */
     isReady() {
-        return this.isInitialized && this.elements.queryInput && this.elements.startButton;
+        return this.isInitialized;
     }
 
     /**
@@ -306,10 +403,8 @@ export class UIManager {
     getStatus() {
         return {
             initialized: this.isInitialized,
-            elementsReady: this.isReady(),
-            queryInput: !!this.elements.queryInput,
-            startButton: !!this.elements.startButton,
-            responseArea: !!this.elements.responseText
+            responseCount: this.responseHistory.length,
+            elements: Object.keys(this.elements).filter(key => this.elements[key] !== null).length
         };
     }
 } 

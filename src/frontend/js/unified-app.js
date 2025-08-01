@@ -175,7 +175,7 @@ export class UnifiedApp {
 
         try {
             // Check if instruction is provided
-            const instruction = this.uiManager.elements.instructionText.value.trim();
+            const instruction = this.uiManager.getInstructionText();
             if (!instruction) {
                 this.uiManager.showError('Please enter a question about the image before starting.');
                 return;
@@ -228,7 +228,7 @@ export class UnifiedApp {
 
         try {
             // Get instruction from textarea
-            const instruction = this.uiManager.elements.instructionText.value.trim();
+            const instruction = this.uiManager.getInstructionText();
             if (!instruction) {
                 this.uiManager.showError('Please enter a question about the image.');
                 return;
@@ -244,7 +244,7 @@ export class UnifiedApp {
             const maxTokens = parseInt(this.uiManager.getVisionSettings().maxTokens);
             const response = await this.apiClient.sendVisionAnalysis(instruction, imageResult, maxTokens);
 
-            // Display VLM response in the State Query response area
+            // Display VLM response using unified response system
             this.uiManager.showVisionResponse(response);
 
             console.log('VLM analysis completed:', response);
@@ -267,7 +267,6 @@ export class UnifiedApp {
         }
 
         this.uiManager.showQueryLoading();
-        this.uiManager.clearError();
 
         try {
             const startTime = Date.now();
@@ -291,21 +290,17 @@ export class UnifiedApp {
             
             const processingTime = Date.now() - startTime;
 
-            // Show response
-            this.uiManager.showQueryResponse(response.response_text || response.response || 'No response received');
-
-            // Update meta information for state query
-            this.uiManager.updateQueryMeta(
-                processingTime,
-                response.query_type || 'State Query',
-                Math.round((response.confidence || 0) * 100)
-            );
+            // Show response using unified response system
+            const responseText = response.response_text || response.response || 'No response received';
+            this.uiManager.showQueryResponse(responseText, response.query_type || 'State Query');
 
             console.log('✅ Query processed successfully:', response);
 
         } catch (error) {
             console.error('Query processing error:', error);
             this.uiManager.showError(`Query failed: ${error.message}`, 'query');
+        } finally {
+            this.uiManager.hideQueryLoading();
         }
     }
 
