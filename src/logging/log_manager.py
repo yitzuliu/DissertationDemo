@@ -1,7 +1,7 @@
 """
-AI Manual Assistant 日誌系統核心管理器
+AI Manual Assistant Logging System Core Manager
 
-提供統一的日誌管理功能，支援多種日誌類型和唯一ID追蹤機制。
+Provides unified logging management functionality, supporting multiple log types and unique ID tracking mechanisms.
 """
 
 import logging
@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 class LogType(Enum):
-    """日誌類型枚舉"""
+    """Log type enumeration"""
     SYSTEM = "system"
     VISUAL = "visual" 
     USER = "user"
@@ -24,69 +24,69 @@ class LogType(Enum):
 
 class LogManager:
     """
-    統一日誌管理器
+    Unified Log Manager
     
-    負責管理所有類型的日誌記錄，提供唯一ID生成和統一格式化功能。
+    Responsible for managing all types of log records, providing unique ID generation and unified formatting functionality.
     """
     
     def __init__(self, log_dir: str = "logs"):
         """
-        初始化日誌管理器
+        Initialize log manager
         
         Args:
-            log_dir: 日誌目錄路徑
+            log_dir: Log directory path
         """
-        # 動態解析日誌路徑
+        # Dynamically resolve log path
         self.log_dir = self._resolve_log_path(log_dir)
         self.loggers: Dict[LogType, logging.Logger] = {}
         self._ensure_log_directory()
         self._setup_loggers()
     
     def _resolve_log_path(self, log_dir: str) -> Path:
-        """動態解析日誌路徑"""
-        # 如果已經是絕對路徑，直接使用
+        """Dynamically resolve log path"""
+        # If already absolute path, use directly
         if os.path.isabs(log_dir):
             return Path(log_dir)
         
-        # 從當前文件位置開始向上查找項目根目錄
+        # Start from current file location and search upward for project root
         current = Path(__file__).resolve().parent
         
-        # 向上查找最多5層，避免無限循環
+        # Search upward up to 5 levels to avoid infinite loop
         for _ in range(5):
-            # 檢查是否為項目根目錄
+            # Check if it's project root
             if self._is_project_root(current):
                 return current / log_dir
             current = current.parent
         
-        # 如果找不到，使用當前目錄
+        # If not found, use current directory
         return Path.cwd() / log_dir
     
     def _is_project_root(self, path: Path) -> bool:
-        """檢查是否為項目根目錄"""
+        """Check if it's project root directory"""
         return (
             (path / "requirements.txt").exists() and
             (path / "src" / "backend" / "main.py").exists()
         )
     
     def _ensure_log_directory(self):
-        """確保日誌目錄存在"""
+        """Ensure log directory exists"""
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
     
     def _setup_loggers(self):
-        """設置各類型日誌記錄器"""
+        """Setup various type loggers"""
         for log_type in LogType:
             logger = logging.getLogger(f"ai_assistant_{log_type.value}")
             logger.setLevel(logging.INFO)
             
-            # 創建檔案處理器
+            # Create file handler
             today = datetime.now().strftime("%Y%m%d")
             log_file = os.path.join(self.log_dir, f"{log_type.value}_{today}.log")
             
             handler = logging.FileHandler(log_file, encoding='utf-8')
             handler.setLevel(logging.INFO)
             
-            # 設定統一格式
+            # Set unified format
             formatter = logging.Formatter(
                 '%(asctime)s,%(msecs)03d [%(levelname)s] %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S'
@@ -96,42 +96,42 @@ class LogManager:
             logger.addHandler(handler)
             self.loggers[log_type] = logger    
 
-    # 唯一ID生成方法
+    # Unique ID generation methods
     def generate_observation_id(self) -> str:
-        """生成觀察事件唯一ID"""
+        """Generate unique ID for observation event"""
         timestamp = int(time.time() * 1000)
         return f"obs_{timestamp}_{uuid.uuid4().hex[:8]}"
     
     def generate_query_id(self) -> str:
-        """生成查詢事件唯一ID"""
+        """Generate unique ID for query event"""
         timestamp = int(time.time() * 1000)
         return f"query_{timestamp}_{uuid.uuid4().hex[:8]}"
     
     def generate_request_id(self) -> str:
-        """生成請求唯一ID"""
+        """Generate unique ID for request event"""
         timestamp = int(time.time() * 1000)
         return f"req_{timestamp}_{uuid.uuid4().hex[:8]}"
     
     def generate_state_update_id(self) -> str:
-        """生成狀態更新唯一ID"""
+        """Generate unique ID for state update event"""
         timestamp = int(time.time() * 1000)
         return f"state_{timestamp}_{uuid.uuid4().hex[:8]}"
     
     def generate_flow_id(self) -> str:
-        """生成流程唯一ID"""
+        """Generate unique ID for flow tracking event"""
         timestamp = int(time.time() * 1000)
         return f"flow_{timestamp}_{uuid.uuid4().hex[:8]}"
     
     def _format_log_message(self, event_type: str, **kwargs) -> str:
         """
-        格式化日誌訊息
+        Format log message
         
         Args:
-            event_type: 事件類型
-            **kwargs: 日誌參數
+            event_type: Event type
+            **kwargs: Log parameters
             
         Returns:
-            格式化的日誌訊息
+            Formatted log message
         """
         parts = [f"[{event_type}]"]
         
@@ -141,9 +141,9 @@ class LogManager:
         
         return " ".join(parts)
     
-    # 系統日誌記錄方法
+    # System logging methods
     def log_system_start(self, system_id: str, host: str, port: int, model: str):
-        """記錄系統啟動"""
+        """Log system startup"""
         message = self._format_log_message(
             "SYSTEM_START",
             system_id=system_id,
@@ -154,7 +154,7 @@ class LogManager:
         self.loggers[LogType.SYSTEM].info(message) 
    
     def log_system_shutdown(self, system_id: str, final_memory: str, uptime: str):
-        """記錄系統關閉"""
+        """Log system shutdown"""
         message = self._format_log_message(
             "SYSTEM_SHUTDOWN",
             system_id=system_id,
@@ -164,7 +164,7 @@ class LogManager:
         self.loggers[LogType.SYSTEM].info(message)
     
     def log_memory_usage(self, system_id: str, memory_usage: str):
-        """記錄記憶體使用"""
+        """Log memory usage"""
         message = self._format_log_message(
             "MEMORY",
             system_id=system_id,
@@ -174,7 +174,7 @@ class LogManager:
     
     def log_endpoint_call(self, request_id: str, method: str, path: str, 
                          status: int, duration: float):
-        """記錄端點呼叫"""
+        """Log endpoint call"""
         message = self._format_log_message(
             "ENDPOINT",
             request_id=request_id,
@@ -185,11 +185,11 @@ class LogManager:
         )
         self.loggers[LogType.SYSTEM].info(message)
     
-    # 視覺日誌記錄方法
+    # Visual logging methods
     def log_eyes_capture(self, observation_id: str, request_id: str, 
                         device: str, resolution: str, quality: float, 
                         format: str, size: str):
-        """記錄圖像捕獲"""
+        """Log image capture"""
         message = self._format_log_message(
             "EYES_CAPTURE",
             observation_id=observation_id,
@@ -203,7 +203,7 @@ class LogManager:
         self.loggers[LogType.VISUAL].info(message)  
   
     def log_eyes_prompt(self, observation_id: str, prompt: str, length: int):
-        """記錄視覺提示詞"""
+        """Log visual prompt"""
         message = self._format_log_message(
             "EYES_PROMPT",
             observation_id=observation_id,
@@ -213,7 +213,7 @@ class LogManager:
         self.loggers[LogType.VISUAL].info(message)
     
     def log_eyes_transfer(self, observation_id: str, sent_data: Dict[str, Any]):
-        """記錄後端傳輸"""
+        """Log backend transfer"""
         message = self._format_log_message(
             "EYES_TRANSFER",
             observation_id=observation_id,
@@ -223,7 +223,7 @@ class LogManager:
     
     def log_rag_matching(self, observation_id: str, vlm_observation: str, 
                         candidate_steps: list, similarities: list):
-        """記錄RAG匹配過程"""
+        """Log RAG matching process"""
         message = self._format_log_message(
             "RAG_MATCHING",
             observation_id=observation_id,
@@ -235,7 +235,7 @@ class LogManager:
     
     def log_rag_result(self, observation_id: str, selected: str, 
                       title: str, similarity: float):
-        """記錄RAG匹配結果"""
+        """Log RAG matching result"""
         message = self._format_log_message(
             "RAG_RESULT",
             observation_id=observation_id,
@@ -247,7 +247,7 @@ class LogManager:
     
     def log_state_tracker(self, observation_id: str, state_update_id: str,
                          confidence: float, action: str, state: Dict[str, Any]):
-        """記錄狀態追蹤器決策"""
+        """Log state tracker decision"""
         message = self._format_log_message(
             "STATE_TRACKER",
             observation_id=observation_id,
@@ -258,10 +258,10 @@ class LogManager:
         )
         self.loggers[LogType.VISUAL].info(message)    
  
-   # 使用者查詢日誌記錄方法
+       # User query logging methods
     def log_user_query(self, query_id: str, request_id: str, question: str, 
                       language: str, used_observation_id: Optional[str] = None):
-        """記錄使用者查詢"""
+        """Log user query"""
         message = self._format_log_message(
             "USER_QUERY",
             query_id=query_id,
@@ -273,17 +273,17 @@ class LogManager:
         self.loggers[LogType.USER].info(message)
     
     def log_query_classify(self, query_id: str, query_type: str, confidence: float):
-        """記錄查詢分類"""
+        """Log query classification"""
         message = self._format_log_message(
             "QUERY_CLASSIFY",
             query_id=query_id,
-            type=query_type,
-            confidence=confidence
+            query_type=query_type,
+            confidence=f"{confidence:.3f}"
         )
         self.loggers[LogType.USER].info(message)
     
     def log_query_process(self, query_id: str, state: Dict[str, Any]):
-        """記錄查詢處理"""
+        """Log query processing"""
         message = self._format_log_message(
             "QUERY_PROCESS",
             query_id=query_id,
@@ -292,23 +292,18 @@ class LogManager:
         self.loggers[LogType.USER].info(message)
     
     def log_query_response(self, query_id: str, response: str, duration: float):
-        """記錄查詢回應"""
-        # Clean response text for logging (remove newlines and limit length)
-        clean_response = response.replace('\n', ' ').replace('\r', ' ').strip()
-        if len(clean_response) > 200:
-            clean_response = clean_response[:200] + "..."
-        
+        """Log query response"""
         message = self._format_log_message(
             "QUERY_RESPONSE",
             query_id=query_id,
-            response=f'"{clean_response}"',
-            duration=f"{duration:.1f}ms"
+            response=f'"{response}"',
+            duration=f"{duration:.2f}s"
         )
         self.loggers[LogType.USER].info(message)
     
-    # Stage 3.2: 新增詳細查詢處理日誌方法
+    # Detailed query processing methods
     def log_query_classify_start(self, query_id: str, query: str):
-        """記錄查詢分類開始"""
+        """Log query classification start"""
         message = self._format_log_message(
             "QUERY_CLASSIFY_START",
             query_id=query_id,
@@ -317,37 +312,37 @@ class LogManager:
         self.loggers[LogType.USER].info(message)
     
     def log_query_pattern_check(self, query_id: str, pattern: str, query_type: str):
-        """記錄模式檢查過程"""
+        """Log pattern check process"""
         message = self._format_log_message(
             "QUERY_PATTERN_CHECK",
             query_id=query_id,
-            checking_pattern=f'"{pattern}"',
-            type=query_type
+            pattern=f'"{pattern}"',
+            query_type=query_type
         )
         self.loggers[LogType.USER].info(message)
     
     def log_query_pattern_match(self, query_id: str, query_type: str, pattern: str):
-        """記錄模式匹配成功"""
+        """Log pattern match success"""
         message = self._format_log_message(
             "QUERY_PATTERN_MATCH",
             query_id=query_id,
-            type=query_type,
+            query_type=query_type,
             pattern=f'"{pattern}"'
         )
         self.loggers[LogType.USER].info(message)
     
     def log_query_classify_result(self, query_id: str, query_type: str, confidence: float):
-        """記錄分類最終結果"""
+        """Log classification final result"""
         message = self._format_log_message(
             "QUERY_CLASSIFY_RESULT",
             query_id=query_id,
-            final_type=query_type,
-            confidence=confidence
+            query_type=query_type,
+            confidence=f"{confidence:.3f}"
         )
         self.loggers[LogType.USER].info(message)
     
     def log_query_process_start(self, query_id: str, query: str, state_keys: list):
-        """記錄查詢處理開始"""
+        """Log query processing start"""
         message = self._format_log_message(
             "QUERY_PROCESS_START",
             query_id=query_id,
@@ -357,19 +352,17 @@ class LogManager:
         self.loggers[LogType.USER].info(message)
     
     def log_query_state_lookup(self, query_id: str, state_found: bool, state_info: dict):
-        """記錄狀態查找過程"""
+        """Log state lookup process"""
         message = self._format_log_message(
             "QUERY_STATE_LOOKUP",
             query_id=query_id,
             state_found=state_found,
-            has_task_id=state_info.get('has_task_id', False),
-            has_step_index=state_info.get('has_step_index', False),
-            state_keys=state_info.get('state_keys', [])
+            state_info=str(state_info)
         )
         self.loggers[LogType.USER].info(message)
     
     def log_query_response_generate(self, query_id: str, response_type: str, response_length: int):
-        """記錄回應生成過程"""
+        """Log response generation process"""
         message = self._format_log_message(
             "QUERY_RESPONSE_GENERATE",
             query_id=query_id,
@@ -379,16 +372,16 @@ class LogManager:
         self.loggers[LogType.USER].info(message)
     
     def log_query_process_complete(self, query_id: str, processing_time: float):
-        """記錄查詢處理完成"""
+        """Log query processing complete"""
         message = self._format_log_message(
             "QUERY_PROCESS_COMPLETE",
             query_id=query_id,
-            processing_time=f"{processing_time:.1f}ms"
+            processing_time=f"{processing_time:.3f}s"
         )
         self.loggers[LogType.USER].info(message)
     
     def log_query_received(self, query_id: str, query: str):
-        """記錄查詢接收"""
+        """Log query received"""
         message = self._format_log_message(
             "QUERY_RECEIVED",
             query_id=query_id,
@@ -396,64 +389,57 @@ class LogManager:
         )
         self.loggers[LogType.USER].info(message)
     
-    # 流程追蹤日誌記錄方法
+    # Flow tracking logging methods
     def log_flow_start(self, flow_id: str, flow_type: str):
-        """記錄流程開始"""
+        """Log flow start"""
         message = self._format_log_message(
             "FLOW_START",
             flow_id=flow_id,
-            type=flow_type,
-            status="started"
+            flow_type=flow_type
         )
         self.loggers[LogType.FLOW_TRACKING].info(message)    
 
     def log_flow_step(self, flow_id: str, step: str, **related_ids):
-        """記錄流程步驟"""
-        message_parts = [f"[FLOW_STEP] flow_id={flow_id}", f"step={step}"]
-        
-        for key, value in related_ids.items():
-            if value:
-                message_parts.append(f"{key}={value}")
-        
-        message = " ".join(message_parts)
+        """Log flow step"""
+        message = self._format_log_message(
+            "FLOW_STEP",
+            flow_id=flow_id,
+            step=step,
+            **related_ids
+        )
         self.loggers[LogType.FLOW_TRACKING].info(message)
     
     def log_flow_end(self, flow_id: str, status: str, total_duration: float):
-        """記錄流程結束"""
+        """Log flow end"""
         message = self._format_log_message(
             "FLOW_END",
             flow_id=flow_id,
             status=status,
-            total_duration=f"{total_duration:.1f}s"
+            total_duration=f"{total_duration:.2f}s"
         )
         self.loggers[LogType.FLOW_TRACKING].info(message)
     
+    # Utility methods
     def get_logger(self, log_type: LogType) -> logging.Logger:
-        """獲取指定類型的日誌記錄器"""
-        return self.loggers.get(log_type)
+        """Get logger for specified type"""
+        return self.loggers[log_type]
     
     def close_all_loggers(self):
-        """關閉所有日誌記錄器"""
+        """Close all loggers and handlers"""
         for logger in self.loggers.values():
-            for handler in logger.handlers:
+            for handler in logger.handlers[:]:
                 handler.close()
                 logger.removeHandler(handler)
 
 
-# 全域日誌管理器實例
-_log_manager_instance: Optional[LogManager] = None
-
-
+# Global instance management
 def get_log_manager() -> LogManager:
-    """獲取全域日誌管理器實例"""
-    global _log_manager_instance
-    if _log_manager_instance is None:
-        _log_manager_instance = LogManager()
-    return _log_manager_instance
+    """Get global log manager instance"""
+    if not hasattr(get_log_manager, '_instance'):
+        get_log_manager._instance = LogManager()
+    return get_log_manager._instance
 
 
 def initialize_log_manager(log_dir: str = "logs") -> LogManager:
-    """初始化全域日誌管理器"""
-    global _log_manager_instance
-    _log_manager_instance = LogManager(log_dir)
-    return _log_manager_instance
+    """Initialize log manager with custom directory"""
+    return LogManager(log_dir)

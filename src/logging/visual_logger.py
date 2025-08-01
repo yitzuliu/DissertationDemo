@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-AI Manual Assistant 視覺日誌記錄器
+AI Manual Assistant Visual Logger
 
-提供VLM視覺處理相關的日誌記錄功能，包括：
-- 後端接收日誌
-- 圖像處理過程和結果
-- RAG系統資料傳遞
-- 狀態追蹤器整合
+Provides VLM visual processing related logging functionality, including:
+- Backend receive logging
+- Image processing procedures and results
+- RAG system data transfer
+- State tracker integration
 """
 
 import time
@@ -22,30 +22,30 @@ except ImportError:
 
 class VisualLogger:
     """
-    視覺日誌記錄器
+    Visual Logger
     
-    負責記錄VLM視覺處理相關的事件，包括：
-    - 後端接收處理
-    - 圖像處理過程
-    - RAG匹配過程
-    - 狀態更新過程
+    Responsible for recording VLM visual processing related events, including:
+    - Backend receive processing
+    - Image processing procedures
+    - RAG matching process
+    - State update process
     """
     
     def __init__(self):
-        """初始化視覺日誌記錄器"""
+        """Initialize visual logger"""
         self.log_manager = get_log_manager()
         
     def log_backend_receive(self, observation_id: str, request_id: str, 
                            request_data: Dict[str, Any]):
         """
-        記錄後端接收VLM請求
+        Log backend receive VLM request
         
         Args:
-            observation_id: 觀察ID
-            request_id: 請求ID
-            request_data: 請求數據
+            observation_id: Observation ID
+            request_id: Request ID
+            request_data: Request data
         """
-        # 安全地處理圖像數據，避免記錄完整的base64
+        # Safely process image data, avoid logging complete base64
         safe_request_data = self._sanitize_request_data(request_data)
         
         message = (f"[BACKEND_RECEIVE] observation_id={observation_id} "
@@ -58,13 +58,13 @@ class VisualLogger:
     def log_image_processing_start(self, observation_id: str, request_id: str,
                                   image_count: int, model: str):
         """
-        記錄圖像處理開始
+        Log image processing start
         
         Args:
-            observation_id: 觀察ID
-            request_id: 請求ID
-            image_count: 圖像數量
-            model: 使用的模型
+            observation_id: Observation ID
+            request_id: Request ID
+            image_count: Image count
+            model: Model used
         """
         message = (f"[IMAGE_PROCESSING_START] observation_id={observation_id} "
                   f"request_id={request_id} image_count={image_count} "
@@ -77,14 +77,14 @@ class VisualLogger:
                                    processing_time: float, success: bool,
                                    details: Optional[Dict[str, Any]] = None):
         """
-        記錄圖像處理結果
+        Log image processing result
         
         Args:
-            observation_id: 觀察ID
-            request_id: 請求ID
-            processing_time: 處理時間（秒）
-            success: 是否成功
-            details: 處理詳情
+            observation_id: Observation ID
+            request_id: Request ID
+            processing_time: Processing time (seconds)
+            success: Whether successful
+            details: Processing details
         """
         status = "SUCCESS" if success else "FAILED"
         message_parts = [
@@ -105,14 +105,14 @@ class VisualLogger:
     def log_vlm_request(self, observation_id: str, request_id: str,
                        model: str, prompt_length: int, image_count: int):
         """
-        記錄VLM模型請求
+        Log VLM request
         
         Args:
-            observation_id: 觀察ID
-            request_id: 請求ID
-            model: 模型名稱
-            prompt_length: 提示詞長度
-            image_count: 圖像數量
+            observation_id: Observation ID
+            request_id: Request ID
+            model: Model name
+            prompt_length: Prompt length
+            image_count: Image count
         """
         message = (f"[VLM_REQUEST] observation_id={observation_id} "
                   f"request_id={request_id} model={model} "
@@ -125,15 +125,15 @@ class VisualLogger:
                         response_length: int, processing_time: float,
                         success: bool, model: str):
         """
-        記錄VLM模型回應
+        Log VLM response
         
         Args:
-            observation_id: 觀察ID
-            request_id: 請求ID
-            response_length: 回應長度
-            processing_time: 處理時間
-            success: 是否成功
-            model: 模型名稱
+            observation_id: Observation ID
+            request_id: Request ID
+            response_length: Response length
+            processing_time: Processing time (seconds)
+            success: Whether successful
+            model: Model name
         """
         status = "SUCCESS" if success else "FAILED"
         message = (f"[VLM_RESPONSE] observation_id={observation_id} "
@@ -147,19 +147,19 @@ class VisualLogger:
     def log_rag_data_transfer(self, observation_id: str, vlm_text: str,
                              transfer_success: bool):
         """
-        記錄RAG系統資料傳遞
+        Log RAG data transfer
         
         Args:
-            observation_id: 觀察ID
-            vlm_text: VLM輸出文本
-            transfer_success: 傳遞是否成功
+            observation_id: Observation ID
+            vlm_text: VLM response text
+            transfer_success: Whether transfer successful
         """
         status = "SUCCESS" if transfer_success else "FAILED"
-        text_preview = vlm_text[:100] + "..." if len(vlm_text) > 100 else vlm_text
+        # Truncate VLM text for logging
+        truncated_text = vlm_text[:100] + "..." if len(vlm_text) > 100 else vlm_text
         
         message = (f"[RAG_DATA_TRANSFER] observation_id={observation_id} "
-                  f"status={status} text_length={len(vlm_text)} "
-                  f"text_preview={json.dumps(text_preview, ensure_ascii=False)}")
+                  f"status={status} vlm_text=\"{truncated_text}\"")
         
         logger = self.log_manager.get_logger(LogType.VISUAL)
         logger.info(message)
@@ -168,13 +168,14 @@ class VisualLogger:
                                      state_updated: bool, 
                                      processing_time: Optional[float] = None):
         """
-        記錄狀態追蹤器整合
+        Log state tracker integration
         
         Args:
-            observation_id: 觀察ID
-            state_updated: 狀態是否更新
-            processing_time: 處理時間
+            observation_id: Observation ID
+            state_updated: Whether state updated
+            processing_time: Processing time (seconds)
         """
+        status = "UPDATED" if state_updated else "NO_CHANGE"
         message_parts = [
             f"[STATE_TRACKER_INTEGRATION] observation_id={observation_id}",
             f"state_updated={state_updated}"
@@ -191,20 +192,20 @@ class VisualLogger:
                   error_type: str, error_message: str, 
                   context: Optional[str] = None):
         """
-        記錄視覺處理錯誤
+        Log error
         
         Args:
-            observation_id: 觀察ID
-            request_id: 請求ID
-            error_type: 錯誤類型
-            error_message: 錯誤訊息
-            context: 錯誤上下文
+            observation_id: Observation ID
+            request_id: Request ID
+            error_type: Error type
+            error_message: Error message
+            context: Error context
         """
         message_parts = [
             f"[VISUAL_ERROR] observation_id={observation_id}",
             f"request_id={request_id}",
             f"error_type={error_type}",
-            f"error_message={json.dumps(error_message, ensure_ascii=False)}"
+            f"error_message=\"{error_message}\""
         ]
         
         if context:
@@ -217,134 +218,109 @@ class VisualLogger:
     def log_performance_metric(self, observation_id: str, metric_name: str,
                               value: float, unit: str = ""):
         """
-        記錄性能指標
+        Log performance metric
         
         Args:
-            observation_id: 觀察ID
-            metric_name: 指標名稱
-            value: 指標值
-            unit: 單位
+            observation_id: Observation ID
+            metric_name: Metric name
+            value: Metric value
+            unit: Metric unit
         """
-        value_str = f"{value:.3f}{unit}" if unit else f"{value:.3f}"
+        unit_str = f" {unit}" if unit else ""
         message = (f"[VISUAL_PERFORMANCE] observation_id={observation_id} "
-                  f"metric={metric_name} value={value_str}")
+                  f"metric={metric_name} value={value}{unit_str}")
         
         logger = self.log_manager.get_logger(LogType.VISUAL)
         logger.info(message)
     
     def _sanitize_request_data(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        清理請求數據，移除敏感或過大的內容
+        Sanitize request data for logging
         
         Args:
-            request_data: 原始請求數據
+            request_data: Original request data
             
         Returns:
-            清理後的請求數據
+            Sanitized request data
         """
-        safe_data = {}
+        sanitized = request_data.copy()
         
-        for key, value in request_data.items():
-            if key == "messages" and isinstance(value, list):
-                # 處理消息列表，移除圖像數據
-                safe_messages = []
-                for message in value:
-                    safe_message = {"role": message.get("role", "unknown")}
-                    
-                    content = message.get("content")
-                    if isinstance(content, str):
-                        # 文本內容，截斷過長的內容
-                        safe_message["content"] = content[:200] + "..." if len(content) > 200 else content
-                    elif isinstance(content, list):
-                        # 多模態內容
-                        safe_content = []
+        # Remove or truncate sensitive data
+        if 'messages' in sanitized:
+            sanitized_messages = []
+            for message in sanitized['messages']:
+                if isinstance(message, dict) and 'content' in message:
+                    content = message['content']
+                    if isinstance(content, list):
+                        # Handle multimodal content
+                        sanitized_content = []
                         for item in content:
-                            if isinstance(item, dict):
-                                if item.get("type") == "text":
-                                    text = item.get("text", "")
-                                    safe_content.append({
-                                        "type": "text",
-                                        "text": text[:200] + "..." if len(text) > 200 else text
-                                    })
-                                elif item.get("type") == "image_url":
-                                    # Extract image metadata for confirmation
-                                    image_url = item.get("image_url", {}).get("url", "")
-                                    image_info = {
-                                        "type": "image_url",
-                                        "has_image": bool(image_url),
-                                        "image_received": True if image_url else False
-                                    }
-                                    
-                                    if image_url and image_url.startswith('data:image/'):
-                                        # Extract format and size info
-                                        format_part = image_url.split(';')[0].replace('data:image/', '')
-                                        base64_part = image_url.split('base64,')[1] if 'base64,' in image_url else ''
-                                        estimated_size_kb = round(len(base64_part) * 3 / 4 / 1024, 1) if base64_part else 0
-                                        
-                                        image_info.update({
-                                            "format": format_part,
-                                            "size_estimate": f"{estimated_size_kb}KB",
-                                            "base64_length": len(base64_part),
-                                            "base64_preview": base64_part[:30] + "..." if len(base64_part) > 30 else base64_part
+                            if isinstance(item, dict) and item.get('type') == 'image_url':
+                                # Truncate image URL
+                                image_url = item.get('image_url', {})
+                                if isinstance(image_url, dict) and 'url' in image_url:
+                                    url = image_url['url']
+                                    if url.startswith('data:image'):
+                                        # Truncate base64 data
+                                        truncated_url = url[:50] + "...[TRUNCATED]"
+                                        sanitized_content.append({
+                                            'type': 'image_url',
+                                            'image_url': {'url': truncated_url}
                                         })
-                                    
-                                    safe_content.append(image_info)
-                        safe_message["content"] = safe_content
-                    
-                    safe_messages.append(safe_message)
-                safe_data[key] = safe_messages
-            elif key in ["max_tokens", "temperature", "top_p", "model"]:
-                # 保留這些參數
-                safe_data[key] = value
-            else:
-                # 其他參數轉為字符串並截斷
-                str_value = str(value)
-                safe_data[key] = str_value[:100] + "..." if len(str_value) > 100 else str_value
+                                    else:
+                                        sanitized_content.append(item)
+                                else:
+                                    sanitized_content.append(item)
+                            else:
+                                sanitized_content.append(item)
+                        sanitized_messages.append({
+                            'role': message.get('role', 'unknown'),
+                            'content': sanitized_content
+                        })
+                    else:
+                        # Handle text content
+                        sanitized_messages.append(message)
+                else:
+                    sanitized_messages.append(message)
+            sanitized['messages'] = sanitized_messages
         
-        return safe_data
+        return sanitized
 
 
-# 全域視覺日誌記錄器實例
+# Global instance
 _visual_logger_instance: Optional[VisualLogger] = None
 
 
 def get_visual_logger() -> VisualLogger:
-    """
-    獲取全域視覺日誌記錄器實例
-    
-    Returns:
-        VisualLogger 實例
-    """
+    """Get global visual logger instance"""
     global _visual_logger_instance
     if _visual_logger_instance is None:
         _visual_logger_instance = VisualLogger()
     return _visual_logger_instance
 
 
-# 便捷函數
+# Convenience functions
 def log_backend_receive(observation_id: str, request_id: str, request_data: Dict[str, Any]):
-    """便捷的後端接收日誌記錄"""
-    get_visual_logger().log_backend_receive(observation_id, request_id, request_data)
+    """Convenient backend receive logging"""
+    logger = get_visual_logger()
+    logger.log_backend_receive(observation_id, request_id, request_data)
 
 
 def log_image_processing(observation_id: str, request_id: str, 
                         processing_time: float, success: bool, **kwargs):
-    """便捷的圖像處理日誌記錄"""
-    get_visual_logger().log_image_processing_result(
-        observation_id, request_id, processing_time, success, kwargs
-    )
+    """Convenient image processing logging"""
+    logger = get_visual_logger()
+    logger.log_image_processing_result(observation_id, request_id, processing_time, success, kwargs)
 
 
 def log_vlm_interaction(observation_id: str, request_id: str, model: str,
                        request_time: float, response_time: float, success: bool):
-    """便捷的VLM交互日誌記錄"""
-    visual_logger = get_visual_logger()
-    visual_logger.log_vlm_request(observation_id, request_id, model, 0, 0)
-    visual_logger.log_vlm_response(observation_id, request_id, 0, response_time, success, model)
+    """Convenient VLM interaction logging"""
+    logger = get_visual_logger()
+    logger.log_vlm_response(observation_id, request_id, 0, response_time, success, model)
 
 
 def log_visual_error(observation_id: str, request_id: str, error: Exception, context: str = ""):
-    """便捷的視覺錯誤日誌記錄"""
-    get_visual_logger().log_error(
-        observation_id, request_id, type(error).__name__, str(error), context
-    )
+    """Convenient visual error logging"""
+    logger = get_visual_logger()
+    logger.log_error(observation_id, request_id, type(error).__name__, str(error), context)
