@@ -2,64 +2,132 @@
 
 ## 概述
 
-VLM Fallback System 是一個智能查詢處理系統，當狀態追蹤系統的置信度過低或用戶查詢與當前任務流程不相關時，自動切換到 VLM 直接回答模式，提供更靈活和智能的用戶交互體驗。
+VLM Fallback System 是 AI Manual Assistant 的增強功能，當狀態追蹤系統的信心值過低或無法匹配到合適的步驟時，自動將用戶查詢轉發給VLM進行直接回答。
 
 ## 核心概念
 
-### 問題背景
-- 當置信度 < 0.40 時，系統返回 "No active state"
-- 用戶查詢與任務流程無關時，無法提供有用回應
-- 系統缺乏靈活性，只能處理預定義的查詢類型
+```
+用戶查詢 → 狀態追蹤 → 信心值檢查
+                           ↓
+                    信心值 < 0.40?
+                           ↓
+                    是 → VLM Fallback → VLM直接回答
+                    否 → Template Response → 預定義回應
+```
 
-### 解決方案
-- **智能回退機制**：自動判斷是否需要 VLM 直接回答
-- **動態提示詞切換**：在狀態追蹤和直接回答間無縫切換
-- **狀態保護**：確保原始狀態追蹤不受影響
+## 主要特性
 
-## 功能特點
+- **智能觸發**：基於信心值自動決定是否使用VLM fallback
+- **無縫集成**：與現有系統完全兼容，不破壞原有功能
+- **錯誤恢復**：VLM不可用時提供友好的降級回應
+- **透明顯示**：用戶可以了解回應來源（template vs VLM fallback）
 
-### 1. 智能觸發條件
-- 置信度過低（< 0.40）
-- 查詢類型為 UNKNOWN
-- 無有效狀態數據
+## 觸發條件
 
-### 2. 動態模式切換
-- **模板回答模式**：用於任務相關查詢
-- **VLM 直接回答模式**：用於一般性問題
-
-### 3. 完整狀態管理
-- 提示詞保存和恢復
-- 錯誤處理和回退
-- 並發安全處理
+1. **信心值過低**：當前狀態信心值 < 0.40
+2. **無狀態數據**：state_data 為 None 或空
+3. **查詢類型未知**：QueryType.UNKNOWN
+4. **無匹配步驟**：無法找到對應的任務步驟
 
 ## 系統架構
 
 ```
-User Query → QueryProcessor → Decision Logic → Response Mode
-                                    ↓
-                            ┌─────────────┬─────────────┐
-                            ↓             ↓             ↓
-                    Template Mode   VLM Direct Mode   Error Fallback
-                            ↓             ↓             ↓
-                    State-based    Dynamic Prompt    Basic Response
-                    Response       + VLM Call        + Recovery
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend API   │    │   VLM Service   │
+│                 │    │                 │    │                 │
+│ - Query Input   │───▶│ - Query Router  │───▶│ - Model Server  │
+│ - Response UI   │    │ - State Tracker │    │ - Direct Query  │
+│ - Status Display│◀───│ - VLM Fallback  │◀───│ - Response Gen  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ## 文件結構
 
-- `requirements.md` - 功能需求規格
-- `design.md` - 系統設計文檔
-- `implementation.md` - 實現計劃
-- `tasks.md` - 開發任務清單
-- `testing.md` - 測試計劃
-- `discussion-record.md` - 討論記錄
+```
+.kiro/specs/vlm-fallback-system/
+├── README.md           # 本文件
+├── design.md          # 詳細系統設計
+├── requirements.md    # 功能需求規格
+├── tasks.md          # 開發任務清單
+└── discussion-record.md # 討論記錄
+```
 
-## 相關系統
+## 快速開始
 
-- **Memory System** - 狀態追蹤和 RAG 知識庫
-- **Logging System** - 完整的日誌追蹤
-- **Frontend System** - 用戶界面和交互
+### 1. 查看需求
+閱讀 [requirements.md](requirements.md) 了解詳細的功能需求。
 
-## 狀態
+### 2. 了解設計
+查看 [design.md](design.md) 了解系統架構和技術實現。
 
-🟡 **規劃階段** - 功能設計和文檔準備中 
+### 3. 開發任務
+參考 [tasks.md](tasks.md) 了解具體的開發任務和時間安排。
+
+## 實現概要
+
+### 核心組件
+
+1. **DecisionEngine** - 決定是否使用VLM fallback
+2. **VLMClient** - 處理與VLM服務的通信
+3. **VLMFallbackProcessor** - 協調整個fallback流程
+4. **VLMFallbackConfig** - 管理配置參數
+
+### 集成點
+
+- `src/state_tracker/query_processor.py` - 查詢處理器
+- `src/backend/main.py` - 後端API端點
+- `src/frontend/js/query.js` - 前端顯示
+
+## 配置示例
+
+```json
+{
+  "vlm_fallback": {
+    "decision_engine": {
+      "confidence_threshold": 0.40
+    },
+    "vlm_client": {
+      "model_server_url": "http://localhost:8080",
+      "timeout": 30,
+      "max_retries": 2
+    }
+  }
+}
+```
+
+## 使用示例
+
+### 高信心值場景（使用Template）
+```
+用戶: "我在哪一步？"
+系統: 信心值 0.85 → Template Response
+回應: "您目前在咖啡沖泡任務的第3步：磨咖啡豆..."
+```
+
+### 低信心值場景（使用VLM Fallback）
+```
+用戶: "今天天氣怎麼樣？"
+系統: 信心值 0.20 → VLM Fallback
+回應: "我無法獲取實時天氣信息，建議您查看天氣應用或網站..."
+```
+
+## 開發狀態
+
+- **設計階段**: ✅ 完成
+- **需求分析**: ✅ 完成
+- **任務規劃**: ✅ 完成
+- **實現階段**: 🟡 待開始
+- **測試階段**: ⏳ 待開始
+- **部署階段**: ⏳ 待開始
+
+## 貢獻指南
+
+1. 閱讀所有設計文檔
+2. 了解現有系統架構
+3. 按照tasks.md中的任務順序開發
+4. 確保向後兼容性
+5. 編寫完整的測試用例
+
+## 聯繫信息
+
+如有問題或建議，請參考 [discussion-record.md](discussion-record.md) 或聯繫開發團隊。
