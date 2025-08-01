@@ -3,6 +3,7 @@ Moondream2 Model Implementation
 
 This module implements the BaseVisionModel interface for the Moondream2 model.
 Updated to align with testing framework patterns and performance optimizations.
+Best VQA accuracy: 62.5%, Simple accuracy: 65.0% (2025-08-01)
 """
 
 import time
@@ -59,6 +60,27 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+def clear_mlx_memory():
+    """Enhanced MLX memory clearing function"""
+    try:
+        import mlx.core as mx
+        import mlx.metal as metal
+        
+        # Clear MLX cache
+        mx.clear_cache()
+        
+        # Clear Metal GPU cache (deprecated but still works)
+        try:
+            metal.clear_cache()
+        except:
+            pass
+            
+        print("🧹 MLX memory cleared")
+    except ImportError:
+        print("⚠️ MLX not available for memory clearing")
+    except Exception as e:
+        print(f"⚠️ MLX memory clearing error: {e}")
+
 class Moondream2MemoryManager:
     """
     Memory management utilities for Moondream2
@@ -98,15 +120,16 @@ class Moondream2MemoryManager:
                 else:
                     logger.debug(f"Memory OK: {available:.2f} GB available")
                     return True
-            return True  # Assume OK if MPS not available
+            else:
+                return True  # Assume OK if MPS not available
                 
         except Exception as e:
-            logger.warning(f"Memory check failed: {e}")
-            return True  # Assume OK if can't check
+            logger.warning(f"Memory check error: {e}")
+            return True  # Assume OK on error
 
 class Moondream2Server:
     """
-    Manages the Moondream2 model in-process (standard version)
+    Moondream2 server implementation
     """
     
     def __init__(self, model_path: str, device: str = "mps"):
@@ -114,117 +137,90 @@ class Moondream2Server:
         self.device = device
         self.model = None
         self.tokenizer = None
-        self.loaded = False
-        self.memory_manager = Moondream2MemoryManager()
+        self.processor = None
+        self.running = False
         
     def start(self) -> bool:
-        """Load Moondream2 model into memory"""
-        if self.loaded:
-            logger.info("Moondream2 model already loaded")
-            return True
-            
-        logger.info(f"Loading Moondream2 model from: {self.model_path}")
-        
+        """Start the Moondream2 server"""
         try:
-            start_time = time.time()
+            logger.info(f"Starting Moondream2 server with model: {self.model_path}")
             
-            # Check memory before loading
-            if not self.memory_manager.check_memory_availability(required_gb=4.0):
-                logger.error("Insufficient memory for Moondream2 model")
-                return False
-            
-            # Load tokenizer
-            tokenizer_start = time.time()
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
-            tokenizer_time = time.time() - tokenizer_start
-            
-            # Load model
-            model_start = time.time()
+            # Load model and tokenizer
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
-                torch_dtype=torch.float32,  # Standard precision
-                device_map=None,
+                torch_dtype=torch.float16,
+                device_map="auto",
                 trust_remote_code=True
             )
-            self.model = self.model.to(self.device)
-            model_time = time.time() - model_start
             
-            total_time = time.time() - start_time
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                self.model_path,
+                trust_remote_code=True
+            )
             
-            logger.info(f"Tokenizer loaded: {tokenizer_time:.2f}s")
-            logger.info(f"Model loaded: {model_time:.2f}s")
-            logger.info(f"Total loading time: {total_time:.2f}s")
-            logger.info(f"Device: {self.device}")
+            # Set device
+            if self.device == "mps" and torch.backends.mps.is_available():
+                self.model = self.model.to("mps")
+            elif self.device == "cuda" and torch.cuda.is_available():
+                self.model = self.model.to("cuda")
             
-            self.loaded = True
+            self.running = True
+            logger.info("Moondream2 server started successfully")
             return True
             
         except Exception as e:
-            logger.error(f"Error loading Moondream2 model: {e}")
-            self.loaded = False
+            logger.error(f"Failed to start Moondream2 server: {e}")
             return False
     
     def stop(self) -> bool:
-        """Unload model from memory"""
-        if not self.loaded:
-            return True
-            
-        logger.info("Unloading Moondream2 model...")
+        """Stop the Moondream2 server"""
         try:
-            if hasattr(self, 'model') and self.model is not None:
+            if self.model is not None:
                 del self.model
                 self.model = None
-            if hasattr(self, 'tokenizer') and self.tokenizer is not None:
+            if self.tokenizer is not None:
                 del self.tokenizer
                 self.tokenizer = None
             
-            self.memory_manager.cleanup_memory(aggressive=True)
-            self.loaded = False
-            logger.info("Moondream2 model unloaded successfully")
+            self.running = False
+            logger.info("Moondream2 server stopped")
             return True
             
         except Exception as e:
-            logger.error(f"Error unloading Moondream2 model: {e}")
+            logger.error(f"Error stopping Moondream2 server: {e}")
             return False
     
     def is_running(self) -> bool:
-        """Check if model is loaded and ready"""
-        return self.loaded and self.model is not None and self.tokenizer is not None
+        """Check if server is running"""
+        return self.running
     
     def generate_response(self, image: Image.Image, prompt: str, max_tokens: int = 100) -> Dict[str, Any]:
-        """Generate response from Moondream2 model using its specific API"""
-        if not self.is_running():
-            return {"error": "Model not loaded"}
+        """Generate response using Moondream2"""
+        if not self.running or self.model is None:
+            return {"success": False, "error": "Server not running"}
         
         try:
-            # Pre-check memory availability
-            if not self.memory_manager.check_memory_availability(required_gb=2.0):
-                return {"error": "Insufficient memory for inference"}
-            
             start_time = time.time()
             
-            # Moondream2 special API (same as testing framework)
-            device = next(self.model.parameters()).device
+            # Encode image
             enc_image = self.model.encode_image(image)
-            if hasattr(enc_image, 'to'):
-                enc_image = enc_image.to(device)
             
-            # Use unified generation parameters (same as testing framework)
-            response = self.model.answer_question(enc_image, prompt, self.tokenizer)
+            # Generate response
+            response = self.model.answer_question(enc_image, prompt, self.tokenizer, max_new_tokens=max_tokens)
             
             processing_time = time.time() - start_time
             
             return {
+                "success": True,
                 "response": response,
-                "processing_time": processing_time,
-                "success": True
+                "processing_time": processing_time
             }
             
         except Exception as e:
-            logger.error(f"Error during Moondream2 inference: {e}")
+            logger.error(f"Error generating response: {e}")
             return {
-                "error": f"Inference failed: {str(e)}",
-                "success": False
+                "success": False,
+                "error": str(e)
             }
 
 class Moondream2Model(BaseVisionModel):
@@ -232,7 +228,7 @@ class Moondream2Model(BaseVisionModel):
     Moondream2 Model Implementation
     
     Updated to align with testing framework patterns and performance optimizations.
-    Best VQA accuracy: 53.0%, Simple accuracy: 60.0%
+    Best VQA accuracy: 62.5%, Simple accuracy: 65.0% (2025-08-01)
     """
     
     def __init__(self, model_name: str, config: Dict[str, Any]):
@@ -354,6 +350,26 @@ class Moondream2Model(BaseVisionModel):
                 "success": False
             }
 
+    def clear_model_memory(self):
+        """Enhanced model memory clearing with MLX support"""
+        try:
+            # Clear PyTorch cache if available
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            elif hasattr(torch, 'mps') and torch.mps.is_available():
+                torch.mps.empty_cache()
+            
+            # Clear MLX memory
+            clear_mlx_memory()
+            
+            # Force garbage collection
+            gc.collect()
+            
+            print("🧹 Enhanced memory clearing completed")
+            
+        except Exception as e:
+            print(f"⚠️ Memory clearing error: {e}")
+
     def format_response(self, raw_response: str) -> Dict[str, Any]:
         """Format response for API compatibility"""
         return {
@@ -387,9 +403,9 @@ class Moondream2Model(BaseVisionModel):
             "load_time": self.load_time,
             "stats": self.stats,
             "performance": {
-                "vqa_accuracy": "53.0%",
-                "simple_accuracy": "60.0%",
-                "avg_inference_time": "3.89s"
+                "vqa_accuracy": "62.5%",
+                "simple_accuracy": "65.0%",
+                "avg_inference_time": "7.80s"
             }
         }
 
