@@ -3,7 +3,7 @@ SmolVLM2 models package
 """
 
 # Import the model classes
-from .SmolVLM2-500M-Video-Instruct.project_workspace.smolvlm2_500m_video import SmolVLM2Model
-from .SmolVLM2-500M-Video-Instruct.project_workspace.smolvlm2_500m_video_optimized import OptimizedSmolVLM2Model
+from .smolvlm2_500m_video import SmolVLM2Model
+from .smolvlm2_500m_video_optimized import OptimizedSmolVLM2Model
 
 __all__ = ['SmolVLM2Model', 'OptimizedSmolVLM2Model'] 

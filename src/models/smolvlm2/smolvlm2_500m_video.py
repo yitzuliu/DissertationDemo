@@ -23,11 +23,18 @@ from pathlib import Path
 # Add parent directories to path for imports
 import sys
 import os
-# Add the project root to the path (go up 6 levels: file -> project_workspace -> SmolVLM2-500M-Video-Instruct -> smolvlm2 -> models -> src -> root)  
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
+# Add the project root to the path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(project_root)
-from src.models.base_model import BaseVisionModel
-from src.backend.utils.image_processing import preprocess_for_model
+
+try:
+    from src.models.base_model import BaseVisionModel
+    from src.backend.utils.image_processing import preprocess_for_model
+except ImportError:
+    # Fallback for direct execution
+    sys.path.append(str(Path(__file__).parent.parent.parent))
+    from models.base_model import BaseVisionModel
+    from backend.utils.image_processing import preprocess_for_model
 
 logger = logging.getLogger(__name__)
 

@@ -27,10 +27,17 @@ import hashlib
 # Add parent directories to path for imports
 import sys
 import os
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(project_root)
-from src.models.base_model import BaseVisionModel
-from src.backend.utils.image_processing import preprocess_for_model
+
+try:
+    from src.models.base_model import BaseVisionModel
+    from src.backend.utils.image_processing import preprocess_for_model
+except ImportError:
+    # Fallback for direct execution
+    sys.path.append(str(Path(__file__).parent.parent.parent))
+    from models.base_model import BaseVisionModel
+    from backend.utils.image_processing import preprocess_for_model
 
 logger = logging.getLogger(__name__)
 
