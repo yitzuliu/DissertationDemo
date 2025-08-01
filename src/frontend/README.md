@@ -1,22 +1,24 @@
-# Frontend - Vision-Language Model Interface
+# Frontend - Vision Intelligence Hub
 
 ## 📋 Overview
 
-This frontend provides a comprehensive web interface for interacting with multiple Vision-Language Models (VLMs) through a unified API. The interface supports real-time camera input, image upload, and text-based queries with multi-model comparison capabilities.
+This frontend provides a comprehensive web interface for the Vision Intelligence Hub system, featuring multiple interfaces for different use cases. The system supports real-time camera input, AI vision analysis, state querying, and unified dual-panel functionality.
 
 ## 🚀 Features
 
 ### Core Functionality
 - **Real-time Camera Integration**: Live video feed with capture capabilities
-- **Image Upload Support**: Drag-and-drop and file selection
+- **AI Vision Analysis**: Real-time image analysis using VLM models
+- **State Query System**: Instant querying of current task progress
+- **Unified Interface**: Dual-panel design combining vision and query functionality
 - **Multi-Model Support**: Switch between different VLM implementations
-- **Text Query Interface**: Natural language questions about images
-- **Response Comparison**: Side-by-side model comparison
 - **Offline Mode**: Graceful handling when backend is unavailable
 
-### User Interface
+### User Interface Options
+- **`index.html`**: Main application with camera and AI analysis
+- **`unified.html`**: Unified dual-panel interface (vision + query)
+- **`query.html`**: Dedicated state query interface
 - **Responsive Design**: Works on desktop and mobile devices
-- **Tab-based Navigation**: Organized interface sections
 - **Real-time Status**: Backend connection monitoring
 - **Error Handling**: User-friendly error messages
 - **Loading States**: Visual feedback during processing
@@ -26,23 +28,32 @@ This frontend provides a comprehensive web interface for interacting with multip
 ### File Structure
 ```
 src/frontend/
-├── index.html              # Main application interface
-├── query.html              # Query-focused interface
-├── old_index.html          # Legacy version
-├── Fileindex.html          # File-based interface
+├── index.html              # Main application interface (camera + AI)
+├── unified.html            # Unified dual-panel interface (vision + query)
+├── query.html              # Dedicated state query interface
+├── index_backup.html       # Original backup of index.html
 ├── css/                    # Stylesheets
 │   ├── main.css           # Core styles
 │   ├── components.css     # Component-specific styles
-│   └── responsive.css     # Mobile responsiveness
+│   ├── responsive.css     # Mobile responsiveness
+│   └── index-complete.css # Complete styles for index.html
 ├── js/                     # JavaScript modules
 │   ├── main.js            # Main application logic
 │   ├── camera.js          # Camera handling
 │   ├── query.js           # Query processing
-│   └── components/        # Modular components
-│       ├── api.js         # API communication
-│       ├── camera.js      # Camera components
-│       ├── tabs.js        # Tab management
-│       └── ui.js          # UI utilities
+│   ├── unified-app.js     # Unified application logic
+│   ├── components/        # Modular components
+│   │   ├── api.js         # API communication
+│   │   ├── camera.js      # Camera components
+│   │   ├── tabs.js        # Tab management
+│   │   └── ui.js          # UI utilities
+│   ├── modules/           # ES6 modules (for unified interface)
+│   │   ├── api-client.js  # Unified API client
+│   │   ├── camera-manager.js # Camera management
+│   │   └── ui-manager.js  # UI management
+│   └── utils/             # Utility functions
+│       ├── config.js      # Configuration management
+│       └── helpers.js     # Helper functions
 ├── assets/                 # Static assets
 │   └── icons/             # Application icons
 └── node_modules/          # Dependencies (if any)
@@ -55,66 +66,55 @@ src/frontend/
 - **Web APIs**: Camera API, File API, Fetch API
 - **ES6+ Features**: Async/await, modules, arrow functions
 
-## 📊 Model Performance (Latest Test Results - 2025-07-29)
+## 🎯 Interface Comparison
 
-### VQA 2.0 Performance (20 Questions - COCO val2014)
-| Model | VQA Accuracy | Simple Accuracy | Avg Time | Memory | Status |
-|-------|:------------:|:---------------:|:--------:|:------:|:------:|
-| **🥇 Moondream2** | **62.5%** | **65.0%** | 8.35s | -0.09GB | ✅ **Best Overall** |
-| **🥈 SmolVLM2-MLX** | **52.5%** | **55.0%** | 8.41s | +0.13GB | ✅ **Balanced** |
-| **⚡ SmolVLM-GGUF** | **36.0%** | **35.0%** | **0.39s** | +0.001GB | ✅ **Fastest** |
-| **🥉 Phi-3.5-MLX** | **35.0%** | **35.0%** | 5.29s | +0.05GB | ✅ **Fast** |
-| **⚠️ LLaVA-MLX** | **21.0%** | **20.0%** | 24.15s | -0.48GB | 🚫 **Critical Issues** |
+### `index.html` - Main Application
+- **Purpose**: Primary camera and AI analysis interface
+- **Features**: 
+  - Real-time camera feed
+  - AI vision analysis with configurable parameters
+  - Response display
+  - System status monitoring
+- **Best For**: Users who primarily need vision analysis
 
-### 🚨 Context Understanding Crisis
-**CRITICAL FINDING: ALL MODELS have 0% true context understanding capability**
+### `unified.html` - Unified Interface
+- **Purpose**: Dual-panel interface combining vision and query functionality
+- **Features**:
+  - 50/50 layout (vision panel + query panel)
+  - Real-time camera feed with AI analysis
+  - State query system with auto-trigger examples
+  - Unified response area with type differentiation
+  - Compact query input design
+- **Best For**: Users who need both vision analysis and state querying
+- **Response Types**: Vision Analysis (blue), State Query (green), System (yellow), Error (red)
 
-| Model | Context Understanding | Failure Type | Specific Issues |
-|-------|---------------------|--------------|-----------------|
-| **SmolVLM-GGUF** | **0%** | Hallucinated responses | Claims "black, white, tan" for dog image (incorrect) |
-| **SmolVLM2-MLX** | **0%** | Generic hallucinations | Claims "white and black" for all different images |
-| **Moondream2** | **0%** | Honest inability | "Cannot provide context-based answers without image" |
-| **LLaVA-MLX** | **0%** | Empty responses | Returns empty strings for all context questions |
-| **Phi-3.5-MLX** | **0%** | Empty responses | MLX-VLM cannot process text-only input |
-
-### 🎯 Production Implications
-- **Multi-turn VQA**: Impossible - each question must include the image
-- **Conversation Systems**: Cannot maintain visual context across turns
-- **Interactive Applications**: Must re-send images for every question
-- **Memory-dependent Tasks**: Require external storage (our dual-loop system addresses this)
+### `query.html` - State Query Interface
+- **Purpose**: Dedicated interface for state querying
+- **Features**:
+  - Focused query input
+  - Example queries with auto-trigger
+  - Clean response display
+  - Connection status monitoring
+- **Best For**: Users who primarily need state querying
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Modern web browser with camera support
 - Backend server running (optional for offline mode)
-- Python virtual environment (for development)
 
 ### Quick Start
-1. **Start Backend Server**:
-   ```bash
-   source ai_vision_env/bin/activate
-   python src/backend/main.py
-   ```
+1. **Choose Interface**:
+   - **Main App**: Open `index.html` for camera and AI analysis
+   - **Unified Interface**: Open `unified.html` for combined vision and query
+   - **Query Only**: Open `query.html` for state querying
 
-2. **Open Frontend**:
-   - Navigate to `src/frontend/`
-   - Open `index.html` in your browser
-   - Or serve via HTTP server for ES6 module support
-
-3. **Grant Camera Permissions**:
+2. **Grant Camera Permissions**:
    - Allow camera access when prompted
    - Select preferred camera from dropdown
 
 ### Development Setup
 ```bash
-# Activate virtual environment
-source ai_vision_env/bin/activate
-
-# Start backend (if needed)
-cd src/backend
-python main.py
-
 # Serve frontend (for ES6 modules)
 cd src/frontend
 python -m http.server 8000
@@ -123,36 +123,53 @@ python -m http.server 8000
 
 ## 🔧 Configuration
 
-### Backend API Configuration
+### API Configuration
 The frontend automatically detects and connects to the backend API. Default configuration:
-- **Base URL**: `http://localhost:8000` (Backend FastAPI server)
-- **Model Server**: `http://localhost:8080` (VLM model server)
-- **Status Endpoint**: `/api/v1/status`
-- **Chat Endpoint**: `/v1/chat/completions` (OpenAI-compatible)
-- **State Endpoint**: `/api/v1/state` (Dual-loop memory system)
-- **Query Interface**: `query.html` (Instant response system)
+- **Base URL**: `http://localhost:8000`
+- **Status Endpoint**: `/status`
+- **Chat Endpoint**: `/v1/chat/completions`
+- **State Endpoint**: `/api/v1/state/query`
+- **Config Endpoint**: `/config`
 
 ### Model Selection
-Users can switch between available models based on latest performance data:
-- **🥇 Moondream2**: Best overall performance (65.0% simple, 62.5% VQA accuracy)
-- **🥈 SmolVLM2-MLX**: Balanced performance (55.0% simple, 52.5% VQA accuracy)
-- **⚡ SmolVLM-GGUF**: Fastest inference (0.39s avg time, 35.0% accuracy)
-- **🥉 Phi-3.5-MLX**: Fast and consistent (35.0% accuracy, 5.29s)
-- **🚫 LLaVA-MLX**: Critical issues - not recommended (20.0% accuracy, 24.15s)
+The frontend supports multiple VLM models. For detailed performance information and model comparisons, see:
+- `../models/README.md` - Model performance and technical details
+- `../config/model_configs/` - Individual model configurations
+- `../config/models_config.json` - Model registry and metadata
+
+## 🎨 User Experience Features
+
+### Unified Interface (`unified.html`)
+- **Dual-Panel Layout**: 50/50 split between vision and query panels
+- **Auto-Trigger Queries**: Click example queries to automatically execute
+- **Unified Response System**: All responses in one area with type differentiation
+- **Compact Design**: Efficient use of space with responsive layout
+- **Visual Response Types**: Color-coded responses (Vision/Query/System/Error)
+
+### State Query System
+- **Instant Responses**: Quick state queries without image processing
+- **Example Queries**: Pre-defined common questions with auto-trigger
+- **Language Detection**: Automatic detection of Chinese/English queries
+- **Query History**: Track and log all user queries
+
+### Camera Integration
+- **Multi-Camera Support**: Automatic detection and switching
+- **Quality Settings**: Configurable image quality and capture rate
+- **Real-time Preview**: Live camera feed with capture feedback
+- **Error Handling**: Graceful handling of camera permission issues
 
 ## 🐛 Known Issues
 
-### Context Awareness Limitations
-- **No True Context Retention**: All models fail to maintain accurate context across conversations
-- **Generic Responses**: Models often provide generic or hallucinated answers to context questions
-- **Batch Inference Issues**: LLaVA-MLX suffers from internal state corruption
-- **Vision-Only Limitations**: Moondream2 cannot answer questions without image input
-
 ### Technical Issues
-- **ES6 Modules**: Require HTTP server for proper loading
+- **ES6 Modules**: Require HTTP server for proper loading (unified.html uses inline JS)
 - **Camera Permissions**: May require HTTPS in production
 - **File Size Limits**: Large images may cause timeout issues
 - **Browser Compatibility**: Some features require modern browsers
+
+### Request Management Differences
+- **`index.html`**: Uses `window.currentRequestProcessing` for clean request management
+- **`unified.html`**: May show delayed responses after stopping (by design)
+- **Stop Behavior**: `index.html` stops immediately, `unified.html` allows pending requests to complete
 
 ## 📈 Performance Optimization
 
@@ -161,8 +178,9 @@ Users can switch between available models based on latest performance data:
 - **Caching**: API responses cached for repeated queries
 - **Compression**: Images compressed before upload
 - **Error Recovery**: Automatic retry for failed requests
+- **Inline JavaScript**: `unified.html` uses inline JS to avoid module loading issues
 
-### Backend Integration
+### User Experience Optimizations
 - **Connection Pooling**: Efficient API communication
 - **Timeout Handling**: Graceful degradation on slow responses
 - **Status Monitoring**: Real-time backend health checks
@@ -177,25 +195,21 @@ Users can switch between available models based on latest performance data:
 - **Custom Models**: User-defined model configurations
 - **Advanced UI**: Drag-and-drop model comparison
 
-### Context Awareness Improvements
-- **External Memory**: Implement conversation history
-- **Prompt Engineering**: Better context preservation
-- **Model Fine-tuning**: Specialized context models
-- **Hybrid Approaches**: Combine multiple models for context
-
 ## 📚 Documentation
 
 ### Related Files
-- `COMPARISON_ANALYSIS.md`: Detailed frontend analysis
-- `ISSUE_ANALYSIS.md`: Known issues and solutions
+- `../backend/README.md`: Backend API documentation
+- `../models/README.md`: Model performance and technical details
+- `../docs/`: System documentation
 - `../testing/`: Comprehensive model testing results
-- `../backend/`: Backend API documentation
+- `../config/`: Configuration management
 
 ### API Reference
 - **Status Check**: `GET /status`
-- **Image Query**: `POST /query`
-- **File Upload**: `POST /upload`
-- **Model Info**: `GET /models`
+- **Configuration**: `GET /config`
+- **Vision Analysis**: `POST /v1/chat/completions`
+- **State Query**: `POST /api/v1/state/query`
+- **User Query Logging**: `POST /api/v1/logging/user_query`
 
 ## 🤝 Contributing
 
@@ -206,8 +220,12 @@ Users can switch between available models based on latest performance data:
 4. **Performance**: Monitor load times and memory usage
 
 ### Testing Checklist
-- [ ] Camera functionality works
-- [ ] Image upload handles various formats
+- [ ] Camera functionality works across all interfaces
+- [ ] AI vision analysis produces accurate results
+- [ ] State query system responds correctly
+- [ ] Unified interface handles both vision and query
+- [ ] Auto-trigger queries work properly
+- [ ] Response types are correctly differentiated
 - [ ] API communication is reliable
 - [ ] Offline mode functions properly
 - [ ] Responsive design on mobile
@@ -215,9 +233,6 @@ Users can switch between available models based on latest performance data:
 
 ---
 
-**Last Updated**: 2025-07-29 13:12:58  
-**Test Environment**: MacBook Air M3 (16GB RAM, MPS available)  
+**Last Updated**: 2025-Aug-01  
 **Browser Support**: Chrome 90+, Firefox 88+, Safari 14+  
-**Backend Version**: FastAPI with dual-loop memory system  
-**Latest VQA Results**: vqa2_results_coco_20250729_131258.json  
-**Context Understanding**: 0% capability across all models (critical limitation)
+**Interface Status**: All three interfaces (index.html, unified.html, query.html) fully functional
