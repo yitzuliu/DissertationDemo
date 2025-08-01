@@ -12,17 +12,17 @@ class RAGModule:
         self.collection = self.client.get_or_create_collection(self.collection_name)
 
     def add_documents(self, documents, ids=None):
-        # Replace all occurrences of '是' with '因為' (for demonstration)
-        documents = [doc.replace('是', '因為') for doc in documents]
+        # Process documents for storage (example: text normalization)
+        processed_documents = [doc.strip() for doc in documents]
         if ids is None:
-            ids = [f"doc_{i}" for i in range(len(documents))]
-        embeddings = self.model.encode(documents).tolist()
-        self.collection.add(documents=documents, embeddings=embeddings, ids=ids)
+            ids = [f"doc_{i}" for i in range(len(processed_documents))]
+        embeddings = self.model.encode(processed_documents).tolist()
+        self.collection.add(documents=processed_documents, embeddings=embeddings, ids=ids)
 
     def query(self, query_text, n_results=3):
-        # Also replace '是' with '因為' in the query
-        query_text = query_text.replace('是', '因為')
-        query_embedding = self.model.encode([query_text]).tolist()[0]
+        # Process query text for search (example: text normalization)
+        processed_query = query_text.strip()
+        query_embedding = self.model.encode([processed_query]).tolist()[0]
         results = self.collection.query(query_embeddings=[query_embedding], n_results=n_results)
         return results
 
