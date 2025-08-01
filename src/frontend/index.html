@@ -1,215 +1,644 @@
 <!DOCTYPE html>
 <html lang="en-GB">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vision Intelligence Hub</title>
+    <title>Vision Intelligence Hub - Unified Interface</title>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Styles -->
-    <link rel="stylesheet" href="css/index-complete.css">
-</head>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <style>
+        .unified-container {
+            height: calc(100vh - var(--header-height) - 2rem);
+            margin: 1rem auto;
+            padding: 0 var(--padding-lg);
+            display: grid;
+            grid-template-columns: 50% 50%;
+            gap: 24px;
+            overflow: hidden;
+        }
 
+        .vision-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .query-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title i {
+            color: var(--primary);
+        }
+
+        .vision-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .query-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .video-container {
+            position: relative;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.9);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 0.5rem;
+            flex-grow: 1;
+        }
+
+        .video-preview {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-md);
+            background: linear-gradient(to bottom right, #101010, #232323);
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .video-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: var(--radius-md);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        /* Compact Query Input Section */
+        .query-input-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .ai-prompt-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            background-color: #fff;
+            color: var(--text);
+            transition: var(--transition);
+            resize: vertical;
+            min-height: 40px;
+            max-height: 80px;
+        }
+
+        .ai-prompt-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .state-query-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+        }
+
+        .state-query-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            background-color: #fff;
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        .state-query-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .query-button {
+            padding: 0.5rem 1rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .query-button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .query-examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .example-query {
+            padding: 0.2rem 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .example-query:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        /* Unified Response Section */
+        .response-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .response-content {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+
+        .response-item {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .response-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .response-title {
+            flex: 1;
+        }
+
+        .response-time {
+            color: var(--text-light);
+            font-size: 0.7rem;
+        }
+
+        .response-content-text {
+            color: var(--text);
+        }
+
+        /* Response Types */
+        .response-item.vision-response {
+            background: linear-gradient(135deg, #dbeafe, #eff6ff);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .response-item.query-response {
+            background: linear-gradient(135deg, #d1fae5, #ecfdf5);
+            border-left: 3px solid #10b981;
+        }
+
+        .response-item.system-message {
+            background: linear-gradient(135deg, #fef3c7, #fffbeb);
+            border-left: 3px solid #f59e0b;
+        }
+
+        /* Controls Section */
+        .controls-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+        }
+
+        .control-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 0.15rem;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 0.3rem;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 0.7rem;
+            background-color: #fff;
+            color: var(--text);
+            transition: var(--transition);
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem;
+        }
+
+        .parameter-grid .control-group:first-child {
+            grid-column: 1 / -1;
+        }
+
+        .parameter-grid .start-button {
+            grid-column: 1 / -1;
+        }
+
+        .start-button {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+        }
+
+        .start-button.danger {
+            background: var(--error);
+        }
+
+        .start-button.danger:hover {
+            background-color: rgba(220, 38, 38, 0.9);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            padding: 1rem;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-light);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .status-disconnected {
+            background: var(--error-light);
+            color: var(--error);
+        }
+
+        /* Navigation links */
+        .header-status a {
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition);
+        }
+
+        .header-status a:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .unified-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            
+            .vision-panel, .query-panel {
+                height: auto;
+                min-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .unified-container {
+                padding: 0 1rem;
+                margin: 0.5rem auto;
+            }
+            
+            .state-query-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .query-examples {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
 <body>
-    <!-- Header with logo and status -->
+    <!-- Header -->
     <header class="header">
         <div class="logo">
             <i class="fas fa-brain"></i>
-            <span>Vision Intelligence Hub</span>
+            <span>Vision Intelligence Hub - Unified Interface</span>
         </div>
         <div class="header-status">
-            <div class="status-item">
-                <span class="status-dot" id="apiStatusDot"></span>
-                <span id="apiStatusText">Checking API status...</span>
+            <div id="connectionStatus" class="status-item status-disconnected">
+                <span class="status-dot"></span>
+                <span>Disconnected</span>
             </div>
-            <div class="status-item">
-                <i class="fas fa-microchip"></i>
-                <span id="activeModel">Loading model...</span>
-            </div>
+            <a href="ai_vision_analysis.html" class="status-item" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-camera"></i>
+                <span>AI Vision Analysis</span>
+            </a>
+            <a href="query.html" class="status-item" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-search"></i>
+                <span>Query Only</span>
+            </a>
         </div>
     </header>
 
-    <div class="container">
-        <!-- Main Content Area -->
-        <div class="main-content">
-            <div class="main-content-flex">
-                <!-- Video and Controls Card -->
-                <div class="card video-controls-card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-video"></i>
-                            Live Camera Feed & Controls
-                        </h2>
-                    </div>
-
-                    <!-- Content area with video and controls side by side -->
-                    <div class="video-controls-layout">
-                        <!-- Video container -->
-                        <div class="video-section">
-                            <div class="video-container">
-                                <video id="videoFeed" class="video-preview" autoplay playsinline></video>
-                                <canvas id="canvas" style="display:none;"></canvas>
-                            </div>
-                            <div class="thumbnail-container">
-                                <img id="imagePreview" class="image-preview" style="display:none;" />
-                                <span class="capture-label">Click Start to begin</span>
-                            </div>
-                        </div>
-
-                        <!-- Controls container -->
-                        <div class="controls-section">
-                            <div class="form-group">
-                                <label for="instructionText">Ask about the image:</label>
-                                <textarea id="instructionText" rows="2"
-                                    placeholder="Enter question about the image..."></textarea>
-                            </div>
-
-                            <div class="settings-label">
-                                <strong>Processing Settings:</strong>
-                            </div>
-
-                            <div class="parameter-grid mobile-single-column">
-                                <div class="form-group">
-                                    <label for="cameraSelect">Select Camera</label>
-                                    <select id="cameraSelect"></select>
-                                </div>
-                                <div>
-                                    <label for="intervalSelect">Capture Rate</label>
-                                    <select id="intervalSelect">
-                                        <option value="2000">2s</option>
-                                        <option value="3000">3s</option>
-                                        <option value="5000">5s</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="qualitySelect">Image Quality</label>
-                                    <select id="qualitySelect">
-                                        <option value="0.7">Fast</option>
-                                        <option value="0.8">Medium</option>
-                                        <option value="0.9" selected>High</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="tokensSelect">Max Tokens</label>
-                                    <select id="tokensSelect">
-                                        <option value="100" selected>100</option>
-                                        <option value="200">200</option>
-                                        <option value="300">300</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <button id="startButton" class="btn btn-primary">
-                                        <i class="fas fa-play"></i>
-                                        <span>Start</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div id="modelHelp" class="help-msg" style="display:none;"></div>
-                            <div id="errorMsg" class="error-msg" style="display:none;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Response Card -->
-                <div class="card response-card">
-                    <div class="card-header">
-                        <h2 class="card-title">
-                            <i class="fas fa-comment-dots"></i>
-                            Model Response
-                        </h2>
-                    </div>
-                    <textarea id="responseText" class="response-textarea" readonly
-                        placeholder="AI responses will appear here..."></textarea>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar with info cards -->
-        <div class="sidebar">
-            <!-- System Status Card -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <i class="fas fa-server"></i>
-                        System Status
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="unified-container">
+            <!-- Vision Analysis Panel -->
+            <div class="vision-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-video"></i>
+                        Vision Analysis
                     </h2>
                 </div>
-                <div class="system-status" id="systemStatus">Backend not connected. Camera works independently.</div>
+                
+                <div class="vision-content">
+                    <!-- Video Container -->
+                    <div class="video-container">
+                        <video id="videoFeed" class="video-preview" autoplay playsinline></video>
+                        <canvas id="canvas" style="display:none;"></canvas>
+                    </div>
+                    
+                    <!-- Controls Section -->
+                    <div class="controls-section">
+                        <div class="parameter-grid">
+                            <div class="control-group">
+                                <label for="cameraSelect" class="control-label">Camera Selection</label>
+                                <select id="cameraSelect" class="control-input"></select>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label for="intervalSelect" class="control-label">Capture Rate</label>
+                                <select id="intervalSelect" class="control-input">
+                                    <option value="2000">2 seconds</option>
+                                    <option value="3000">3 seconds</option>
+                                    <option value="5000">5 seconds</option>
+                                </select>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label for="qualitySelect" class="control-label">Image Quality</label>
+                                <select id="qualitySelect" class="control-input">
+                                    <option value="0.7">Fast</option>
+                                    <option value="0.8">Medium</option>
+                                    <option value="0.9" selected>High</option>
+                                </select>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label for="tokensSelect" class="control-label">Max Tokens</label>
+                                <select id="tokensSelect" class="control-input">
+                                    <option value="100" selected>100</option>
+                                    <option value="200">200</option>
+                                    <option value="300">300</option>
+                                </select>
+                            </div>
+                            
+                            <button id="startButton" class="start-button">
+                                <i class="fas fa-play"></i>
+                                <span>Start Vision Analysis</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Info accordion panel -->
-            <div class="card info-tabs-card">
-                <!-- Tabs for model info and tips -->
-                <div class="tabs-container">
-                    <div class="tabs-header">
-                        <button class="tab-btn active-tab" data-target="model-panel">
-                            <i class="fas fa-info-circle"></i>
-                            Info
-                        </button>
-                        <button class="tab-btn" data-target="tips-panel">
-                            <i class="fas fa-lightbulb"></i>
-                            Tips
-                        </button>
+            <!-- Query Panel -->
+            <div class="query-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-search"></i>
+                        Query & Response
+                    </h2>
+                </div>
+                
+                <div class="query-content">
+                    <!-- Query Input Section -->
+                    <div class="query-input-section">
+                        <!-- AI Vision Analysis Prompt -->
+                        <div class="input-group">
+                            <label for="instructionText" class="input-label">Ask about the image:</label>
+                            <textarea 
+                                id="instructionText" 
+                                class="ai-prompt-input" 
+                                rows="2" 
+                                placeholder="Describe what you want to analyze in the image..."
+                            ></textarea>
+                        </div>
+
+                        <!-- State Query -->
+                        <div class="input-group">
+                            <label for="queryInput" class="input-label">Ask about your current state:</label>
+                            <div class="state-query-group">
+                                <input 
+                                    type="text" 
+                                    id="queryInput" 
+                                    class="state-query-input" 
+                                    placeholder="What step am I on?"
+                                    autocomplete="off"
+                                >
+                                <button id="queryButton" class="query-button">
+                                    <i class="fas fa-search"></i>
+                                    Query
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="query-examples">
+                            <div class="example-query" data-query="Where am I?">Where am I?</div>
+                            <div class="example-query" data-query="What is the current step?">What is the current step?</div>
+                            <div class="example-query" data-query="What tools do I need?">What tools do I need?</div>
+                            <div class="example-query" data-query="What's my progress?">What's my progress?</div>
+                            <div class="example-query" data-query="Help me with this step">Help me with this step</div>
+                            <div class="example-query" data-query="What's next?">What's next?</div>
+                        </div>
                     </div>
 
-                    <!-- Content panels -->
-                    <div class="tab-content">
-                        <!-- Model info content -->
-                        <div id="model-panel" class="tab-panel active">
-                            <div id="modelDesc">
-                                <div class="model-info">
-                                    <h4>Vision Intelligence Hub</h4>
-                                    <p>This application provides real-time vision analysis using AI models. Connect to
-                                        the backend server for full functionality, or use camera features independently.
-                                    </p>
-                                    <div class="feature-list">
-                                        <div class="feature-item">
-                                            <i class="fas fa-camera"></i>
-                                            <span>Live camera feed</span>
-                                        </div>
-                                        <div class="feature-item">
-                                            <i class="fas fa-brain"></i>
-                                            <span>AI vision analysis</span>
-                                        </div>
-                                        <div class="feature-item">
-                                            <i class="fas fa-mobile-alt"></i>
-                                            <span>Multi-device support</span>
-                                        </div>
+                    <!-- Unified Response Section -->
+                    <div class="response-section">
+                        <div class="response-content">
+                            <div id="responseLoading" class="loading" style="display: none;">
+                                <div class="spinner"></div>
+                                Processing your request...
+                            </div>
+                            
+                            <div id="responseContainer">
+                                <div class="response-item system-message">
+                                    <div class="response-header">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="response-title">Welcome</span>
+                                        <span class="response-time">Now</span>
+                                    </div>
+                                    <div class="response-content-text">
+                                        Welcome to the unified interface! Use the left panel for vision analysis and the right panel for queries and responses.
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Tips content -->
-                        <div id="tips-panel" class="tab-panel">
-                            <ul class="advice-list">
-                                <li>Ensure camera permissions are enabled for your browser.</li>
-                                <li>Check instruction format if errors occur with AI processing.</li>
-                                <li>Adjust capture rate based on your connection speed.</li>
-                                <li>Higher image quality provides better AI analysis results.</li>
-                                <li>Use descriptive questions for better AI responses.</li>
-                                <li>Test different cameras if multiple devices are connected.</li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- JavaScript Modules - Fix the import structure -->
+    <!-- JavaScript Modules -->
     <script type="module">
+        // Unified Application - Inline Version
+        // This fixes the module loading issues by using inline JavaScript
+
         // Frontend Visual Logging System
         class FrontendVisualLogger {
             constructor() {
                 this.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 this.logToConsole = true;
-                this.logToServer = false; // 可以後續啟用發送到後端
+                this.logToServer = false;
                 this.observationId = null;
             }
 
@@ -230,11 +659,6 @@
                 if (this.logToConsole) {
                     console.log(`[FrontendVisualLog] ${eventType}:`, data);
                 }
-
-                // 未來可以發送到後端
-                // if (this.logToServer) {
-                //     this.sendToServer(logEntry);
-                // }
             }
 
             logEyesCapture(observationId, requestId, deviceInfo, imageData) {
@@ -293,14 +717,13 @@
             }
         }
 
-        // 初始化前端視覺日誌記錄器
+        // Initialize frontend logger
         let frontendLogger;
         try {
             frontendLogger = new FrontendVisualLogger();
             console.log("✅ Frontend logger initialized successfully");
         } catch (error) {
             console.error("❌ Failed to initialize frontend logger:", error);
-            // 創建一個 dummy logger 以避免錯誤
             frontendLogger = {
                 generateObservationId: () => `obs_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`,
                 logPageLoad: () => { },
@@ -313,94 +736,85 @@
             };
         }
 
-        // 記錄頁面載入
-        window.addEventListener('load', () => {
-            try {
-                frontendLogger.logPageLoad();
-            } catch (error) {
-                console.warn("⚠️ Page load logging failed:", error);
-            }
-        });
-
-        // 記錄未捕獲的錯誤
-        window.addEventListener('error', (event) => {
-            try {
-                if (frontendLogger && frontendLogger.logError) {
-                    frontendLogger.logError(event.error, 'uncaught_error');
-                }
-            } catch (logError) {
-                console.warn("⚠️ Error logging failed:", logError);
-            }
-        });
-
-        // Create a simplified modular structure that works
-        class ConfigManager {
+        // Unified API Client
+        class UnifiedAPIClient {
             constructor() {
-                this.baseURL = "http://localhost:8000";
-                this.config = null;
-            }
-
-            async loadConfig() {
-                try {
-                    const res = await fetch(this.baseURL + "/config", {
-                        signal: AbortSignal.timeout(3000)
-                    });
-
-                    if (!res.ok) throw new Error("Failed to load configuration");
-
-                    this.config = await res.json();
-                    return this.config;
-                } catch (error) {
-                    console.error("Failed to load config:", error);
-                    return null;
-                }
-            }
-
-            getConfig() {
-                return this.config;
-            }
-        }
-
-        class APIClient {
-            constructor() {
-                this.baseURL = "http://localhost:8000";
+                this.baseURL = 'http://localhost:8000';
+                this.apiBaseUrl = `${this.baseURL}/api/v1`;
             }
 
             async checkStatus() {
                 try {
-                    const res = await fetch(this.baseURL + "/status", {
+                    const response = await fetch(`${this.baseURL}/status`, {
                         signal: AbortSignal.timeout(5000)
                     });
 
-                    if (res.ok) {
-                        return await res.json();
+                    if (response.ok) {
+                        return await response.json();
                     } else {
-                        throw new Error(`HTTP ${res.status}`);
+                        throw new Error(`HTTP ${response.status}`);
                     }
                 } catch (error) {
                     throw error;
                 }
             }
 
-            async sendChatCompletion(instruction, imageResult, maxTokens = 100) {
-                // 處理圖像數據：可能是字符串（舊格式）或對象（新格式）
+            async loadConfig() {
+                try {
+                    const response = await fetch(`${this.baseURL}/config`, {
+                        signal: AbortSignal.timeout(3000)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Failed to load configuration");
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error("Failed to load config:", error);
+                    return null;
+                }
+            }
+
+            async sendStateQuery(query, queryId) {
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/state/query`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            query: query,
+                            query_id: queryId
+                        }),
+                        signal: AbortSignal.timeout(10000)
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Server error: ${response.status} - ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    return data;
+                } catch (error) {
+                    throw error;
+                }
+            }
+
+            async sendVisionAnalysis(instruction, imageResult, maxTokens = 100) {
                 let imageBase64URL, observationId;
                 
                 if (typeof imageResult === 'string') {
-                    // 舊格式：直接是 base64 字符串
                     imageBase64URL = imageResult;
                     observationId = frontendLogger && frontendLogger.generateObservationId ? 
                         frontendLogger.generateObservationId() : 
                         `obs_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
                 } else if (imageResult && typeof imageResult === 'object') {
-                    // 新格式：包含 dataURL 和 ID 的對象
                     imageBase64URL = imageResult.dataURL;
                     observationId = imageResult.observationId;
                 } else {
                     throw new Error('Invalid image data format');
                 }
 
-                // 記錄視覺提示詞
                 try {
                     if (frontendLogger && frontendLogger.logEyesPrompt) {
                         frontendLogger.logEyesPrompt(observationId, instruction);
@@ -422,7 +836,6 @@
                     ]
                 };
 
-                // 記錄後端傳輸（不包含實際圖像數據以避免日誌過大）
                 try {
                     if (frontendLogger && frontendLogger.logEyesTransfer) {
                         frontendLogger.logEyesTransfer(observationId, {
@@ -446,74 +859,76 @@
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    // 記錄API錯誤
-                    try {
-                        if (frontendLogger && frontendLogger.logError) {
-                            frontendLogger.logError(new Error(`Server error: ${response.status} - ${errorText}`), 'api_request');
-                        }
-                    } catch (logError) {
-                        console.warn("⚠️ Failed to log API error:", logError);
-                    }
                     throw new Error(`Server error: ${response.status} - ${errorText}`);
                 }
 
-                let data;
-                try {
-                    const responseText = await response.text();
-                    console.log('Raw API response:', responseText);
-                    
-                    if (!responseText || responseText.trim() === '' || responseText.trim() === 'null') {
-                        throw new Error(`API returned empty or null response: "${responseText}"`);
-                    }
-                    
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error('Failed to parse API response:', parseError);
-                    throw new Error(`Invalid JSON response from API: ${parseError.message}`);
-                }
-
-                // 驗證 API 回應格式
-                if (!data) {
-                    throw new Error('API returned null or undefined data after parsing');
-                }
-
-                if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-                    console.error('Invalid API response format:', data);
-                    throw new Error(`Invalid API response format. Expected choices array, got: ${JSON.stringify(data)}`);
+                const data = await response.json();
+                
+                if (!data || !data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
+                    throw new Error('Invalid API response format');
                 }
 
                 if (!data.choices[0].message || !data.choices[0].message.content) {
-                    console.error('Invalid message format in API response:', data.choices[0]);
                     throw new Error('Invalid message format in API response');
                 }
 
-                const content = data.choices[0].message.content;
+                return data.choices[0].message.content;
+            }
 
-                // 記錄API回應（不包含完整內容以避免日誌過大）
+            generateQueryId() {
+                return `query_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+            }
+
+            detectLanguage(text) {
+                const chinesePattern = /[\u4e00-\u9fff]/;
+                const englishPattern = /[a-zA-Z]/;
+                
+                if (chinesePattern.test(text)) return 'zh';
+                if (englishPattern.test(text)) return 'en';
+                return 'unknown';
+            }
+
+            async logUserQuery(queryData) {
                 try {
-                    if (frontendLogger && frontendLogger.log) {
-                        frontendLogger.log('API_RESPONSE', {
-                            observation_id: observationId,
-                            status: response.status,
-                            response_length: content.length,
-                            has_content: !!content,
-                            timestamp: Date.now()
-                        });
+                    const response = await fetch(`${this.apiBaseUrl}/logging/user_query`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(queryData),
+                        signal: AbortSignal.timeout(2000)
+                    });
+
+                    if (!response.ok) {
+                        console.warn('Failed to log user query:', response.status);
                     }
                 } catch (error) {
-                    console.warn("⚠️ Failed to log API response:", error);
+                    console.warn('Failed to log user query:', error);
                 }
-
-                return content;
             }
         }
 
+        // Camera Manager
         class CameraManager {
             constructor() {
                 this.stream = null;
-                this.video = document.getElementById('videoFeed');
-                this.canvas = document.getElementById('canvas');
-                this.cameraSelect = document.getElementById('cameraSelect');
+                this.video = null;
+                this.canvas = null;
+                this.cameraSelect = null;
+                this.isReady = false;
+            }
+
+            async initialize(videoElement, canvasElement, cameraSelectElement) {
+                this.video = videoElement;
+                this.canvas = canvasElement;
+                this.cameraSelect = cameraSelectElement;
+
+                try {
+                    await this.populateCameraList();
+                    this.isReady = true;
+                    console.log('✅ Camera manager initialized successfully');
+                } catch (error) {
+                    console.error('❌ Failed to initialize camera manager:', error);
+                    throw error;
+                }
             }
 
             async populateCameraList() {
@@ -578,11 +993,10 @@
                     this.stream = await navigator.mediaDevices.getUserMedia(constraints);
                     this.video.srcObject = this.stream;
 
-                    // 等待視頻元數據加載完成
                     await new Promise((resolve, reject) => {
                         const timeout = setTimeout(() => {
                             reject(new Error('Video metadata loading timeout'));
-                        }, 10000); // 10秒超時
+                        }, 10000);
 
                         this.video.onloadedmetadata = () => {
                             clearTimeout(timeout);
@@ -604,33 +1018,22 @@
             }
 
             captureImage(quality = 0.9) {
-                console.log("🎥 Starting image capture...");
-
-                // 檢查攝像頭流是否存在
                 if (!this.stream) {
                     console.error("❌ No camera stream available");
                     return null;
                 }
-                console.log("✅ Camera stream exists");
 
-                // 檢查視頻元素是否準備就緒
                 if (!this.video || this.video.readyState < 2) {
                     console.error("❌ Video not ready, readyState:", this.video ? this.video.readyState : 'video element not found');
                     return null;
                 }
-                console.log("✅ Video element ready, readyState:", this.video.readyState);
 
-                // 等待視頻尺寸可用
                 if (!this.video.videoWidth || !this.video.videoHeight) {
                     console.error("❌ Video dimensions not available:", this.video.videoWidth, 'x', this.video.videoHeight);
                     return null;
                 }
-                console.log("✅ Video dimensions:", this.video.videoWidth, 'x', this.video.videoHeight);
 
                 try {
-                    console.log("🔄 Starting capture process...");
-
-                    // 生成觀察ID和請求ID
                     let observationId;
                     try {
                         observationId = (typeof frontendLogger !== 'undefined' && frontendLogger.generateObservationId)
@@ -642,78 +1045,57 @@
                     }
 
                     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
-                    console.log("✅ Generated IDs:", { observationId, requestId });
 
                     const targetWidth = 1024;
                     const aspectRatio = this.video.videoHeight / this.video.videoWidth;
                     const targetHeight = Math.round(targetWidth * aspectRatio);
-                    console.log("✅ Target dimensions:", targetWidth, 'x', targetHeight);
-
-                    // 檢查 canvas 元素
-                    if (!this.canvas) {
-                        console.error("❌ Canvas element not found");
-                        return null;
-                    }
 
                     this.canvas.width = targetWidth;
                     this.canvas.height = targetHeight;
-                    console.log("✅ Canvas dimensions set");
 
                     const ctx = this.canvas.getContext('2d');
                     if (!ctx) {
                         console.error("❌ Failed to get canvas 2D context");
                         return null;
                     }
-                    console.log("✅ Canvas context obtained");
 
                     ctx.imageSmoothingEnabled = true;
                     ctx.imageSmoothingQuality = 'high';
 
-                    // 嘗試繪製視頻幀到 canvas
                     try {
                         ctx.drawImage(this.video, 0, 0, targetWidth, targetHeight);
-                        console.log("✅ Video frame drawn to canvas");
                     } catch (drawError) {
                         console.error("❌ Failed to draw video to canvas:", drawError);
                         return null;
                     }
 
                     const imageQuality = Math.max(0.92, parseFloat(quality) || 0.9);
-                    console.log("✅ Image quality set to:", imageQuality);
 
-                    // 嘗試轉換為 data URL
                     let imageDataURL;
                     try {
                         imageDataURL = this.canvas.toDataURL('image/jpeg', imageQuality);
-                        console.log("✅ Canvas converted to data URL, length:", imageDataURL.length);
                     } catch (dataUrlError) {
                         console.error("❌ Failed to convert canvas to data URL:", dataUrlError);
                         return null;
                     }
 
-                    // 驗證生成的圖像數據
                     if (!imageDataURL || imageDataURL.length < 100) {
                         console.error("❌ Generated image data is invalid or too small, length:", imageDataURL ? imageDataURL.length : 0);
                         return null;
                     }
 
-                    // 檢查是否是有效的 JPEG data URL
                     if (!imageDataURL.startsWith('data:image/jpeg;base64,')) {
                         console.error("❌ Generated data URL has invalid format:", imageDataURL.substring(0, 50));
                         return null;
                     }
-                    console.log("✅ Image data validation passed");
 
-                    // 獲取設備資訊
                     const selectedOption = this.cameraSelect.options[this.cameraSelect.selectedIndex];
                     const deviceInfo = {
                         device: selectedOption ? selectedOption.text : 'Unknown Camera'
                     };
 
-                    // 計算圖像大小
                     const imageSizeBytes = Math.round((imageDataURL.length - 'data:image/jpeg;base64,'.length) * 3 / 4);
 
-                    // 記錄圖像捕獲事件
                     try {
                         if (typeof frontendLogger !== 'undefined' && frontendLogger.logEyesCapture) {
                             frontendLogger.logEyesCapture(observationId, requestId, deviceInfo, {
@@ -722,15 +1104,11 @@
                                 format: 'jpeg',
                                 size: `${(imageSizeBytes / 1024).toFixed(1)}KB`
                             });
-                            console.log("✅ Logging completed");
-                        } else {
-                            console.log("⚠️ Frontend logger not available, skipping logging");
                         }
                     } catch (logError) {
                         console.warn("⚠️ Logging failed but continuing:", logError);
                     }
 
-                    // 創建一個包含圖像數據和ID的對象
                     const imageResult = {
                         dataURL: imageDataURL,
                         observationId: observationId,
@@ -745,8 +1123,6 @@
 
                 } catch (err) {
                     console.error("❌ Error in capture process:", err);
-                    console.error("❌ Error stack:", err.stack);
-
                     try {
                         if (typeof frontendLogger !== 'undefined' && frontendLogger.logError) {
                             frontendLogger.logError(err, 'image_capture');
@@ -754,7 +1130,6 @@
                     } catch (logError) {
                         console.warn("⚠️ Error logging failed:", logError);
                     }
-
                     return null;
                 }
             }
@@ -766,632 +1141,559 @@
             }
         }
 
+        // Unified UI Manager
         class UIManager {
             constructor() {
-                this.elements = {
-                    apiStatusDot: document.getElementById('apiStatusDot'),
-                    apiStatusText: document.getElementById('apiStatusText'),
-                    activeModel: document.getElementById('activeModel'),
-                    systemStatus: document.getElementById('systemStatus'),
-                    modelDesc: document.getElementById('modelDesc'),
-                    errorMsg: document.getElementById('errorMsg'),
-                    modelHelp: document.getElementById('modelHelp'),
-                    instructionText: document.getElementById('instructionText'),
-                    responseText: document.getElementById('responseText'),
-                    startButton: document.getElementById('startButton'),
-                    imagePreview: document.getElementById('imagePreview'),
-                    captureLabel: document.querySelector('.capture-label'),
-                    intervalSelect: document.getElementById('intervalSelect'),
-                    qualitySelect: document.getElementById('qualitySelect'),
-                    tokensSelect: document.getElementById('tokensSelect'),
-                    cameraSelect: document.getElementById('cameraSelect')
+                this.elements = {};
+                this.isInitialized = false;
+                this.responseHistory = [];
+                this.maxHistoryItems = 8;
+            }
+
+            initialize() {
+                // Vision elements
+                this.elements.videoFeed = document.getElementById('videoFeed');
+                this.elements.canvas = document.getElementById('canvas');
+                this.elements.cameraSelect = document.getElementById('cameraSelect');
+                this.elements.intervalSelect = document.getElementById('intervalSelect');
+                this.elements.qualitySelect = document.getElementById('qualitySelect');
+                this.elements.tokensSelect = document.getElementById('tokensSelect');
+                this.elements.startButton = document.getElementById('startButton');
+                this.elements.instructionText = document.getElementById('instructionText');
+
+                // Query panel elements
+                this.elements.queryInput = document.getElementById('queryInput');
+                this.elements.queryButton = document.getElementById('queryButton');
+                this.elements.responseContainer = document.getElementById('responseContainer');
+                this.elements.responseLoading = document.getElementById('responseLoading');
+
+                // Status elements
+                this.elements.connectionStatus = document.getElementById('connectionStatus');
+
+                const requiredElements = [
+                    'videoFeed', 'canvas', 'cameraSelect', 'startButton',
+                    'queryInput', 'queryButton', 'responseContainer', 'connectionStatus'
+                ];
+
+                for (const elementName of requiredElements) {
+                    if (!this.elements[elementName]) {
+                        throw new Error(`Required element not found: ${elementName}`);
+                    }
+                }
+
+                this.isInitialized = true;
+                console.log('✅ UI Manager initialized successfully');
+            }
+
+            updateConnectionStatus(isConnected, data = null) {
+                if (!this.elements.connectionStatus) return;
+
+                const statusDot = this.elements.connectionStatus.querySelector('.status-dot');
+                const statusText = this.elements.connectionStatus.querySelector('span:last-child');
+
+                if (isConnected) {
+                    this.elements.connectionStatus.classList.remove('status-disconnected');
+                    this.elements.connectionStatus.classList.add('status-connected');
+                    if (statusDot) statusDot.classList.add('online');
+                    if (statusDot) statusDot.classList.remove('offline');
+                    if (statusText) statusText.textContent = 'Connected';
+                } else {
+                    this.elements.connectionStatus.classList.remove('status-connected');
+                    this.elements.connectionStatus.classList.add('status-disconnected');
+                    if (statusDot) statusDot.classList.add('offline');
+                    if (statusDot) statusDot.classList.remove('online');
+                    if (statusText) statusText.textContent = 'Disconnected';
+                }
+            }
+
+            updateVisionProcessingState(isProcessing) {
+                if (!this.elements.startButton) return;
+
+                if (isProcessing) {
+                    this.elements.startButton.innerHTML = '<i class="fas fa-stop"></i><span>Stop Vision Analysis</span>';
+                    this.elements.startButton.classList.add('danger');
+                } else {
+                    this.elements.startButton.innerHTML = '<i class="fas fa-play"></i><span>Start Vision Analysis</span>';
+                    this.elements.startButton.classList.remove('danger');
+                }
+            }
+
+            addResponseItem(type, title, content, metadata = {}) {
+                if (!this.elements.responseContainer) return;
+
+                const responseItem = this.createResponseItem(type, title, content, metadata);
+                
+                this.responseHistory.unshift(responseItem);
+                
+                if (this.responseHistory.length > this.maxHistoryItems) {
+                    this.responseHistory = this.responseHistory.slice(0, this.maxHistoryItems);
+                }
+                
+                this.updateResponseDisplay();
+                this.scrollToTop();
+            }
+
+            createResponseItem(type, title, content, metadata = {}) {
+                const timestamp = new Date().toLocaleTimeString();
+                
+                return {
+                    type,
+                    title,
+                    content,
+                    timestamp,
+                    metadata,
+                    id: `response_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                 };
             }
 
-            updateApiStatusOnline(data) {
-                this.elements.apiStatusDot.className = "status-dot online";
-                this.elements.apiStatusText.textContent = "API Online";
+            updateResponseDisplay() {
+                if (!this.elements.responseContainer) return;
 
-                const modelName = data.model_status?.name || data.active_model || "Unknown";
-                this.elements.activeModel.textContent = modelName;
-
-                const availableModels = data.available_models && data.available_models.length
-                    ? data.available_models.join(", ")
-                    : "None";
-
-                this.elements.systemStatus.innerHTML = `
-                    <div style="margin-bottom: 0.75rem;"><strong>Status:</strong> <span style="color: var(--success);">Connected</span></div>
-                    <div style="margin-bottom: 0.75rem;"><strong>Active Model:</strong> ${modelName}</div>
-                    <div style="margin-bottom: 0.75rem;"><strong>Version:</strong> ${data.model_status?.version || "N/A"}</div>
-                    <div><strong>Available Models:</strong> ${availableModels}</div>
-                `;
-
-                if (data.model_status?.description) {
-                    const modelInfoDiv = document.querySelector('.model-info');
-                    if (modelInfoDiv) {
-                        const featureList = modelInfoDiv.querySelector('.feature-list');
-                        modelInfoDiv.innerHTML = `
-                            <h4>${modelName}</h4>
-                            <p>${data.model_status.description}</p>
-                            ${featureList ? featureList.outerHTML : ''}
-                        `;
-                    }
-                }
+                this.elements.responseContainer.innerHTML = this.responseHistory
+                    .map(item => this.renderResponseItem(item))
+                    .join('');
             }
 
-            updateApiStatusOffline() {
-                this.elements.apiStatusDot.className = "status-dot offline";
-                this.elements.apiStatusText.textContent = "Backend Offline";
-                this.elements.activeModel.textContent = "Camera Only Mode";
+            renderResponseItem(item) {
+                const iconMap = {
+                    'vision': 'fas fa-robot',
+                    'query': 'fas fa-chart-line',
+                    'system': 'fas fa-info-circle',
+                    'error': 'fas fa-exclamation-triangle'
+                };
 
-                this.elements.systemStatus.innerHTML = `
-                    <div style="color: var(--warning);"><i class="fas fa-info-circle"></i> Backend Not Connected</div>
-                    <div style="margin-top: 0.75rem;">Please start the backend server on port 8000</div>
-                    <div style="margin-top: 0.5rem;">Camera functionality works without backend.</div>
+                const icon = iconMap[item.type] || 'fas fa-comment';
+                
+                return `
+                    <div class="response-item ${item.type}-response" data-id="${item.id}">
+                        <div class="response-header">
+                            <i class="${icon}"></i>
+                            <span class="response-title">${item.title}</span>
+                            <span class="response-time">${item.timestamp}</span>
+                        </div>
+                        <div class="response-content-text">
+                            ${this.escapeHtml(item.content)}
+                        </div>
+                        ${this.renderMetadata(item.metadata)}
+                    </div>
                 `;
             }
 
-            showError(message) {
-                this.elements.errorMsg.textContent = message;
-                this.elements.errorMsg.style.display = "block";
-            }
+            renderMetadata(metadata) {
+                if (!metadata || Object.keys(metadata).length === 0) return '';
 
-            hideError() {
-                this.elements.errorMsg.style.display = "none";
-            }
-
-            updateImagePreview(dataUrl) {
-                if (!dataUrl) return;
-
-                this.elements.imagePreview.src = dataUrl;
-                this.elements.imagePreview.style.display = "inline-block";
-
-                if (this.elements.captureLabel) {
-                    this.elements.captureLabel.innerHTML = `Frame sent to AI<br><span style="font-size: 0.65rem;">${new Date().toLocaleTimeString()}</span>`;
-                    this.elements.captureLabel.style.backgroundColor = "var(--success-light)";
-                    this.elements.captureLabel.style.color = "var(--success)";
-
-                    setTimeout(() => {
-                        this.elements.captureLabel.style.backgroundColor = "";
-                        this.elements.captureLabel.style.color = "";
-                    }, 2000);
+                const metaItems = [];
+                if (metadata.processingTime) {
+                    metaItems.push(`<span><i class="fas fa-clock"></i> ${metadata.processingTime}ms</span>`);
+                }
+                if (metadata.confidence) {
+                    metaItems.push(`<span><i class="fas fa-percentage"></i> ${metadata.confidence}% confidence</span>`);
+                }
+                if (metadata.queryType) {
+                    metaItems.push(`<span><i class="fas fa-tag"></i> ${metadata.queryType}</span>`);
                 }
 
-                this.elements.imagePreview.classList.remove('animate-fade-in');
-                void this.elements.imagePreview.offsetWidth;
-                this.elements.imagePreview.classList.add('animate-fade-in');
+                if (metaItems.length === 0) return '';
+
+                return `
+                    <div class="response-meta" style="margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-light);">
+                        ${metaItems.join(' • ')}
+                    </div>
+                `;
             }
 
-            updateProcessingState(isProcessing) {
-                if (isProcessing) {
-                    this.elements.startButton.innerHTML = '<i class="fas fa-stop"></i><span>Stop</span>';
-                    this.elements.startButton.classList.add('btn-danger');
-                    this.elements.startButton.classList.remove('btn-primary');
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
-                    this.elements.instructionText.disabled = true;
-                    this.elements.intervalSelect.disabled = true;
-                    this.elements.qualitySelect.disabled = true;
-                    this.elements.tokensSelect.disabled = true;
-                    this.elements.cameraSelect.disabled = true;
-
-                    this.elements.responseText.value = "";
-                } else {
-                    this.elements.startButton.innerHTML = '<i class="fas fa-play"></i><span>Start</span>';
-                    this.elements.startButton.classList.add('btn-primary');
-                    this.elements.startButton.classList.remove('btn-danger');
-
-                    this.elements.instructionText.disabled = false;
-                    this.elements.intervalSelect.disabled = false;
-                    this.elements.qualitySelect.disabled = false;
-                    this.elements.tokensSelect.disabled = false;
-                    this.elements.cameraSelect.disabled = false;
+            scrollToTop() {
+                const responseContent = document.querySelector('.response-content');
+                if (responseContent) {
+                    responseContent.scrollTop = 0;
                 }
             }
-        }
 
-        class TabManager {
-            constructor() {
-                this.setupTabs();
+            showVisionResponse(response) {
+                this.addResponseItem(
+                    'vision',
+                    'Vision Analysis',
+                    response,
+                    { processingTime: Date.now() }
+                );
             }
 
-            setupTabs() {
-                const tabButtons = document.querySelectorAll('.tab-btn');
+            showQueryResponse(response, type = 'State Query') {
+                this.addResponseItem(
+                    'query',
+                    type,
+                    response,
+                    { queryType: type }
+                );
+            }
 
-                tabButtons.forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const targetId = btn.getAttribute('data-target');
-                        const targetPanel = document.getElementById(targetId);
+            showSystemMessage(message, title = 'System') {
+                this.addResponseItem('system', title, message);
+            }
 
-                        // Hide all panels
-                        document.querySelectorAll('.tab-panel').forEach(panel => {
-                            panel.style.display = 'none';
-                            panel.classList.remove('active');
-                        });
+            showError(message, type = 'general') {
+                this.addResponseItem(
+                    'error',
+                    'Error',
+                    message,
+                    { errorType: type }
+                );
+            }
 
-                        // Show target panel
-                        if (targetPanel) {
-                            targetPanel.style.display = 'block';
-                            targetPanel.classList.add('active');
+            showQueryLoading() {
+                if (this.elements.responseLoading) {
+                    this.elements.responseLoading.style.display = 'flex';
+                }
+            }
+
+            hideQueryLoading() {
+                if (this.elements.responseLoading) {
+                    this.elements.responseLoading.style.display = 'none';
+                }
+            }
+
+            getQueryInput() {
+                return this.elements.queryInput ? this.elements.queryInput.value.trim() : '';
+            }
+
+            getInstructionText() {
+                return this.elements.instructionText ? this.elements.instructionText.value.trim() : '';
+            }
+
+            getVisionSettings() {
+                return {
+                    interval: this.elements.intervalSelect ? this.elements.intervalSelect.value : '2000',
+                    quality: this.elements.qualitySelect ? this.elements.qualitySelect.value : '0.9',
+                    maxTokens: this.elements.tokensSelect ? this.elements.tokensSelect.value : '100'
+                };
+            }
+
+            setupExampleQueries(callback) {
+                const examples = document.querySelectorAll('.example-query');
+                examples.forEach(example => {
+                    example.addEventListener('click', () => {
+                        const query = example.getAttribute('data-query');
+                        if (query && this.elements.queryInput) {
+                            this.elements.queryInput.value = query;
+                            // Auto-trigger query after setting the text
+                            setTimeout(() => {
+                                if (callback) callback(query);
+                            }, 100);
                         }
-
-                        // Update tab button styles
-                        tabButtons.forEach(b => {
-                            b.classList.remove('active-tab');
-                            b.style.opacity = '0.6';
-                            b.style.borderBottom = 'none';
-                        });
-
-                        // Set active tab style
-                        btn.classList.add('active-tab');
-                        btn.style.opacity = '1';
-                        btn.style.borderBottom = '2px solid var(--primary)';
                     });
                 });
             }
+
+            setupKeyboardShortcuts(callbacks) {
+                if (this.elements.queryInput) {
+                    this.elements.queryInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            if (callbacks.onQuerySubmit) {
+                                callbacks.onQuerySubmit();
+                            }
+                        }
+                    });
+                }
+
+                if (this.elements.instructionText) {
+                    this.elements.instructionText.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && e.ctrlKey) {
+                            e.preventDefault();
+                            if (callbacks.onVisionToggle) {
+                                callbacks.onVisionToggle();
+                            }
+                        }
+                    });
+                }
+            }
         }
 
-        // Main VisionApp class
-        class VisionApp {
+        // Main Unified Application
+        class UnifiedApp {
             constructor() {
-                this.managers = {
-                    config: new ConfigManager(),
-                    api: new APIClient(),
-                    camera: new CameraManager(),
-                    ui: new UIManager(),
-                    tabs: new TabManager()
-                };
-
-                this.isProcessing = false;
-                this.intervalId = null;
-            }
-
-            getManager(name) {
-                return this.managers[name];
+                this.apiClient = new UnifiedAPIClient();
+                this.cameraManager = new CameraManager();
+                this.uiManager = new UIManager();
+                
+                this.isVisionProcessing = false;
+                this.visionIntervalId = null;
+                this.isInitialized = false;
             }
 
             async initialize() {
                 try {
-                    console.log('🚀 Initializing Vision Intelligence Hub...');
+                    console.log('🚀 Initializing Unified Vision Intelligence Hub...');
 
-                    // Initialize camera
-                    await this.managers.camera.populateCameraList();
+                    // Initialize UI manager
+                    this.uiManager.initialize();
 
-                    // Try to connect to backend
+                    // Initialize camera manager
+                    await this.cameraManager.initialize(
+                        this.uiManager.elements.videoFeed,
+                        this.uiManager.elements.canvas,
+                        this.uiManager.elements.cameraSelect
+                    );
+
+                    // Check backend connection and load configuration
                     await Promise.allSettled([
-                        this.checkApiStatus(),
+                        this.checkBackendConnection(),
                         this.loadConfig()
                     ]);
 
-                    // Setup event listeners
+                    // Set up event listeners
                     this.setupEventListeners();
 
-                    // Initialize UI
-                    if (this.managers.ui.elements.captureLabel) {
-                        this.managers.ui.elements.captureLabel.innerHTML = `<span style="color: var(--text);">Click Start to begin<br>Camera ready for analysis</span>`;
-                    }
+                    // Set up keyboard shortcuts
+                    this.setupKeyboardShortcuts();
 
-                    console.log('✅ Application initialized successfully');
+                    this.isInitialized = true;
+                    console.log('✅ Unified application initialized successfully');
 
                 } catch (error) {
-                    console.error('❌ Failed to initialize application:', error);
-                    this.managers.ui.showError('Application initialization had some issues, but camera should still work.');
+                    console.error('❌ Failed to initialize unified application:', error);
+                    this.uiManager.showError('Failed to initialize application. Please refresh the page.', 'initialization');
                 }
             }
 
-            async checkApiStatus() {
+            async checkBackendConnection() {
                 try {
-                    const data = await this.managers.api.checkStatus();
-                    this.managers.ui.updateApiStatusOnline(data);
+                    const status = await this.apiClient.checkStatus();
+                    this.uiManager.updateConnectionStatus(true, status);
+                    console.log('✅ Backend connected:', status);
                 } catch (error) {
-                    this.managers.ui.updateApiStatusOffline();
+                    this.uiManager.updateConnectionStatus(false);
+                    console.warn('⚠️ Backend not connected:', error.message);
                 }
             }
 
             async loadConfig() {
                 try {
-                    const config = await this.managers.config.loadConfig();
+                    const config = await this.apiClient.loadConfig();
+                    
+                    if (config) {
+                        if (config.default_instruction && this.uiManager.elements.instructionText) {
+                            this.uiManager.elements.instructionText.value = config.default_instruction;
+                            console.log('✅ Loaded default instruction:', config.default_instruction);
+                        }
 
-                    if (config?.model_help) {
-                        this.managers.ui.elements.modelHelp.style.display = "block";
-                        this.managers.ui.elements.modelHelp.textContent = config.model_help;
-                    } else {
-                        this.managers.ui.elements.modelHelp.style.display = "block";
-                        this.managers.ui.elements.modelHelp.textContent = "Camera is ready. Enter a question about what you want to analyze in the image.";
-                    }
+                        if (config.capture_intervals && Array.isArray(config.capture_intervals) && this.uiManager.elements.intervalSelect) {
+                            this.uiManager.elements.intervalSelect.innerHTML = config.capture_intervals.map(interval =>
+                                `<option value="${interval}">${interval / 1000}s</option>`
+                            ).join('');
+                            console.log('✅ Loaded capture intervals:', config.capture_intervals);
+                        }
 
-                    if (config?.default_instruction) {
-                        this.managers.ui.elements.instructionText.value = config.default_instruction;
-                    }
-
-                    if (config?.capture_intervals && Array.isArray(config.capture_intervals)) {
-                        this.managers.ui.elements.intervalSelect.innerHTML = config.capture_intervals.map(interval =>
-                            `<option value="${interval}">${interval / 1000}s</option>`
-                        ).join('');
+                        if (config.model_help) {
+                            console.log('✅ Model help available:', config.model_help);
+                        }
                     }
                 } catch (error) {
-                    console.error("Failed to load config:", error);
-                    this.managers.ui.elements.modelHelp.style.display = "block";
-                    this.managers.ui.elements.modelHelp.textContent = "Camera is ready. Backend connection required for AI analysis.";
+                    console.error('Failed to load config:', error);
                 }
             }
 
             setupEventListeners() {
-                this.managers.ui.elements.startButton.addEventListener('click', () => {
-                    if (this.isProcessing) {
-                        this.handleStop();
-                    } else {
-                        this.handleStart();
-                    }
+                // Vision analysis start/stop button
+                if (this.uiManager.elements.startButton) {
+                    this.uiManager.elements.startButton.addEventListener('click', () => {
+                        this.toggleVisionAnalysis();
+                    });
+                }
+
+                // Query button
+                if (this.uiManager.elements.queryButton) {
+                    this.uiManager.elements.queryButton.addEventListener('click', () => {
+                        this.processQuery();
+                    });
+                }
+
+                // Camera selection change
+                if (this.uiManager.elements.cameraSelect) {
+                    this.uiManager.elements.cameraSelect.addEventListener('change', async () => {
+                        const selectedDeviceId = this.uiManager.elements.cameraSelect.value;
+                        await this.cameraManager.startCamera(selectedDeviceId);
+                    });
+                }
+
+                // Example queries
+                this.uiManager.setupExampleQueries((query) => {
+                    console.log('Example query selected:', query);
+                    // Auto-trigger the query
+                    this.processQuery();
                 });
 
-                this.managers.ui.elements.instructionText.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
-                        e.preventDefault();
-                        if (this.isProcessing) {
-                            this.handleStop();
-                        } else {
-                            this.handleStart();
-                        }
-                    }
-                });
-
-                this.managers.ui.elements.cameraSelect.addEventListener('change', async () => {
-                    const selectedDeviceId = this.managers.ui.elements.cameraSelect.value;
-                    const selectedOption = this.managers.ui.elements.cameraSelect.options[this.managers.ui.elements.cameraSelect.selectedIndex];
-
-                    // 記錄攝像頭切換
-                    try {
-                        if (frontendLogger && frontendLogger.logUserAction) {
-                            frontendLogger.logUserAction('camera_change', {
-                                device_id: selectedDeviceId,
-                                device_name: selectedOption ? selectedOption.text : 'Unknown'
-                            });
-                        }
-                    } catch (error) {
-                        console.warn("⚠️ Failed to log camera change:", error);
-                    }
-
-                    await this.managers.camera.startCamera(selectedDeviceId);
-                });
-
+                // Device change detection
                 navigator.mediaDevices.addEventListener('devicechange', async () => {
                     console.log('Camera devices changed');
-
-                    // 記錄設備變更
-                    try {
-                        if (frontendLogger && frontendLogger.logUserAction) {
-                            frontendLogger.logUserAction('device_change', {
-                                event: 'camera_devices_changed'
-                            });
-                        }
-                    } catch (error) {
-                        console.warn("⚠️ Failed to log device change:", error);
-                    }
-
-                    await this.managers.camera.populateCameraList();
-                });
-
-                // 記錄設置變更
-                this.managers.ui.elements.intervalSelect.addEventListener('change', () => {
-                    try {
-                        if (frontendLogger && frontendLogger.logUserAction) {
-                            frontendLogger.logUserAction('setting_change', {
-                                setting: 'capture_interval',
-                                value: this.managers.ui.elements.intervalSelect.value
-                            });
-                        }
-                    } catch (error) {
-                        console.warn("⚠️ Failed to log interval change:", error);
-                    }
-                });
-
-                this.managers.ui.elements.qualitySelect.addEventListener('change', () => {
-                    try {
-                        if (frontendLogger && frontendLogger.logUserAction) {
-                            frontendLogger.logUserAction('setting_change', {
-                                setting: 'image_quality',
-                                value: this.managers.ui.elements.qualitySelect.value
-                            });
-                        }
-                    } catch (error) {
-                        console.warn("⚠️ Failed to log quality change:", error);
-                    }
-                });
-
-                this.managers.ui.elements.tokensSelect.addEventListener('change', () => {
-                    try {
-                        if (frontendLogger && frontendLogger.logUserAction) {
-                            frontendLogger.logUserAction('setting_change', {
-                                setting: 'max_tokens',
-                                value: this.managers.ui.elements.tokensSelect.value
-                            });
-                        }
-                    } catch (error) {
-                        console.warn("⚠️ Failed to log tokens change:", error);
-                    }
+                    await this.cameraManager.populateCameraList();
                 });
             }
 
-            handleStart() {
-                // 檢查攝像頭流
-                if (!this.managers.camera.stream) {
-                    this.managers.ui.showError("Camera not available. Please check permissions and try refreshing the page.");
-                    return;
-                }
+            setupKeyboardShortcuts(callbacks) {
+                this.uiManager.setupKeyboardShortcuts({
+                    onQuerySubmit: () => this.processQuery(),
+                    onVisionToggle: () => this.toggleVisionAnalysis()
+                });
+            }
 
-                // 檢查視頻元素狀態
-                const video = this.managers.camera.video;
-                if (!video || video.readyState < 2) {
-                    this.managers.ui.showError("Camera is still loading. Please wait a moment and try again.");
-                    return;
+            async toggleVisionAnalysis() {
+                if (this.isVisionProcessing) {
+                    this.stopVisionAnalysis();
+                } else {
+                    await this.startVisionAnalysis();
                 }
+            }
 
-                // 檢查視頻尺寸
-                if (!video.videoWidth || !video.videoHeight) {
-                    this.managers.ui.showError("Camera video dimensions not ready. Please wait a moment and try again.");
-                    return;
-                }
-
-                // 檢查指令
-                const instruction = this.managers.ui.elements.instructionText.value.trim();
+            async startVisionAnalysis() {
+                const instruction = this.uiManager.getInstructionText();
                 if (!instruction) {
-                    this.managers.ui.showError("Please enter an instruction before starting.");
+                    this.uiManager.showError('Please enter a question about the image before starting.');
                     return;
                 }
 
-                // 記錄用戶開始操作
-                const intervalTime = this.getValidCaptureInterval();
-                try {
-                    if (frontendLogger && frontendLogger.logUserAction) {
-                        frontendLogger.logUserAction('start_processing', {
-                            instruction: instruction,
-                            capture_interval: intervalTime,
-                            quality: this.managers.ui.elements.qualitySelect.value,
-                            max_tokens: this.managers.ui.elements.tokensSelect.value,
-                            video_ready: video.readyState,
-                            video_dimensions: `${video.videoWidth}x${video.videoHeight}`
-                        });
-                    }
-                } catch (error) {
-                    console.warn("⚠️ Failed to log start processing:", error);
-                }
+                this.isVisionProcessing = true;
+                this.uiManager.updateVisionProcessingState(true);
 
-                this.isProcessing = true;
-                this.managers.ui.updateProcessingState(true);
-
-                // 延遲一點點確保一切準備就緒
-                setTimeout(() => {
-                    this.sendData();
-
-                    if (this.managers.ui.elements.captureLabel) {
-                        this.managers.ui.elements.captureLabel.innerHTML = `Processing starts<br>Capture every ${intervalTime / 1000}s`;
-                    }
-
-                    this.intervalId = setInterval(() => this.sendData(), intervalTime);
-                }, 100);
+                const interval = parseInt(this.uiManager.getVisionSettings().interval);
+                
+                // Start immediately
+                this.processVisionAnalysis();
+                
+                // Then set up interval
+                this.visionIntervalId = setInterval(() => {
+                    this.processVisionAnalysis();
+                }, interval);
             }
 
-            handleStop() {
-                // 記錄用戶停止操作
+            stopVisionAnalysis() {
+                this.isVisionProcessing = false;
+                if (this.visionIntervalId) {
+                    clearInterval(this.visionIntervalId);
+                    this.visionIntervalId = null;
+                }
+                this.uiManager.updateVisionProcessingState(false);
+            }
+
+            async processVisionAnalysis() {
+                if (!this.cameraManager.isReady) {
+                    this.uiManager.showError('Camera not ready. Please check camera permissions.');
+                    return;
+                }
+
                 try {
-                    if (frontendLogger && frontendLogger.logUserAction) {
-                        frontendLogger.logUserAction('stop_processing', {
-                            reason: 'user_initiated'
-                        });
+                    const instruction = this.uiManager.getInstructionText();
+                    if (!instruction) {
+                        this.uiManager.showError('Please enter a question about the image.');
+                        return;
                     }
+
+                    const imageResult = this.cameraManager.captureImage();
+                    if (!imageResult) {
+                        throw new Error('Failed to capture image');
+                    }
+
+                    const maxTokens = parseInt(this.uiManager.getVisionSettings().maxTokens);
+                    const response = await this.apiClient.sendVisionAnalysis(instruction, imageResult, maxTokens);
+
+                    this.uiManager.showVisionResponse(response);
+                    console.log('VLM analysis completed:', response);
+
                 } catch (error) {
-                    console.warn("⚠️ Failed to log stop processing:", error);
-                }
-
-                this.isProcessing = false;
-                if (this.intervalId) {
-                    clearInterval(this.intervalId);
-                    this.intervalId = null;
-                }
-
-                this.managers.ui.updateProcessingState(false);
-
-                if (this.managers.ui.elements.captureLabel) {
-                    this.managers.ui.elements.captureLabel.innerHTML = `<span style="color: var(--text);">Click Start to begin<br>Camera ready for analysis</span>`;
-                    this.managers.ui.elements.captureLabel.style.backgroundColor = "";
-                    this.managers.ui.elements.captureLabel.style.color = "";
+                    console.error('Vision analysis error:', error);
+                    this.uiManager.showError(`Vision analysis failed: ${error.message}`, 'vision');
                 }
             }
 
-            async sendData() {
-                if (!this.isProcessing) return;
-
-                if (window.currentRequestProcessing) {
-                    console.log("⏳ Previous request still processing, skipping this one");
+            async processQuery() {
+                const query = this.uiManager.getQueryInput();
+                
+                if (!query) {
+                    this.uiManager.showError("Please enter a query before submitting.", 'query');
                     return;
                 }
 
-                this.managers.ui.hideError();
-
-                const instruction = this.managers.ui.elements.instructionText.value.trim();
-                if (!instruction) {
-                    this.managers.ui.showError("Please enter an instruction before starting.");
-                    this.handleStop();
-                    return;
-                }
-
-                const quality = this.managers.ui.elements.qualitySelect.value;
-                console.log("🎬 Attempting to capture image with quality:", quality);
-
-                const imageBase64URL = this.managers.camera.captureImage(quality);
-                if (!imageBase64URL) {
-                    const video = this.managers.camera.video;
-                    const stream = this.managers.camera.stream;
-                    const canvas = this.managers.camera.canvas;
-
-                    console.error("❌ Image capture returned null, diagnosing...");
-
-                    let errorDetails = "Detailed diagnosis: ";
-                    let diagnosticInfo = [];
-
-                    // 基本檢查
-                    if (!stream) {
-                        errorDetails += "No camera stream. ";
-                        diagnosticInfo.push("stream: null");
-                    } else {
-                        diagnosticInfo.push("stream: exists");
-                        diagnosticInfo.push(`stream.active: ${stream.active}`);
-                        diagnosticInfo.push(`stream.tracks: ${stream.getTracks().length}`);
-                    }
-
-                    if (!video) {
-                        errorDetails += "Video element not found. ";
-                        diagnosticInfo.push("video: null");
-                    } else {
-                        diagnosticInfo.push("video: exists");
-                        diagnosticInfo.push(`video.readyState: ${video.readyState}`);
-                        diagnosticInfo.push(`video.dimensions: ${video.videoWidth}x${video.videoHeight}`);
-                        diagnosticInfo.push(`video.srcObject: ${!!video.srcObject}`);
-                        diagnosticInfo.push(`video.paused: ${video.paused}`);
-                        diagnosticInfo.push(`video.ended: ${video.ended}`);
-
-                        if (video.readyState < 2) {
-                            errorDetails += `Video not ready (state: ${video.readyState}). `;
-                        } else if (!video.videoWidth || !video.videoHeight) {
-                            errorDetails += `Video dimensions invalid (${video.videoWidth}x${video.videoHeight}). `;
-                        }
-                    }
-
-                    if (!canvas) {
-                        errorDetails += "Canvas element not found. ";
-                        diagnosticInfo.push("canvas: null");
-                    } else {
-                        diagnosticInfo.push("canvas: exists");
-                        diagnosticInfo.push(`canvas.dimensions: ${canvas.width}x${canvas.height}`);
-
-                        const ctx = canvas.getContext('2d');
-                        diagnosticInfo.push(`canvas.context: ${!!ctx}`);
-                    }
-
-                    // 如果所有基本檢查都通過，說明是內部錯誤
-                    if (stream && video && video.readyState >= 2 && video.videoWidth && video.videoHeight && canvas) {
-                        errorDetails += "Internal capture error (check console for details). ";
-                    }
-
-                    console.error("🔍 Diagnostic info:", diagnosticInfo.join(", "));
-
-                    this.managers.ui.showError(`Unable to capture image. ${errorDetails}Check browser console for detailed logs.`);
-
-                    // 記錄詳細錯誤信息
-                    try {
-                        if (typeof frontendLogger !== 'undefined' && frontendLogger.logError) {
-                            frontendLogger.logError(new Error(`Image capture failed: ${errorDetails} Diagnostics: ${diagnosticInfo.join(", ")}`), 'image_capture_detailed');
-                        }
-                    } catch (logError) {
-                        console.warn("⚠️ Error logging failed:", logError);
-                    }
-
-                    // 自動停止處理
-                    this.handleStop();
-                    return;
-                }
-
-                // 獲取觀察ID（從圖像捕獲中獲得）
-                const observationId = imageBase64URL.observationId;
-                const requestId = imageBase64URL.requestId;
-
-                window.currentRequestProcessing = true;
+                this.uiManager.showQueryLoading();
 
                 try {
-                    this.managers.ui.updateImagePreview(imageBase64URL.dataURL);
+                    const startTime = Date.now();
+                    
+                    const queryId = this.apiClient.generateQueryId();
+                    const queryData = {
+                        query_id: queryId,
+                        query: query,
+                        language: this.apiClient.detectLanguage(query),
+                        timestamp: new Date().toISOString(),
+                        user_agent: navigator.userAgent,
+                        observation_id: null
+                    };
 
-                    const maxTokens = parseInt(this.managers.ui.elements.tokensSelect.value) || 100;
+                    this.apiClient.logUserQuery(queryData);
 
-                    const response = await this.managers.api.sendChatCompletion(instruction, imageBase64URL, maxTokens);
+                    const response = await this.apiClient.sendStateQuery(query, queryId);
+                    
+                    const processingTime = Date.now() - startTime;
 
-                    this.managers.ui.elements.responseText.value = response || "No response received";
+                    const responseText = response.response_text || response.response || 'No response received';
+                    this.uiManager.showQueryResponse(responseText, response.query_type || 'State Query');
+
+                    console.log('✅ Query processed successfully:', response);
 
                 } catch (error) {
-                    this.managers.ui.showError(error.message);
-                    try {
-                        if (frontendLogger && frontendLogger.logError) {
-                            frontendLogger.logError(error, 'vlm_request');
-                        }
-                    } catch (logError) {
-                        console.warn("⚠️ Failed to log VLM request error:", logError);
-                    }
+                    console.error('Query processing error:', error);
+                    this.uiManager.showError(`Query failed: ${error.message}`, 'query');
                 } finally {
-                    window.currentRequestProcessing = false;
+                    this.uiManager.hideQueryLoading();
                 }
-            }
-
-            getValidCaptureInterval() {
-                const defaultInterval = 2000;
-                const intervalValue = this.managers.ui.elements.intervalSelect.value;
-
-                if (!intervalValue || intervalValue === "none") {
-                    return defaultInterval;
-                }
-
-                const intervalTime = parseInt(intervalValue, 10);
-                if (isNaN(intervalTime) || intervalTime < 100) {
-                    return defaultInterval;
-                }
-
-                return intervalTime;
             }
 
             cleanup() {
-                if (this.intervalId) {
-                    clearInterval(this.intervalId);
-                }
-                this.managers.camera.cleanup();
+                this.stopVisionAnalysis();
+                this.cameraManager.cleanup();
+                console.log('🧹 Application cleanup completed');
             }
         }
 
-        // Initialize the application
+        // Initialize application
         let app;
 
         async function initializeApp() {
             try {
-                console.log('🚀 Initializing Vision Intelligence Hub...');
+                console.log('🚀 Starting Unified Vision Intelligence Hub...');
 
-                // Create main application instance
-                app = new VisionApp();
-
-                // Start the application
+                app = new UnifiedApp();
                 await app.initialize();
 
-                console.log('✅ Application initialized successfully');
+                console.log('✅ Application started successfully');
 
-                // Set up global error handling
                 window.addEventListener('error', (event) => {
                     console.error('❌ Global error:', event.error);
-                    const uiManager = app.getManager('ui');
-                    if (uiManager) {
-                        uiManager.showError('An unexpected error occurred. Please refresh the page.');
+                    if (app && app.uiManager) {
+                        app.uiManager.showError('An unexpected error occurred. Please refresh the page.', 'global');
                     }
                 });
 
-                // Set up unload cleanup
                 window.addEventListener('beforeunload', () => {
                     if (app) {
                         app.cleanup();
                     }
                 });
 
-                // Retry API connection periodically when offline
                 setInterval(() => {
-                    const apiStatusDot = document.getElementById('apiStatusDot');
-                    if (apiStatusDot && apiStatusDot.classList.contains('offline')) {
-                        app.checkApiStatus();
+                    const apiStatusDot = document.getElementById('connectionStatus');
+                    if (apiStatusDot && apiStatusDot.classList.contains('status-disconnected')) {
+                        app.checkBackendConnection();
                     }
                 }, 30000);
 
             } catch (error) {
                 console.error('❌ Failed to initialize application:', error);
-
-                // Fallback error display
-                const errorMsg = document.getElementById('errorMsg');
-                if (errorMsg) {
-                    errorMsg.textContent = 'Failed to initialize application. Please refresh the page.';
-                    errorMsg.style.display = 'block';
-                }
             }
         }
 
@@ -1403,8 +1705,7 @@
         }
 
         // Export for debugging
-        window.visionApp = () => app;
+        window.unifiedApp = () => app;
     </script>
 </body>
-
-</html>
+</html> 
