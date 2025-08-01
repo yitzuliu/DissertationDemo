@@ -325,7 +325,7 @@ def preprocess_image(image_url):
 Frontend 結構
 ├── index.html          # 主界面（相機 + 查詢）
 ├── query.html          # 專用查詢界面
-├── unified.html        # 統一界面
+├── ai_vision_analysis.html        # 分析界面
 └── Fileindex.html      # 文件上傳界面
 ```
 

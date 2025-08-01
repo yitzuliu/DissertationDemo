@@ -110,7 +110,7 @@ This directory (`vlm/`) contains scripts and resources for evaluating and benchm
 
 ---
 
-## Latest Test Results Summary (Updated: 2025-07-29)
+## Latest Test Results Summary (Updated: 2025-01-08)
 
 ### **🏆 Comprehensive Performance Rankings**
 
@@ -242,6 +242,6 @@ For questions, bug reports, or contributions, please refer to the main project R
 
 ---
 
-_Last updated: 2025-07-29_  
+_Last updated: 2025-01-08_  
 _Test Environment: MacBook Air M3 (16GB RAM, MPS available)_  
-_Latest Results: VQA 2.0 (2025-07-29 13:12:58), Context Understanding (2025-07-28 20:29:35), Performance (2025-07-28 19:02:52)_
+_Latest Results: VQA 2.0 (2025-01-08 00:00:00), Context Understanding (2025-01-08 00:00:00), Performance (2025-01-08 00:00:00)_

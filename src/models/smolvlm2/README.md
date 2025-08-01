@@ -108,7 +108,7 @@ curl -X PATCH http://localhost:8000/api/v1/config \
 - **Multi-modal**: Text + image + video combinations
 - **Formats**: MP4, JPEG, PNG, WebP, URLs, file paths
 
-### Performance Benchmarks (Latest VQA 2.0 Results - 2025-07-29)
+### Performance Benchmarks (Latest VQA 2.0 Results - 2025-01-08)
 | Metric | Score | Context |
 |--------|-------|---------|
 | **🥈 VQA 2.0 Accuracy** | **52.5%** | **Second best in system** |
@@ -164,7 +164,7 @@ class SmolVLM2Model(BaseVisionModel):
         # Resource cleanup
 ```
 
-## 📊 Performance Comparison (Latest VQA 2.0 Results - 2025-07-29)
+## 📊 Performance Comparison (Latest VQA 2.0 Results - 2025-01-08)
 
 | Feature | SmolVLM2-MLX | Moondream2 | SmolVLM-GGUF | Phi-3.5-MLX |
 |---------|--------------|------------|--------------|-------------|

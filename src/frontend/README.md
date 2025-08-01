@@ -16,7 +16,7 @@ This frontend provides a comprehensive web interface for the Vision Intelligence
 
 ### User Interface Options
 - **`index.html`**: Main application with camera and AI analysis
-- **`unified.html`**: Unified dual-panel interface (vision + query)
+- **`ai_vision_analysis.html`**: Analysis interface with vision and query capabilities
 - **`query.html`**: Dedicated state query interface
 - **Responsive Design**: Works on desktop and mobile devices
 - **Real-time Status**: Backend connection monitoring
@@ -29,7 +29,7 @@ This frontend provides a comprehensive web interface for the Vision Intelligence
 ```
 src/frontend/
 ├── index.html              # Main application interface (camera + AI)
-├── unified.html            # Unified dual-panel interface (vision + query)
+├── ai_vision_analysis.html # Analysis interface with vision and query capabilities
 ├── query.html              # Dedicated state query interface
 ├── index_backup.html       # Original backup of index.html
 ├── css/                    # Stylesheets
@@ -77,13 +77,12 @@ src/frontend/
   - System status monitoring
 - **Best For**: Users who primarily need vision analysis
 
-### `unified.html` - Unified Interface
-- **Purpose**: Dual-panel interface combining vision and query functionality
+### `ai_vision_analysis.html` - Analysis Interface
+- **Purpose**: Analysis interface combining vision and query functionality
 - **Features**:
-  - 50/50 layout (vision panel + query panel)
   - Real-time camera feed with AI analysis
   - State query system with auto-trigger examples
-  - Unified response area with type differentiation
+  - Response area with type differentiation
   - Compact query input design
 - **Best For**: Users who need both vision analysis and state querying
 - **Response Types**: Vision Analysis (blue), State Query (green), System (yellow), Error (red)
@@ -106,7 +105,7 @@ src/frontend/
 ### Quick Start
 1. **Choose Interface**:
    - **Main App**: Open `index.html` for camera and AI analysis
-   - **Unified Interface**: Open `unified.html` for combined vision and query
+   - **Analysis Interface**: Open `ai_vision_analysis.html` for combined vision and query
    - **Query Only**: Open `query.html` for state querying
 
 2. **Grant Camera Permissions**:
@@ -139,7 +138,7 @@ The frontend supports multiple VLM models. For detailed performance information 
 
 ## 🎨 User Experience Features
 
-### Unified Interface (`unified.html`)
+### Analysis Interface (`ai_vision_analysis.html`)
 - **Dual-Panel Layout**: 50/50 split between vision and query panels
 - **Auto-Trigger Queries**: Click example queries to automatically execute
 - **Unified Response System**: All responses in one area with type differentiation
@@ -161,15 +160,15 @@ The frontend supports multiple VLM models. For detailed performance information 
 ## 🐛 Known Issues
 
 ### Technical Issues
-- **ES6 Modules**: Require HTTP server for proper loading (unified.html uses inline JS)
+- **ES6 Modules**: Require HTTP server for proper loading (ai_vision_analysis.html uses inline JS)
 - **Camera Permissions**: May require HTTPS in production
 - **File Size Limits**: Large images may cause timeout issues
 - **Browser Compatibility**: Some features require modern browsers
 
 ### Request Management Differences
 - **`index.html`**: Uses `window.currentRequestProcessing` for clean request management
-- **`unified.html`**: May show delayed responses after stopping (by design)
-- **Stop Behavior**: `index.html` stops immediately, `unified.html` allows pending requests to complete
+- **`ai_vision_analysis.html`**: May show delayed responses after stopping (by design)
+- **Stop Behavior**: `index.html` stops immediately, `ai_vision_analysis.html` allows pending requests to complete
 
 ## 📈 Performance Optimization
 
@@ -178,7 +177,7 @@ The frontend supports multiple VLM models. For detailed performance information 
 - **Caching**: API responses cached for repeated queries
 - **Compression**: Images compressed before upload
 - **Error Recovery**: Automatic retry for failed requests
-- **Inline JavaScript**: `unified.html` uses inline JS to avoid module loading issues
+- **Inline JavaScript**: `ai_vision_analysis.html` uses inline JS to avoid module loading issues
 
 ### User Experience Optimizations
 - **Connection Pooling**: Efficient API communication
@@ -235,4 +234,4 @@ The frontend supports multiple VLM models. For detailed performance information 
 
 **Last Updated**: 2025-Aug-01  
 **Browser Support**: Chrome 90+, Firefox 88+, Safari 14+  
-**Interface Status**: All three interfaces (index.html, unified.html, query.html) fully functional
+**Interface Status**: All three interfaces (index.html, ai_vision_analysis.html, query.html) fully functional

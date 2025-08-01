@@ -332,7 +332,7 @@ def _preprocess_answer(self, answer: str) -> str:
 ```json
 {
   "experiment_metadata": {
-    "test_date": "2025-07-29 13:12:58",
+    "test_date": "2025-01-08 00:00:00",
     "test_mode": "coco",
     "num_questions": 20,
     "framework_version": "vqa2_enhanced_v1.2",

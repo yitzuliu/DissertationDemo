@@ -1,93 +1,127 @@
-# Core dependencies (pinned for reproducibility)
+# AI Manual Assistant - Requirements
+# Vision-Language Model Integration System with Dual-Loop Memory Architecture
+
+# ===================================================================
+# Core Web Framework Dependencies
+# ===================================================================
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+starlette==0.46.2
+pydantic==2.11.5
+pydantic_core==2.33.2
+python-multipart==0.0.20
+
+# HTTP Client Libraries
+httpx==0.28.1
+httpcore==1.0.9
+requests==2.32.3
+h11==0.16.0
+
+# ===================================================================
+# AI/ML Core Dependencies
+# ===================================================================
+torch==2.7.0
+torchvision>=0.17.0
+transformers>=4.41.0
+accelerate>=0.30.0
+einops
+
+# Apple Silicon MLX Support (for M-series chips)
+# mlx-vlm  # Uncomment if using MLX models
+
+# ===================================================================
+# Vision & Image Processing
+# ===================================================================
+opencv-python==4.11.0.86
+Pillow==11.2.1
+numpy==2.2.6
+
+# ===================================================================
+# Vector Database & RAG System
+# ===================================================================
+# chromadb  # Uncomment if using ChromaDB for RAG
+diskcache==5.6.3
+
+# ===================================================================
+# Data Processing & Analysis
+# ===================================================================
+pandas==2.2.3
+matplotlib==3.10.3
+tqdm==4.67.1
+
+# ===================================================================
+# System Utilities
+# ===================================================================
+psutil==7.0.0
+python-dotenv==1.1.0
+python-dateutil==2.9.0.post0
+filelock==3.18.0
+packaging==25.0
+
+# ===================================================================
+# Optional: YOLO Object Detection
+# ===================================================================
+ultralytics==8.3.156
+
+# ===================================================================
+# Optional: LLaMA CPP Support
+# ===================================================================
+llama_cpp_python==0.3.9
+
+# ===================================================================
+# Optional: WebSocket Support
+# ===================================================================
+flask==3.1.1
+flask-socketio==5.5.1
+python-socketio==5.13.0
+python-engineio==4.12.2
+simple-websocket==1.1.0
+bidict==0.23.1
+
+# ===================================================================
+# System Dependencies (Auto-installed)
+# ===================================================================
 annotated-types==0.7.0
 anyio==4.9.0
-bidict==0.23.1
 blinker==1.9.0
 certifi==2025.4.26
 charset-normalizer==3.4.2
 click==8.2.1
 contourpy==1.3.2
 cycler==0.12.1
-diskcache==5.6.3
-fastapi==0.115.12
-filelock==3.18.0
-flask==3.1.1
-flask-socketio==5.5.1
 fonttools==4.58.1
 fsspec==2025.5.1
-h11==0.16.0
-httpcore==1.0.9
-httpx==0.28.1
 idna==3.10
 itsdangerous==2.2.0
 Jinja2==3.1.6
 kiwisolver==1.4.8
-llama_cpp_python==0.3.9
 MarkupSafe==3.0.2
-matplotlib==3.10.3
 mpmath==1.3.0
 networkx==3.5
-numpy==2.2.6
-opencv-python==4.11.0.86
-packaging==25.0
-pandas==2.2.3
-pillow==11.2.1
-psutil==7.0.0
-pydantic==2.11.5
-pydantic_core==2.33.2
 pyparsing==3.2.3
-python-dateutil==2.9.0.post0
-python-dotenv==1.1.0
-python-engineio==4.12.2
-python-multipart==0.0.20
-python-socketio==5.13.0
 pytz==2025.2
-requests==2.32.3
 setuptools==80.9.0
-simple-websocket==1.1.0
 six==1.17.0
 sniffio==1.3.1
-starlette==0.46.2
 sympy==1.14.0
-torch==2.7.0
-tqdm==4.67.1
 typing-inspection==0.4.1
 typing_extensions==4.13.2
 tzdata==2025.2
-ultralytics==8.3.156
 urllib3==2.4.0
-uvicorn==0.34.3
 werkzeug==3.1.3
 wsproto==1.2.0
 
-einops
-
-# ---
-# Web server dependencies
-fastapi
-uvicorn[standard]
-
-# ---
-# AI model dependencies
-torch>=2.2.0
-torchvision>=0.17.0
-transformers>=4.41.0
-accelerate>=0.30.0
-Pillow>=10.0.0
-
-# ---
-# Image processing
-opencv-python>=4.9.0
-python-multipart
-
-# For the web server
-fastapi
-uvicorn[standard]
-
-# For the Ollama client
-ollama>=0.2.0
-
-# For image processing
-opencv-python>=4.9.0
-python-multipart
-Pillow
+# ===================================================================
+# Installation Notes:
+# ===================================================================
+# 1. For Apple Silicon (M1/M2/M3) users:
+#    pip install mlx-vlm
+#
+# 2. For ChromaDB vector database:
+#    pip install chromadb
+#
+# 3. For development/testing:
+#    pip install pytest pytest-asyncio
+#
+# 4. Install all dependencies:
+#    pip install -r requirements.txt
