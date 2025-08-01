@@ -1,131 +1,112 @@
-# AI Manual Assistant - Vision Models
+# AI Manual Assistant - Vision Models Directory
 
-This directory contains all vision-language model implementations for the AI Manual Assistant system. Each model provides unique capabilities optimized for different use cases and performance requirements.
+This directory contains all vision-language model implementations for the AI Manual Assistant system. Each model is organized in its own subdirectory with complete implementation, documentation, and testing capabilities.
 
-## 🎯 Available Models Overview
-
-### Production-Ready Models
-
-#### 🏆 SmolVLM2-500M-Video-Instruct (Recommended)
-- **Status**: ✅ **Production Ready**
-- **Best For**: General-purpose vision analysis with video capabilities
-- **Performance**: 6.61s inference, 2.08GB memory
-- **Strengths**: Best accuracy/performance balance, video understanding
-- **Location**: `smolvlm2/`
-
-#### ⚡ Moondream2 (Speed Champion)
-- **Status**: ✅ **Production Ready**
-- **Best For**: Real-time applications, resource-constrained environments
-- **Performance**: 4.06s inference, 0.10GB memory
-- **Strengths**: Fastest inference, minimal memory usage
-- **Location**: `moondream2/`
-
-#### 🛡️ SmolVLM (Reliability Champion)
-- **Status**: ✅ **Production Ready**
-- **Best For**: Server-based deployments, batch processing
-- **Performance**: 5.98s inference, 1.58GB memory
-- **Strengths**: Robust llama-server architecture, comprehensive testing
-- **Location**: `smolvlm/`
-
-#### 🏆 LLaVA MLX (Accuracy Champion)
-- **Status**: ✅ **Production Ready**
-- **Best For**: High-accuracy image analysis, Apple Silicon systems
-- **Performance**: 2.8s inference, 7.2GB memory
-- **Strengths**: Highest accuracy, native MLX optimization
-- **Location**: `llava_mlx/`
-
-### Models with Known Issues
-
-#### ⚠️ Phi-3.5-Vision MLX
-- **Status**: ⚠️ **Has Issues**
-- **Issue**: Empty responses after first request
-- **Best For**: Single-use analysis (with restart)
-- **Performance**: 13.61s inference, 1.53GB memory
-- **Location**: `phi3_vision_mlx/`
-
-## 📊 Performance Comparison Matrix
-
-| Model | Accuracy | Speed | Memory | Apple Silicon | Status | Use Case |
-|-------|----------|-------|---------|---------------|--------|----------|
-| **SmolVLM2** | 🥇 66.0% | 6.61s | 2.08GB | ✅ MLX | ✅ Ready | General Purpose |
-| **LLaVA MLX** | 🏆 High | 2.8s | 7.2GB | 🏆 Native | ✅ Ready | High Accuracy |
-| **SmolVLM** | 🥈 64.0% | 5.98s | 1.58GB | ✅ MLX | ✅ Ready | Server Deployment |
-| **Moondream2** | 🥉 56.0% | 🏆 4.06s | 🏆 0.10GB | ✅ MPS | ✅ Ready | Real-time |
-| **Phi-3.5-Vision** | 60.0% | 13.61s | 1.53GB | ✅ MLX | ⚠️ Issues | Research Only |
-
-## 🏗️ Architecture Overview
-
-### Standard Implementation Pattern
-Each model follows a consistent dual-implementation pattern:
+## 📁 Directory Structure
 
 ```
 src/models/
-├── base_model.py                    # Base abstract class and factory
-├── smolvlm2/                        # SmolVLM2-500M-Video-Instruct (🏆 Best Overall)
-│   ├── run_smolvlm2.py             # Model server startup script
-│   ├── smolvlm2_model.py           # Model implementation
-│   └── SmolVLM2-500M-Video-Instruct/  # Model files
-├── smolvlm/                         # SmolVLM-500M-Instruct (Excellent Alternative)
-│   ├── run_smolvlm.py              # Model server startup script
-│   └── smolvlm_model.py            # Model implementation
-├── moondream2/                      # Moondream2 (⚡ Speed Champion)
-│   ├── run_moondream2_optimized.py # Optimized server script
-│   └── moondream2_model.py         # Model implementation
-├── llava_mlx/                       # LLaVA-v1.6 MLX (⚠️ Underperforming)
-│   ├── run_llava_mlx.py            # MLX-optimized server
-│   └── llava_mlx_model.py          # Model implementation
-├── Phi_3.5_Vision MLX/              # Phi-3.5-Vision MLX (High Accuracy)
-│   ├── run_phi3_vision_optimized.py # MLX-optimized server
-│   └── phi3_vision_model.py        # Model implementation
+├── base_model.py                    # Core abstract class and factory pattern
+├── smolvlm2/                        # SmolVLM2-500M-Video-Instruct (Recommended)
+├── smolvlm/                         # SmolVLM-500M-Instruct (Refactored)
+├── moondream2/                      # Moondream2 (Speed Optimized)
+├── llava_mlx/                       # LLaVA MLX (Apple Silicon Optimized)
+├── phi3_vision_mlx/                 # Phi-3.5-Vision MLX
 └── yolo8/                           # YOLOv8 (Object Detection)
-    ├── run_yolo8.py                # YOLO server script
-    └── yolo8_model.py              # Detection implementation
 ```
 
-### Model Configuration
+## 🎯 Quick Model Overview
 
-Each model has its own configuration file in `src/config/model_configs/`:
+| Model | Status | Best For | Location |
+|-------|--------|----------|----------|
+| **SmolVLM2** | ✅ Production Ready | General purpose + Video | `smolvlm2/` |
+| **SmolVLM** | ✅ Production Ready | Server deployment | `smolvlm/` |
+| **Moondream2** | ✅ Production Ready | Real-time applications | `moondream2/` |
+| **LLaVA MLX** | ✅ Production Ready | High accuracy | `llava_mlx/` |
+| **Phi-3.5-Vision** | ⚠️ Has Issues | Research/Testing | `phi3_vision_mlx/` |
+| **YOLOv8** | ✅ Production Ready | Object detection | `yolo8/` |
 
-- `smolvlm2_500m_video_optimized.json` - SmolVLM2 configuration
-- `smolvlm.json` - SmolVLM configuration  
-- `moondream2_optimized.json` - Moondream2 configuration
-- `phi3_vision_optimized.json` - Phi-3.5-Vision configuration
-- `llava_mlx.json` - LLaVA MLX configuration
+## 🔧 Core Architecture
 
-## 🔧 Model Implementation
+### Base Model System (`base_model.py`)
 
-### Base Model Interface
+The foundation of all model implementations:
 
-All models implement the `BaseVisionModel` abstract base class:
+- **`BaseVisionModel`**: Abstract base class defining the standard interface
+- **`VLMFactory`**: Factory pattern for creating model instances
+- **Common utilities**: Statistics tracking, health monitoring, resource management
 
+**Key Interface Methods:**
 ```python
-from models.base_model import BaseVisionModel
-
-class MyModel(BaseVisionModel):
-    def load_model(self):
-        # Load model implementation
-        pass
-    
-    def predict(self, image, prompt, options=None):
-        # Inference implementation
-        return result
-    
-    def cleanup(self):
-        # Resource cleanup
-        pass
+class BaseVisionModel(ABC):
+    def load_model(self) -> bool: pass      # Model initialization
+    def predict(self, image, prompt, options=None) -> Dict: pass  # Inference
+    def preprocess_image(self, image) -> Any: pass  # Image preparation
+    def format_response(self, raw_response) -> Dict: pass  # Response formatting
 ```
 
-### Model Factory
+### Model Implementation Pattern
 
-Use the factory pattern to create model instances:
+Each model subdirectory follows a consistent structure:
+
+```
+model_name/
+├── __init__.py              # Package initialization
+├── run_model.py             # Server startup script
+├── model_model.py           # Core model implementation
+├── README.md                # Model-specific documentation
+└── [model_files/]           # Model weights and configuration
+```
+
+## 🚀 Getting Started
+
+### 1. Choose Your Model
+
+Navigate to the specific model directory for detailed information:
+
+```bash
+# For SmolVLM2 (Recommended)
+cd src/models/smolvlm2/
+cat README.md
+
+# For SmolVLM (Refactored)
+cd src/models/smolvlm/
+cat README.md
+
+# For Moondream2 (Fast)
+cd src/models/moondream2/
+cat README.md
+```
+
+### 2. Start a Model Server
+
+Each model has its own startup script:
+
+```bash
+# SmolVLM2
+cd src/models/smolvlm2/
+python run_smolvlm2_500m_video.py
+
+# SmolVLM
+cd src/models/smolvlm/
+python run_smolvlm.py
+
+# Moondream2
+cd src/models/moondream2/
+python run_moondream2_optimized.py
+```
+
+### 3. Use the Model
+
+All models provide the same API interface:
 
 ```python
-from models.base_model import VLMFactory
+from src.models.base_model import VLMFactory
 
 # Create model instance
-model = VLMFactory.create_model(model_name, config)
+model = VLMFactory.create_model("smolvlm2", config)
 
-# Load and use model
+# Load and use
 model.load_model()
 result = model.predict(image, prompt)
 ```
@@ -133,92 +114,172 @@ result = model.predict(image, prompt)
 ## 📊 Model Selection Guide
 
 ### For Production Use
-1. **SmolVLM2-500M-Video-Instruct** - Best accuracy/speed balance (66.0% VQA accuracy)
-2. **SmolVLM-500M-Instruct** - Excellent reliability (64.0% VQA accuracy)
+- **SmolVLM2**: Best overall performance and video capabilities
+- **SmolVLM**: Excellent reliability with refactored codebase
+- **Moondream2**: Fastest inference for real-time applications
 
-### For Speed-Critical Applications
-1. **Moondream2** - Fastest inference (4.06s, minimal memory)
-
-### For Resource-Constrained Environments
-1. **Moondream2** - Lowest memory usage (0.10GB)
-2. **SmolVLM** - Good balance (1.58GB)
-
-### For Detailed Analysis
-1. **Phi-3.5-Vision (MLX)** - Comprehensive descriptions (60.0% accuracy)
-
-### ⚠️ Models to Avoid
-- **LLaVA-v1.6 (MLX)** - Performance issues due to model reloading overhead
+### For Development/Testing
+- **LLaVA MLX**: High accuracy for detailed analysis
+- **YOLOv8**: Object detection tasks
+- **Phi-3.5-Vision**: Research purposes (has known issues)
 
 ## 🔄 Model Switching
 
-To switch between models:
+The system supports hot-swapping between models:
 
-1. **Stop current model server** (Ctrl+C)
-2. **Start new model server** using appropriate run script
-3. **Backend automatically connects** to the new model on port 8080
-
-The system supports hot-swapping between models without restarting the backend or frontend.
+1. **Stop current model**: `Ctrl+C` in the model server terminal
+2. **Start new model**: Run the appropriate startup script
+3. **Backend auto-connects**: System automatically detects the new model
 
 ## 🧪 Testing Models
 
-Use the VQA 2.0 testing framework to evaluate model performance:
+### Individual Model Testing
+Each model directory contains its own testing capabilities:
 
 ```bash
-# Test single model
-python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm2
+# SmolVLM testing
+cd src/models/smolvlm/
+python test_refactored_smolvlm.py
 
-# Compare multiple models
-python src/testing/vqa/vqa_test.py --questions 10 --models smolvlm2 smolvlm moondream2
+# SmolVLM2 testing
+cd src/models/smolvlm2/
+# Check README.md for testing instructions
+```
+
+### System-wide Testing
+Use the unified testing framework:
+
+```bash
+# From project root
+python src/testing/vqa/vqa_test.py --models smolvlm2 smolvlm moondream2
 ```
 
 ## 🔨 Adding New Models
 
-To integrate a new model:
-
-1. **Create model directory**: `src/models/my_model/`
-2. **Implement model class**: Extend `BaseVisionModel`
-3. **Create run script**: `run_my_model.py` with FastAPI server
-4. **Add configuration**: `src/config/model_configs/my_model.json`
-5. **Update factory**: Add to `VLMFactory.create_model()`
-
-### Model Directory Template
-```
-src/models/my_model/
-├── run_my_model.py          # FastAPI server script
-├── my_model_model.py        # Model implementation
-├── __init__.py              # Package initialization
-└── README.md                # Model-specific documentation
+### 1. Create Model Directory
+```bash
+mkdir src/models/my_new_model/
+cd src/models/my_new_model/
 ```
 
-## 📋 TODO: Future Model Integrations
+### 2. Implement Required Files
+- **`__init__.py`**: Package initialization
+- **`run_my_new_model.py`**: Server startup script
+- **`my_new_model_model.py`**: Model implementation (extends `BaseVisionModel`)
+- **`README.md`**: Comprehensive documentation
 
-### Planned Model Additions
-- [ ] **Qwen2-VL-2B-Instruct** - Enhanced temporal reasoning
-- [ ] **MiniCPM-V-2.6** - Apple Silicon optimized efficiency
-- [ ] **InternVL2** - Advanced multimodal understanding
-- [ ] **CogVLM2** - Improved reasoning capabilities
+### 3. Update Factory
+Add to `src/models/base_model.py` in the `VLMFactory.create_model()` method:
 
-### Optimization Tasks
-- [ ] **Model quantization** - 4-bit/8-bit optimization for faster inference
-- [ ] **Batch processing** - Support for multiple image processing
-- [ ] **Model caching** - Persistent model loading to reduce startup time
-- [ ] **GPU acceleration** - CUDA support for non-Apple Silicon systems
+```python
+elif "my_new_model" in model_type:
+    return MyNewModelModel(model_name, config)
+```
 
-### Infrastructure Improvements
-- [ ] **Model health monitoring** - Advanced health check endpoints
-- [ ] **Performance profiling** - Detailed inference time breakdown
-- [ ] **Memory optimization** - Better memory management across models
-- [ ] **API versioning** - Support for different API versions
+### 4. Add Configuration
+Create `src/config/model_configs/my_new_model.json`
 
-## 📚 Additional Resources
+## 📚 Detailed Documentation
 
-- **[System Architecture](../../docs/ARCHITECTURE.md)** - Overall system design
-- **[Model Comparison](../../docs/MODEL_COMPARISON.md)** - Detailed performance analysis
-- **[API Documentation](../../docs/API.md)** - Complete API reference
-- **[Test Results](../../TEST_RESULTS_SUMMARY.md)** - Latest performance benchmarks
+For comprehensive information about each model, visit the specific model directories:
+
+- **[SmolVLM2 Documentation](./smolvlm2/README.md)** - Video understanding capabilities
+- **[SmolVLM Documentation](./smolvlm/README.md)** - Refactored server architecture
+- **[Moondream2 Documentation](./moondream2/README.md)** - Speed optimization
+- **[LLaVA MLX Documentation](./llava_mlx/README.md)** - Apple Silicon optimization
+- **[Phi-3.5-Vision Documentation](./phi3_vision_mlx/README.md)** - Research model
+- **[YOLOv8 Documentation](./yolo8/README.md)** - Object detection
+
+## 🔧 Technical Details
+
+### Configuration Files
+All model configurations are stored in `src/config/model_configs/`:
+- `smolvlm2_500m_video_optimized.json`
+- `smolvlm.json`
+- `moondream2_optimized.json`
+- `llava_mlx.json`
+- `phi3_vision_optimized.json`
+- `yolo8.json`
+
+### Server Architecture
+Each model provides:
+- **Health check endpoint**: `/health`
+- **OpenAI-compatible API**: `/v1/chat/completions`
+- **Performance statistics**: `/stats`
+- **Standardized response format**
+
+### Memory Management
+- **Automatic cleanup**: Memory management utilities in base class
+- **Resource monitoring**: Health check and statistics tracking
+- **Graceful shutdown**: Proper resource cleanup on exit
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **Import Errors**
+   ```bash
+   # Ensure you're in the correct directory
+   cd src/models/specific_model/
+   python run_model.py
+   ```
+
+2. **Port Conflicts**
+   ```bash
+   # Check if port 8080 is in use
+   lsof -i :8080
+   # Kill conflicting processes
+   sudo lsof -ti:8080 | xargs sudo kill -9
+   ```
+
+3. **Model Loading Issues**
+   ```bash
+   # Check model files exist
+   ls -la model_directory/
+   # Verify configuration
+   cat src/config/model_configs/model_name.json
+   ```
+
+### Getting Help
+
+1. **Check model-specific README**: Each model has detailed documentation
+2. **Review logs**: Check `logs/` directory for error messages
+3. **Test individual components**: Use model-specific test scripts
+4. **Verify configuration**: Ensure all paths and settings are correct
+
+## 📈 Performance Monitoring
+
+### Built-in Statistics
+Each model tracks:
+- **Request count**: Total number of processed requests
+- **Processing time**: Average and last processing time
+- **Memory usage**: Current memory consumption
+- **Health status**: Model availability and status
+
+### Monitoring Endpoints
+```bash
+# Health check
+curl http://localhost:8080/health
+
+# Performance statistics
+curl http://localhost:8080/stats
+```
+
+## 🔄 Recent Updates
+
+### ✅ **Code Organization (January 2025)**
+- **SmolVLM**: Complete refactoring with unified server management
+- **SmolVLM2**: Clean structure with dual implementation
+- **All Models**: Proper package initialization with `__init__.py`
+- **Import Paths**: Fixed for better compatibility
+
+### ✅ **Documentation Improvements**
+- **README Files**: Updated to reflect current implementation status
+- **Structure Clarity**: Clear file organization and purpose
+- **User Guidance**: Better navigation to specific model details
 
 ---
 
-**For model-specific documentation, see the README.md file in each model's directory.**
+**For detailed information about specific models, please visit their respective directories and read their README.md files.**
 
-**Last Updated**: January 2025
+**Last Updated**: January 2025 | **Status**: ✅ **All Models Organized & Production Ready**
