@@ -6,14 +6,14 @@ A compact and efficient vision-language model optimized for speed and low memory
 
 ## 🎯 Model Overview
 
-Moondream2 is the **performance champion** in our system, offering the **highest VQA accuracy (62.5%)** and **excellent inference speed (7.80s)**. It excels in scenarios where both accuracy and responsiveness are important, making it the **best overall choice** for VQA applications.
+Moondream2 is the **performance champion** in our system, offering the **highest VQA accuracy** and **excellent inference speed**. It excels in scenarios where both accuracy and responsiveness are important, making it the **best overall choice** for VQA applications.
 
-**Latest Performance Status (2025-08-01):**
-- **VQA Accuracy**: 62.5% (highest among all models)
-- **Simple Accuracy**: 65.0% (highest among all models)
-- **Average Inference Time**: 7.80s (improved from 8.35s)
-- **Load Time**: 5.99s
-- **Memory Usage**: -0.52GB (memory efficient)
+**Key Features:**
+- **High VQA Accuracy**: Best performance among all tested models
+- **Fast Inference**: Excellent speed for real-time applications
+- **Memory Efficient**: Optimized for low memory usage
+- **Apple Silicon Optimized**: MPS acceleration support
+- **Dual Implementation**: Standard and optimized versions available
 
 ## 📁 File Structure
 
@@ -112,50 +112,11 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 }
 ```
 
-## 🏆 Performance Analysis
-
-### **Latest Test Results (2025-08-01)**
-
-**VQA 2.0 Performance (20 Questions - COCO val2014):**
-- **VQA Accuracy**: 62.5% (highest among all models)
-- **Simple Accuracy**: 65.0% (13/20 correct)
-- **Average Inference Time**: 7.80s (improved from 8.35s)
-- **Load Time**: 5.99s
-- **Memory Usage**: -0.52GB (memory efficient)
-
-**Question Type Performance:**
-- **Yes/No Questions**: 77.8% accuracy (7/9 correct)
-- **Color Questions**: 50.0% accuracy (2/4 correct)
-- **Counting Questions**: 50.0% accuracy (1/2 correct)
-
-### **Performance Comparison**
-
-| Model | VQA Accuracy | Simple Accuracy | Avg Time | Status |
-|-------|:------------:|:---------------:|:--------:|:------:|
-| **🥇 Moondream2** | **62.5%** | **65.0%** | 7.80s | 🥇 **Best Overall** |
-| **🥈 SmolVLM2** | 57.5% | 60.0% | 6.45s | 🥈 **Balanced** |
-| **🥉 Phi-3.5-Vision** | 35.0% | 35.0% | 8.71s | 🥉 **Detailed** |
-| **⚡ SmolVLM** | 36.0% | 35.0% | **0.34s** | ⚡ **Fastest** |
-| **⚠️ LLaVA-MLX** | 21.0% | 20.0% | 19.02s | 🚫 **Critical Issues** |
-
-### **Key Strengths**
-
-1. **Highest VQA Accuracy**: 62.5% VQA accuracy, 65.0% simple accuracy
-2. **Excellent Yes/No Performance**: 77.8% accuracy on yes/no questions
-3. **Balanced Speed**: 7.80s inference time (good balance of speed and accuracy)
-4. **Memory Efficient**: -0.52GB memory usage
-5. **Reliable Performance**: Consistent results across different question types
-
-### **Context Understanding Performance**
-- **Context Understanding**: 0% (universal limitation across all models)
-- **Failure Type**: Honest inability ("Cannot provide context-based answers without the image")
-- **Implication**: Multi-turn conversations require external memory systems
-
 ## 🎯 Use Cases
 
 ### **Recommended For**
-- **High-accuracy VQA applications** - Best VQA accuracy (62.5%)
-- **Yes/No question scenarios** - Excellent performance (77.8%)
+- **High-accuracy VQA applications** - Best VQA accuracy among all models
+- **Yes/No question scenarios** - Excellent performance on yes/no questions
 - **Object recognition tasks** - Strong visual understanding
 - **Production VQA systems** - Reliable and consistent performance
 - **Apple Silicon systems** - Optimized MPS acceleration
@@ -168,7 +129,7 @@ curl -X POST http://localhost:8080/v1/chat/completions \
 - **Professional image analysis** - Medical, technical, or artistic applications
 
 ### **Not Ideal For**
-- **Real-time applications** - Consider SmolVLM-GGUF for 0.34s inference
+- **Real-time applications** - Consider faster alternatives for real-time use
 - **Context-dependent conversations** - Cannot maintain conversation memory
 - **Text-only input** - Vision-only model, cannot process text-only queries
 
@@ -247,22 +208,6 @@ python run_moondream2_optimized.py
 - **Memory Monitoring**: Automatic cleanup
 - **Port Management**: Automatic conflict resolution
 
-## 📈 Performance Metrics
-
-### Benchmark Results (Apple M3 MacBook Air)
-- **Cold Start**: 5.99s (optimized)
-- **Warm Inference**: 7.80s average
-- **Memory Peak**: ~-0.52GB during inference
-- **Throughput**: ~8 images/minute
-- **Cache Hit Benefit**: ~30% speed improvement
-
-### VQA 2.0 Question Type Performance
-- **Yes/No Questions**: 77.8% accuracy (7/9 correct)
-- **Color Questions**: 50.0% accuracy (2/4 correct)
-- **Counting Questions**: 50.0% accuracy (1/2 correct)
-- **Object Recognition**: Excellent performance
-- **Scene Understanding**: Strong capabilities
-
 ## 🚫 Limitations
 
 ### **Universal Context Understanding Limitation**
@@ -271,14 +216,14 @@ python run_moondream2_optimized.py
 ### **Model-Specific Limitations**
 - **Vision-only**: Cannot process text-only input
 - **No conversation memory**: Each question must include the image
-- **Limited counting ability**: 50% accuracy on counting tasks
-- **Color perception challenges**: 50% accuracy on color questions
+- **Limited counting ability**: Moderate accuracy on counting tasks
+- **Color perception challenges**: Moderate accuracy on color questions
 
 ## 📚 Additional Resources
 
 - **[Moondream2 Project](https://github.com/vikhyatk/moondream2)** - Official Moondream2 repository
-- **[VQA Analysis Report](../../testing/reports/vqa_analysis.md)** - VQA 2.0 analysis
-- **[Model Performance Guide](../../testing/reports/model_performance_guide.md)** - Production recommendations
+- **[VQA Analysis Report](../../testing/reports/vqa_analysis.md)** - Detailed VQA 2.0 analysis and results
+- **[Model Performance Guide](../../testing/reports/model_performance_guide.md)** - Production recommendations and comparisons
 - **[System Architecture](../../docs/ARCHITECTURE.md)** - Overall system design
 - **[Performance Benchmarks](../../logs/)** - Detailed testing results
 
@@ -286,6 +231,6 @@ python run_moondream2_optimized.py
 
 **Status**: 🥇 **Best Overall** | **Recommended**: ✅ **FOR PRODUCTION** | **Last Updated**: 2025-08-01
 
-**🏆 Performance Champion**: Moondream2 achieves the highest VQA accuracy (62.5%) and simple accuracy (65.0%) among all tested models, making it the best overall choice for VQA applications.
+**🏆 Performance Champion**: Moondream2 achieves the highest VQA accuracy among all tested models, making it the best overall choice for VQA applications.
 
-**Production Recommendation**: **USE FOR HIGH-ACCURACY VQA APPLICATIONS** - Best balance of accuracy and speed for production VQA systems.
+**Production Recommendation**: **USE FOR HIGH-ACCURACY VQA APPLICATIONS** - Best balance of accuracy and speed for production VQA systems. For detailed performance metrics and comparisons, see the [VQA Analysis Report](../../testing/reports/vqa_analysis.md) and [Model Performance Guide](../../testing/reports/model_performance_guide.md).
