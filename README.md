@@ -69,14 +69,21 @@ User Query → Backend API → State Tracker → Query Processor
                                 ↓                     ↓
                           Detailed AI Answer    Fast Standard Response
                           (1-5 seconds)         (<50ms)
+                                ↓
+                          [Metadata Filtering]
+                                ↓
+                          Skip State Tracker
+                          (Prevents Incorrect
+                           State Updates)
 ```
 
 ### Core Components
 - **Decision Engine**: Intelligent routing based on query complexity and confidence scoring
-- **VLM Client**: Asynchronous communication with Vision-Language Model server
+- **VLM Client**: Asynchronous communication with Vision-Language Model server (includes metadata filtering)
 - **Prompt Manager**: Dynamic prompt optimisation and template management
 - **Fallback Processor**: Main orchestration component with error recovery
 - **State Integration**: Seamless integration with existing state tracking system
+- **Metadata Filtering**: Request source differentiation to prevent incorrect state updates
 
 ## 🎯 Core Features
 
@@ -97,6 +104,51 @@ User Query → Backend API → State Tracker → Query Processor
 - **Real-time Analytics**: Processing time and success rate tracking
 - **System Health Monitoring**: Continuous service availability checks
 - **Error Analysis**: Comprehensive error tracking and reporting
+
+### ✅ State Tracker Integration Fix
+- **Request Source Differentiation**: Intelligent distinction between VLM observations and fallback queries
+- **Metadata-Based Filtering**: Automatic filtering of fallback requests from state tracking
+- **State Consistency Protection**: Prevents incorrect state updates from fallback responses
+- **Transparent User Experience**: Maintains seamless user interaction without revealing system internals
+
+## 🔧 Recent System Enhancement: VLM Fallback State Tracker Integration Fix
+
+### Problem Description
+The system previously had an issue where VLM Fallback responses were incorrectly processed by the State Tracker, leading to:
+- **Incorrect State Updates**: Fallback query responses being treated as environment observations
+- **State Inconsistency**: System state becoming misaligned with actual user environment
+- **Confusing User Experience**: Subsequent queries based on incorrect state information
+
+### Solution Implementation
+Implemented a metadata-based filtering system that:
+- **Adds Request Metadata**: VLM Fallback requests include `skip_state_tracker: true` metadata
+- **Backend Request Filtering**: Backend automatically skips State Tracker processing for fallback requests
+- **Maintains Transparency**: User experience remains unchanged while fixing internal logic
+
+### Technical Details
+```python
+# VLM Client adds metadata to fallback requests
+payload = {
+    "messages": [...],
+    "metadata": {
+        "source": "fallback_query",
+        "skip_state_tracker": True
+    }
+}
+
+# Backend checks metadata before State Tracker processing
+if skip_state_tracker:
+    logger.info("Skipping State Tracker processing for fallback request")
+else:
+    # Normal State Tracker processing
+    state_updated = await state_tracker.process_vlm_response(vlm_text)
+```
+
+### Impact
+- **✅ Fixed State Consistency**: State Tracker no longer processes fallback responses
+- **✅ Maintained Performance**: No impact on response times or system performance
+- **✅ Preserved User Experience**: Frontend display remains unchanged
+- **✅ Enhanced System Reliability**: More accurate state tracking and query responses
 
 ### ✅ Production-Ready Quality
 - **100% Test Coverage**: All 36 tests passing
@@ -205,9 +257,10 @@ User Query → Backend API → State Tracker → Query Processor
 
 ### VLM Fallback Components
 - **Decision Engine**: Confidence-based query routing
-- **VLM Client**: Async HTTP client with connection pooling
+- **VLM Client**: Async HTTP client with connection pooling and metadata filtering
 - **Prompt Manager**: Dynamic template management
 - **Fallback Processor**: Main orchestration with error recovery
+- **Metadata System**: Request source identification and filtering
 
 ### System Requirements
 - **Python**: 3.8 or higher
@@ -224,6 +277,7 @@ User Query → Backend API → State Tracker → Query Processor
 - **Production-Ready Code Quality**: Clean, maintainable, and well-documented codebase
 - **High Performance**: Sub-5 second response times for complex queries
 - **Robust Architecture**: Fault-tolerant design with graceful degradation
+- **State Tracker Integration Fix**: Resolved VLM Fallback state update issues with metadata filtering
 
 ### ✅ System Quality
 - **Comprehensive Documentation**: Complete technical and user documentation

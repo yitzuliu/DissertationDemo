@@ -167,7 +167,12 @@ class VLMClient:
                     }
                 ],
                 "max_tokens": request.max_tokens,
-                "temperature": request.temperature
+                "temperature": request.temperature,
+                # 新增：明確標記為 Fallback 請求
+                "metadata": {
+                    "source": "fallback_query",
+                    "skip_state_tracker": True
+                }
             }
             
             # Send request to VLM service

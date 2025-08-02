@@ -217,6 +217,11 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
     # 獲取視覺日誌記錄器
     visual_logger = get_visual_logger()
     
+    # 檢查是否為 Fallback 請求
+    skip_state_tracker = False
+    if hasattr(request, 'metadata') and request.metadata:
+        skip_state_tracker = request.metadata.get("skip_state_tracker", False)
+    
     try:
         logger.info(f"[{request_id}] Processing request with model: {ACTIVE_MODEL}")
         
@@ -225,7 +230,8 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             "model": ACTIVE_MODEL,
             "messages": request.messages,
             "max_tokens": getattr(request, 'max_tokens', None),
-            "temperature": getattr(request, 'temperature', None)
+            "temperature": getattr(request, 'temperature', None),
+            "skip_state_tracker": skip_state_tracker  # 記錄是否跳過 State Tracker
         })
         
         # 更新支援的模型清單，確保包含所有配置的模型
@@ -238,7 +244,6 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             "moondream2", 
             "moondream2_optimized", 
             "llava_mlx",
-            "qwen2_vl",
             "yolo8"
         ]
         
@@ -458,22 +463,30 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                             
                             # Process with State Tracker if we have valid text
                             if vlm_text and len(vlm_text.strip()) > 0:
-                                # 記錄RAG資料傳遞
-                                visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
-                                
-                                # 處理狀態追蹤器整合
-                                state_tracker_start = time.time()
-                                state_tracker = get_state_tracker()
-                                state_updated = await state_tracker.process_vlm_response(vlm_text, observation_id)
-                                state_tracker_time = time.time() - state_tracker_start
-                                
-                                # 記錄狀態追蹤器整合結果
-                                visual_logger.log_state_tracker_integration(
-                                    observation_id, state_updated, state_tracker_time
-                                )
-                                
-                                logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}")
-                                logger.info(f"[{request_id}] State Tracker full response: {vlm_text}")
+                                # 檢查是否為 Fallback 請求，如果是則跳過 State Tracker 處理
+                                if skip_state_tracker:
+                                    logger.info(f"[{request_id}] Skipping State Tracker processing for fallback request")
+                                    # 記錄跳過處理
+                                    visual_logger.log_state_tracker_integration(
+                                        observation_id, False, 0.0
+                                    )
+                                else:
+                                    # 記錄RAG資料傳遞
+                                    visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
+                                    
+                                    # 處理狀態追蹤器整合
+                                    state_tracker_start = time.time()
+                                    state_tracker = get_state_tracker()
+                                    state_updated = await state_tracker.process_vlm_response(vlm_text, observation_id)
+                                    state_tracker_time = time.time() - state_tracker_start
+                                    
+                                    # 記錄狀態追蹤器整合結果
+                                    visual_logger.log_state_tracker_integration(
+                                        observation_id, state_updated, state_tracker_time
+                                    )
+                                    
+                                    logger.info(f"[{request_id}] State Tracker processed VLM response: updated={state_updated}")
+                                    logger.info(f"[{request_id}] State Tracker full response: {vlm_text}")
                             else:
                                 # 記錄RAG資料傳遞失敗
                                 visual_logger.log_rag_data_transfer(observation_id, "", False)
@@ -810,7 +823,6 @@ async def get_status():
                 "moondream2", 
                 "moondream2_optimized", 
                 "llava_mlx",
-                "qwen2_vl",
                 "yolo8"
             ],
             "config": config_manager.get_config(),
@@ -917,9 +929,6 @@ def format_message_for_model(message, image_count, model_name):
             formatted_text = text_content
         elif model_name == "llava_mlx":
             # LLaVA MLX doesn't need special image tags
-            formatted_text = text_content
-        elif model_name == "qwen2_vl":
-            # Qwen2-VL doesn't need special image tags
             formatted_text = text_content
         elif model_name == "yolo8":
             # YOLO8 for object detection
