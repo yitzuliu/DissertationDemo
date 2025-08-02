@@ -10,6 +10,8 @@
 venv/
 env/
 ENV/
+env_*/
+*env/
 
 # Python cache files
 __pycache__/
