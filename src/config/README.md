@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 
-The configuration system manages all settings for the AI Vision Intelligence Hub, including model configurations, application settings, and prompt templates. This system provides a centralized, flexible, and validated approach to managing the entire application's behavior.
+The configuration system manages all settings for the AI Vision Intelligence Hub, including model configurations, application settings, prompt templates, VLM system settings, and VLM fallback system settings. This system provides a centralized, flexible, and validated approach to managing the entire application's behavior including intelligent query processing and multi-model vision-language processing.
 
 ## 🏗️ Architecture
 
@@ -23,8 +23,10 @@ src/config/
 │   ├── smolvlm2_500m_video.json # Standard SmolVLM2 Video
 │   ├── smolvlm2_500m_video_optimized.json # Optimized SmolVLM2 Video
 │   └── yolo8.json             # YOLO8 Object Detection
-└── prompts/                   # Prompt templates
-    └── manual_assistant_prompts.json # Assistant prompt variations
+├── prompts/                   # Prompt templates
+│   └── manual_assistant_prompts.json # Assistant prompt variations
+├── vlm_fallback_config.json  # VLM Fallback system configuration
+└── vlm_system_config.json    # VLM System multi-model configuration
 ```
 
 ## 🚀 Core Components
@@ -81,6 +83,20 @@ src/config/
 - **Troubleshooting**: Problem diagnosis
 - **Progress Check**: Task monitoring
 - **Tool Identification**: Equipment recognition
+
+### 5. VLM Fallback Configuration (`vlm_fallback_config.json`)
+**Intelligent query processing settings:**
+- **Decision Engine**: Confidence thresholds and fallback criteria
+- **VLM Client**: Connection settings and timeout configuration
+- **Prompt Management**: Template switching and optimization
+- **Performance**: Response time limits and retry policies
+
+### 6. VLM System Configuration (`vlm_system_config.json`)
+**Multi-model vision-language processing settings:**
+- **Model Selection**: Intelligent model routing and selection criteria
+- **Performance Monitoring**: Model-specific performance tracking
+- **Load Balancing**: Request distribution across multiple models
+- **Fault Tolerance**: Model failure handling and recovery
 
 ## 🔧 Configuration Features
 
@@ -287,6 +303,6 @@ For configuration issues:
 
 ---
 
-**Last Updated**: 2025-Aug-01  
-**Version**: 2.0 (Post-Optimization)  
+**Last Updated**: August 2, 2025  
+**Version**: 4.0 (VLM System Integration)  
 **Maintainer**: AI Vision Intelligence Hub Team 

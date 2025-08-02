@@ -11,7 +11,7 @@ This frontend provides a comprehensive web interface for the Vision Intelligence
 - **AI Vision Analysis**: Real-time image analysis using VLM models
 - **State Query System**: Instant querying of current task progress
 - **Unified Interface**: Dual-panel design combining vision and query functionality
-- **Multi-Model Support**: Switch between different VLM implementations
+- **Multi-Model Support**: Switch between different VLM implementations with intelligent model selection
 - **Offline Mode**: Graceful handling when backend is unavailable
 
 ### User Interface Options
@@ -131,10 +131,11 @@ The frontend automatically detects and connects to the backend API. Default conf
 - **Config Endpoint**: `/config`
 
 ### Model Selection
-The frontend supports multiple VLM models. For detailed performance information and model comparisons, see:
+The frontend supports multiple VLM models with intelligent model selection. For detailed performance information and model comparisons, see:
 - `../models/README.md` - Model performance and technical details
 - `../config/model_configs/` - Individual model configurations
 - `../config/models_config.json` - Model registry and metadata
+- `../docs/vlm_system_guide.md` - VLM System architecture and capabilities
 
 ## 🎨 User Experience Features
 
@@ -232,6 +233,6 @@ The frontend supports multiple VLM models. For detailed performance information 
 
 ---
 
-**Last Updated**: 2025-Aug-01  
+**Last Updated**: August 2, 2025  
 **Browser Support**: Chrome 90+, Firefox 88+, Safari 14+  
-**Interface Status**: All three interfaces (index.html, ai_vision_analysis.html, query.html) fully functional
+**Interface Status**: All three interfaces (index.html, ai_vision_analysis.html, query.html) fully functional with VLM System integration

@@ -26,7 +26,7 @@ Verify the coordinated operation of the dual-loop memory system in a cross-servi
 **Key Achievements**:
 - Real VLM observation process fully verified
 - RAG knowledge base correctly identified brewing_coffee task
-- Complete unconscious loop data flow畅通
+- Complete unconscious loop data flow smooth operation
 
 ### **2. Instant Response Loop Cross-Service Operation** ✅
 **Verification Content**:
@@ -86,7 +86,7 @@ Verify the coordinated operation of the dual-loop memory system in a cross-servi
 - ✅ Long-term operation no crashes or memory leaks
 
 **Key Achievements**:
-- System long-term stability达标
+- System long-term stability compliance achieved
 - Background operation mechanism completely reliable
 - Resource management normal
 

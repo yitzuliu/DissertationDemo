@@ -1,268 +1,326 @@
-# State Tracker 使用指南
+# State Tracker User Guide
 
-## 📋 概述
+## 📋 Overview
 
-State Tracker 是 AI Manual Assistant 的核心組件，負責**智能追蹤用戶的任務進度**並提供**即時狀態查詢**。它就像一個智能助手，能夠：
+The State Tracker is the core component of the AI Manual Assistant, responsible for **intelligently tracking user task progress** and providing **instant status queries**. It works like an intelligent assistant that can:
 
-- 🎯 **自動識別**您當前正在執行的任務步驟
-- 💾 **記憶**您的任務進度和歷史狀態
-- ⚡ **即時回應**您的狀態查詢（毫秒級響應）
-- 🛡️ **智能過濾**不準確的觀察，確保狀態準確性
+- 🎯 **Automatically identify** the current task step you're executing
+- 💾 **Remember** your task progress and historical states
+- ⚡ **Instantly respond** to your status queries (millisecond-level response)
+- 🛡️ **Intelligently filter** inaccurate observations to ensure state accuracy
 
-## 🏗️ 系統架構
+## 🏗️ System Architecture
 
-### **雙循環設計**
+### **Dual-Loop Design**
 
 ```
-🔄 潛意識循環（持續運行）
-VLM 觀察 → 智能匹配 → 狀態更新 → 記憶存儲
+🔄 Unconscious Loop (continuously running)
+VLM Observation → Intelligent Matching → State Update → Memory Storage
 
-⚡ 即時響應循環（按需觸發）  
-用戶查詢 → 直接讀取 → 即時回應
+⚡ Instant Response Loop (triggered on demand)  
+User Query → Direct Read → Instant Response
 ```
 
-### **核心組件**
+### **Core Components**
 
-- **State Tracker**：主控制器，協調所有功能
-- **RAG 知識庫**：任務知識匹配引擎
-- **Query Processor**：智能查詢處理器
-- **滑動窗口記憶**：高效的狀態存儲系統
+- **State Tracker**: Main controller that coordinates all functions
+- **RAG Knowledge Base**: Task knowledge matching engine
+- **Query Processor**: Intelligent query processor
+- **Sliding Window Memory**: Efficient state storage system
 
-## 🎯 主要功能
+## 🎯 Main Features
 
-### **1. 自動狀態追蹤**
+### **1. Automatic State Tracking**
 
-State Tracker 會自動：
-- 接收 VLM 的視覺觀察
-- 與任務知識庫進行智能匹配
-- 評估匹配置信度
-- 更新當前任務狀態
+The State Tracker automatically:
+- Receives VLM visual observations
+- Performs intelligent matching with task knowledge base
+- Evaluates matching confidence
+- Updates current task state
 
-**示例場景：**
+**Example Scenario:**
 ```
-VLM 觀察：「用戶正在磨咖啡豆」
+VLM Observation: "User is grinding coffee beans"
 ↓
-State Tracker 匹配：咖啡沖泡任務 - 步驟 3
+State Tracker Match: Coffee brewing task - Step 3
 ↓
-更新狀態：當前在咖啡沖泡任務的第 3 步
+Update State: Currently on step 3 of coffee brewing task
 ```
 
-### **2. 智能置信度評估**
+### **2. Intelligent Confidence Assessment**
 
-系統使用三層置信度評估：
+The system uses a three-tier confidence assessment:
 
-| 置信度 | 分數範圍 | 更新策略 |
-|--------|----------|----------|
-| 🟢 **高** | ≥ 0.70 | 直接更新狀態 |
-| 🟡 **中** | 0.40-0.69 | 檢查一致性後更新 |
-| 🔴 **低** | < 0.40 | 不更新，等待更好匹配 |
+| Confidence | Score Range | Update Strategy |
+|------------|-------------|-----------------|
+| 🟢 **High** | ≥ 0.70 | Direct state update |
+| 🟡 **Medium** | 0.40-0.69 | Update after consistency check |
+| 🔴 **Low** | < 0.40 | Don't update, wait for better match |
 
-### **3. 即時查詢響應**
+### **3. Instant Query Response**
 
-支援多種查詢類型：
+Supports multiple query types:
 
-#### **基本查詢**
-- **當前步驟**：「我在哪一步？」、「現在做什麼？」
-- **下一步驟**：「接下來做什麼？」、「下一步是什麼？」
-- **所需工具**：「需要什麼工具？」、「要用什麼設備？」
+#### **Basic Queries**
+- **Current Step**: "What step am I on?", "What am I doing now?"
+- **Next Step**: "What's next?", "What's the next step?"
+- **Required Tools**: "What tools do I need?", "What equipment should I use?"
 
-#### **進度查詢**
-- **完成狀態**：「完成了多少？」、「還剩多少？」
-- **進度概覽**：「整體進度如何？」、「任務概況？」
+#### **Progress Queries**
+- **Completion Status**: "How much is done?", "How much is left?"
+- **Progress Overview**: "How's the overall progress?", "What's the task overview?"
 
-#### **幫助查詢**
-- **操作指導**：「怎麼做？」、「需要幫助」
+#### **Help Queries**
+- **Operation Guidance**: "How do I do this?", "I need help"
 
-## 🚀 使用方式
+## 🚀 Usage
 
-### **1. 系統啟動**
+### **1. System Startup**
 
-State Tracker 會在系統啟動時自動初始化：
+The State Tracker automatically initializes when the system starts:
 
 ```python
-# 自動初始化
+# Automatic initialization
 state_tracker = StateTracker()
-# 載入 RAG 知識庫
-# 準備查詢處理器
-# 啟動滑動窗口記憶
+# Load RAG knowledge base
+# Prepare query processor
+# Start sliding window memory
 ```
 
-### **2. 自動狀態追蹤**
+### **2. Automatic State Tracking**
 
-無需手動操作，系統會自動：
+No manual operation required, the system automatically:
 
 ```python
-# 接收 VLM 觀察
+# Receive VLM observation
 await state_tracker.process_vlm_response(vlm_text)
 
-# 自動執行：
-# 1. 清理文本
-# 2. RAG 匹配
-# 3. 置信度評估
-# 4. 狀態更新
-# 5. 記憶存儲
+# Automatically executes:
+# 1. Text cleaning
+# 2. RAG matching
+# 3. Confidence assessment
+# 4. State update
 ```
 
-### **3. 查詢當前狀態**
+### **3. Query Response**
+
+Users can ask questions at any time:
 
 ```python
-# 獲取當前狀態
-current_state = state_tracker.get_current_state()
+# User query
+response = await state_tracker.query("What step am I on?")
 
-# 返回格式：
+# Response format
 {
+  "status": "success",
+  "response_text": "You are currently on step 3 of the coffee brewing task",
+  "query_type": "CURRENT_STEP",
+  "confidence": 0.85,
+  "processing_time_ms": 45
+}
+```
+
+## 🔧 Technical Details
+
+### **Memory Management**
+
+The system uses a sliding window memory approach:
+
+```python
+# Memory structure
+{
+  "current_state": {
     "task_name": "coffee_brewing",
-    "step_id": 3,
-    "step_title": "Grind Coffee Beans",
-    "step_description": "Grind coffee beans to medium-fine consistency...",
+    "current_step": 3,
     "confidence": 0.85,
-    "timestamp": "2025-01-27T10:30:00",
-    "tools_needed": ["coffee_grinder", "coffee_beans", "digital_scale"],
-    "completion_indicators": ["beans_ground_to_medium_fine_consistency", "22_grams_ground_coffee_measured"]
+    "timestamp": "2025-02-08T10:30:00Z"
+  },
+  "history": [
+    # Last 10 state changes
+  ],
+  "metadata": {
+    "total_queries": 150,
+    "average_confidence": 0.78
+  }
 }
 ```
 
-### **4. 即時查詢處理**
+### **RAG Integration**
+
+The system integrates with RAG for intelligent matching:
 
 ```python
-# 處理用戶查詢
-result = state_tracker.process_instant_query("我在哪一步？")
+# RAG matching process
+def match_task_knowledge(observation):
+    # 1. Text preprocessing
+    cleaned_text = preprocess_text(observation)
+    
+    # 2. Vector search
+    matches = rag_search(cleaned_text)
+    
+    # 3. Confidence calculation
+    confidence = calculate_confidence(matches)
+    
+    # 4. State determination
+    return determine_state(matches, confidence)
+```
 
-# 返回格式：
+### **Performance Optimization**
+
+- **Caching**: Frequently accessed states are cached
+- **Parallel Processing**: Multiple queries processed concurrently
+- **Memory Optimization**: Efficient memory usage with sliding window
+- **Response Time**: <100ms for most queries
+
+## 📊 Monitoring and Analytics
+
+### **Performance Metrics**
+
+The system tracks various performance metrics:
+
+- **Response Time**: Average query response time
+- **Confidence Distribution**: Distribution of confidence scores
+- **Query Volume**: Number of queries per time period
+- **Error Rate**: Rate of failed queries or updates
+
+### **Health Monitoring**
+
+```python
+# System health check
+health_status = state_tracker.get_health_status()
+
 {
-    "query_type": "current_step",
-    "response_text": "您目前在咖啡沖泡任務的第 3 步：磨咖啡豆。請將咖啡豆研磨至中等細度...",
-    "processing_time_ms": 0.2,
-    "confidence": 1.0
+  "status": "healthy",
+  "memory_usage": "45%",
+  "response_time_avg": "67ms",
+  "confidence_avg": "0.82",
+  "last_update": "2025-02-08T10:30:00Z"
 }
 ```
 
-## 📊 性能特點
+## 🛠️ Configuration
 
-### **響應速度**
-- **查詢響應**：4.3ms 平均（比目標快 200 倍）
-- **VLM 處理**：16ms 平均（比目標快 6 倍）
-- **系統吞吐量**：126 查詢/秒
+### **System Settings**
 
-### **記憶體效率**
-- **記憶體使用**：0.009MB（僅使用 0.9% 的 1MB 限制）
-- **滑動窗口**：自動管理，固定記憶體使用量
-- **自動清理**：超出限制時自動移除最舊記錄
+The State Tracker can be configured through configuration files:
 
-### **準確性**
-- **查詢分類**：91.7% 準確率
-- **錯誤率**：0%（強健的錯誤處理）
-- **狀態一致性**：智能檢查，防止不合理跳躍
-
-## 🔧 配置選項
-
-### **置信度閾值**
-```python
-# 可調整的閾值
-high_confidence_threshold = 0.70    # 高置信度閾值
-medium_confidence_threshold = 0.40  # 中等置信度閾值
+```json
+{
+  "state_tracker": {
+    "confidence_threshold": 0.40,
+    "memory_window_size": 10,
+    "max_response_time_ms": 100,
+    "enable_caching": true,
+    "cache_ttl_seconds": 300
+  }
+}
 ```
 
-### **記憶體限制**
-```python
-# 記憶體管理配置
-max_window_size = 50                # 最大窗口大小
-memory_limit_bytes = 1024 * 1024   # 1MB 記憶體限制
-max_consecutive_low = 5             # 最大連續低置信度次數
+### **RAG Configuration**
+
+```json
+{
+  "rag": {
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "similarity_threshold": 0.7,
+    "max_results": 5,
+    "enable_semantic_search": true
+  }
+}
 ```
 
-### **性能監控**
-```python
-# 獲取系統統計
-stats = state_tracker.get_metrics_summary()
-memory_stats = state_tracker.get_memory_stats()
-```
+## 🔍 Troubleshooting
 
-## 🎯 應用場景
+### **Common Issues**
 
-### **1. 任務指導**
-- 自動識別用戶當前步驟
-- 提供下一步指導
-- 提醒所需工具和材料
+#### Issue: Low Confidence Scores
+**Symptoms**: Most queries return low confidence (<0.4)
+**Solutions**:
+- Check RAG knowledge base quality
+- Verify task knowledge is up to date
+- Review VLM observation quality
 
-### **2. 進度追蹤**
-- 實時監控任務進度
-- 提供完成百分比
-- 記錄任務歷史
+#### Issue: Slow Response Times
+**Symptoms**: Query response time >100ms
+**Solutions**:
+- Check system resource usage
+- Verify RAG service performance
+- Review caching configuration
 
-### **3. 智能助手**
-- 回答狀態相關問題
-- 提供操作建議
-- 錯誤預防和提醒
+#### Issue: Inconsistent States
+**Symptoms**: State changes unexpectedly or incorrectly
+**Solutions**:
+- Review confidence threshold settings
+- Check VLM observation consistency
+- Verify task knowledge accuracy
 
-### **4. 學習分析**
-- 分析用戶行為模式
-- 優化任務流程
-- 提供個性化建議
-
-## 🛠️ 故障排除
-
-### **常見問題**
-
-#### **1. 狀態不更新**
-- 檢查 VLM 觀察是否正常
-- 確認任務知識庫是否載入
-- 查看置信度是否過低
-
-#### **2. 查詢回應慢**
-- 檢查系統負載
-- 確認記憶體使用情況
-- 查看處理指標
-
-#### **3. 狀態跳躍異常**
-- 檢查狀態一致性設置
-- 確認任務步驟定義
-- 查看連續低置信度計數
-
-### **調試工具**
+### **Debugging Tools**
 
 ```python
-# 獲取詳細狀態信息
-state_summary = state_tracker.get_state_summary()
-processing_metrics = state_tracker.get_processing_metrics()
-sliding_window_data = state_tracker.get_sliding_window_data()
+# Enable debug mode
+state_tracker.enable_debug_mode()
 
-# 健康檢查
-health_status = state_tracker.health_check()
+# Get detailed logs
+logs = state_tracker.get_debug_logs()
+
+# Check internal state
+internal_state = state_tracker.get_internal_state()
 ```
 
-## 📈 最佳實踐
+## 📈 Best Practices
 
-### **1. 任務設計**
-- 確保任務步驟清晰明確
-- 提供豐富的視覺線索
-- 定義準確的完成指標
+### **For Users**
 
-### **2. 系統配置**
-- 根據使用場景調整置信度閾值
-- 監控記憶體使用情況
-- 定期檢查性能指標
+1. **Ask Clear Questions**: Be specific about what you want to know
+2. **Provide Context**: Include relevant task information in queries
+3. **Be Patient**: Complex queries may take a moment to process
 
-### **3. 用戶體驗**
-- 提供清晰的狀態反饋
-- 設計直觀的查詢界面
-- 實現流暢的交互體驗
+### **For Developers**
 
-## 🔮 未來發展
+1. **Monitor Performance**: Regularly check response times and confidence scores
+2. **Update Knowledge Base**: Keep task knowledge current and accurate
+3. **Test Edge Cases**: Regularly test with unusual queries or states
 
-### **計劃功能**
-- **個性化適配**：根據用戶習慣調整
-- **多任務支持**：同時追蹤多個任務
-- **預測分析**：預測下一步行動
-- **語音交互**：支援語音查詢
+### **For Administrators**
 
-### **API 擴展**
-- RESTful API 接口
-- WebSocket 實時更新
-- 第三方集成支持
+1. **System Monitoring**: Monitor system health and performance metrics
+2. **Configuration Management**: Regularly review and optimize settings
+3. **Backup and Recovery**: Ensure proper backup of state data
+
+## 🔮 Future Enhancements
+
+### **Planned Features**
+
+- **Multi-task Support**: Support for multiple concurrent tasks
+- **Advanced Analytics**: Detailed usage analytics and insights
+- **Custom Confidence Models**: User-defined confidence calculation
+- **Integration APIs**: APIs for external system integration
+
+### **Performance Improvements**
+
+- **Advanced Caching**: Intelligent caching with predictive loading
+- **Distributed Processing**: Support for distributed state tracking
+- **Real-time Updates**: WebSocket-based real-time state updates
+- **Mobile Optimization**: Optimized for mobile device usage
+
+## 📞 Support
+
+### **Getting Help**
+
+1. **Check Documentation**: Review this guide and related documentation
+2. **Run Diagnostics**: Use built-in diagnostic tools
+3. **Check Logs**: Review system logs for error information
+4. **Contact Support**: Reach out to the development team
+
+### **Maintenance Schedule**
+
+- **Daily**: Monitor system performance and error rates
+- **Weekly**: Review usage analytics and optimize settings
+- **Monthly**: Update knowledge base and test edge cases
+- **Quarterly**: Comprehensive system review and optimization
 
 ---
 
-**版本**：1.0.0  
-**最後更新**：2025-01-27  
-**維護者**：Vision Intelligence Hub 開發團隊 
+**Last Updated**: August 2, 2025  
+**Version**: 2.0 (VLM System Integration)  
+**Maintainer**: AI Vision Intelligence Hub Team 

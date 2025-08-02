@@ -11,6 +11,13 @@ from typing import Dict, Any, Optional, List
 from enum import Enum
 from dataclasses import dataclass
 
+# Import VLM Fallback System
+try:
+    from vlm_fallback.fallback_processor import VLMFallbackProcessor
+    VLM_FALLBACK_AVAILABLE = True
+except ImportError:
+    VLM_FALLBACK_AVAILABLE = False
+
 class QueryType(Enum):
     """Types of user queries"""
     CURRENT_STEP = "current_step"
@@ -39,6 +46,14 @@ class QueryProcessor:
     
     def __init__(self):
         """Initialize query processor with keyword patterns"""
+        # Initialize VLM Fallback System
+        self.vlm_fallback = None
+        if VLM_FALLBACK_AVAILABLE:
+            try:
+                self.vlm_fallback = VLMFallbackProcessor()
+            except Exception as e:
+                print(f"Warning: VLM Fallback initialization failed: {e}")
+        
         # Define keyword patterns for each query type (English only)
         self.query_patterns = {
             QueryType.CURRENT_STEP: [
@@ -241,7 +256,71 @@ class QueryProcessor:
                 }
                 log_manager.log_query_state_lookup(query_id, state_found, state_info)
             
-            # Generate response
+            # Calculate confidence based on query complexity and state availability
+            confidence = self._calculate_confidence(query_type, current_state, query)
+            
+            # Check if VLM fallback should be used
+            should_use_fallback = self._should_use_vlm_fallback(query_type, current_state, confidence)
+            
+            # Debug logging
+            print(f"DEBUG: Query='{query}', Type={query_type}, Confidence={confidence}, Should_fallback={should_use_fallback}, VLM_available={bool(self.vlm_fallback)}")
+            
+            if should_use_fallback and self.vlm_fallback:
+                try:
+                    # Use VLM fallback system - create a simple synchronous wrapper
+                    import asyncio
+                    import threading
+                    
+                    def run_fallback_sync():
+                        """Run VLM fallback in a separate thread with its own event loop"""
+                        try:
+                            # Create new event loop for this thread
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            
+                            # Run the async function
+                            if asyncio.iscoroutinefunction(self.vlm_fallback.process_query_with_fallback):
+                                result = loop.run_until_complete(self.vlm_fallback.process_query_with_fallback(query, current_state))
+                            else:
+                                result = self.vlm_fallback.process_query_with_fallback(query, current_state)
+                            
+                            return result
+                        except Exception as e:
+                            print(f"VLM fallback thread error: {e}")
+                            return None
+                        finally:
+                            loop.close()
+                    
+                    # Run in separate thread to avoid event loop conflicts
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(run_fallback_sync)
+                        try:
+                            fallback_result = future.result(timeout=30)  # 30 second timeout
+                        except concurrent.futures.TimeoutError:
+                            print("VLM fallback timeout")
+                            fallback_result = None
+                    
+                    if fallback_result:
+                        # Calculate processing time
+                        processing_time = (time.time() - start_time) * 1000
+                        
+                        # 記錄處理完成
+                        if query_id and log_manager:
+                            log_manager.log_query_process_complete(query_id, processing_time)
+                        
+                        return QueryResult(
+                            query_type=query_type,
+                            response_text=fallback_result["response_text"],
+                            processing_time_ms=processing_time,
+                            confidence=fallback_result["confidence"],
+                            raw_query=query
+                        )
+                except Exception as e:
+                    # If VLM fallback fails, continue with template response
+                    print(f"VLM fallback failed: {e}")
+            
+            # Generate template response
             response_text = self._generate_response(query_type, current_state)
             
             # 記錄回應生成
@@ -255,9 +334,6 @@ class QueryProcessor:
             # 記錄處理完成
             if query_id and log_manager:
                 log_manager.log_query_process_complete(query_id, processing_time)
-            
-            # Simple confidence based on pattern matching
-            confidence = 0.9 if query_type != QueryType.UNKNOWN else 0.3
             
             return QueryResult(
                 query_type=query_type,
@@ -317,6 +393,76 @@ class QueryProcessor:
         except Exception as e:
             # Return None if any error occurs
             return None
+    
+    def _should_use_vlm_fallback(self, query_type: QueryType, current_state: Optional[Dict[str, Any]], confidence: float) -> bool:
+        """
+        Determine if VLM fallback should be used based on decision criteria
+        
+        Args:
+            query_type: Classified query type
+            current_state: Current state data
+            confidence: Confidence score from classification
+            
+        Returns:
+            True if VLM fallback should be used
+        """
+        if not self.vlm_fallback:
+            return False
+        
+        # Use VLM fallback if:
+        # 1. No state data available
+        if not current_state:
+            return True
+        
+        # 2. Low confidence in query classification
+        if confidence < 0.40:
+            return True
+        
+        # 3. Unknown query type
+        if query_type == QueryType.UNKNOWN:
+            return True
+        
+        # 4. No current step information
+        if not current_state.get('step_index') and not current_state.get('matched_step'):
+            return True
+        
+        return False
+    
+    def _calculate_confidence(self, query_type: QueryType, current_state: Optional[Dict[str, Any]], query: str) -> float:
+        """
+        Calculate confidence score based on multiple factors
+        
+        Args:
+            query_type: Classified query type
+            current_state: Current state data
+            query: Original query text
+            
+        Returns:
+            Confidence score between 0.0 and 1.0
+        """
+        base_confidence = 0.9 if query_type != QueryType.UNKNOWN else 0.1
+        
+        # Reduce confidence if no state data
+        if not current_state:
+            base_confidence *= 0.3  # Significant reduction
+        
+        # Reduce confidence for complex queries that might need VLM
+        complex_keywords = [
+            'meaning', 'explain', 'why', 'how does', 'what is', 'tell me about',
+            'philosophy', 'consciousness', 'artificial intelligence', 'quantum',
+            'weather', 'today', 'tomorrow', 'news', 'current events'
+        ]
+        
+        query_lower = query.lower()
+        complex_matches = sum(1 for keyword in complex_keywords if keyword in query_lower)
+        
+        if complex_matches > 0:
+            # More complex queries get lower confidence
+            complexity_factor = max(0.2, 1.0 - (complex_matches * 0.3))
+            base_confidence *= complexity_factor
+        
+        # Ensure confidence is within bounds
+        return max(0.1, min(0.9, base_confidence))
     
     def get_supported_queries(self) -> List[str]:
         """Get list of example supported queries (English only)"""

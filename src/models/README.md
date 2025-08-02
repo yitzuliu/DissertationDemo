@@ -1,6 +1,6 @@
 # AI Manual Assistant - Vision Models Directory
 
-This directory contains all vision-language model implementations for the AI Manual Assistant system. Each model is organized in its own subdirectory with complete implementation, documentation, and testing capabilities.
+This directory contains all vision-language model implementations for the AI Manual Assistant system, now integrated into the comprehensive VLM System with multi-model support and intelligent model selection. Each model is organized in its own subdirectory with complete implementation, documentation, and testing capabilities.
 
 ## 📁 Directory Structure
 
@@ -125,11 +125,19 @@ result = model.predict(image, prompt)
 
 ## 🔄 Model Switching
 
-The system supports hot-swapping between models:
+The system supports both manual model switching and intelligent automatic selection:
 
+### Manual Model Switching
 1. **Stop current model**: `Ctrl+C` in the model server terminal
 2. **Start new model**: Run the appropriate startup script
 3. **Backend auto-connects**: System automatically detects the new model
+
+### Intelligent Model Selection (VLM System)
+The VLM System automatically selects the optimal model based on:
+- **Request complexity**: Complex queries routed to high-accuracy models
+- **Performance requirements**: Speed vs. accuracy trade-offs
+- **Resource availability**: Current system load and resource usage
+- **Model health**: Automatic failover to healthy models
 
 ## 🧪 Testing Models
 
@@ -282,4 +290,4 @@ curl http://localhost:8080/stats
 
 **For detailed information about specific models, please visit their respective directories and read their README.md files.**
 
-**Last Updated**: January 2025 | **Status**: ✅ **All Models Organized & Production Ready**
+**Last Updated**: August 2, 2025 | **Status**: ✅ **All Models Organized & Production Ready with VLM System Integration**

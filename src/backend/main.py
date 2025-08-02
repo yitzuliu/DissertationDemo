@@ -28,6 +28,15 @@ from system_logger import get_system_logger, initialize_system_logger
 from visual_logger import get_visual_logger
 from log_manager import get_log_manager
 
+# Import VLM Fallback System (optional) - logging will be done after logger initialization
+try:
+    from vlm_fallback.fallback_processor import VLMFallbackProcessor
+    VLM_FALLBACK_AVAILABLE = True
+    VLM_FALLBACK_IMPORT_ERROR = None
+except ImportError as e:
+    VLM_FALLBACK_AVAILABLE = False
+    VLM_FALLBACK_IMPORT_ERROR = str(e)
+
 def setup_logging():
     """Setup logging with proper path and permissions"""
     try:
@@ -97,6 +106,12 @@ def setup_logging():
 # Initialize logging
 logger = setup_logging()
 logger.info("Backend server starting...")
+
+# Log VLM Fallback System status
+if VLM_FALLBACK_AVAILABLE:
+    logger.info("VLM Fallback System loaded successfully")
+else:
+    logger.warning(f"VLM Fallback System not available: {VLM_FALLBACK_IMPORT_ERROR}")
 
 # Initialize and load configuration
 config_manager.load_app_config()
@@ -328,7 +343,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             logger.info(f"[{request_id}] Message formatting completed in {format_time:.2f}s")
             
             # Prepare request for model
-            request_data = request.dict()
+            request_data = request.model_dump()
             logger.info(f"[{request_id}] Sending request to model server")
             
             # 計算提示詞長度用於日誌記錄

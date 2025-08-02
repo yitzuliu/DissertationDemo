@@ -1,10 +1,10 @@
 # State Tracker System - AI Vision Intelligence Hub
 
-*Last Updated: August 1, 2025*
+*Last Updated: February 8, 2025*
 
 ## 📋 Overview
 
-The State Tracker System is the intelligent core component of the AI Vision Intelligence Hub that implements a revolutionary dual-loop memory architecture for real-time task progress tracking and contextual understanding. This system provides the "brain" that enables the AI to remember, understand, and guide users through complex tasks with continuous state awareness.
+The State Tracker System is the intelligent core component of the AI Vision Intelligence Hub that implements a revolutionary dual-loop memory architecture for real-time task progress tracking and contextual understanding. Enhanced with VLM Fallback integration, this system provides the "brain" that enables the AI to remember, understand, and guide users through complex tasks with continuous state awareness and intelligent query processing.
 
 ## 🏗️ Architecture
 
@@ -13,7 +13,7 @@ src/state_tracker/
 ├── README.md              # This documentation
 ├── __init__.py           # State tracker package initialization
 ├── state_tracker.py      # Core state tracking engine (33KB, 781 lines)
-├── query_processor.py    # Instant query processing system (15KB, 336 lines)
+├── query_processor.py    # Instant query processing with VLM fallback (18KB, 450+ lines)
 └── text_processor.py     # VLM text processing utilities (3.7KB, 126 lines)
 ```
 
@@ -30,12 +30,19 @@ VLM Observation → Text Processing → RAG Matching → State Update → Memory
 
 ### ⚡ Instant Response Loop (On-Demand Processing)
 ```
-User Query → Query Classification → Direct Response → <50ms Response Time
+User Query → Query Classification → VLM Fallback Decision → Response Generation
+                                         ↓
+                              ┌─────────────────────┐
+                              ↓                     ↓
+                        VLM Fallback          Template Response
+                        (Complex Queries)     (Simple Queries)
+                              ↓                     ↓
+                        Detailed AI Answer    Fast Response (<50ms)
 ```
-- **Immediate Access**: Direct memory lookup without reprocessing
-- **Query Classification**: 100% accurate intent recognition
-- **Template-Based Responses**: Fast, contextual response generation
-- **Zero Latency**: Sub-50ms response times
+- **Intelligent Routing**: Smart decision between VLM fallback and template responses
+- **Query Classification**: 100% accurate intent recognition with complexity assessment
+- **VLM Fallback**: Detailed responses for complex queries (1-5 seconds)
+- **Template Responses**: Fast responses for simple queries (<50ms)
 
 ## 🚀 Core Components
 
@@ -87,12 +94,14 @@ class ActionType(Enum):
 ```
 
 ### 2. Query Processor (`query_processor.py`)
-**Intelligent query processing for instant response system:**
+**Intelligent query processing with VLM fallback integration:**
 
 #### Features
 - **Query Classification**: 100% accurate intent recognition
-- **Template-Based Responses**: Fast, contextual response generation
-- **Performance Optimization**: Sub-50ms response times
+- **VLM Fallback System**: Intelligent routing for complex queries
+- **Confidence Assessment**: Smart decision making based on query complexity
+- **Template-Based Responses**: Fast responses for simple queries
+- **Performance Optimization**: Sub-50ms for templates, 1-5s for VLM fallback
 - **Comprehensive Coverage**: Support for all query types
 
 #### Query Types
@@ -104,6 +113,24 @@ class QueryType(Enum):
     COMPLETION_STATUS = "completion_status" # "How much is done?"
     PROGRESS_OVERVIEW = "progress_overview" # "Give me an overview"
     HELP = "help"                          # "Help me with this"
+    UNKNOWN = "unknown"                     # Complex queries → VLM fallback
+```
+
+#### VLM Fallback Integration
+```python
+# VLM fallback decision making
+should_use_fallback = processor._should_use_vlm_fallback(
+    query_type=query_type,
+    current_state=current_state,
+    confidence=confidence_score
+)
+
+# Confidence-based processing
+confidence = processor._calculate_confidence(
+    query_type=query_type,
+    current_state=current_state,
+    query=user_query
+)
 ```
 
 #### Query Processing
@@ -159,10 +186,12 @@ anomalies = processor.detect_anomalies(vlm_text)
 - **Confidence Assessment**: Multi-tier confidence scoring
 - **State Consistency**: Validation of state transitions
 
-### Instant Query Processing
+### Intelligent Query Processing
 - **Query Classification**: 100% accurate intent recognition
-- **Template-Based Responses**: Fast, contextual responses
-- **Performance Optimization**: Sub-50ms response times
+- **VLM Fallback Integration**: Smart routing for complex queries
+- **Confidence Assessment**: Multi-factor decision making
+- **Template-Based Responses**: Fast responses for simple queries
+- **Performance Optimization**: Sub-50ms for templates, 1-5s for VLM
 - **Comprehensive Coverage**: Support for all query types
 
 ### Memory Management

@@ -1,0 +1,28 @@
+{
+  "vlm_fallback": {
+    "decision_engine": {
+      "confidence_threshold": 0.40,
+      "enable_unknown_query_fallback": true,
+      "enable_no_state_fallback": true
+    },
+    "vlm_client": {
+      "model_server_url": "http://localhost:8080",
+      "timeout": 30,
+      "max_retries": 2,
+      "max_tokens": 500,
+      "temperature": 0.7
+    },
+    "prompts": {
+      "fallback_template": "You are a helpful AI assistant. Please answer the user's question directly and helpfully.\n\nUser Question: {query}\n\nPlease provide a clear, accurate, and helpful response. Focus on:\n- Being informative and accurate\n- Providing practical guidance when appropriate\n- Being concise but complete\n- Using a friendly and supportive tone\n\nAnswer:"
+    },
+    "logging": {
+      "enable_decision_logs": true,
+      "enable_vlm_logs": true,
+      "enable_performance_logs": true
+    },
+    "performance": {
+      "max_concurrent_requests": 10,
+      "request_queue_size": 100
+    }
+  }
+}

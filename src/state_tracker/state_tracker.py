@@ -118,7 +118,7 @@ class StateTracker:
         
         # Optimized sliding window
         self.sliding_window: List[OptimizedStateRecord] = []
-        self.max_window_size = 50
+        self.max_window_size = 30
         self.memory_limit_bytes = 1024 * 1024  # 1MB limit
         
         # Memory management stats
@@ -733,7 +733,7 @@ class StateTracker:
             start_time = time.time()
             
             # Process query with query processor
-            result = self.query_processor.process_query(query, current_state)
+            result = self.query_processor.process_query(query, current_state, query_id, self.log_manager)
             
             # Calculate processing time
             processing_time_ms = (time.time() - start_time) * 1000
