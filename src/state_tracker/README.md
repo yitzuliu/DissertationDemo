@@ -51,6 +51,7 @@ User Query → Query Classification → VLM Fallback Decision → Response Gener
 
 #### Key Features
 - **Dual-Loop Processing**: Subconscious monitoring + instant query responses
+- **Dual-Record Memory System**: Intelligent memory architecture with selective recording
 - **Intelligent Confidence Assessment**: Multi-tier confidence scoring system
 - **Sliding Window Memory**: Efficient memory management with automatic cleanup
 - **Fault Tolerance**: Robust error handling and recovery mechanisms
@@ -67,8 +68,12 @@ success = await state_tracker.process_vlm_response(
     observation_id="obs_001"
 )
 
-# Get current state
+# Get current state (from complete records)
 current_state = state_tracker.get_current_state()
+
+# Get memory statistics (dual-record system)
+memory_stats = state_tracker.get_memory_stats()
+sliding_window_data = state_tracker.get_sliding_window_data()
 
 # Process instant query (instant response loop)
 response = state_tracker.process_instant_query(
@@ -92,6 +97,26 @@ class ActionType(Enum):
     OBSERVE = "OBSERVE"  # Record observation only
     IGNORE = "IGNORE"    # Ignore low-confidence matches
 ```
+
+#### Dual-Record Memory System
+The State Tracker implements an intelligent dual-record memory architecture:
+
+**Complete Records System** (Selective Storage):
+- **Current State**: Single record with full RAG matching data (~5KB)
+- **History Records**: Up to 10 records with complete step information (~50KB)
+- **Update Condition**: Only high-confidence observations (confidence ≥ 0.40)
+- **Purpose**: High-quality query responses and detailed state information
+
+**Sliding Window System** (Comprehensive Storage):
+- **Optimized Records**: Up to 30 records with minimal data (~150 bytes each)
+- **Storage Condition**: All VLM observations regardless of confidence
+- **Purpose**: State consistency checking and system monitoring
+- **Memory Limit**: 1MB with automatic cleanup
+
+**Memory Efficiency**:
+- **Dual System**: ~59.5KB total memory usage
+- **Single System**: ~150KB (if all observations stored as complete records)
+- **Savings**: 60% memory reduction while maintaining functionality
 
 ### 2. Query Processor (`query_processor.py`)
 **Intelligent query processing with VLM fallback integration:**
@@ -195,7 +220,9 @@ anomalies = processor.detect_anomalies(vlm_text)
 - **Comprehensive Coverage**: Support for all query types
 
 ### Memory Management
-- **Sliding Window**: Efficient memory management
+- **Dual-Record System**: Intelligent memory architecture with selective recording
+- **Sliding Window**: Efficient memory management for all observations
+- **Complete Records**: Selective storage of high-confidence observations
 - **Automatic Cleanup**: Memory usage optimization
 - **Performance Monitoring**: Comprehensive metrics
 - **Fault Tolerance**: Robust error handling
@@ -213,6 +240,13 @@ anomalies = processor.detect_anomalies(vlm_text)
 - **Memory Usage**: <1MB for sliding window
 - **Confidence Accuracy**: 85%+ for relevant observations
 - **State Consistency**: 95%+ validation accuracy
+
+### Dual-Record Memory Architecture
+- **Complete Records**: Selective storage (confidence ≥ 0.40) with full RAG matching data
+- **Sliding Window**: All observations stored with optimized memory footprint
+- **Memory Efficiency**: 60% reduction compared to single-record system
+- **Query Quality**: Maintained through high-confidence complete records
+- **System Stability**: Enhanced through comprehensive sliding window monitoring
 
 ### Query Processing Performance
 - **Response Time**: <50ms for instant queries
@@ -397,10 +431,12 @@ history_analysis = state_tracker.get_state_history_analysis()
 
 ### StateTracker
 - `process_vlm_response(vlm_text, observation_id)` - Process VLM observation
-- `get_current_state()` - Get current state information
+- `get_current_state()` - Get current state information (complete records)
 - `process_instant_query(query, query_id)` - Process instant query
 - `get_processing_metrics()` - Get processing metrics
-- `get_memory_stats()` - Get memory statistics
+- `get_memory_stats()` - Get memory statistics (dual-record system)
+- `get_sliding_window_data()` - Get sliding window data (optimized records)
+- `get_state_history_analysis()` - Analyze state history patterns
 
 ### QueryProcessor
 - `process_query(query, current_state, query_id)` - Process user query
