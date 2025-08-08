@@ -10,14 +10,14 @@ logger = logging.getLogger(__name__)
 
 class EnhancedPromptManager(PromptManager):
     """
-    增強型提示詞管理器，支援圖片傳送。
-    擴展自 PromptManager，保持向後兼容性。
+    Enhanced prompt manager with image support.
+    Extends PromptManager to provide multi-modal (text + image) VLM queries.
     """
     
     def __init__(self, model_server_url: str = "http://localhost:8080", timeout: int = 30, config=None):
         super().__init__(model_server_url, timeout)
         self.config = config
-        # 圖片 Fallback 提示詞模板
+        # Image Fallback prompt template
         self.image_fallback_prompt_template = """You are a helpful AI assistant with visual capabilities. Please analyze the provided image and answer the user's question.
 
 User Question: {query}
@@ -36,24 +36,24 @@ Answer:"""
     
     async def execute_fallback_with_image(self, query: str, image_data: Dict) -> str:
         """
-        執行包含圖片的 Fallback 流程。
-        完整的提示詞切換流程：保存 → 切換 → VLM查詢 → 恢復。
+        Execute fallback process with image support.
+        Complete prompt switching flow: save → switch → VLM query → restore.
         """
         operation_start = datetime.now()
         
         try:
             logger.info(f"Starting enhanced fallback execution with image for query: '{query[:50]}...'")
             
-            # 步驟 1：保存當前狀態追蹤提示詞
+            # Step 1: Save current state tracking prompt
             await self._save_current_prompt()
             
-            # 步驟 2：切換到包含圖片的 Fallback 提示詞
+            # Step 2: Switch to image-aware Fallback prompt
             await self._switch_to_image_fallback_prompt(query, image_data)
             
-            # 步驟 3：執行包含圖片的 VLM 查詢
+            # Step 3: Execute VLM query with image
             response = await self._execute_vlm_query_with_image(query, image_data)
             
-            # 步驟 4：恢復原始提示詞（關鍵！）
+            # Step 4: Restore original prompt (critical!)
             await self._restore_original_prompt()
             
             operation_time = (datetime.now() - operation_start).total_seconds()
@@ -62,7 +62,7 @@ Answer:"""
             return response
             
         except Exception as e:
-            # 確保提示詞恢復
+            # Ensure prompt restoration
             try:
                 await self._restore_original_prompt()
             except Exception as restore_error:
@@ -72,21 +72,21 @@ Answer:"""
     
     async def _switch_to_image_fallback_prompt(self, query: str, image_data: Dict) -> bool:
         """
-        切換到包含圖片的 Fallback 提示詞。
+        Switch to image-aware Fallback prompt.
         """
         try:
-            # 格式化包含圖片的 Fallback 提示詞
+            # Format image-aware Fallback prompt
             image_fallback_prompt = self.image_fallback_prompt_template.format(
                 query=query,
                 image_format=image_data.get('format', 'jpeg'),
                 image_size=image_data.get('size', 0)
             )
             
-            # 切換 VLM 到圖片 Fallback 模式
+            # Switch VLM to image Fallback mode
             success = await self._update_vlm_prompt(image_fallback_prompt)
             
             if success:
-                self.current_state = PromptState.FALLBACK  # 使用現有的 FALLBACK 狀態
+                self.current_state = PromptState.FALLBACK  # Use existing FALLBACK state
                 self._record_operation("switch_to_image_fallback", True, 
                                      f"Switched to image fallback prompt for query: {query[:30]}...")
                 logger.debug("Successfully switched to image fallback prompt")
@@ -101,12 +101,12 @@ Answer:"""
     
     async def _execute_vlm_query_with_image(self, query: str, image_data: Dict) -> str:
         """
-        執行包含圖片的 VLM 查詢。
-        使用多模態格式：文字 + 圖片。
+        Execute VLM query with image support.
+        Uses multi-modal format: text + image.
         """
         try:
-            # 創建包含圖片的請求載荷
-            # 從配置中獲取參數，如果沒有配置則使用預設值
+            # Create request payload with image
+            # Get parameters from config, use defaults if no config
             max_tokens = self.config.max_tokens if self.config else 500
             temperature = self.config.temperature if self.config else 0.7
             
@@ -132,7 +132,7 @@ Answer:"""
                 "temperature": temperature
             }
             
-            # 發送請求到 VLM 服務
+            # Send request to VLM service
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     f"{self.model_server_url}/v1/chat/completions",
@@ -144,15 +144,15 @@ Answer:"""
                 
                 response_data = response.json()
                 
-                # 提取回應文字
+                # Extract response text
                 if 'choices' in response_data and len(response_data['choices']) > 0:
                     content = response_data['choices'][0]['message']['content']
                     
-                    # 處理不同回應格式
+                    # Handle different response formats
                     if isinstance(content, str):
                         return content.strip()
                     elif isinstance(content, list):
-                        # 從列表格式提取文字
+                        # Extract text from list format
                         text_parts = []
                         for item in content:
                             if isinstance(item, dict) and item.get('type') == 'text':

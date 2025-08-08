@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 class EnhancedVLMFallbackProcessor(VLMFallbackProcessor):
     """
-    增強型 VLM Fallback 處理器，支援圖片傳送。
-    擴展自 VLMFallbackProcessor，保持向後兼容性。
+    Enhanced VLM Fallback Processor with image support.
+    Extends VLMFallbackProcessor to provide image-aware fallback capabilities.
     """
     
     def __init__(self, config: Optional[VLMFallbackConfig] = None):
@@ -20,7 +20,7 @@ class EnhancedVLMFallbackProcessor(VLMFallbackProcessor):
         self.image_capture_manager = ImageCaptureManager()
         self.enable_image_fallback = config.enable_image_fallback if config else True
         
-        # 重新初始化 prompt_manager 為 EnhancedPromptManager
+        # Re-initialize prompt_manager as EnhancedPromptManager
         from .enhanced_prompt_manager import EnhancedPromptManager
         self.prompt_manager = EnhancedPromptManager(
             model_server_url=self.config.model_server_url,
@@ -30,30 +30,30 @@ class EnhancedVLMFallbackProcessor(VLMFallbackProcessor):
     
     async def process_query_with_image_fallback(self, query: str, state_data: Optional[Dict]) -> Dict:
         """
-        處理查詢，支援圖片傳送的 VLM Fallback。
-        保持與原 process_query_with_fallback 相同的介面。
+        Process query with image-aware VLM Fallback support.
+        Maintains the same interface as process_query_with_fallback.
         """
         start_time = time.time()
         self.total_queries += 1
         
         try:
-            # 決策：是否使用 VLM Fallback
+            # Decision: whether to use VLM Fallback
             should_use_fallback = self.decision_engine.should_use_vlm_fallback(query, state_data)
             
             if should_use_fallback and self.enable_image_fallback:
-                # 使用增強型 VLM Fallback（包含圖片）
+                # Use Enhanced VLM Fallback (with image support)
                 result = await self._execute_enhanced_vlm_fallback(query, state_data)
                 self.fallback_queries += 1
             elif should_use_fallback:
-                # 使用傳統 VLM Fallback（僅文字）
+                # Use traditional VLM Fallback (text-only)
                 result = await self._execute_vlm_fallback(query, state_data)
                 self.fallback_queries += 1
             else:
-                # 使用模板回應
+                # Use template response
                 result = self._execute_template_response(query, state_data)
                 self.template_queries += 1
             
-            # 計算處理時間
+            # Calculate processing time
             processing_time = (time.time() - start_time) * 1000
             result.processing_time_ms = processing_time
             
@@ -69,30 +69,30 @@ class EnhancedVLMFallbackProcessor(VLMFallbackProcessor):
     
     async def _execute_enhanced_vlm_fallback(self, query: str, state_data: Optional[Dict]) -> FallbackResult:
         """
-        執行包含圖片的 VLM Fallback。
-        自動獲取當前圖片並傳送給 VLM。
+        Execute VLM Fallback with image support.
+        Automatically captures current image and sends it to VLM.
         """
         try:
             logger.debug(f"Executing enhanced VLM fallback for query: '{query[:50]}...'")
             
-            # 獲取當前圖片
+            # Get current image
             image_data = await self.image_capture_manager.get_current_image()
             
             if image_data:
-                # 執行包含圖片的 VLM Fallback
+                # Execute VLM Fallback with image
                 vlm_response = await self.prompt_manager.execute_fallback_with_image(
                     query, image_data
                 )
                 logger.info("Enhanced VLM fallback executed with image")
             else:
-                # 回退到純文字 Fallback
+                # Fallback to text-only Fallback
                 vlm_response = await self.prompt_manager.execute_fallback_with_prompt_switch(query)
                 logger.info("Enhanced VLM fallback executed without image (fallback to text-only)")
             
             return FallbackResult(
                 response_text=vlm_response,
                 query_type=self._determine_apparent_query_type(query),
-                response_mode="template",  # 保持透明性
+                response_mode="template",  # Maintain transparency
                 confidence=self._calculate_apparent_confidence(state_data),
                 processing_time_ms=0.0,
                 decision_reason="Enhanced VLM fallback (with image)",
@@ -104,7 +104,7 @@ class EnhancedVLMFallbackProcessor(VLMFallbackProcessor):
             return self._create_fallback_error_result(e, query)
     
     def _create_error_result(self, error: Exception, processing_time: float) -> FallbackResult:
-        """創建錯誤結果"""
+        """Create error result"""
         return FallbackResult(
             response_text=f"Sorry, I encountered an error processing your query: {str(error)}",
             query_type="UNKNOWN",
@@ -117,7 +117,7 @@ class EnhancedVLMFallbackProcessor(VLMFallbackProcessor):
         )
     
     def _create_fallback_error_result(self, error: Exception, query: str) -> FallbackResult:
-        """創建 Fallback 錯誤結果"""
+        """Create Fallback error result"""
         return FallbackResult(
             response_text=f"I'm having trouble processing your request right now. Please try again.",
             query_type=self._determine_apparent_query_type(query),

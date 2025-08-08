@@ -49,20 +49,18 @@ class QueryProcessor:
     
     def __init__(self):
         """Initialize query processor with keyword patterns"""
-        # Initialize VLM Fallback System
-        self.vlm_fallback = None
+        # Initialize Enhanced VLM Fallback (with image support)
         self.enhanced_vlm_fallback = None
-        
         if ENHANCED_FALLBACK_AVAILABLE:
             try:
-                # 載入配置文件
+                # Load config and pass to EnhancedVLMFallbackProcessor
                 from vlm_fallback.config import VLMFallbackConfig
                 config = VLMFallbackConfig.from_file('src/config/vlm_fallback_config.json')
                 self.enhanced_vlm_fallback = EnhancedVLMFallbackProcessor(config)
                 print("Enhanced VLM Fallback initialized successfully with config")
             except Exception as e:
                 print(f"Warning: Enhanced VLM Fallback initialization failed: {e}")
-                # 嘗試使用預設配置
+                # Fallback to default config if file loading fails
                 try:
                     self.enhanced_vlm_fallback = EnhancedVLMFallbackProcessor()
                     print("Enhanced VLM Fallback initialized with default config")
@@ -287,7 +285,7 @@ class QueryProcessor:
             # Debug logging
             print(f"DEBUG: Query='{query}', Type={query_type}, Confidence={confidence}, Should_fallback={should_use_fallback}, Enhanced_VLM_available={bool(self.enhanced_vlm_fallback)}, VLM_available={bool(self.vlm_fallback)}")
             
-            # 優先使用增強型 VLM Fallback（支援圖片）
+            # Priority: Use Enhanced VLM Fallback (with image support)
             if should_use_fallback and self.enhanced_vlm_fallback:
                 try:
                     # Use Enhanced VLM fallback system with image support
@@ -328,7 +326,7 @@ class QueryProcessor:
                         # Calculate processing time
                         processing_time = (time.time() - start_time) * 1000
                         
-                        # 記錄處理完成
+                        # Log processing completion
                         if query_id and log_manager:
                             log_manager.log_query_process_complete(query_id, processing_time)
                         
@@ -343,7 +341,7 @@ class QueryProcessor:
                     # If Enhanced VLM fallback fails, continue with standard fallback
                     print(f"Enhanced VLM fallback failed: {e}")
             
-            # 回退到標準 VLM Fallback（僅文字）
+            # Fallback to standard VLM Fallback (text-only)
             if should_use_fallback and self.vlm_fallback:
                 try:
                     # Use VLM fallback system - create a simple synchronous wrapper

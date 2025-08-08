@@ -476,18 +476,18 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                             
                             # Process with State Tracker if we have valid text
                             if vlm_text and len(vlm_text.strip()) > 0:
-                                # 檢查是否為 Fallback 請求，如果是則跳過 State Tracker 處理
+                                # Check if this is a Fallback request, if so skip State Tracker processing
                                 if skip_state_tracker:
                                     logger.info(f"[{request_id}] Skipping State Tracker processing for fallback request")
-                                    # 記錄跳過處理
+                                    # Log skipped processing
                                     visual_logger.log_state_tracker_integration(
                                         observation_id, False, 0.0
                                     )
                                 else:
-                                    # 記錄RAG資料傳遞
+                                    # Log RAG data transfer
                                     visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
                                     
-                                    # 處理狀態追蹤器整合
+                                    # Process state tracker integration
                                     state_tracker_start = time.time()
                                     state_tracker = get_state_tracker()
                                     state_updated = await state_tracker.process_vlm_response(
@@ -497,7 +497,7 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                                     )
                                     state_tracker_time = time.time() - state_tracker_start
                                     
-                                    # 記錄狀態追蹤器整合結果
+                                    # Log state tracker integration results
                                     visual_logger.log_state_tracker_integration(
                                         observation_id, state_updated, state_tracker_time
                                     )
