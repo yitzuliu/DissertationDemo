@@ -1,0 +1,14 @@
+{
+  "recent_observation_fallback": {
+    "enabled": true,
+    "fallback_ttl_seconds": 15.0,
+    "high_confidence_threshold": 0.65,
+    "medium_confidence_threshold": 0.40,
+    "consecutive_low_threshold": 3
+  },
+  "logging": {
+    "debug_enabled": false,
+    "log_fallback_decisions": true
+  }
+}
+

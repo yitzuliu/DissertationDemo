@@ -103,6 +103,17 @@ class ProcessingMetrics:
     matched_step: Optional[int]
     consecutive_low_count: int
 
+@dataclass
+class RecentObservationStatus:
+    """Status of recent observations for fallback decision making"""
+    seconds_since_last_update: Optional[float]  # None if no state
+    last_observation_confidence_level: ConfidenceLevel
+    consecutive_low_count: int
+    seconds_since_last_observation: Optional[float]  # None if no observations
+    last_observation_timestamp: Optional[datetime]
+    current_state_timestamp: Optional[datetime]
+    fallback_recommended: bool  # Computed recommendation
+
 class StateTracker:
     """
     Enhanced State Tracker with intelligent matching and fault tolerance.
@@ -809,7 +820,7 @@ class StateTracker:
             start_time = time.time()
             
             # Process query with query processor
-            result = self.query_processor.process_query(query, current_state, query_id, self.log_manager)
+            result = self.query_processor.process_query(query, current_state, query_id, self.log_manager, self)
             
             # Calculate processing time
             processing_time_ms = (time.time() - start_time) * 1000
@@ -864,6 +875,88 @@ class StateTracker:
         except Exception as e:
             logger.warning(f"Failed to get last processed image: {e}")
             return None
+
+    def get_recent_observation_status(self, fallback_ttl_seconds: float = 15.0) -> RecentObservationStatus:
+        """
+        Get recent observation status for fallback decision making.
+        
+        This method analyzes recent observations to determine if the current state
+        should be considered stale and if fallback should be recommended.
+        
+        Args:
+            fallback_ttl_seconds: TTL threshold for considering state stale
+            
+        Returns:
+            RecentObservationStatus with computed fallback recommendation
+        """
+        try:
+            current_time = datetime.now()
+            
+            # Get current state timestamp
+            current_state_timestamp = None
+            seconds_since_last_update = None
+            if self.current_state:
+                current_state_timestamp = self.current_state.timestamp
+                seconds_since_last_update = (current_time - current_state_timestamp).total_seconds()
+            
+            # Get last observation information
+            last_observation_timestamp = None
+            last_observation_confidence_level = ConfidenceLevel.LOW
+            seconds_since_last_observation = None
+            
+            if self.processing_metrics:
+                last_metric = self.processing_metrics[-1]
+                last_observation_timestamp = last_metric.timestamp
+                last_observation_confidence_level = last_metric.confidence_level
+                seconds_since_last_observation = (current_time - last_observation_timestamp).total_seconds()
+            
+            # Determine if fallback should be recommended
+            fallback_recommended = False
+            
+            # Only recommend fallback if we have a current state to potentially replace
+            if self.current_state is not None:
+                # Rule 1: If last observation was LOW confidence, recommend fallback
+                if last_observation_confidence_level == ConfidenceLevel.LOW:
+                    fallback_recommended = True
+                    logger.debug(f"Fallback recommended: last observation was LOW confidence")
+                
+                # Rule 2: If state is older than TTL and last observation wasn't HIGH, recommend fallback
+                elif (seconds_since_last_update is not None and 
+                      seconds_since_last_update > fallback_ttl_seconds and 
+                      last_observation_confidence_level != ConfidenceLevel.HIGH):
+                    fallback_recommended = True
+                    logger.debug(f"Fallback recommended: state is {seconds_since_last_update:.1f}s old (> {fallback_ttl_seconds}s) and last observation was {last_observation_confidence_level.value}")
+                
+                # Rule 3: If we have consecutive low observations, recommend fallback
+                elif self.consecutive_low_count >= 3:
+                    fallback_recommended = True
+                    logger.debug(f"Fallback recommended: {self.consecutive_low_count} consecutive low observations")
+            else:
+                # No current state, so no fallback recommendation needed
+                logger.debug("No current state, no fallback recommendation needed")
+
+            return RecentObservationStatus(
+                seconds_since_last_update=seconds_since_last_update,
+                last_observation_confidence_level=last_observation_confidence_level,
+                consecutive_low_count=self.consecutive_low_count,
+                seconds_since_last_observation=seconds_since_last_observation,
+                last_observation_timestamp=last_observation_timestamp,
+                current_state_timestamp=current_state_timestamp,
+                fallback_recommended=fallback_recommended
+            )
+            
+        except Exception as e:
+            logger.error(f"Error getting recent observation status: {e}")
+            # Return a safe default that doesn't trigger fallback
+            return RecentObservationStatus(
+                seconds_since_last_update=None,
+                last_observation_confidence_level=ConfidenceLevel.LOW,
+                consecutive_low_count=self.consecutive_low_count,
+                seconds_since_last_observation=None,
+                last_observation_timestamp=None,
+                current_state_timestamp=None,
+                fallback_recommended=False  # Safe default
+            )
 
 # Global state tracker instance
 _state_tracker_instance: Optional[StateTracker] = None
