@@ -74,6 +74,14 @@ class OptimizedStateRecord:
         return 56 + 24 + len(self.task_id) * 2 + 28 + 50  # Approximate
 
 @dataclass
+class PendingStateCandidate:
+    """Pending candidate for medium-confidence large forward jump confirmation."""
+    task_id: str
+    step_index: int
+    first_seen_ts: datetime
+    count: int = 1
+
+@dataclass
 class MemoryStats:
     """Memory usage statistics"""
     total_records: int
@@ -109,7 +117,7 @@ class StateTracker:
         self.current_state: Optional[StateRecord] = None
         
         # Multi-tier confidence thresholds
-        self.high_confidence_threshold = 0.70
+        self.high_confidence_threshold = 0.65
         self.medium_confidence_threshold = 0.40
         
         # Legacy state tracking (for compatibility)
@@ -132,6 +140,12 @@ class StateTracker:
         # Fault tolerance tracking
         self.consecutive_low_count = 0
         self.max_consecutive_low = 5
+
+        # Thin guard settings for step consistency (medium-confidence only)
+        self.max_forward_jump_without_confirmation = 2
+        self.consecutive_confirmations_required = 2
+        self.pending_candidate_ttl_seconds = 10
+        self.pending_state_candidate: Optional[PendingStateCandidate] = None
         
         # Metrics tracking
         self.processing_metrics: List[ProcessingMetrics] = []
@@ -252,27 +266,77 @@ class StateTracker:
         """Calculate current memory usage of sliding window"""
         return sum(record.get_memory_size() for record in self.sliding_window)
     
-    def _check_state_consistency(self, new_task_id: str, new_step_index: int) -> bool:
-        """Check state consistency based on sliding window history"""
+    def _check_state_consistency(self, new_task_id: str, new_step_index: int, confidence_level: ConfidenceLevel) -> bool:
+        """Thin-guard consistency check.
+
+        Rules:
+        - HIGH confidence: always allow; clear any pending candidate.
+        - No recent records for task: allow (treat as reasonable); clear pending.
+        - Backward (restart) or equal step: allow; clear pending.
+        - Small forward jump (≤ configured max): allow; clear pending.
+        - Medium-confidence large forward jump: require consecutive confirmations within TTL.
+        """
+        # High confidence bypasses any restriction
+        if confidence_level == ConfidenceLevel.HIGH:
+            self.pending_state_candidate = None
+            return True
+
         if not self.sliding_window:
+            self.pending_state_candidate = None
             return True  # No history to check against
         
         # Get recent records from same task
         recent_records = [r for r in self.sliding_window[-5:] if r.task_id == new_task_id]
         
         if not recent_records:
-            return True  # Different task, no consistency check needed
+            self.pending_state_candidate = None
+            return True  # Different/no recent task history, allow
         
-        # Simple step jump detection
         last_step = recent_records[-1].step_index
-        step_diff = abs(new_step_index - last_step)
-        
-        # Allow reasonable step progression (max jump of 3 steps)
-        # But allow going back to earlier steps (user might restart)
-        if step_diff > 3 and new_step_index > last_step:
-            logger.warning(f"Large forward step jump detected: {last_step} -> {new_step_index}")
+        # Allow backward or equal (restart or re-check)
+        if new_step_index <= last_step:
+            self.pending_state_candidate = None
+            return True
+
+        # Forward jump handling
+        step_diff_forward = new_step_index - last_step
+        if step_diff_forward <= self.max_forward_jump_without_confirmation:
+            self.pending_state_candidate = None
+            return True
+
+        # For medium confidence large forward jumps, require confirmation
+        if confidence_level == ConfidenceLevel.MEDIUM:
+            now = datetime.now()
+            if (
+                self.pending_state_candidate
+                and self.pending_state_candidate.task_id == new_task_id
+                and self.pending_state_candidate.step_index == new_step_index
+                and (now - self.pending_state_candidate.first_seen_ts).total_seconds() <= self.pending_candidate_ttl_seconds
+            ):
+                self.pending_state_candidate.count += 1
+            else:
+                self.pending_state_candidate = PendingStateCandidate(
+                    task_id=new_task_id,
+                    step_index=new_step_index,
+                    first_seen_ts=now,
+                    count=1,
+                )
+
+            if self.pending_state_candidate.count >= self.consecutive_confirmations_required:
+                # Confirm and clear pending
+                self.pending_state_candidate = None
+                return True
+
+            logger.info(
+                f"Thin guard holding update for medium-confidence large forward jump: "
+                f"{last_step} -> {new_step_index} (pending confirmations: "
+                f"{self.pending_state_candidate.count}/{self.consecutive_confirmations_required})"
+            )
             return False
-        
+
+        # Low confidence shouldn't reach here (no update path); default allow to avoid blocking
+        # Actual update decision is governed by _should_update_state
+        self.pending_state_candidate = None
         return True
     
     def _record_vlm_failure(self, reason: str):
@@ -409,7 +473,11 @@ class StateTracker:
                 state_update_id = self.log_manager.generate_state_update_id()
                 
                 # Check state consistency before update
-                consistency_ok = self._check_state_consistency(match_result.task_name, match_result.step_id)
+                consistency_ok = self._check_state_consistency(
+                    match_result.task_name,
+                    match_result.step_id,
+                    confidence_level
+                )
                 
                 if consistency_ok:
                     # Create and update state record

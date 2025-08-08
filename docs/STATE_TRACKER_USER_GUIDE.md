@@ -53,8 +53,8 @@ The system uses a three-tier confidence assessment:
 
 | Confidence | Score Range | Update Strategy |
 |------------|-------------|-----------------|
-| 🟢 **High** | ≥ 0.70 | Direct state update |
-| 🟡 **Medium** | 0.40-0.69 | Update after consistency check |
+| 🟢 **High** | ≥ 0.65 | Direct state update |
+| 🟡 **Medium** | 0.40-0.65 | Update after consistency check |
 | 🔴 **Low** | < 0.40 | Don't update, wait for better match |
 
 ### **3. Instant Query Response**

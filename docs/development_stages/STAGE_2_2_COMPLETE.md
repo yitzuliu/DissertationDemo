@@ -9,8 +9,8 @@
 ## 📋 **Implementation Summary**
 
 ### **1. Multi-Tier Confidence Thresholds**
-- **HIGH**: ≥ 0.70 - Immediate state update
-- **MEDIUM**: 0.40-0.69 - Cautious update with validation  
+- **HIGH**: ≥ 0.65 - Immediate state update
+- **MEDIUM**: 0.40-0.65 - Cautious update with validation  
 - **LOW**: < 0.40 - No update, record observation only
 
 ### **2. Conservative Update Strategy**

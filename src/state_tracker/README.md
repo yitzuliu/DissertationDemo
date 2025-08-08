@@ -85,8 +85,8 @@ response = state_tracker.process_instant_query(
 #### Confidence Levels
 ```python
 class ConfidenceLevel(Enum):
-    HIGH = "HIGH"      # >70% similarity - immediate state update
-    MEDIUM = "MEDIUM"  # 40-70% similarity - cautious update
+    HIGH = "HIGH"      # ≥65% similarity - immediate state update
+    MEDIUM = "MEDIUM"  # 40-65% similarity - cautious update
     LOW = "LOW"        # <40% similarity - observation only
 ```
 
@@ -373,7 +373,7 @@ health_status = {
 state_tracker = StateTracker()
 
 # Configure confidence thresholds
-state_tracker.high_confidence_threshold = 0.70
+state_tracker.high_confidence_threshold = 0.65  # deploys may tune 0.60–0.65
 state_tracker.medium_confidence_threshold = 0.40
 state_tracker.low_confidence_threshold = 0.20
 
@@ -381,6 +381,33 @@ state_tracker.low_confidence_threshold = 0.20
 state_tracker.max_sliding_window_size = 100
 state_tracker.memory_cleanup_threshold = 1_000_000  # 1MB
 ```
+
+## 🔒 Thin Guard for Step Consistency (Medium Confidence)
+
+To keep real-time perception primary while avoiding rare false jumps, a thin guard applies only to medium-confidence large forward jumps.
+
+### Design Principles
+- **Real-time first**: HIGH (≥0.65) updates immediately, no restriction.
+- **Seamless restarts**: Backward/equal steps are always allowed (user may restart).
+- **Fast switching**: If no recent records for the task, allow updates (treat as reasonable).
+- **Thin guard only**: For MEDIUM confidence and forward jumps >2 steps, require two consecutive matches within 10s.
+
+### Default Parameters
+```python
+# Already set in StateTracker.__init__
+state_tracker.max_forward_jump_without_confirmation = 2
+state_tracker.consecutive_confirmations_required = 2
+state_tracker.pending_candidate_ttl_seconds = 10
+```
+
+### Behavior Summary
+- **HIGH (≥0.65)**: Update immediately (any jump). Pending candidate cleared.
+- **MEDIUM (0.40–0.65)**:
+  - No recent same-task history → allow.
+  - Backward/equal step → allow.
+  - Forward ≤2 → allow.
+  - Forward >2 → require 2 consecutive observations of the same (task_id, step_index) within 10s; otherwise observe-only.
+- **LOW (<0.40)**: No update; answers route to VLM fallback.
 
 ### Query Processor Configuration
 ```python
