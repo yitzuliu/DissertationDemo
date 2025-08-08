@@ -55,6 +55,50 @@ Answer:"""
     max_concurrent_requests: int = 10
     request_queue_size: int = 100
     
+    # Image Fallback Configuration
+    enable_image_fallback: bool = True
+    image_capture: Dict = None
+    image_processing: Dict = None
+    fallback_prompts: Dict = None
+    
+    def __post_init__(self):
+        """Initialize default image-related configurations"""
+        if self.image_capture is None:
+            self.image_capture = {
+                "enable_camera_capture": True,
+                "enable_state_tracker_capture": True,
+                "enable_image_cache": True,
+                "cache_duration_seconds": 300,
+                "max_image_size_bytes": 1048576
+            }
+        
+        if self.image_processing is None:
+            self.image_processing = {
+                "default_model": "smolvlm",
+                "quality": 85,
+                "max_size": 1024,
+                "format": "jpeg"
+            }
+        
+        if self.fallback_prompts is None:
+            self.fallback_prompts = {
+                "image_fallback_template": """You are a helpful AI assistant with visual capabilities. Please analyze the provided image and answer the user's question.
+
+User Question: {query}
+
+Image Format: {image_format}
+Image Size: {image_size} bytes
+
+Please provide a clear, accurate, and helpful response based on both the image content and the user's question. Focus on:
+- Visual analysis of the image
+- Answering the specific question
+- Providing practical guidance when appropriate
+- Being concise but complete
+- Using a friendly and supportive tone
+
+Answer:"""
+            }
+    
     @classmethod
     def from_dict(cls, config_dict: Dict) -> 'VLMFallbackConfig':
         """
@@ -99,6 +143,12 @@ Answer:"""
         performance_config = fallback_config.get('performance', {})
         config.max_concurrent_requests = performance_config.get('max_concurrent_requests', config.max_concurrent_requests)
         config.request_queue_size = performance_config.get('request_queue_size', config.request_queue_size)
+        
+        # Image fallback configuration
+        config.enable_image_fallback = fallback_config.get('enable_image_fallback', config.enable_image_fallback)
+        config.image_capture = fallback_config.get('image_capture', config.image_capture)
+        config.image_processing = fallback_config.get('image_processing', config.image_processing)
+        config.fallback_prompts = fallback_config.get('fallback_prompts', config.fallback_prompts)
         
         return config
     
@@ -163,6 +213,12 @@ Answer:"""
                 "performance": {
                     "max_concurrent_requests": self.max_concurrent_requests,
                     "request_queue_size": self.request_queue_size
+                },
+                "image_fallback": {
+                    "enable_image_fallback": self.enable_image_fallback,
+                    "image_capture": self.image_capture,
+                    "image_processing": self.image_processing,
+                    "fallback_prompts": self.fallback_prompts
                 }
             }
         }
@@ -229,6 +285,16 @@ Answer:"""
         
         if self.request_queue_size <= 0:
             errors.append(f"request_queue_size must be positive, got {self.request_queue_size}")
+        
+        # Validate image fallback parameters
+        if self.image_capture and self.image_capture.get('max_image_size_bytes', 0) <= 0:
+            errors.append(f"max_image_size_bytes must be positive, got {self.image_capture.get('max_image_size_bytes')}")
+        
+        if self.image_processing and self.image_processing.get('max_size', 0) <= 0:
+            errors.append(f"image max_size must be positive, got {self.image_processing.get('max_size')}")
+        
+        if self.fallback_prompts and '{query}' not in self.fallback_prompts.get('image_fallback_template', ''):
+            errors.append("image_fallback_template must contain '{query}' placeholder")
         
         if errors:
             for error in errors:

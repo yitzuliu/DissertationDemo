@@ -14,9 +14,12 @@ from dataclasses import dataclass
 # Import VLM Fallback System
 try:
     from vlm_fallback.fallback_processor import VLMFallbackProcessor
+    from vlm_fallback.enhanced_fallback_processor import EnhancedVLMFallbackProcessor
     VLM_FALLBACK_AVAILABLE = True
+    ENHANCED_FALLBACK_AVAILABLE = True
 except ImportError:
     VLM_FALLBACK_AVAILABLE = False
+    ENHANCED_FALLBACK_AVAILABLE = False
 
 class QueryType(Enum):
     """Types of user queries"""
@@ -48,9 +51,28 @@ class QueryProcessor:
         """Initialize query processor with keyword patterns"""
         # Initialize VLM Fallback System
         self.vlm_fallback = None
-        if VLM_FALLBACK_AVAILABLE:
+        self.enhanced_vlm_fallback = None
+        
+        if ENHANCED_FALLBACK_AVAILABLE:
+            try:
+                # 載入配置文件
+                from vlm_fallback.config import VLMFallbackConfig
+                config = VLMFallbackConfig.from_file('src/config/vlm_fallback_config.json')
+                self.enhanced_vlm_fallback = EnhancedVLMFallbackProcessor(config)
+                print("Enhanced VLM Fallback initialized successfully with config")
+            except Exception as e:
+                print(f"Warning: Enhanced VLM Fallback initialization failed: {e}")
+                # 嘗試使用預設配置
+                try:
+                    self.enhanced_vlm_fallback = EnhancedVLMFallbackProcessor()
+                    print("Enhanced VLM Fallback initialized with default config")
+                except Exception as e2:
+                    print(f"Warning: Enhanced VLM Fallback initialization with default config also failed: {e2}")
+        
+        if VLM_FALLBACK_AVAILABLE and not self.enhanced_vlm_fallback:
             try:
                 self.vlm_fallback = VLMFallbackProcessor()
+                print("Standard VLM Fallback initialized successfully")
             except Exception as e:
                 print(f"Warning: VLM Fallback initialization failed: {e}")
         
@@ -263,8 +285,65 @@ class QueryProcessor:
             should_use_fallback = self._should_use_vlm_fallback(query_type, current_state, confidence)
             
             # Debug logging
-            print(f"DEBUG: Query='{query}', Type={query_type}, Confidence={confidence}, Should_fallback={should_use_fallback}, VLM_available={bool(self.vlm_fallback)}")
+            print(f"DEBUG: Query='{query}', Type={query_type}, Confidence={confidence}, Should_fallback={should_use_fallback}, Enhanced_VLM_available={bool(self.enhanced_vlm_fallback)}, VLM_available={bool(self.vlm_fallback)}")
             
+            # 優先使用增強型 VLM Fallback（支援圖片）
+            if should_use_fallback and self.enhanced_vlm_fallback:
+                try:
+                    # Use Enhanced VLM fallback system with image support
+                    import asyncio
+                    import threading
+                    
+                    def run_enhanced_fallback_sync():
+                        """Run Enhanced VLM fallback in a separate thread with its own event loop"""
+                        try:
+                            # Create new event loop for this thread
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            
+                            # Run the async function
+                            if asyncio.iscoroutinefunction(self.enhanced_vlm_fallback.process_query_with_image_fallback):
+                                result = loop.run_until_complete(self.enhanced_vlm_fallback.process_query_with_image_fallback(query, current_state))
+                            else:
+                                result = self.enhanced_vlm_fallback.process_query_with_image_fallback(query, current_state)
+                            
+                            return result
+                        except Exception as e:
+                            print(f"Enhanced VLM fallback thread error: {e}")
+                            return None
+                        finally:
+                            loop.close()
+                    
+                    # Run in separate thread to avoid event loop conflicts
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(run_enhanced_fallback_sync)
+                        try:
+                            fallback_result = future.result(timeout=30)  # 30 second timeout
+                        except concurrent.futures.TimeoutError:
+                            print("Enhanced VLM fallback timeout")
+                            fallback_result = None
+                    
+                    if fallback_result:
+                        # Calculate processing time
+                        processing_time = (time.time() - start_time) * 1000
+                        
+                        # 記錄處理完成
+                        if query_id and log_manager:
+                            log_manager.log_query_process_complete(query_id, processing_time)
+                        
+                        return QueryResult(
+                            query_type=query_type,
+                            response_text=fallback_result["response_text"],
+                            processing_time_ms=processing_time,
+                            confidence=fallback_result["confidence"],
+                            raw_query=query
+                        )
+                except Exception as e:
+                    # If Enhanced VLM fallback fails, continue with standard fallback
+                    print(f"Enhanced VLM fallback failed: {e}")
+            
+            # 回退到標準 VLM Fallback（僅文字）
             if should_use_fallback and self.vlm_fallback:
                 try:
                     # Use VLM fallback system - create a simple synchronous wrapper
@@ -406,26 +485,33 @@ class QueryProcessor:
         Returns:
             True if VLM fallback should be used
         """
-        if not self.vlm_fallback:
+        # Check if any VLM fallback system is available
+        if not (self.enhanced_vlm_fallback or self.vlm_fallback):
+            print(f"DEBUG: No VLM fallback available - enhanced: {bool(self.enhanced_vlm_fallback)}, standard: {bool(self.vlm_fallback)}")
             return False
         
         # Use VLM fallback if:
         # 1. No state data available
         if not current_state:
+            print(f"DEBUG: Using VLM fallback - no state data")
             return True
         
         # 2. Low confidence in query classification
         if confidence < 0.40:
+            print(f"DEBUG: Using VLM fallback - low confidence ({confidence} < 0.40)")
             return True
         
         # 3. Unknown query type
         if query_type == QueryType.UNKNOWN:
+            print(f"DEBUG: Using VLM fallback - unknown query type")
             return True
         
         # 4. No current step information
         if not current_state.get('step_index') and not current_state.get('matched_step'):
+            print(f"DEBUG: Using VLM fallback - no step information")
             return True
         
+        print(f"DEBUG: Not using VLM fallback - confidence: {confidence}, type: {query_type}, state: {bool(current_state)}")
         return False
     
     def _calculate_confidence(self, query_type: QueryType, current_state: Optional[Dict[str, Any]], query: str) -> float:

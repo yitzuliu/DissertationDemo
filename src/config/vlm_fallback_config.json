@@ -1,5 +1,6 @@
 {
   "vlm_fallback": {
+    "enable_image_fallback": true,
     "decision_engine": {
       "confidence_threshold": 0.40,
       "enable_unknown_query_fallback": true,
@@ -12,8 +13,22 @@
       "max_tokens": 150,
       "temperature": 0.7
     },
+    "image_capture": {
+      "enable_camera_capture": true,
+      "enable_state_tracker_capture": true,
+      "enable_image_cache": true,
+      "cache_duration_seconds": 300,
+      "max_image_size_bytes": 1048576
+    },
+    "image_processing": {
+      "default_model": "smolvlm",
+      "quality": 85,
+      "max_size": 1024,
+      "format": "jpeg"
+    },
     "prompts": {
-      "fallback_template": "You are a helpful AI assistant. Please answer the user's question directly and helpfully.\n\nUser Question: {query}\n\nPlease provide a clear, accurate, and helpful response. Focus on:\n- Being informative and accurate\n- Providing practical guidance when appropriate\n- Being concise but complete\n- Using a friendly and supportive tone\n\nAnswer:"
+      "fallback_template": "You are a helpful AI assistant. Please answer the user's question directly and helpfully.\n\nUser Question: {query}\n\nPlease provide a clear, accurate, and helpful response. Focus on:\n- Being informative and accurate\n- Providing practical guidance when appropriate\n- Being concise but complete\n- Using a friendly and supportive tone\n\nAnswer:",
+      "image_fallback_template": "You are a helpful AI assistant with visual capabilities. Please analyze the provided image and answer the user's question.\n\nUser Question: {query}\n\nImage Format: {image_format}\nImage Size: {image_size} bytes\n\nPlease provide a clear, accurate, and helpful response based on both the image content and the user's question. Focus on:\n- Visual analysis of the image\n- Answering the specific question\n- Providing practical guidance when appropriate\n- Being concise but complete\n- Using a friendly and supportive tone\n\nAnswer:"
     },
     "logging": {
       "enable_decision_logs": true,

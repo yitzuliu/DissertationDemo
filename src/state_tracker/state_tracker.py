@@ -118,6 +118,9 @@ class StateTracker:
         
         # Optimized sliding window
         self.sliding_window: List[OptimizedStateRecord] = []
+        
+        # Image storage for VLM fallback
+        self.last_processed_image: Optional[bytes] = None
         self.max_window_size = 30
         self.memory_limit_bytes = 1024 * 1024  # 1MB limit
         
@@ -318,17 +321,22 @@ class StateTracker:
             "timestamp": state_record.timestamp.isoformat()
         }
     
-    async def process_vlm_response(self, vlm_text: str, observation_id: str = None) -> bool:
+    async def process_vlm_response(self, vlm_text: str, observation_id: str = None, image_data: bytes = None) -> bool:
         """
         Enhanced VLM response processing with intelligent matching and fault tolerance.
         
         Args:
             vlm_text: Raw VLM text output from /v1/chat/completions
             observation_id: Optional observation ID for logging
+            image_data: Optional image data that was processed with the VLM
             
         Returns:
             True if state was updated, False otherwise
         """
+        # Store the image data if provided
+        if image_data:
+            self.last_processed_image = image_data
+            logger.debug(f"Stored image data: {len(image_data)} bytes")
         start_time = time.time()
         
         try:
@@ -769,6 +777,25 @@ class StateTracker:
             'response_time_target_ms': 20,
             'current_state_available': self.current_state is not None
         }
+    
+    def get_last_processed_image(self) -> Optional[bytes]:
+        """
+        Get the last processed image from the state tracker.
+        This method is used by the ImageCaptureManager for VLM fallback with images.
+        
+        Returns:
+            Last processed image as bytes, or None if no image available
+        """
+        try:
+            if self.last_processed_image:
+                logger.debug(f"Returning stored image: {len(self.last_processed_image)} bytes")
+                return self.last_processed_image
+            else:
+                logger.debug("No stored image available")
+                return None
+        except Exception as e:
+            logger.warning(f"Failed to get last processed image: {e}")
+            return None
 
 # Global state tracker instance
 _state_tracker_instance: Optional[StateTracker] = None
