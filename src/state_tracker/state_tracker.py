@@ -128,7 +128,7 @@ class StateTracker:
         
         # Fault tolerance tracking
         self.consecutive_low_count = 0
-        self.max_consecutive_low = 5
+        self.max_consecutive_low = 10
         
         # Metrics tracking
         self.processing_metrics: List[ProcessingMetrics] = []
@@ -200,11 +200,27 @@ class StateTracker:
             return False
     
     def _handle_consecutive_low_matches(self):
-        """Handle consecutive low confidence matches"""
+        """Handle consecutive low confidence matches - clear state if threshold reached"""
         if self.consecutive_low_count >= self.max_consecutive_low:
-            logger.warning(f"Detected {self.consecutive_low_count} consecutive low matches - system may need adjustment")
-            # Could implement adaptive threshold adjustment here
-            self.consecutive_low_count = 0  # Reset counter
+            logger.info(f"Clearing state after {self.consecutive_low_count} consecutive low confidence matches")
+            
+            # 記錄被清空的狀態資訊（用於日誌）
+            if self.current_state:
+                cleared_state_info = {
+                    'task_id': self.current_state.task_id,
+                    'step_index': self.current_state.step_index,
+                    'confidence': self.current_state.confidence,
+                    'age_minutes': (datetime.now() - self.current_state.timestamp).total_seconds() / 60
+                }
+                logger.info(f"Cleared state details: {cleared_state_info}")
+            
+            # 清空當前狀態 - 這是關鍵！
+            self.current_state = None
+            
+            # 重置計數器
+            self.consecutive_low_count = 0
+            
+            logger.info("State cleared due to consecutive low confidence observations - VLM Fallback will be triggered on next query")
     
     def _add_to_sliding_window(self, state_record: StateRecord):
         """Add optimized record to sliding window with memory management"""
