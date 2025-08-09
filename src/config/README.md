@@ -1,8 +1,10 @@
 # Configuration System - AI Vision Intelligence Hub
 
+*Last Updated: August 8, 2025*
+
 ## 📋 Overview
 
-The configuration system manages all settings for the AI Vision Intelligence Hub, including model configurations, application settings, prompt templates, VLM system settings, and VLM fallback system settings. This system provides a centralized, flexible, and validated approach to managing the entire application's behavior including intelligent query processing and multi-model vision-language processing.
+The configuration system manages all settings for the AI Vision Intelligence Hub, including model configurations, application settings, prompt templates, VLM system settings, VLM fallback system settings, and **State Tracker configuration**. This system provides a centralized, flexible, and validated approach to managing the entire application's behavior including intelligent query processing, multi-model vision-language processing, and recent observation aware fallback.
 
 ## 🏗️ Architecture
 
@@ -12,6 +14,7 @@ src/config/
 ├── app_config.json             # Main application configuration
 ├── models_config.json          # Model registry and metadata
 ├── validate_model_configs.py   # Configuration validation tool
+├── state_tracker_config.json   # State Tracker and recent observation fallback settings
 ├── model_configs/              # Individual model configurations
 │   ├── template.json           # Template for new models
 │   ├── smolvlm.json           # Current active model
@@ -97,6 +100,13 @@ src/config/
 - **Performance Monitoring**: Model-specific performance tracking
 - **Load Balancing**: Request distribution across multiple models
 - **Fault Tolerance**: Model failure handling and recovery
+
+### 7. State Tracker Configuration (`state_tracker_config.json`)
+**State tracking and recent observation aware fallback settings:**
+- **Recent Observation Fallback**: TTL thresholds and confidence settings
+- **Fallback Triggers**: Conditions for triggering VLM fallback
+- **Performance Tuning**: Memory and processing optimization
+- **Feature Flags**: Enable/disable recent observation awareness
 
 ## 🔧 Configuration Features
 

@@ -317,7 +317,8 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
             # Log sanitized messages
             logger.info(f"[{request_id}] Received messages: {json.dumps(sanitized_messages, indent=2)}")
             
-            # Process images
+            # Process images and store original image data for state tracker
+            original_image_data = None
             for message in request.messages:
                 if isinstance(message.get('content'), list):
                     for content_item in message['content']:
@@ -325,8 +326,20 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                             # Log image processing start without the URL
                             logger.info(f"[{request_id}] Processing image {image_count + 1}")
                             
-                            # Apply enhanced image processing
+                            # Extract and store original image data for state tracker
                             original_url = content_item['image_url']['url']
+                            if original_url and original_url.startswith('data:image/') and original_image_data is None:
+                                try:
+                                    base64_pattern = r'data:image\/[^;]+;base64,([^"]+)'
+                                    match = re.search(base64_pattern, original_url)
+                                    if match:
+                                        base64_data = match.group(1)
+                                        original_image_data = base64.b64decode(base64_data)
+                                        logger.debug(f"[{request_id}] Stored original image data: {len(original_image_data)} bytes")
+                                except Exception as e:
+                                    logger.warning(f"[{request_id}] Failed to extract original image data: {e}")
+                            
+                            # Apply enhanced image processing
                             content_item['image_url']['url'] = preprocess_image(original_url)
                             image_count += 1
             
@@ -463,24 +476,28 @@ async def proxy_chat_completions(request: ChatCompletionRequest):
                             
                             # Process with State Tracker if we have valid text
                             if vlm_text and len(vlm_text.strip()) > 0:
-                                # 檢查是否為 Fallback 請求，如果是則跳過 State Tracker 處理
+                                # Check if this is a Fallback request, if so skip State Tracker processing
                                 if skip_state_tracker:
                                     logger.info(f"[{request_id}] Skipping State Tracker processing for fallback request")
-                                    # 記錄跳過處理
+                                    # Log skipped processing
                                     visual_logger.log_state_tracker_integration(
                                         observation_id, False, 0.0
                                     )
                                 else:
-                                    # 記錄RAG資料傳遞
+                                    # Log RAG data transfer
                                     visual_logger.log_rag_data_transfer(observation_id, vlm_text, True)
                                     
-                                    # 處理狀態追蹤器整合
+                                    # Process state tracker integration
                                     state_tracker_start = time.time()
                                     state_tracker = get_state_tracker()
-                                    state_updated = await state_tracker.process_vlm_response(vlm_text, observation_id)
+                                    state_updated = await state_tracker.process_vlm_response(
+                                        vlm_text, 
+                                        observation_id, 
+                                        image_data=original_image_data
+                                    )
                                     state_tracker_time = time.time() - state_tracker_start
                                     
-                                    # 記錄狀態追蹤器整合結果
+                                    # Log state tracker integration results
                                     visual_logger.log_state_tracker_integration(
                                         observation_id, state_updated, state_tracker_time
                                     )
@@ -642,7 +659,7 @@ async def process_vlm_text(request: dict):
         
         state_tracker_start = time.time()
         state_tracker = get_state_tracker()
-        result = await state_tracker.process_vlm_response(vlm_text, observation_id)
+        result = await state_tracker.process_vlm_response(vlm_text, observation_id, image_data=None)
         state_tracker_time = time.time() - state_tracker_start
         current_state = state_tracker.get_current_state()
         

@@ -14,9 +14,12 @@ from dataclasses import dataclass
 # Import VLM Fallback System
 try:
     from vlm_fallback.fallback_processor import VLMFallbackProcessor
+    from vlm_fallback.enhanced_fallback_processor import EnhancedVLMFallbackProcessor
     VLM_FALLBACK_AVAILABLE = True
+    ENHANCED_FALLBACK_AVAILABLE = True
 except ImportError:
     VLM_FALLBACK_AVAILABLE = False
+    ENHANCED_FALLBACK_AVAILABLE = False
 
 class QueryType(Enum):
     """Types of user queries"""
@@ -46,13 +49,36 @@ class QueryProcessor:
     
     def __init__(self):
         """Initialize query processor with keyword patterns"""
-        # Initialize VLM Fallback System
-        self.vlm_fallback = None
+        # Initialize Enhanced VLM Fallback (with image support)
+        self.enhanced_vlm_fallback = None
+        self.vlm_fallback = None  # Initialize vlm_fallback attribute
+        
+        if ENHANCED_FALLBACK_AVAILABLE:
+            try:
+                # Load config and pass to EnhancedVLMFallbackProcessor
+                from vlm_fallback.config import VLMFallbackConfig
+                config = VLMFallbackConfig.from_file('src/config/vlm_fallback_config.json')
+                self.enhanced_vlm_fallback = EnhancedVLMFallbackProcessor(config)
+                print("Enhanced VLM Fallback initialized successfully with config")
+            except Exception as e:
+                print(f"Warning: Enhanced VLM Fallback initialization failed: {e}")
+                # Fallback to default config if file loading fails
+                try:
+                    self.enhanced_vlm_fallback = EnhancedVLMFallbackProcessor()
+                    print("Enhanced VLM Fallback initialized with default config")
+                except Exception as e2:
+                    print(f"Warning: Enhanced VLM Fallback initialization with default config also failed: {e2}")
+        
+        # Initialize Standard VLM Fallback (always try as backup)
         if VLM_FALLBACK_AVAILABLE:
             try:
                 self.vlm_fallback = VLMFallbackProcessor()
+                print("Standard VLM Fallback initialized successfully")
             except Exception as e:
-                print(f"Warning: VLM Fallback initialization failed: {e}")
+                print(f"Warning: Standard VLM Fallback initialization failed: {e}")
+        
+        # Log final initialization status
+        print(f"VLM Fallback Status: Enhanced={bool(self.enhanced_vlm_fallback)}, Standard={bool(self.vlm_fallback)}")
         
         # Define keyword patterns for each query type (English only)
         self.query_patterns = {
@@ -100,6 +126,18 @@ class QueryProcessor:
             QueryType.HELP
         ]
         
+        # First check for clearly non-task-related queries
+        non_task_indicators = [
+            'meaning of life', 'joke', 'weather', 'tokyo', 'quantum physics',
+            'perfect cup of coffee', 'programming', 'artificial intelligence',
+            'philosophy', 'consciousness', 'news', 'current events'
+        ]
+        
+        if any(indicator in query_lower for indicator in non_task_indicators):
+            if query_id and log_manager:
+                log_manager.log_query_classify_result(query_id, QueryType.UNKNOWN.value, 0.1)
+            return QueryType.UNKNOWN
+        
         # Check each query type in priority order
         for query_type in priority_order:
             patterns = self.query_patterns.get(query_type, [])
@@ -109,6 +147,16 @@ class QueryProcessor:
                     log_manager.log_query_pattern_check(query_id, pattern, query_type.value)
                 
                 if re.search(pattern, query_lower):
+                    # Additional validation for HELP classification
+                    if query_type == QueryType.HELP:
+                        # Don't classify general questions as HELP if they're not task-related
+                        general_question_patterns = [
+                            'what is', 'tell me about', 'explain', 'how do i make',
+                            'what\'s the weather', 'meaning of'
+                        ]
+                        if any(gp in query_lower for gp in general_question_patterns):
+                            continue  # Skip this match, continue checking
+                    
                     # 記錄模式匹配成功
                     if query_id and log_manager:
                         log_manager.log_query_pattern_match(query_id, query_type.value, pattern)
@@ -222,15 +270,16 @@ class QueryProcessor:
             return "unknown_response"
     
     def process_query(self, query: str, current_state: Optional[Dict[str, Any]], 
-                     query_id: str = None, log_manager = None) -> QueryResult:
+                     query_id: str = None, log_manager = None, state_tracker = None) -> QueryResult:
         """
-        Process user query and generate instant response.
+        Enhanced query processing with recent observation awareness.
         
         Args:
             query: User's natural language query
             current_state: Current state data from State Tracker
             query_id: Optional query ID for logging
             log_manager: Optional log manager for detailed logging
+            state_tracker: Optional state tracker instance for recent observation check
             
         Returns:
             QueryResult with response and metadata
@@ -259,61 +308,95 @@ class QueryProcessor:
             # Calculate confidence based on query complexity and state availability
             confidence = self._calculate_confidence(query_type, current_state, query)
             
-            # Check if VLM fallback should be used
-            should_use_fallback = self._should_use_vlm_fallback(query_type, current_state, confidence)
+            # Enhanced fallback decision with recent observation awareness
+            should_use_fallback = self._should_use_vlm_fallback(query_type, current_state, confidence, state_tracker)
             
             # Debug logging
-            print(f"DEBUG: Query='{query}', Type={query_type}, Confidence={confidence}, Should_fallback={should_use_fallback}, VLM_available={bool(self.vlm_fallback)}")
+            print(f"DEBUG: Query='{query}', Type={query_type}, Confidence={confidence}, Should_fallback={should_use_fallback}, Enhanced_VLM_available={bool(self.enhanced_vlm_fallback)}, VLM_available={bool(self.vlm_fallback)}")
             
-            if should_use_fallback and self.vlm_fallback:
+            # Priority: Use Enhanced VLM Fallback (with image support)
+            if should_use_fallback and self.enhanced_vlm_fallback:
                 try:
-                    # Use VLM fallback system - create a simple synchronous wrapper
+                    # Simplified VLM Fallback: Direct query to VLM
+                    print(f"DEBUG: Using Enhanced VLM Fallback for query: '{query}' (Type: {query_type}, Confidence: {confidence})")
+                    
+                    # Get current image and send query directly to VLM
+                    current_image = None
+                    if state_tracker:
+                        current_image = state_tracker.get_last_processed_image()
+                    
+                    # Direct VLM query - let VLM handle all analysis
+                    # Use asyncio to run the async method
                     import asyncio
-                    import threading
-                    
-                    def run_fallback_sync():
-                        """Run VLM fallback in a separate thread with its own event loop"""
-                        try:
-                            # Create new event loop for this thread
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
-                            
-                            # Run the async function
-                            if asyncio.iscoroutinefunction(self.vlm_fallback.process_query_with_fallback):
-                                result = loop.run_until_complete(self.vlm_fallback.process_query_with_fallback(query, current_state))
-                            else:
-                                result = self.vlm_fallback.process_query_with_fallback(query, current_state)
-                            
-                            return result
-                        except Exception as e:
-                            print(f"VLM fallback thread error: {e}")
-                            return None
-                        finally:
-                            loop.close()
-                    
-                    # Run in separate thread to avoid event loop conflicts
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(run_fallback_sync)
-                        try:
-                            fallback_result = future.result(timeout=30)  # 30 second timeout
-                        except concurrent.futures.TimeoutError:
-                            print("VLM fallback timeout")
-                            fallback_result = None
+                    try:
+                        # Try to get existing event loop
+                        loop = asyncio.get_event_loop()
+                        if loop.is_running():
+                            # If loop is running, create a task
+                            import concurrent.futures
+                            with concurrent.futures.ThreadPoolExecutor() as executor:
+                                future = executor.submit(asyncio.run, self.simple_enhanced_vlm_fallback(query, current_image))
+                                fallback_result = future.result(timeout=30)
+                        else:
+                            # If no loop is running, use asyncio.run
+                            fallback_result = asyncio.run(self.simple_enhanced_vlm_fallback(query, current_image))
+                    except RuntimeError:
+                        # If there's no event loop, create one
+                        fallback_result = asyncio.run(self.simple_enhanced_vlm_fallback(query, current_image))
                     
                     if fallback_result:
                         # Calculate processing time
                         processing_time = (time.time() - start_time) * 1000
                         
-                        # 記錄處理完成
+                        # Log processing completion
                         if query_id and log_manager:
                             log_manager.log_query_process_complete(query_id, processing_time)
                         
                         return QueryResult(
-                            query_type=query_type,
+                            query_type=query_type,  # Use calculated query_type
                             response_text=fallback_result["response_text"],
                             processing_time_ms=processing_time,
-                            confidence=fallback_result["confidence"],
+                            confidence=fallback_result.get("confidence", confidence),  # Use VLM confidence or calculated confidence
+                            raw_query=query
+                        )
+                except Exception as e:
+                    # If Enhanced VLM fallback fails, continue with standard fallback
+                    print(f"Enhanced VLM fallback failed: {e}")
+            
+            # Fallback to standard VLM Fallback (text-only)
+            if should_use_fallback and self.vlm_fallback:
+                try:
+                    # Simplified VLM Fallback: Direct query to VLM
+                    print(f"DEBUG: Using Standard VLM Fallback for query: '{query}' (Type: {query_type}, Confidence: {confidence})")
+                    
+                    # Direct VLM query - let VLM handle all analysis
+                    # Use asyncio to run the async method
+                    import asyncio
+                    try:
+                        # Try to get existing event loop
+                        loop = asyncio.get_event_loop()
+                        if loop.is_running():
+                            # If loop is running, create a task
+                            import concurrent.futures
+                            with concurrent.futures.ThreadPoolExecutor() as executor:
+                                future = executor.submit(asyncio.run, self.simple_vlm_fallback(query))
+                                fallback_result = future.result(timeout=30)
+                        else:
+                            # If no loop is running, use asyncio.run
+                            fallback_result = asyncio.run(self.simple_vlm_fallback(query))
+                    except RuntimeError:
+                        # If there's no event loop, create one
+                        fallback_result = asyncio.run(self.simple_vlm_fallback(query))
+                    
+                    if fallback_result:
+                        # Calculate processing time
+                        processing_time = (time.time() - start_time) * 1000
+                        
+                        return QueryResult(
+                            query_type=query_type,  # Use calculated query_type
+                            response_text=fallback_result["response_text"],
+                            processing_time_ms=processing_time,
+                            confidence=fallback_result.get("confidence", confidence),  # Use VLM confidence or calculated confidence
                             raw_query=query
                         )
                 except Exception as e:
@@ -394,39 +477,119 @@ class QueryProcessor:
             # Return None if any error occurs
             return None
     
-    def _should_use_vlm_fallback(self, query_type: QueryType, current_state: Optional[Dict[str, Any]], confidence: float) -> bool:
+    def _should_use_vlm_fallback(self, query_type: QueryType, current_state: Optional[Dict[str, Any]], 
+                                confidence: float, state_tracker=None) -> bool:
         """
-        Determine if VLM fallback should be used based on decision criteria
+        Enhanced fallback decision with recent observation awareness.
         
         Args:
             query_type: Classified query type
             current_state: Current state data
-            confidence: Confidence score from classification
+            confidence: Classification confidence
+            state_tracker: Optional state tracker instance for recent observation check
             
         Returns:
             True if VLM fallback should be used
         """
-        if not self.vlm_fallback:
+        # Check if any VLM fallback system is available
+        if not (self.enhanced_vlm_fallback or self.vlm_fallback):
+            print(f"DEBUG: No VLM fallback available - enhanced: {bool(self.enhanced_vlm_fallback)}, standard: {bool(self.vlm_fallback)}")
             return False
         
         # Use VLM fallback if:
         # 1. No state data available
         if not current_state:
+            print(f"DEBUG: Using VLM fallback - no state data")
             return True
         
         # 2. Low confidence in query classification
         if confidence < 0.40:
+            print(f"DEBUG: Using VLM fallback - low confidence ({confidence} < 0.40)")
             return True
         
         # 3. Unknown query type
         if query_type == QueryType.UNKNOWN:
+            print(f"DEBUG: Using VLM fallback - unknown query type")
             return True
         
         # 4. No current step information
         if not current_state.get('step_index') and not current_state.get('matched_step'):
+            print(f"DEBUG: Using VLM fallback - no step information")
             return True
         
+        # NEW: Recent observation aware fallback
+        if state_tracker and self._should_fallback_due_to_recent_observations(state_tracker):
+            print(f"DEBUG: Using VLM fallback - recent observations suggest fallback")
+            return True
+        
+        print(f"DEBUG: Not using VLM fallback - confidence: {confidence}, type: {query_type}, state: {bool(current_state)}")
         return False
+
+    def _should_fallback_due_to_recent_observations(self, state_tracker, 
+                                                   fallback_ttl_seconds: float = 15.0) -> bool:
+        """
+        Check if fallback should be used based on recent observations.
+        
+        Args:
+            state_tracker: State tracker instance
+            fallback_ttl_seconds: TTL threshold for stale state detection
+            
+        Returns:
+            True if recent observations suggest fallback is needed
+        """
+        try:
+            status = state_tracker.get_recent_observation_status(fallback_ttl_seconds)
+            return status.fallback_recommended
+        except Exception as e:
+            print(f"Warning: Error checking recent observation status: {e}")
+            return False  # Default to existing behavior on error
+
+    async def simple_enhanced_vlm_fallback(self, query: str, current_image: bytes = None):
+        """
+        Simplified Enhanced VLM Fallback - Direct query to VLM
+        
+        Args:
+            query: User query
+            current_image: Current image data (optional)
+            
+        Returns:
+            VLM response or None if failed
+        """
+        try:
+            # Direct query to Enhanced VLM Fallback
+            if current_image:
+                # Use image-based fallback
+                result = await self.enhanced_vlm_fallback.process_query_with_image_fallback(
+                    query, {"image": current_image}
+                )
+            else:
+                # Use text-only fallback
+                result = await self.enhanced_vlm_fallback.process_query_with_fallback(
+                    query, {}
+                )
+            
+            return result
+        except Exception as e:
+            print(f"Enhanced VLM Fallback error: {e}")
+            return None
+
+    async def simple_vlm_fallback(self, query: str):
+        """
+        Simplified Standard VLM Fallback - Direct query to VLM
+        
+        Args:
+            query: User query
+            
+        Returns:
+            VLM response or None if failed
+        """
+        try:
+            # Direct query to Standard VLM Fallback
+            result = await self.vlm_fallback.process_query_with_fallback(query, {})
+            return result
+        except Exception as e:
+            print(f"Standard VLM Fallback error: {e}")
+            return None
     
     def _calculate_confidence(self, query_type: QueryType, current_state: Optional[Dict[str, Any]], query: str) -> float:
         """
@@ -442,15 +605,28 @@ class QueryProcessor:
         """
         base_confidence = 0.9 if query_type != QueryType.UNKNOWN else 0.1
         
-        # Reduce confidence if no state data
+        # Reduce confidence if no state data - this is critical for fallback triggering
         if not current_state:
-            base_confidence *= 0.3  # Significant reduction
+            # For task-related queries without state, confidence should be very low
+            if query_type in [QueryType.CURRENT_STEP, QueryType.NEXT_STEP, 
+                             QueryType.REQUIRED_TOOLS, QueryType.COMPLETION_STATUS, 
+                             QueryType.PROGRESS_OVERVIEW]:
+                base_confidence = 0.2  # Very low confidence for task queries without state
+            else:
+                base_confidence *= 0.3  # Significant reduction for other queries
+        
+        # Additional reduction for state-dependent queries even with state
+        state_dependent_queries = ['what am i doing', 'where am i', 'current status', 'my status']
+        if any(phrase in query.lower() for phrase in state_dependent_queries):
+            if not current_state or not current_state.get('task_id'):
+                base_confidence = 0.15  # Force low confidence for these queries without proper state
         
         # Reduce confidence for complex queries that might need VLM
         complex_keywords = [
             'meaning', 'explain', 'why', 'how does', 'what is', 'tell me about',
             'philosophy', 'consciousness', 'artificial intelligence', 'quantum',
-            'weather', 'today', 'tomorrow', 'news', 'current events'
+            'weather', 'today', 'tomorrow', 'news', 'current events', 'joke',
+            'perfect', 'tokyo', 'physics', 'life', 'programming'
         ]
         
         query_lower = query.lower()
@@ -458,8 +634,20 @@ class QueryProcessor:
         
         if complex_matches > 0:
             # More complex queries get lower confidence
-            complexity_factor = max(0.2, 1.0 - (complex_matches * 0.3))
+            complexity_factor = max(0.15, 1.0 - (complex_matches * 0.4))
             base_confidence *= complexity_factor
+        
+        # Additional reduction for questions that don't match standard patterns
+        question_indicators = ['what', 'how', 'why', 'when', 'where', 'who', 'which']
+        has_question_word = any(word in query_lower for word in question_indicators)
+        
+        if has_question_word and query_type == QueryType.UNKNOWN:
+            base_confidence *= 0.5  # Further reduce for unknown questions
+        
+        # Reduce confidence for queries about general topics (not task-specific)
+        general_topics = ['coffee', 'weather', 'joke', 'meaning of life', 'quantum', 'tokyo']
+        if any(topic in query_lower for topic in general_topics):
+            base_confidence *= 0.3
         
         # Ensure confidence is within bounds
         return max(0.1, min(0.9, base_confidence))

@@ -1,5 +1,7 @@
 # State Tracker User Guide
 
+*Last Updated: August 8, 2025*
+
 ## 📋 Overview
 
 The State Tracker is the core component of the AI Manual Assistant, responsible for **intelligently tracking user task progress** and providing **instant status queries**. It works like an intelligent assistant that can:
@@ -8,6 +10,7 @@ The State Tracker is the core component of the AI Manual Assistant, responsible 
 - 💾 **Remember** your task progress and historical states
 - ⚡ **Instantly respond** to your status queries (millisecond-level response)
 - 🛡️ **Intelligently filter** inaccurate observations to ensure state accuracy
+- 🔄 **Prevent stale responses** during scene transitions with recent observation awareness
 
 ## 🏗️ System Architecture
 
@@ -18,14 +21,14 @@ The State Tracker is the core component of the AI Manual Assistant, responsible 
 VLM Observation → Intelligent Matching → State Update → Memory Storage
 
 ⚡ Instant Response Loop (triggered on demand)  
-User Query → Direct Read → Instant Response
+User Query → Recent Observation Check → Direct Read → Instant Response
 ```
 
 ### **Core Components**
 
 - **State Tracker**: Main controller that coordinates all functions
 - **RAG Knowledge Base**: Task knowledge matching engine
-- **Query Processor**: Intelligent query processor
+- **Query Processor**: Intelligent query processor with recent observation awareness
 - **Sliding Window Memory**: Efficient state storage system
 
 ## 🎯 Main Features
@@ -53,13 +56,13 @@ The system uses a three-tier confidence assessment:
 
 | Confidence | Score Range | Update Strategy |
 |------------|-------------|-----------------|
-| 🟢 **High** | ≥ 0.70 | Direct state update |
-| 🟡 **Medium** | 0.40-0.69 | Update after consistency check |
+| 🟢 **High** | ≥ 0.65 | Direct state update |
+| 🟡 **Medium** | 0.40-0.65 | Update after consistency check |
 | 🔴 **Low** | < 0.40 | Don't update, wait for better match |
 
 ### **3. Instant Query Response**
 
-Supports multiple query types:
+Supports multiple query types with **recent observation awareness**:
 
 #### **Basic Queries**
 - **Current Step**: "What step am I on?", "What am I doing now?"
@@ -72,6 +75,23 @@ Supports multiple query types:
 
 #### **Help Queries**
 - **Operation Guidance**: "How do I do this?", "I need help"
+
+### **4. Recent Observation Aware Fallback**
+
+The system intelligently prevents stale responses during scene transitions:
+
+#### **Problem Solved**
+- **Before**: User switches scenes → VLM observations become LOW → User asks "Where am I?" → System returns old step (stale response)
+- **After**: User switches scenes → VLM observations become LOW → User asks "Where am I?" → System detects stale state → Uses VLM fallback for fresh response
+
+#### **Fallback Triggers**
+- **LOW Confidence**: Recent observations with confidence < 0.40
+- **Stale State**: Current state older than 15 seconds with non-HIGH observations
+- **Consecutive Lows**: 3+ consecutive low confidence observations
+
+#### **Recovery**
+- **Immediate**: When user returns to original scene and HIGH confidence observations occur
+- **Seamless**: Template responses resume automatically for fresh states
 
 ## 🚀 Usage
 
