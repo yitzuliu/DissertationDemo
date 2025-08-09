@@ -74,14 +74,6 @@ class OptimizedStateRecord:
         return 56 + 24 + len(self.task_id) * 2 + 28 + 50  # Approximate
 
 @dataclass
-class PendingStateCandidate:
-    """Pending candidate for medium-confidence large forward jump confirmation."""
-    task_id: str
-    step_index: int
-    first_seen_ts: datetime
-    count: int = 1
-
-@dataclass
 class MemoryStats:
     """Memory usage statistics"""
     total_records: int
@@ -103,17 +95,6 @@ class ProcessingMetrics:
     matched_step: Optional[int]
     consecutive_low_count: int
 
-@dataclass
-class RecentObservationStatus:
-    """Status of recent observations for fallback decision making"""
-    seconds_since_last_update: Optional[float]  # None if no state
-    last_observation_confidence_level: ConfidenceLevel
-    consecutive_low_count: int
-    seconds_since_last_observation: Optional[float]  # None if no observations
-    last_observation_timestamp: Optional[datetime]
-    current_state_timestamp: Optional[datetime]
-    fallback_recommended: bool  # Computed recommendation
-
 class StateTracker:
     """
     Enhanced State Tracker with intelligent matching and fault tolerance.
@@ -128,7 +109,7 @@ class StateTracker:
         self.current_state: Optional[StateRecord] = None
         
         # Multi-tier confidence thresholds
-        self.high_confidence_threshold = 0.65
+        self.high_confidence_threshold = 0.70
         self.medium_confidence_threshold = 0.40
         
         # Legacy state tracking (for compatibility)
@@ -137,9 +118,6 @@ class StateTracker:
         
         # Optimized sliding window
         self.sliding_window: List[OptimizedStateRecord] = []
-        
-        # Image storage for VLM fallback
-        self.last_processed_image: Optional[bytes] = None
         self.max_window_size = 30
         self.memory_limit_bytes = 1024 * 1024  # 1MB limit
         
@@ -150,13 +128,7 @@ class StateTracker:
         
         # Fault tolerance tracking
         self.consecutive_low_count = 0
-        self.max_consecutive_low = 5
-
-        # Thin guard settings for step consistency (medium-confidence only)
-        self.max_forward_jump_without_confirmation = 2
-        self.consecutive_confirmations_required = 2
-        self.pending_candidate_ttl_seconds = 10
-        self.pending_state_candidate: Optional[PendingStateCandidate] = None
+        self.max_consecutive_low = 10
         
         # Metrics tracking
         self.processing_metrics: List[ProcessingMetrics] = []
@@ -228,11 +200,27 @@ class StateTracker:
             return False
     
     def _handle_consecutive_low_matches(self):
-        """Handle consecutive low confidence matches"""
+        """Handle consecutive low confidence matches - clear state if threshold reached"""
         if self.consecutive_low_count >= self.max_consecutive_low:
-            logger.warning(f"Detected {self.consecutive_low_count} consecutive low matches - system may need adjustment")
-            # Could implement adaptive threshold adjustment here
-            self.consecutive_low_count = 0  # Reset counter
+            logger.info(f"Clearing state after {self.consecutive_low_count} consecutive low confidence matches")
+            
+            # 記錄被清空的狀態資訊（用於日誌）
+            if self.current_state:
+                cleared_state_info = {
+                    'task_id': self.current_state.task_id,
+                    'step_index': self.current_state.step_index,
+                    'confidence': self.current_state.confidence,
+                    'age_minutes': (datetime.now() - self.current_state.timestamp).total_seconds() / 60
+                }
+                logger.info(f"Cleared state details: {cleared_state_info}")
+            
+            # 清空當前狀態 - 這是關鍵！
+            self.current_state = None
+            
+            # 重置計數器
+            self.consecutive_low_count = 0
+            
+            logger.info("State cleared due to consecutive low confidence observations - VLM Fallback will be triggered on next query")
     
     def _add_to_sliding_window(self, state_record: StateRecord):
         """Add optimized record to sliding window with memory management"""
@@ -277,77 +265,27 @@ class StateTracker:
         """Calculate current memory usage of sliding window"""
         return sum(record.get_memory_size() for record in self.sliding_window)
     
-    def _check_state_consistency(self, new_task_id: str, new_step_index: int, confidence_level: ConfidenceLevel) -> bool:
-        """Thin-guard consistency check.
-
-        Rules:
-        - HIGH confidence: always allow; clear any pending candidate.
-        - No recent records for task: allow (treat as reasonable); clear pending.
-        - Backward (restart) or equal step: allow; clear pending.
-        - Small forward jump (≤ configured max): allow; clear pending.
-        - Medium-confidence large forward jump: require consecutive confirmations within TTL.
-        """
-        # High confidence bypasses any restriction
-        if confidence_level == ConfidenceLevel.HIGH:
-            self.pending_state_candidate = None
-            return True
-
+    def _check_state_consistency(self, new_task_id: str, new_step_index: int) -> bool:
+        """Check state consistency based on sliding window history"""
         if not self.sliding_window:
-            self.pending_state_candidate = None
             return True  # No history to check against
         
         # Get recent records from same task
         recent_records = [r for r in self.sliding_window[-5:] if r.task_id == new_task_id]
         
         if not recent_records:
-            self.pending_state_candidate = None
-            return True  # Different/no recent task history, allow
+            return True  # Different task, no consistency check needed
         
+        # Simple step jump detection
         last_step = recent_records[-1].step_index
-        # Allow backward or equal (restart or re-check)
-        if new_step_index <= last_step:
-            self.pending_state_candidate = None
-            return True
-
-        # Forward jump handling
-        step_diff_forward = new_step_index - last_step
-        if step_diff_forward <= self.max_forward_jump_without_confirmation:
-            self.pending_state_candidate = None
-            return True
-
-        # For medium confidence large forward jumps, require confirmation
-        if confidence_level == ConfidenceLevel.MEDIUM:
-            now = datetime.now()
-            if (
-                self.pending_state_candidate
-                and self.pending_state_candidate.task_id == new_task_id
-                and self.pending_state_candidate.step_index == new_step_index
-                and (now - self.pending_state_candidate.first_seen_ts).total_seconds() <= self.pending_candidate_ttl_seconds
-            ):
-                self.pending_state_candidate.count += 1
-            else:
-                self.pending_state_candidate = PendingStateCandidate(
-                    task_id=new_task_id,
-                    step_index=new_step_index,
-                    first_seen_ts=now,
-                    count=1,
-                )
-
-            if self.pending_state_candidate.count >= self.consecutive_confirmations_required:
-                # Confirm and clear pending
-                self.pending_state_candidate = None
-                return True
-
-            logger.info(
-                f"Thin guard holding update for medium-confidence large forward jump: "
-                f"{last_step} -> {new_step_index} (pending confirmations: "
-                f"{self.pending_state_candidate.count}/{self.consecutive_confirmations_required})"
-            )
+        step_diff = abs(new_step_index - last_step)
+        
+        # Allow reasonable step progression (max jump of 3 steps)
+        # But allow going back to earlier steps (user might restart)
+        if step_diff > 3 and new_step_index > last_step:
+            logger.warning(f"Large forward step jump detected: {last_step} -> {new_step_index}")
             return False
-
-        # Low confidence shouldn't reach here (no update path); default allow to avoid blocking
-        # Actual update decision is governed by _should_update_state
-        self.pending_state_candidate = None
+        
         return True
     
     def _record_vlm_failure(self, reason: str):
@@ -396,22 +334,17 @@ class StateTracker:
             "timestamp": state_record.timestamp.isoformat()
         }
     
-    async def process_vlm_response(self, vlm_text: str, observation_id: str = None, image_data: bytes = None) -> bool:
+    async def process_vlm_response(self, vlm_text: str, observation_id: str = None) -> bool:
         """
         Enhanced VLM response processing with intelligent matching and fault tolerance.
         
         Args:
             vlm_text: Raw VLM text output from /v1/chat/completions
             observation_id: Optional observation ID for logging
-            image_data: Optional image data that was processed with the VLM
             
         Returns:
             True if state was updated, False otherwise
         """
-        # Store the image data if provided
-        if image_data:
-            self.last_processed_image = image_data
-            logger.debug(f"Stored image data: {len(image_data)} bytes")
         start_time = time.time()
         
         try:
@@ -484,11 +417,7 @@ class StateTracker:
                 state_update_id = self.log_manager.generate_state_update_id()
                 
                 # Check state consistency before update
-                consistency_ok = self._check_state_consistency(
-                    match_result.task_name,
-                    match_result.step_id,
-                    confidence_level
-                )
+                consistency_ok = self._check_state_consistency(match_result.task_name, match_result.step_id)
                 
                 if consistency_ok:
                     # Create and update state record
@@ -820,7 +749,7 @@ class StateTracker:
             start_time = time.time()
             
             # Process query with query processor
-            result = self.query_processor.process_query(query, current_state, query_id, self.log_manager, self)
+            result = self.query_processor.process_query(query, current_state, query_id, self.log_manager)
             
             # Calculate processing time
             processing_time_ms = (time.time() - start_time) * 1000
@@ -856,107 +785,6 @@ class StateTracker:
             'response_time_target_ms': 20,
             'current_state_available': self.current_state is not None
         }
-    
-    def get_last_processed_image(self) -> Optional[bytes]:
-        """
-        Get the last processed image from the state tracker.
-        This method is used by the ImageCaptureManager for VLM fallback with images.
-        
-        Returns:
-            Last processed image as bytes, or None if no image available
-        """
-        try:
-            if self.last_processed_image:
-                logger.debug(f"Returning stored image: {len(self.last_processed_image)} bytes")
-                return self.last_processed_image
-            else:
-                logger.debug("No stored image available")
-                return None
-        except Exception as e:
-            logger.warning(f"Failed to get last processed image: {e}")
-            return None
-
-    def get_recent_observation_status(self, fallback_ttl_seconds: float = 15.0) -> RecentObservationStatus:
-        """
-        Get recent observation status for fallback decision making.
-        
-        This method analyzes recent observations to determine if the current state
-        should be considered stale and if fallback should be recommended.
-        
-        Args:
-            fallback_ttl_seconds: TTL threshold for considering state stale
-            
-        Returns:
-            RecentObservationStatus with computed fallback recommendation
-        """
-        try:
-            current_time = datetime.now()
-            
-            # Get current state timestamp
-            current_state_timestamp = None
-            seconds_since_last_update = None
-            if self.current_state:
-                current_state_timestamp = self.current_state.timestamp
-                seconds_since_last_update = (current_time - current_state_timestamp).total_seconds()
-            
-            # Get last observation information
-            last_observation_timestamp = None
-            last_observation_confidence_level = ConfidenceLevel.LOW
-            seconds_since_last_observation = None
-            
-            if self.processing_metrics:
-                last_metric = self.processing_metrics[-1]
-                last_observation_timestamp = last_metric.timestamp
-                last_observation_confidence_level = last_metric.confidence_level
-                seconds_since_last_observation = (current_time - last_observation_timestamp).total_seconds()
-            
-            # Determine if fallback should be recommended
-            fallback_recommended = False
-            
-            # Only recommend fallback if we have a current state to potentially replace
-            if self.current_state is not None:
-                # Rule 1: If last observation was LOW confidence, recommend fallback
-                if last_observation_confidence_level == ConfidenceLevel.LOW:
-                    fallback_recommended = True
-                    logger.debug(f"Fallback recommended: last observation was LOW confidence")
-                
-                # Rule 2: If state is older than TTL and last observation wasn't HIGH, recommend fallback
-                elif (seconds_since_last_update is not None and 
-                      seconds_since_last_update > fallback_ttl_seconds and 
-                      last_observation_confidence_level != ConfidenceLevel.HIGH):
-                    fallback_recommended = True
-                    logger.debug(f"Fallback recommended: state is {seconds_since_last_update:.1f}s old (> {fallback_ttl_seconds}s) and last observation was {last_observation_confidence_level.value}")
-                
-                # Rule 3: If we have consecutive low observations, recommend fallback
-                elif self.consecutive_low_count >= 3:
-                    fallback_recommended = True
-                    logger.debug(f"Fallback recommended: {self.consecutive_low_count} consecutive low observations")
-            else:
-                # No current state, so no fallback recommendation needed
-                logger.debug("No current state, no fallback recommendation needed")
-
-            return RecentObservationStatus(
-                seconds_since_last_update=seconds_since_last_update,
-                last_observation_confidence_level=last_observation_confidence_level,
-                consecutive_low_count=self.consecutive_low_count,
-                seconds_since_last_observation=seconds_since_last_observation,
-                last_observation_timestamp=last_observation_timestamp,
-                current_state_timestamp=current_state_timestamp,
-                fallback_recommended=fallback_recommended
-            )
-            
-        except Exception as e:
-            logger.error(f"Error getting recent observation status: {e}")
-            # Return a safe default that doesn't trigger fallback
-            return RecentObservationStatus(
-                seconds_since_last_update=None,
-                last_observation_confidence_level=ConfidenceLevel.LOW,
-                consecutive_low_count=self.consecutive_low_count,
-                seconds_since_last_observation=None,
-                last_observation_timestamp=None,
-                current_state_timestamp=None,
-                fallback_recommended=False  # Safe default
-            )
 
 # Global state tracker instance
 _state_tracker_instance: Optional[StateTracker] = None
