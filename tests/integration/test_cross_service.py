@@ -38,7 +38,7 @@ class Stage33FinalTester:
         }
         
         # Virtual environment setup (ensure using correct environment)
-        self.base_dir = Path(__file__).parent.parent.parent
+        self.base_dir = Path(__file__).parent.parent
         self.venv_path = self.base_dir / "ai_vision_env"  # Python 3.13.3
         self.python_executable = self.venv_path / "bin" / "python"
         

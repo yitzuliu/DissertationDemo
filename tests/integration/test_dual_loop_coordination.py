@@ -45,7 +45,7 @@ class Stage32DualLoopTester:
         }
         
         # 虛擬環境設置（確保使用正確的環境）
-        self.base_dir = Path(__file__).parent.parent.parent  # 修正路徑到項目根目錄
+        self.base_dir = Path(__file__).parent.parent  # 修正路徑到項目根目錄
         self.venv_path = self.base_dir / "ai_vision_env"  # Python 3.13.3
         self.python_executable = self.venv_path / "bin" / "python"
         

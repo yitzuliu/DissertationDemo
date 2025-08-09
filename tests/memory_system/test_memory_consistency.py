@@ -18,7 +18,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
     from memory.rag.validation import validate_task_file, TaskKnowledgeValidator

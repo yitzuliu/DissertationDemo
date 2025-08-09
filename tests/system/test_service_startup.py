@@ -40,7 +40,7 @@ class ServiceStartupTester:
         self.max_retries = 3
         
         # Virtual environment setup
-        self.base_dir = Path(__file__).parent.parent.parent
+        self.base_dir = Path(__file__).parent.parent
         self.venv_path = self.base_dir / "ai_vision_env"
         self.python_executable = self.venv_path / "bin" / "python"
         
@@ -685,7 +685,7 @@ async def main():
         report = await runner.run_all_tests()
         
         # Save comprehensive report
-        report_path = Path(__file__).parent / f"stage_3_1_comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        report_path = Path(__file__).parent / f"service_startup_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_path, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
         

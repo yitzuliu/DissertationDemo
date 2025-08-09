@@ -11,7 +11,7 @@ import os
 from unittest.mock import Mock, patch, AsyncMock
 
 # Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 class TestVLMFallbackIntegration:
     """Test VLM fallback system integration"""
