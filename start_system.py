@@ -104,7 +104,7 @@ class SystemManager:
         """Run core component tests"""
         print("🧪 Running Core Component Tests...")
         
-        test_script = self.base_dir / "tests" / "test_core_components.py"
+        test_script = self.base_dir / "archive" / "tests" / "experimental" / "test_core_components.py"
         if not test_script.exists():
             print("❌ Test script not found!")
             return False
