@@ -1,0 +1,117 @@
+{
+  "timestamp": "2025-07-31T03:04:45.877208",
+  "tests": {
+    "backend_startup": {
+      "status": "PASS",
+      "port": 8000,
+      "startup_time": "< 30s",
+      "status_response": {
+        "active_model": "SmolVLM",
+        "model_id": "smolvlm",
+        "available_models": [
+          "smolvlm",
+          "phi3_vision",
+          "phi3_vision_optimized",
+          "smolvlm2_500m_video",
+          "smolvlm2_500m_video_optimized",
+          "moondream2",
+          "moondream2_optimized",
+          "llava_mlx",
+          "qwen2_vl",
+          "yolo8"
+        ],
+        "config": {
+          "server": {
+            "host": "localhost",
+            "port": 8000
+          },
+          "frontend": {
+            "video_width": 640,
+            "video_height": 480,
+            "api_base_url": "http://localhost:8000"
+          },
+          "model_server": {
+            "host": "localhost",
+            "port": 8080
+          },
+          "active_model": "smolvlm"
+        },
+        "model_status": {
+          "name": "SmolVLM",
+          "description": "SmolVLM 500M Instruct model configuration for unified vision system with enhanced image quality.",
+          "version": "1.0.0"
+        }
+      }
+    },
+    "frontend_availability": {
+      "status": "PASS",
+      "files_checked": [
+        "/Users/ytzzzz/Documents/destination_code/src/frontend/index.html",
+        "/Users/ytzzzz/Documents/destination_code/src/frontend/query.html"
+      ],
+      "features_verified": [
+        "intervalSelect",
+        "startButton",
+        "responseText",
+        "apiStatusDot"
+      ],
+      "note": "Frontend can be opened directly in browser"
+    },
+    "port_configuration": {
+      "status": "PASS",
+      "backend_port": 8000,
+      "endpoints_tested": {
+        "/health": {
+          "status_code": 200,
+          "accessible": true
+        },
+        "/status": {
+          "status_code": 200,
+          "accessible": true
+        },
+        "/config": {
+          "status_code": 200,
+          "accessible": true
+        },
+        "/api/v1/state": {
+          "status_code": 200,
+          "accessible": true
+        }
+      },
+      "accessible_endpoints": 4,
+      "total_endpoints": 4
+    },
+    "service_independence": {
+      "status": "PASS",
+      "independence_score": "100.0%",
+      "working_functions": 4,
+      "total_functions": 4,
+      "function_tests": {
+        "health_check": {
+          "working": true,
+          "status_code": 200
+        },
+        "status_check": {
+          "working": true,
+          "status_code": 200
+        },
+        "config_access": {
+          "working": true,
+          "status_code": 200
+        },
+        "state_access": {
+          "working": true,
+          "status_code": 200
+        }
+      },
+      "note": "Backend service can start and run independently, no dependency on other services"
+    }
+  },
+  "summary": {
+    "total_tests": 4,
+    "passed_tests": 4,
+    "failed_tests": 0,
+    "success_rate": "100.0%",
+    "overall_status": "PASS"
+  }
+}

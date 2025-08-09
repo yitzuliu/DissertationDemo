@@ -9,7 +9,14 @@ from typing import Dict, List, Any, Optional
 import yaml
 from pathlib import Path
 from dataclasses import dataclass
-from .validation import TaskKnowledgeValidator, TaskValidationError
+try:
+    from .validation import TaskKnowledgeValidator, TaskValidationError
+except ImportError:
+    # Handle standalone execution
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    from src.memory.rag.validation import TaskKnowledgeValidator, TaskValidationError
 
 
 @dataclass

@@ -10,8 +10,12 @@ import sys
 from pathlib import Path
 
 # Add src to path for imports
+<<<<<<< HEAD:tests/memory_system/test_task_knowledge.py
 src_path = Path(__file__).parent.parent.parent / "src"
 sys.path.insert(0, str(src_path))
+=======
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+>>>>>>> main-broken:tests/test_task_knowledge.py
 
 from memory.rag.validation import validate_task_file, TaskKnowledgeValidator
 from memory.rag.task_loader import TaskKnowledgeLoader, load_coffee_brewing_task

@@ -41,6 +41,10 @@ class LlavaMlxModel(BaseVisionModel):
     def __init__(self, model_name: str, config: Dict[str, Any]):
         super().__init__(model_name=model_name, config=config)
         
+<<<<<<< HEAD
+=======
+        # Unified configuration key usage
+>>>>>>> main-broken
         self.model_id = (
             self.config.get("model_path") or 
             self.config.get("model_id") or 

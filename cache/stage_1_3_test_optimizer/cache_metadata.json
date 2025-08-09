@@ -1,0 +1,18 @@
+{
+  "stats": {
+    "total_embeddings": 8,
+    "cache_hits": 0,
+    "cache_misses": 0,
+    "last_updated": "2025-07-31 02:18:58",
+    "precompute_time": 0.021255970001220703,
+    "average_search_time": 0.0
+  },
+  "cache_info": {
+    "coffee_brewing_embeddings": {
+      "task_name": "coffee_brewing",
+      "step_count": 8,
+      "cached_at": "2025-07-31 02:18:58",
+      "cache_file": "/Users/ytzzzz/Documents/destination_code/cache/stage_1_3_test_optimizer/coffee_brewing_embeddings.pkl"
+    }
+  }
+}
