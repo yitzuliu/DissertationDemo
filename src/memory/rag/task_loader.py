@@ -257,7 +257,7 @@ class TaskKnowledgeLoader:
 def load_coffee_brewing_task() -> TaskKnowledge:
     """Load the coffee brewing task specifically"""
     loader = TaskKnowledgeLoader()
-    return loader.load_task("coffee_brewing")
+    return loader.load_task("brewing_coffee")
 
 
 def create_task_loader(tasks_directory: str = "data/tasks") -> TaskKnowledgeLoader:
