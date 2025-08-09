@@ -42,14 +42,11 @@ cd tests/stage_3_1
 python run_stage_3_1_tests.py
 ```
 
-### 方式二：分別執行各項測試
+### 方式二：執行主要測試腳本
 
 ```bash
-# 1. 執行服務啟動測試
-python test_service_startup.py
-
-# 2. 執行服務通信測試
-python test_service_communication.py
+# 執行主要的測試腳本（已驗證100%成功率）
+python test_proper_sequence.py
 ```
 
 ## 📋 前置條件
@@ -81,36 +78,43 @@ pip install aiohttp requests psutil
 
 ## 📊 測試內容詳解
 
-### 服務啟動測試 (`test_service_startup.py`)
+### 主要測試腳本 (`test_proper_sequence.py`)
 
 | 測試項目 | 描述 | 驗證內容 |
 |---------|------|---------|
-| 後端服務獨立啟動 | 測試後端服務可以獨立啟動 | uvicorn啟動、健康檢查、狀態端點 |
-| 前端服務可用性 | 測試前端文件完整性 | HTML文件存在、關鍵功能元素 |
-| 服務端口配置 | 測試端口配置正確性 | 各API端點可訪問性 |
-| 服務獨立性 | 驗證服務不需要整合 | 獨立功能運行測試 |
+| 模型服務啟動 | 測試SmolVLM服務啟動 | 端口8080、llama-server啟動、服務響應 |
+| 後端服務啟動 | 測試FastAPI後端啟動 | 端口8000、uvicorn啟動、健康檢查 |
+| 服務通信測試 | 測試6個關鍵端點 | 健康檢查、狀態端點、VLM通信、State Tracker等 |
 
-### 服務通信測試 (`test_service_communication.py`)
+### 完整測試套件 (`run_stage_3_1_tests.py`)
 
 | 測試項目 | 描述 | 驗證內容 |
 |---------|------|---------|
-| 後端服務健康檢查 | 基本連通性測試 | `/health`端點響應 |
-| 後端狀態端點 | 狀態查詢功能 | `/status`端點數據 |
-| State Tracker端點 | 狀態追蹤功能 | `/api/v1/state/*`端點群 |
-| VLM→State Tracker數據流 | VLM文字處理流程 | 文字處理、狀態更新 |
-| 用戶查詢數據流 | 查詢響應流程 | 查詢處理、即時回應 |
-| 端到端數據流 | 完整工作流程 | VLM→處理→查詢→回應 |
-| 服務獨立性 | 獨立運行驗證 | 無依賴運行測試 |
+| 服務啟動測試 | 模型和後端服務啟動 | 獨立啟動、端口配置、服務獨立性 |
+| 通信測試 | 10個完整測試項目 | 所有API端點、數據流、性能指標 |
+| 綜合報告 | 生成詳細測試報告 | 測試結果、性能分析、下一步建議 |
+
+### 測試腳本特點
+- **虛擬環境支援**：自動檢測和啟用`ai_vision_env`
+- **重試機制**：服務啟動失敗時自動重試
+- **端口清理**：自動清理被占用的端口
+- **完整清理**：測試結束後自動清理所有進程
 
 ## 📈 測試報告
 
 ### 報告文件
 測試完成後會生成以下報告文件：
 
-1. **綜合報告**: `STAGE_3_1_COMPREHENSIVE_REPORT_YYYYMMDD_HHMMSS.json`
-2. **啟動測試報告**: `stage_3_1_startup_report_YYYYMMDD_HHMMSS.json`
-3. **通信測試報告**: `stage_3_1_test_report_YYYYMMDD_HHMMSS.json`
-4. **完成標記**: `../../STAGE_3_1_COMPLETE.md`（測試全部通過時）
+1. **綜合報告**: `stage_3_1_comprehensive_report_YYYYMMDD_HHMMSS.json`
+2. **測試記錄**: `STAGE_3_1_TEST_RECORD.md`
+3. **完成標記**: `../../docs/development_stages/STAGE_3_1_COMPLETE.md`（測試全部通過時）
+
+### 最新測試結果 (2025-08-09)
+- **總測試數**: 10
+- **通過測試**: 10
+- **失敗測試**: 0
+- **成功率**: 100.0%
+- **整體狀態**: PASS
 
 ### 報告內容
 - 測試執行摘要
@@ -124,8 +128,8 @@ pip install aiohttp requests psutil
 階段3.1被視為成功完成需要滿足：
 
 1. **所有啟動測試通過** (100%)
+   - 模型服務可以獨立啟動
    - 後端服務可以獨立啟動
-   - 前端服務文件完整可用
    - 端口配置正確
    - 服務獨立性驗證通過
 
@@ -172,7 +176,7 @@ pip install aiohttp requests psutil
 ```bash
 export PYTHONPATH=$PWD
 export LOG_LEVEL=DEBUG
-python run_stage_3_1_tests.py
+python test_proper_sequence.py
 ```
 
 ## 🎯 下一步
@@ -191,6 +195,9 @@ python run_stage_3_1_tests.py
 
 ---
 
-**執行日期**: 2024年7月26日  
+**執行日期**: 2025年8月9日 (最新)  
 **測試版本**: Stage 3.1  
-**架構**: 分離式服務雙循環記憶系統
+**架構**: 分離式服務雙循環記憶系統  
+**主要測試腳本**: `test_proper_sequence.py` (100%成功率)  
+**完整測試套件**: `run_stage_3_1_tests.py` (100%成功率)  
+**測試狀態**: ✅ 已完成並驗證成功

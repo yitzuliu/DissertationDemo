@@ -1,10 +1,11 @@
 # Stage 3.1 Test Record: Service Communication Verification
 
 ## Test Information
-- **Date**: 2025-07-26
+- **Date**: 2025-08-09 (Latest Test Run)
+- **Previous Test Date**: 2025-07-26
 - **Test Phase**: Stage 3.1 - Service Communication Verification and Startup Testing
-- **Test Script**: `tests/stage_3_1/test_proper_sequence.py`
-- **Environment**: ai_vision_env (Python 3.13.3)
+- **Test Script**: `tests/stage_3_1/test_proper_sequence.py` & `run_stage_3_1_tests.py`
+- **Environment**: ai_vision_env (Python 3.11.8)
 
 ## Test Objectives
 1. Verify independent startup of three services (Model, Backend, Frontend)
@@ -15,30 +16,34 @@
 
 ## Test Results Summary
 
-### Final Results: **6/6 Tests Passed (100% Success Rate)**
+### Latest Test Results: **10/10 Tests Passed (100% Success Rate)**
 
 ```
-🎯 階段3.1：正確的服務啟動和通信測試
+🎯 階段3.1：服務間通信驗證與啟動測試
 ============================================================
 ✅ 模型服務啟動成功 (SmolVLM on port 8080)
 ✅ 後端服務啟動成功 (Backend on port 8000)  
-✅ 所有通信測試通過 (6/6 tests)
+✅ 所有通信測試通過 (10/10 tests)
 
 📊 測試結果摘要:
-   通過測試: 6/6
+   通過測試: 10/10
    成功率: 100.0%
 ```
 
-### Detailed Test Results
+### Detailed Test Results (Latest Run: 2025-08-09)
 
 | Test Case | Status | Response Time | Details |
 |-----------|--------|---------------|---------|
-| Backend Health Check | ✅ PASS | ~2s | HTTP 200 response confirmed |
-| Backend Status Endpoint | ✅ PASS | ~1s | System information retrieved |
-| Model Service Communication | ✅ PASS | ~3s | VLM processing through backend |
-| State Tracker Endpoint | ✅ PASS | ~1s | Current state retrieval working |
-| State Tracker VLM Processing | ✅ PASS | ~2s | Text processing functionality verified |
-| State Tracker Instant Query | ✅ PASS | ~1s | Real-time query responses working |
+| Model Service Startup | ✅ PASS | ~20s | SmolVLM service started successfully on port 8080 |
+| Backend Service Startup | ✅ PASS | ~10s | Backend service started successfully on port 8000 |
+| Port Configuration | ✅ PASS | - | All required ports configured correctly |
+| Service Independence | ✅ PASS | - | Services can operate independently |
+| Backend Health Check | ✅ PASS | 2.9ms | HTTP 200 response confirmed |
+| Backend Status Endpoint | ✅ PASS | 3.3ms | System information retrieved |
+| Model Service Communication | ✅ PASS | 3121ms | VLM processing through backend |
+| State Tracker Endpoint | ✅ PASS | 1.2ms | Current state retrieval working |
+| State Tracker VLM Processing | ✅ PASS | 48.8ms | Text processing functionality verified |
+| State Tracker Instant Query | ✅ PASS | 287.4ms | Real-time query responses working |
 
 ## Service Startup Results
 
@@ -64,12 +69,12 @@
 ## Communication Verification
 
 ### API Endpoints Tested
-1. `GET /health` - Backend health check ✅
-2. `GET /status` - Backend system status ✅
-3. `POST /v1/chat/completions` - Model service proxy ✅
-4. `GET /state_tracker/current_state` - State tracker current state ✅
-5. `POST /state_tracker/process_vlm_text` - VLM text processing ✅
-6. `POST /state_tracker/instant_query` - Instant query processing ✅
+1. `GET /health` - Backend health check ✅ (2.9ms)
+2. `GET /status` - Backend system status ✅ (3.3ms)
+3. `POST /v1/chat/completions` - Model service proxy ✅ (3121ms)
+4. `GET /api/v1/state` - State tracker current state ✅ (1.2ms)
+5. `POST /api/v1/state/process` - VLM text processing ✅ (48.8ms)
+6. `POST /api/v1/state/query` - Instant query processing ✅ (287.4ms)
 
 ### Data Flow Validation
 - **VLM → Backend**: Text transmission working ✅
@@ -104,10 +109,13 @@
 
 ## Performance Metrics
 
-### Service Performance
+### Service Performance (Latest Run)
 - **Model Service Startup**: 20s (within acceptable limits)
 - **Backend Service Startup**: 10s (fast startup achieved)
-- **API Response Times**: All endpoints < 5s (target met)
+- **API Response Times**: 
+  - Fast endpoints: <5ms (health, status, state)
+  - Medium endpoints: <300ms (instant query, VLM processing)
+  - Slow endpoints: ~3s (model communication - expected for VLM)
 - **Memory Usage**: System operating within limits
 - **Process Management**: Clean startup and shutdown
 
@@ -153,26 +161,49 @@ With Stage 3.1 completed successfully, the system is prepared for:
 ## Test Environment Details
 
 ### System Information
-- **OS**: macOS
-- **Python**: 3.13.3 (via ai_vision_env)
+- **OS**: macOS (darwin 24.6.0)
+- **Python**: 3.11.8 (via ai_vision_env)
 - **Key Dependencies**: ChromaDB, sentence-transformers, FastAPI, uvicorn
 - **Virtual Environment**: ai_vision_env properly configured
 
 ### File Structure
 ```
 tests/stage_3_1/
-├── test_proper_sequence.py    # Main test script
-└── STAGE_3_1_TEST_RECORD.md   # This test record
+├── test_proper_sequence.py    # Main test script (100% success rate)
+├── run_stage_3_1_tests.py    # Comprehensive test runner
+├── README.md                  # Updated documentation
+├── STAGE_3_1_TEST_RECORD.md  # This test record
+└── stage_3_1_comprehensive_report_20250809_095628.json  # Latest report
 
 src/memory/rag/
 └── knowledge_base.py          # Fixed path resolution
 
-STAGE_3_1_COMPLETE.md          # Completion documentation
+docs/development_stages/
+└── STAGE_3_1_COMPLETE.md     # Completion documentation
 ```
+
+### Test Scripts Status
+- **`test_proper_sequence.py`**: ✅ Main test script, 100% success rate
+- **`run_stage_3_1_tests.py`**: ✅ Comprehensive test runner, 100% success rate
+- **All tests passing**: ✅ No failed tests in any category
+
+## Test History
+
+### Test Run 1: 2025-07-26
+- **Result**: 6/6 tests passed (100%)
+- **Focus**: Basic service communication verification
+- **Status**: ✅ Completed successfully
+
+### Test Run 2: 2025-08-09 (Latest)
+- **Result**: 10/10 tests passed (100%)
+- **Focus**: Comprehensive testing including startup validation
+- **Status**: ✅ Completed successfully
+- **Improvements**: Enhanced test coverage, better performance metrics
 
 ---
 
-**Test Completed**: 2025-07-26 16:30  
-**Test Duration**: ~30 minutes total  
+**Latest Test Completed**: 2025-08-09 09:56  
+**Test Duration**: ~5 minutes per run  
 **Next Test Phase**: Stage 3.2 - Cross-Service Dual Loop Coordination  
-**Tester**: Automated Test Framework
+**Tester**: Automated Test Framework  
+**Test Status**: ✅ COMPLETED SUCCESSFULLY (100% Success Rate)
